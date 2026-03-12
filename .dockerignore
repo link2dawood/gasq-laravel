@@ -1,0 +1,27 @@
+# Dependencies and caches
+/node_modules
+/public/hot
+/public/build
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+*.log
+
+# IDE and OS
+.idea
+.vscode
+*.swp
+.DS_Store
+
+# Git and tests
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose*.yml
+tests
+phpunit.xml
+.phpunit.result.cache

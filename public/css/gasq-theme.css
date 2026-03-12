@@ -1,0 +1,324 @@
+/* GASQ design system – matches src/index.css (Lovable/React theme) */
+:root {
+  --gasq-background: hsl(240, 10%, 98%);
+  --gasq-foreground: hsl(225, 15%, 15%);
+  --gasq-primary: hsl(220, 90%, 25%);
+  --gasq-primary-hover: hsl(220, 90%, 30%);
+  --gasq-primary-foreground: hsl(0, 0%, 100%);
+  --gasq-secondary: hsl(220, 15%, 95%);
+  --gasq-secondary-foreground: hsl(225, 15%, 25%);
+  --gasq-muted: hsl(225, 10%, 50%);
+  --gasq-muted-bg: hsl(220, 15%, 95%);
+  --gasq-accent: hsl(45, 100%, 60%);
+  --gasq-card: hsl(0, 0%, 100%);
+  --gasq-border: hsl(220, 15%, 90%);
+  --gasq-destructive: hsl(0, 84.2%, 60.2%);
+  --gasq-success: hsl(145, 70%, 45%);
+  --gasq-radius: 0.5rem;
+  --gasq-shadow-card: 0 4px 6px -1px rgba(0,0,0,.08), 0 2px 4px -1px rgba(0,0,0,.04);
+  --gasq-shadow-form: 0 10px 25px -5px rgba(6, 45, 121, .1), 0 4px 6px -2px rgba(6, 45, 121, .05);
+}
+
+/* Bootstrap overrides */
+body { background-color: var(--gasq-background); color: var(--gasq-foreground); }
+.bg-gasq-background { background-color: var(--gasq-background); }
+.bg-gasq-card { background-color: var(--gasq-card); }
+.text-gasq-muted { color: var(--gasq-muted); }
+.text-gasq-foreground { color: var(--gasq-foreground) !important; }
+.border-gasq { border-color: var(--gasq-border); }
+
+/* Primary = deep blue (GASQ brand) */
+.btn-primary,
+.bg-primary { background-color: var(--gasq-primary) !important; color: var(--gasq-primary-foreground) !important; border-color: var(--gasq-primary) !important; }
+.btn-primary:hover { background-color: var(--gasq-primary-hover) !important; border-color: var(--gasq-primary-hover) !important; color: var(--gasq-primary-foreground) !important; }
+.btn-outline-primary { color: var(--gasq-primary); border-color: var(--gasq-primary); }
+.btn-outline-primary:hover { background-color: var(--gasq-primary); color: var(--gasq-primary-foreground); border-color: var(--gasq-primary); }
+.btn-primary, .btn-outline-primary { transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.btn-primary:hover, .btn-outline-primary:hover { transform: translateY(-1px); }
+.btn-lg { padding: 0.75rem 1.5rem; font-size: 1.125rem; font-weight: 600; border-radius: var(--gasq-radius); }
+.text-primary { color: var(--gasq-primary) !important; }
+.navbar-brand.text-primary { color: var(--gasq-primary) !important; }
+.badge.bg-primary { background-color: var(--gasq-primary) !important; }
+
+/* Theme navbar – match React: sticky, border-b, bg-background/95, backdrop-blur, muted → foreground on hover */
+.gasq-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1050;
+  border-bottom: 1px solid var(--gasq-border);
+  background: hsla(240, 10%, 98%, 0.95);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+@supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)) {
+  .gasq-navbar {
+    background: hsla(240, 10%, 98%, 0.6);
+  }
+}
+/* Inner Bootstrap nav: no extra background, content aligned right */
+.gasq-navbar .navbar {
+  background: transparent !important;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+/* Nav items + Login as one group on the right (theme: logo left, links right) */
+.gasq-navbar .navbar-collapse {
+  flex-grow: 1;
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+.gasq-navbar .gasq-navbar-nav-right .navbar-nav {
+  flex-wrap: nowrap;
+  gap: 0;
+}
+@media (max-width: 767.98px) {
+  .gasq-navbar .navbar-collapse {
+    justify-content: flex-start;
+  }
+  .gasq-navbar .gasq-navbar-nav-right .navbar-nav {
+    width: 100%;
+  }
+}
+.gasq-navbar .navbar-brand {
+  color: var(--gasq-foreground) !important;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+@media (min-width: 768px) {
+  .gasq-navbar .navbar-nav .nav-link {
+    color: var(--gasq-muted) !important;
+    transition: color 0.2s ease;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  .gasq-navbar .navbar-nav .nav-link:hover,
+  .gasq-navbar .navbar-nav .nav-link:focus {
+    color: var(--gasq-foreground) !important;
+  }
+  .gasq-navbar .navbar-nav .dropdown .nav-link,
+  .gasq-navbar .navbar-nav .dropdown .nav-link.dropdown-toggle {
+    color: var(--gasq-muted) !important;
+  }
+  .gasq-navbar .navbar-nav .dropdown .nav-link:hover,
+  .gasq-navbar .navbar-nav .dropdown .nav-link:focus,
+  .gasq-navbar .navbar-nav .dropdown .nav-link.dropdown-toggle:hover {
+    color: var(--gasq-foreground) !important;
+  }
+}
+.gasq-navbar .navbar-toggler {
+  border-color: var(--gasq-border);
+  color: var(--gasq-foreground);
+}
+.gasq-navbar .navbar-toggler:focus {
+  box-shadow: 0 0 0 0.15rem hsla(220, 90%, 25%, 0.2);
+}
+.gasq-navbar .nav-link:focus-visible {
+  outline: none;
+  color: var(--gasq-foreground) !important;
+}
+/* Mobile: same link colors */
+.gasq-navbar .navbar-collapse .nav-link {
+  color: var(--gasq-muted) !important;
+}
+.gasq-navbar .navbar-collapse .nav-link:hover {
+  color: var(--gasq-foreground) !important;
+}
+
+/* Cards – rounded, border, shadow (match src card) */
+.gasq-card,
+.card.gasq-card {
+  background-color: var(--gasq-card);
+  border: 1px solid var(--gasq-border);
+  border-radius: var(--gasq-radius);
+  box-shadow: var(--gasq-shadow-card);
+}
+.gasq-card .card-header {
+  border-bottom: 1px solid var(--gasq-border);
+  padding: 1rem 1.5rem;
+  background: transparent;
+}
+.gasq-card .card-body { padding: 1.5rem; }
+.gasq-card .card-title { font-size: 1.25rem; font-weight: 600; }
+
+/* Typography – match React scale */
+.gasq-hero-title { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 700; color: var(--gasq-foreground); }
+.gasq-section-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: var(--gasq-foreground); }
+.gasq-hero-lead { font-size: 1.25rem; color: var(--gasq-muted); max-width: 48rem; }
+.gasq-card-title-lg { font-size: 1.5rem; font-weight: 600; }
+.text-gasq-destructive { color: var(--gasq-destructive) !important; }
+.text-gasq-success { color: var(--gasq-success) !important; }
+.gasq-star { color: #eab308; }
+
+/* Hero / section gradients – match React */
+.gasq-hero-bg {
+  background: linear-gradient(135deg, hsla(220, 90%, 25%, 0.05) 0%, var(--gasq-background) 50%, hsla(220, 15%, 95%, 0.05) 100%);
+  padding: 5rem 0;
+}
+@media (min-width: 768px) {
+  .gasq-hero-bg { padding: 5rem 0; }
+}
+.gasq-section { padding: 5rem 0; background-color: var(--gasq-background); }
+.gasq-section-muted { padding: 5rem 0; background-color: hsla(220, 15%, 95%, 0.3); }
+.gasq-cta-bg {
+  padding: 5rem 0;
+  background: linear-gradient(135deg, hsla(220, 90%, 25%, 0.1) 0%, var(--gasq-background) 50%, hsla(220, 15%, 95%, 0.1) 100%);
+}
+/* CTA gradient boxes (auth vs guest) */
+.gasq-cta-box {
+  background: linear-gradient(to right, hsla(220, 90%, 25%, 0.1), hsla(220, 90%, 25%, 0.05), hsla(220, 90%, 25%, 0.1));
+  border: 1px solid hsla(220, 90%, 25%, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--gasq-shadow-form);
+}
+.gasq-cta-box-guest {
+  background: linear-gradient(to right, hsla(220, 15%, 95%, 0.5), hsla(220, 15%, 95%, 0.25), hsla(220, 15%, 95%, 0.5));
+  border: 1px solid hsla(220, 15%, 90%, 0.5);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--gasq-shadow-card);
+}
+/* ROI guarantee section */
+.gasq-roi-section {
+  padding: 4rem 1rem;
+  background: linear-gradient(135deg, var(--gasq-background) 0%, hsla(220, 15%, 95%, 0.2) 100%);
+}
+.gasq-roi-card { border-color: hsla(220, 90%, 25%, 0.2); box-shadow: 0 10px 40px -10px rgba(6, 45, 121, 0.15); }
+
+/* List with check icons */
+.gasq-list-check { list-style: none; padding-left: 0; }
+.gasq-list-check li { padding-left: 1.75rem; position: relative; margin-bottom: 0.5rem; }
+.gasq-list-check li::before { content: ""; position: absolute; left: 0; top: 0.25rem; width: 1.25rem; height: 1.25rem; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2322c55e'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") no-repeat center; background-size: contain; }
+/* Red dot list (e.g. traditional process cons) */
+.gasq-list-dot { list-style: none; padding-left: 0; }
+.gasq-list-dot li { padding-left: 1.25rem; position: relative; margin-bottom: 0.5rem; }
+.gasq-list-dot li::before { content: ""; position: absolute; left: 0; top: 0.5rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--gasq-destructive); }
+
+/* Step number circle */
+.gasq-step-num {
+  width: 2rem; height: 2rem; border-radius: 50%; background: var(--gasq-primary); color: var(--gasq-primary-foreground);
+  display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem;
+}
+
+/* Footer – match React: bg-muted/50, border-t */
+.gasq-footer { background-color: hsla(220, 15%, 95%, 0.5); border-top: 1px solid var(--gasq-border); padding-top: 3rem; padding-bottom: 3rem; }
+.gasq-footer a {
+  transition: color 0.2s ease;
+}
+.gasq-footer a:hover {
+  color: var(--gasq-foreground) !important;
+}
+
+/* Landing page – links and cards match theme (hover, colors) */
+.min-vh-100 .text-gasq-muted.text-decoration-none {
+  transition: color 0.2s ease;
+}
+.min-vh-100 .text-gasq-muted.text-decoration-none:hover {
+  color: var(--gasq-foreground) !important;
+}
+.min-vh-100 .gasq-card.card {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.min-vh-100 .gasq-card.card:hover {
+  box-shadow: var(--gasq-shadow-form);
+  border-color: var(--gasq-primary);
+}
+
+/* Dropdown items – theme hover */
+.gasq-navbar .dropdown-menu .dropdown-item:hover {
+  background-color: hsl(220, 15%, 96%);
+  color: var(--gasq-foreground);
+}
+.gasq-navbar .dropdown-menu .dropdown-item:focus {
+  background-color: hsl(220, 15%, 96%);
+  color: var(--gasq-foreground);
+}
+
+/* Auth: horizontal rule with text (e.g. "or") */
+.hr-text {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--gasq-muted);
+  font-size: 0.875rem;
+}
+.hr-text::before,
+.hr-text::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--gasq-border);
+}
+.hr-text:not(:empty)::before { margin-right: 0.75rem; }
+.hr-text:not(:empty)::after { margin-left: 0.75rem; }
+
+/* Auth form controls – match theme (email, password, inputs, selects) */
+.gasq-card .form-label {
+  color: var(--gasq-foreground);
+  font-weight: 500;
+  margin-bottom: 0.375rem;
+}
+.gasq-card .form-control,
+.gasq-card .form-select {
+  background-color: var(--gasq-card);
+  border: 1px solid var(--gasq-border);
+  border-radius: var(--gasq-radius);
+  color: var(--gasq-foreground);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.gasq-card .form-control::placeholder {
+  color: var(--gasq-muted);
+}
+.gasq-card .form-control:focus,
+.gasq-card .form-select:focus {
+  border-color: var(--gasq-primary);
+  box-shadow: 0 0 0 0.2rem rgba(6, 45, 121, 0.15);
+  background-color: var(--gasq-card);
+  color: var(--gasq-foreground);
+}
+.gasq-card .form-control.is-invalid,
+.gasq-card .form-select.is-invalid {
+  border-color: var(--gasq-destructive);
+}
+.gasq-card .form-control.is-invalid:focus,
+.gasq-card .form-select.is-invalid:focus {
+  border-color: var(--gasq-destructive);
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+}
+.gasq-card .invalid-feedback {
+  color: var(--gasq-destructive);
+}
+.gasq-card .form-check-input {
+  border-color: var(--gasq-border);
+  border-radius: 0.25rem;
+}
+.gasq-card .form-check-input:checked {
+  background-color: var(--gasq-primary);
+  border-color: var(--gasq-primary);
+}
+.gasq-card .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(6, 45, 121, 0.15);
+}
+.gasq-card .form-check-label {
+  color: var(--gasq-foreground);
+}
+
+/* App pages – dashboard, job board, job show, etc. */
+.gasq-page-title { font-size: 1.75rem; font-weight: 700; color: var(--gasq-foreground); }
+.gasq-page-subtitle { color: var(--gasq-muted); font-size: 0.9375rem; }
+.gasq-card.card { transition: box-shadow 0.2s ease, border-color 0.2s ease; }
+.gasq-card.card:hover { box-shadow: var(--gasq-shadow-form); border-color: var(--gasq-primary); }
+.gasq-card.card a.text-decoration-none:hover .gasq-card { border-color: var(--gasq-primary); }
+.breadcrumb { background: transparent; padding: 0; margin-bottom: 0; }
+.breadcrumb-item a { color: var(--gasq-muted); text-decoration: none; transition: color 0.2s ease; }
+.breadcrumb-item a:hover { color: var(--gasq-foreground); }
+.breadcrumb-item.active { color: var(--gasq-foreground); }
+.breadcrumb-item + .breadcrumb-item::before { color: var(--gasq-muted); }
+.alert { border-radius: var(--gasq-radius); border: 1px solid transparent; }
+.gasq-card .alert-success { background-color: hsla(145, 70%, 45%, 0.12); border-color: var(--gasq-success); color: var(--gasq-foreground); }
+.gasq-card .alert-danger { background-color: hsla(0, 84.2%, 60.2%, 0.1); border-color: var(--gasq-destructive); color: var(--gasq-foreground); }
+.list-group-item-action { color: var(--gasq-foreground); transition: background-color 0.15s ease, border-color 0.15s ease; }
+.list-group-item-action:hover { background-color: hsla(220, 15%, 95%, 0.6); border-color: var(--gasq-border); }
+.list-group-item { border-color: var(--gasq-border); }
+.badge.bg-success { background-color: var(--gasq-success) !important; }
+.badge.bg-warning { background-color: hsl(45, 100%, 50%) !important; color: var(--gasq-foreground); }
