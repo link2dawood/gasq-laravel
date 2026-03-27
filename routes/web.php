@@ -11,7 +11,123 @@ Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/payscale', [PageController::class, 'payScale'])->name('payscale');
 Route::get('/payment-model', [PageController::class, 'paymentPolicy'])->name('payment-policy');
-Route::get('/post-coverage-schedule', [PageController::class, 'postCoverageSchedule'])->name('post-coverage-schedule');
+Route::get('/post-coverage-schedule', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('post-coverage-schedule');
+
+// UI-only calculator/marketing pages (match gasq-calculator-project routes)
+Route::get('/gasq-tco-calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('gasq-tco-calculator.index');
+
+Route::get('/absorbed-rate-calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('absorbed-rate-calculator.index');
+
+Route::get('/government-contract-calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('government-contract-calculator.index');
+
+Route::get('/keeps-doors-open-calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('keeps-doors-open-calculator.index');
+
+Route::get('/open-bid-offer', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('open-bid-offer.index');
+
+// Route aliases to match gasq-calculator-project SPA paths
+Route::get('/post-job', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('post-job.index');
+
+Route::get('/calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('calculator.index');
+
+Route::get('/gasq-instant-estimator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('gasq-instant-estimator.index');
+
+// Keep navbar/calculator paths aligned to React UI
+Route::get('/instant-estimator', function () {
+    return redirect('/gasq-instant-estimator');
+})->name('instant-estimator.react-ui');
+
+// UI-only pages (match gasq-calculator-project routes)
+Route::get('/vendor-form', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('vendor-form.index');
+
+Route::get('/register/buyer', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('register.buyer.index');
+
+Route::get('/register/vendor', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('register.vendor.index');
+
+Route::get('/cost-analysis', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('cost-analysis.index');
+
+// React SPA calculator routes (UI preview with matching tab highlight)
+Route::get('/bill-rate-analysis', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('bill-rate-analysis.index');
+
+Route::get('/manpower-hours', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('manpower-hours.index');
+
+Route::get('/economic-justification', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('economic-justification.index');
+
+// React calculator routes (pixel-perfect UI)
+Route::get('/main-menu-calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('main-menu-calculator.react-ui');
+
+Route::get('/contract-analysis', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('contract-analysis.react-ui');
+
+Route::get('/security-billing', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('security-billing.react-ui');
+
+Route::get('/hourly-pay-calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('hourly-pay-calculator.react-ui');
+
+Route::get('/budget-calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('budget-calculator.react-ui');
+
+Route::get('/mobile-patrol-calculator', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('mobile-patrol-calculator.react-ui');
+
+Route::get('/mobile-patrol-comparison', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('mobile-patrol-comparison.react-ui');
+
+Route::get('/unarmed-security-guard-services', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('unarmed-security-guard-services.react-ui');
+
+Route::get('/security-quote', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('security-quote.react-ui');
+
+Route::get('/mobile-patrol-analysis', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('mobile-patrol-analysis.react-ui');
+
+Route::get('/global-security-pricing', function () {
+    return response()->file(public_path('react-ui/index.html'));
+})->name('global-security-pricing.react-ui');
 
 // Public marketplace (view only)
 Route::get('/job-board', [App\Http\Controllers\JobPostingController::class, 'index'])->name('job-board');
@@ -47,28 +163,27 @@ Route::middleware('auth')->group(function () {
     Route::post('/bids/{bid}/respond', [App\Http\Controllers\BidController::class, 'respond'])->name('bids.respond');
     Route::post('/bids/{bid}/counter-offer', [App\Http\Controllers\BidController::class, 'counterOffer'])->name('bids.counter-offer');
 
-    // Calculators
-    Route::get('/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('instant-estimator.index');
-    Route::post('/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index']);
-    Route::get('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.index');
-    Route::post('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index']);
-    Route::get('/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('contract-analysis.index');
-    Route::post('/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index']);
-    Route::get('/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('security-billing.index');
-    Route::post('/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index']);
-    Route::get('/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->name('mobile-patrol.calculator');
-    Route::post('/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator']);
-    Route::get('/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('mobile-patrol.comparison');
-    Route::post('/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison']);
+    // Calculator backend endpoints (non-conflicting; used later for functionality)
+    Route::post('/_backend/security-billing/compute', \App\Http\Controllers\Backend\SecurityBillingComputeController::class)
+        ->name('backend.security-billing.compute');
 
-    // Standalone aliases for React calculators
-    Route::get('/budget-calculator', function () {
-        return redirect()->route('main-menu-calculator.index', ['tab' => 'economic']);
-    })->name('budget-calculator.index');
+    Route::get('/_backend/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('backend.instant-estimator.index');
+    Route::post('/_backend/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('backend.instant-estimator.post');
 
-    Route::get('/hourly-pay-calculator', function () {
-        return redirect()->route('main-menu-calculator.index', ['tab' => 'billrate']);
-    })->name('hourly-pay-calculator.index');
+    Route::get('/_backend/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('backend.main-menu-calculator.index');
+    Route::post('/_backend/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('backend.main-menu-calculator.post');
+
+    Route::get('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.index');
+    Route::post('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.post');
+
+    Route::get('/_backend/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('backend.security-billing.index');
+    Route::post('/_backend/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('backend.security-billing.post');
+
+    Route::get('/_backend/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->name('backend.mobile-patrol.calculator');
+    Route::post('/_backend/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->name('backend.mobile-patrol.calculator.post');
+
+    Route::get('/_backend/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('backend.mobile-patrol.comparison');
+    Route::post('/_backend/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('backend.mobile-patrol.comparison.post');
 
     // PDF reports: download receipt, download/email calculator report
     Route::get('/reports/receipt/{transaction}', [App\Http\Controllers\ReportController::class, 'downloadReceipt'])->name('reports.receipt');

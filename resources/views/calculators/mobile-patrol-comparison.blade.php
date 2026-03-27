@@ -1,12 +1,13 @@
 @extends('layouts.app')
 
 @section('title', 'Mobile Patrol Comparison')
+@section('header_variant', 'dashboard')
 
 @section('content')
 <div class="container py-4">
     <h1 class="h2 mb-4">Mobile Patrol Comparison</h1>
     <x-card title="Compare two scenarios">
-        <form method="POST" action="{{ route('mobile-patrol.comparison') }}">
+        <form method="POST" action="{{ route('backend.mobile-patrol.comparison.post') }}">
             @csrf
             <div class="row">
                 <div class="col-md-6">
@@ -34,6 +35,6 @@
             <x-report-actions report-type="mobile-patrol-comparison" />
         </x-card>
     @endif
-    <p class="mt-3"><a href="{{ route('mobile-patrol.calculator') }}">Single scenario calculator</a></p>
+    <p class="mt-3"><a href="{{ url('/mobile-patrol-calculator') }}">Single scenario calculator</a></p>
 </div>
 @endsection

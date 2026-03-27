@@ -13,6 +13,18 @@
 </head>
 <body class="bg-gasq-background">
     <div id="app">
+        @php
+            $headerVariant = trim($__env->yieldContent('header_variant'));
+            if ($headerVariant === '') {
+                $headerVariant = (auth()->check() && request()->is('home', 'profile*', 'credits*', 'account-balance*', 'discovery-call*', 'jobs*', 'admin*', '_backend*'))
+                    ? 'dashboard'
+                    : 'site';
+            }
+        @endphp
+
+        @if($headerVariant === 'dashboard')
+            @include('partials.header-dashboard')
+        @else
         <header class="gasq-navbar sticky top-0 z-50">
             <div class="container px-4">
                 <nav class="navbar navbar-expand-md navbar-light py-4 align-items-center">
@@ -32,14 +44,14 @@
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle text-gasq-muted" href="#" data-bs-toggle="dropdown">Calculators</a>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}">Main Menu</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('instant-estimator.index') }}">Instant Estimator</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('contract-analysis.index') }}">Contract Analysis</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('security-billing.index') }}">Security Billing</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('budget-calculator.index') }}">Budget Calculator</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('hourly-pay-calculator.index') }}">Hourly Pay Calculator</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol.calculator') }}">Mobile Patrol</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol.comparison') }}">Mobile Patrol Comparison</a></li>
+                                        <li><a class="dropdown-item" href="{{ url('/main-menu-calculator') }}">Main Menu</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('gasq-instant-estimator.index') }}">Instant Estimator</a></li>
+                                        <li><a class="dropdown-item" href="{{ url('/contract-analysis') }}">Contract Analysis</a></li>
+                                        <li><a class="dropdown-item" href="{{ url('/security-billing') }}">Security Billing</a></li>
+                                        <li><a class="dropdown-item" href="{{ url('/budget-calculator') }}">Budget Calculator</a></li>
+                                        <li><a class="dropdown-item" href="{{ url('/hourly-pay-calculator') }}">Hourly Pay Calculator</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol-calculator.react-ui') }}">Mobile Patrol</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol-comparison.react-ui') }}">Mobile Patrol Comparison</a></li>
                                     </ul>
                                 </li>
                             @endauth
@@ -74,7 +86,7 @@
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="{{ route('credits') }}"><i class="fa fa-coins me-2"></i>Buy Credits</a></li>
                                         <li><a class="dropdown-item" href="{{ route('profile.show') }}"><i class="fa fa-user me-2"></i>Profile</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Dashboard</a></li>
+                                        <li><a class="dropdown-item" href="{{ url('/main-menu-calculator') }}"><i class="fa fa-calculator me-2"></i>Dashboard</a></li>
                                         @if(auth()->user()->isBuyer() || auth()->user()->isVendor())
                                             <li><a class="dropdown-item" href="{{ route('jobs.index') }}">My Jobs</a></li>
                                         @endif
@@ -98,6 +110,7 @@
                 </nav>
             </div>
         </header>
+        @endif
 
         <main class="py-4">
             @if(session('success'))

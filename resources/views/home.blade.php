@@ -35,7 +35,7 @@
                     </a>
                 </div>
                 <div class="col-sm-6 col-lg-4">
-                    <a href="{{ route('main-menu-calculator.index') }}" class="text-decoration-none">
+                    <a href="{{ url('/main-menu-calculator') }}" class="text-decoration-none">
                         <div class="gasq-card card h-100 border p-3 d-flex align-items-center gap-3">
                             <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
                                 <i class="fa fa-calculator"></i>

@@ -6,7 +6,7 @@
 <div class="container py-4">
     <h1 class="h2 mb-4">Mobile Patrol Calculator</h1>
     <x-card title="Single scenario">
-        <form method="POST" action="{{ route('mobile-patrol.calculator') }}">
+        <form method="POST" action="{{ route('backend.mobile-patrol.calculator.post') }}">
             @csrf
             <div class="row">
                 <div class="col-md-4 mb-3">
@@ -32,6 +32,6 @@
             <x-report-actions report-type="mobile-patrol" />
         </x-card>
     @endif
-    <p class="mt-3"><a href="{{ route('mobile-patrol.comparison') }}">Compare two scenarios</a></p>
+    <p class="mt-3"><a href="{{ url('/mobile-patrol-comparison') }}">Compare two scenarios</a></p>
 </div>
 @endsection

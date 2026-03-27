@@ -6,7 +6,7 @@
 <div class="container py-4">
     <h1 class="h2 mb-4">GASQ Instant Estimator</h1>
     <x-card title="Estimate security cost">
-        <form method="POST" action="{{ route('instant-estimator.index') }}">
+        <form method="POST" action="{{ route('backend.instant-estimator.post') }}">
             @csrf
             <div class="row">
                 <div class="col-md-4 mb-3">

@@ -7,12 +7,13 @@
     <h1 class="h2 mb-4">Main Menu Calculator</h1>
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item"><a class="nav-link {{ $activeTab === 'security' ? 'active' : '' }}" href="?tab=security">Security Cost</a></li>
-        <li class="nav-item"><a class="nav-link {{ $activeTab === 'manpower' ? 'active' : '' }}" href="?tab=manpower">Manpower</a></li>
-        <li class="nav-item"><a class="nav-link {{ $activeTab === 'economic' ? 'active' : '' }}" href="?tab=economic">Economic</a></li>
+        <li class="nav-item"><a class="nav-link {{ $activeTab === 'manpower' ? 'active' : '' }}" href="?tab=manpower">Manpower Hours</a></li>
+        <li class="nav-item"><a class="nav-link {{ $activeTab === 'economic' ? 'active' : '' }}" href="?tab=economic">Economic ROI</a></li>
+        <li class="nav-item"><a class="nav-link {{ $activeTab === 'justification' ? 'active' : '' }}" href="{{ url('/economic-justification') }}">Economic Justification</a></li>
         <li class="nav-item"><a class="nav-link {{ $activeTab === 'billrate' ? 'active' : '' }}" href="?tab=billrate">Bill Rate</a></li>
     </ul>
 
-    <form method="POST" action="{{ route('main-menu-calculator.index') }}">
+    <form method="POST" action="{{ route('backend.main-menu-calculator.post') }}">
         @csrf
         <input type="hidden" name="tab" value="{{ $activeTab }}">
 
@@ -108,6 +109,17 @@
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Calculate</button>
+            </x-card>
+        @endif
+
+        @if($activeTab === 'justification')
+            <x-card title="Economic justification">
+                <div class="text-gasq-muted mb-3">
+                    This tab is available in the React project as a separate route.
+                    In Laravel, this area is handled by the UI-only page at
+                    <a href="{{ url('/economic-justification') }}">/economic-justification</a>.
+                </div>
+                <a class="btn btn-outline-primary" href="{{ url('/economic-justification') }}">Open Economic Justification</a>
             </x-card>
         @endif
     </form>

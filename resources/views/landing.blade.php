@@ -14,7 +14,7 @@
                     <a href="{{ route('job-board') }}" class="btn btn-primary btn-lg px-4 py-3 shadow">
                         <i class="fa fa-briefcase me-2"></i>View Available Jobs
                     </a>
-                    <a href="{{ route('instant-estimator.index') }}" class="btn btn-outline-primary btn-lg px-4 py-3">
+                    <a href="{{ url('/gasq-instant-estimator') }}" class="btn btn-outline-primary btn-lg px-4 py-3">
                         <i class="fa fa-calculator me-2"></i>Calculate Your Savings
                     </a>
                 @else
@@ -102,7 +102,7 @@
                             <p class="small text-gasq-muted mt-2 mb-0">Browse active security job postings and submit competitive bids</p>
                         </div>
                         <div class="col-md-6">
-                            <a href="{{ route('instant-estimator.index') }}" class="btn btn-outline-primary w-100 py-3">
+                            <a href="{{ url('/gasq-instant-estimator') }}" class="btn btn-outline-primary w-100 py-3">
                                 <i class="fa fa-calculator me-2"></i>Calculate Your Savings
                             </a>
                             <p class="small text-gasq-muted mt-2 mb-0">Compare costs between in-house vs outsourced security</p>
@@ -141,7 +141,7 @@
                 </div>
             </div>
             <div class="text-center">
-                <a href="{{ route('contract-analysis.index') }}" class="btn btn-primary btn-lg">Start My Free Analysis →</a>
+                <a href="{{ url('/contract-analysis') }}" class="btn btn-primary btn-lg">Start My Free Analysis →</a>
             </div>
         </div>
     </section>
@@ -307,7 +307,7 @@
                     <div class="gasq-card card p-4 p-lg-5 h-100">
                         <h3 class="gasq-card-title-lg mb-2">For Buyers</h3>
                         <p class="text-gasq-muted mb-4">Get a comprehensive cost-benefit analysis and connect with qualified vendors</p>
-                        <a href="{{ route('contract-analysis.index') }}" class="btn btn-primary w-100 py-3">Get Your Free Cost-Benefit Analysis →</a>
+                        <a href="{{ url('/contract-analysis') }}" class="btn btn-primary w-100 py-3">Get Your Free Cost-Benefit Analysis →</a>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -337,7 +337,7 @@
             <div class="col-md-3">
                 <h4 class="h6 fw-semibold mb-3">For Buyers</h4>
                 <ul class="list-unstyled small">
-                    <li><a href="{{ route('contract-analysis.index') }}" class="text-gasq-muted text-decoration-none">Cost-Benefit Analysis</a></li>
+                    <li><a href="{{ url('/contract-analysis') }}" class="text-gasq-muted text-decoration-none">Cost-Benefit Analysis</a></li>
                     <li><a href="{{ route('jobs.create') }}" class="text-gasq-muted text-decoration-none">Post RFQ</a></li>
                     <li><a href="{{ route('register') }}" class="text-gasq-muted text-decoration-none">Register as Buyer</a></li>
                 </ul>
