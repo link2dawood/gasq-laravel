@@ -1,0 +1,27 @@
+{
+  "kpis": {
+    "quick": {
+      "basePayRate": 18,
+      "benefitsAmt": 3.6,
+      "burdenedCost": 21.6,
+      "overheadAmt": 7.56,
+      "withOverhead": 29.16,
+      "billRate": 34.31,
+      "markupPct": 90.6,
+      "weeklyAt40": 1372.4
+    },
+    "components": {
+      "totalBillRate": 59.16,
+      "rows": [
+        { "key": "wages", "label": "Wages & Benefits", "value": 41.05, "pct": 69.39 },
+        { "key": "taxes", "label": "Taxes & Insurance", "value": 10.96, "pct": 18.52 },
+        { "key": "training", "label": "Training Costs", "value": 2.02, "pct": 3.41 },
+        { "key": "recruiting", "label": "Recruiting, Screening & Drug Testing", "value": 0.09, "pct": 0.15 },
+        { "key": "uniforms", "label": "Uniforms & Equipment", "value": 1.47, "pct": 2.48 },
+        { "key": "overhead", "label": "Overhead", "value": 0.5, "pct": 0.85 },
+        { "key": "profit", "label": "Profit", "value": 3.07, "pct": 5.19 }
+      ]
+    }
+  }
+}
+

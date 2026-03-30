@@ -139,9 +139,13 @@ Route::middleware('auth')->group(function () {
     // Calculator backend endpoints (non-conflicting; used later for functionality)
     Route::post('/_backend/security-billing/compute', \App\Http\Controllers\Backend\SecurityBillingComputeController::class)
         ->name('backend.security-billing.compute');
+    Route::post('/_backend/security-billing/v24/compute', \App\Http\Controllers\Backend\SecurityBillingV24ComputeController::class)
+        ->name('backend.security-billing.v24.compute');
 
     Route::get('/_backend/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('backend.instant-estimator.index');
     Route::post('/_backend/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('backend.instant-estimator.post');
+    Route::post('/_backend/instant-estimator/compute', \App\Http\Controllers\Backend\InstantEstimatorComputeController::class)
+        ->name('backend.instant-estimator.compute');
 
     Route::get('/_backend/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('backend.main-menu-calculator.index');
     Route::post('/_backend/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('backend.main-menu-calculator.post');
@@ -150,12 +154,29 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.index');
     Route::post('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.post');
+    Route::post('/_backend/contract-analysis/v24/compute', \App\Http\Controllers\Backend\ContractAnalysisV24ComputeController::class)
+        ->name('backend.contract-analysis.v24.compute');
 
     Route::get('/_backend/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('backend.security-billing.index');
     Route::post('/_backend/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('backend.security-billing.post');
 
     Route::get('/_backend/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->name('backend.mobile-patrol.calculator');
     Route::post('/_backend/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->name('backend.mobile-patrol.calculator.post');
+    Route::post('/_backend/mobile-patrol/v24/compute', \App\Http\Controllers\Backend\MobilePatrolV24ComputeController::class)
+        ->name('backend.mobile-patrol.v24.compute');
+
+    Route::post('/_backend/standalone/{type}/v24/compute', \App\Http\Controllers\Backend\StandaloneV24ComputeController::class)
+        ->whereIn('type', [
+            'cost-analysis',
+            'bill-rate-analysis',
+            'manpower-hours',
+            'economic-justification',
+            'hourly-pay-calculator',
+            'budget-calculator',
+            'mobile-patrol-analysis',
+            'global-security-pricing',
+        ])
+        ->name('backend.standalone.v24.compute');
 
     Route::get('/_backend/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('backend.mobile-patrol.comparison');
     Route::post('/_backend/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('backend.mobile-patrol.comparison.post');

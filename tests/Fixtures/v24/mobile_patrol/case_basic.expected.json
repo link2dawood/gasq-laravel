@@ -1,0 +1,18 @@
+{
+  "kpis": {
+    "hoursPerYear": 8760,
+    "annualWageCost": 325872,
+    "milesDrivenPerYear": 131400,
+    "fuelGallonsPerYear": 6570,
+    "annualFuelCost": 16884.9,
+    "oilChangesPerYear": 21.9,
+    "annualOilChangeCost": 700.8,
+    "preMarkupCost": 358137.7,
+    "dailyCost": 1344.1,
+    "weeklyCost": 9438.5,
+    "monthlyCost": 40876.06,
+    "annualCost": 490599.59,
+    "hourlyBillableRate": 56.0
+  }
+}
+

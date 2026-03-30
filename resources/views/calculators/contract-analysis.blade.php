@@ -205,66 +205,76 @@ function recalc(){
   window._ca = { totalHrs, totalOt, totalRev, totalPay };
 }
 
-function runAnalysis(){
+async function runAnalysis(){
   recalc();
-  const { totalHrs, totalRev, totalPay } = window._ca||{};
-  const annualHrs = totalHrs * 52;
-  const annualRev = totalRev * 52;
-  const annualPay = totalPay * 52;
-  const gm = annualRev - annualPay;
-  const avgBill = totalHrs>0 ? totalRev/totalHrs : 0;
-  const avgPay = totalHrs>0 ? totalPay/totalHrs : 0;
-  const gphr = avgBill - avgPay;
-  const dlr = avgBill>0 ? (avgPay/avgBill)*100 : 0;
-  const gmPct = annualRev>0 ? (gm/annualRev)*100 : 0;
+  const cats = rows.map(id=>({
+    category: document.getElementById('cat-'+id)?.value||'',
+    armed: gb('armed-'+id),
+    weeklyHours: gv('hrs-'+id),
+    payRate: gv('pay-'+id),
+    billRate: gv('bill-'+id),
+    otHours: gv('ot-'+id),
+  }));
 
-  setText('ph_avgBillRate', fmt(avgBill)+'/hr');
-  setText('ph_avgPayRate', fmt(avgPay)+'/hr');
-  setText('ph_gphr', fmt(gphr)+'/hr');
-  setText('ph_dlr', dlr.toFixed(1)+'%');
-  setText('ph_annualHrs', fmtN(annualHrs,0));
-  setText('ph_annualRev', fmt(annualRev));
-  setText('ph_annualPay', fmt(annualPay));
-  setText('ph_annualGM', fmt(gm));
+  const payload = { version:'v24', scenario:{ categories: cats } };
+  const res = await fetch('{{ route('backend.contract-analysis.v24.compute') }}', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept':'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); return; }
 
-  // Per-row breakdown
+  const ph = data.perHour||{};
+  setText('ph_avgBillRate', fmt(ph.avgBillRateWeighted||0)+'/hr');
+  setText('ph_avgPayRate', fmt(ph.avgPayRateWeighted||0)+'/hr');
+  setText('ph_gphr', fmt(ph.grossMarginPerHour||0)+'/hr');
+  setText('ph_dlr', (ph.directLaborRatioPct||0).toFixed(1)+'%');
+  setText('ph_annualHrs', fmtN(ph.annualHours||0,0));
+  setText('ph_annualRev', fmt(ph.annualRevenue||0));
+  setText('ph_annualPay', fmt(ph.annualPayCost||0));
+  setText('ph_annualGM', fmt(ph.annualGrossMargin||0));
+
   const bd = document.getElementById('ph_breakdown');
-  bd.innerHTML = rows.map((id,i)=>{
-    const cat = document.getElementById('cat-'+id)?.value||'Category';
-    const hrs = gv('hrs-'+id), bill = gv('bill-'+id), pay = gv('pay-'+id);
-    const rev = hrs*bill*52, cost = hrs*pay*52, margin = rev>0 ? ((rev-cost)/rev)*100 : 0;
-    return `<div class="d-flex justify-content-between align-items-center small p-2 rounded" style="background:var(--gasq-muted-bg)">
-      <span class="text-gasq-muted">${cat}</span>
-      <span class="fw-medium">${fmtN(hrs,1)} hrs/wk · ${fmt(bill)}/hr · <span class="${margin>0?'text-success':'text-danger'}">${margin.toFixed(1)}% margin</span></span>
-    </div>`;
-  }).join('');
+  if(bd){
+    bd.innerHTML = (data.rows||[]).map(r=>{
+      const hrs = r.weeklyHours||0, bill = r.billRate||0, pay = r.payRate||0;
+      const rev = hrs*bill*52, cost = hrs*pay*52, margin = rev>0 ? ((rev-cost)/rev)*100 : 0;
+      return `<div class="d-flex justify-content-between align-items-center small p-2 rounded" style="background:var(--gasq-muted-bg)">
+        <span class="text-gasq-muted">${r.category||'Category'}</span>
+        <span class="fw-medium">${fmtN(hrs,1)} hrs/wk · ${fmt(bill)}/hr · <span class="${margin>0?'text-success':'text-danger'}">${margin.toFixed(1)}% margin</span></span>
+      </div>`;
+    }).join('');
+  }
 
-  // Summary table
+  const sum = data.summary||{};
   const sumRows = [
-    ['Total Weekly Hours', fmtN(totalHrs,1)],
-    ['Total Weekly Revenue', fmt(totalRev)],
-    ['Total Weekly Pay Cost', fmt(totalPay)],
-    ['Weekly Gross Margin', fmt(totalRev-totalPay)],
+    ['Total Weekly Hours', fmtN((data.footers||{}).totalWeeklyHours||0,1)],
+    ['Total Weekly Revenue', fmt((data.footers||{}).totalWeeklyRevenue||0)],
+    ['Total Weekly Pay Cost', fmt((data.footers||{}).totalWeeklyPayCost||0)],
+    ['Weekly Gross Margin', fmt(((data.footers||{}).totalWeeklyRevenue||0)-((data.footers||{}).totalWeeklyPayCost||0))],
     ['—',''],
-    ['Annual Hours', fmtN(annualHrs,0)],
-    ['Annual Revenue', fmt(annualRev)],
-    ['Annual Pay Cost', fmt(annualPay)],
-    ['Annual Gross Margin', fmt(gm)],
-    ['Margin %', gmPct.toFixed(1)+'%'],
-    ['Avg Bill Rate', fmt(avgBill)+'/hr'],
-    ['Avg Pay Rate', fmt(avgPay)+'/hr'],
-    ['Direct Labor Ratio', dlr.toFixed(1)+'%'],
+    ['Annual Hours', fmtN(sum.annualHours||0,0)],
+    ['Annual Revenue', fmt(sum.annualRevenue||0)],
+    ['Annual Pay Cost', fmt(sum.annualPayCost||0)],
+    ['Annual Gross Margin', fmt(sum.grossMargin||0)],
+    ['Avg Bill Rate', fmt(ph.avgBillRateWeighted||0)+'/hr'],
+    ['Avg Pay Rate', fmt(ph.avgPayRateWeighted||0)+'/hr'],
+    ['Direct Labor Ratio', (ph.directLaborRatioPct||0).toFixed(1)+'%'],
   ];
   document.getElementById('sum-table').innerHTML = sumRows.map(([k,v])=>{
     if(v==='') return `<tr><td colspan="2" class="fw-semibold small py-2 text-gasq-muted pt-3">${k}</td></tr>`;
     return `<tr><td class="small">${k}</td><td class="text-end small font-monospace">${v}</td></tr>`;
   }).join('');
-  setText('sum_annualHrs', fmtN(annualHrs,0));
-  setText('sum_annualRev', fmt(annualRev));
-  setText('sum_annualPay', fmt(annualPay));
-  setText('sum_gm', fmt(gm));
+  setText('sum_annualHrs', fmtN(sum.annualHours||0,0));
+  setText('sum_annualRev', fmt(sum.annualRevenue||0));
+  setText('sum_annualPay', fmt(sum.annualPayCost||0));
+  setText('sum_gm', fmt(sum.grossMargin||0));
 
-  // Switch to analysis tab
   document.querySelector('[href="#ca-analysis"]').click();
 }
 

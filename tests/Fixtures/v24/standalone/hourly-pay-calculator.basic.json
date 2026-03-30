@@ -1,0 +1,2 @@
+{ "version":"v24", "scenario": { "meta": { "hourlyRate":18, "regularHours":40, "otHours":0, "doubleTimeHours":0, "fedTaxPct":12, "stateTaxPct":5, "ficaPct":6.2, "medicarePct":1.45, "healthWeekly":0, "otherWeekly":0 } } }
+

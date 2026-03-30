@@ -198,44 +198,75 @@ function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:
 function g(id){return parseFloat(document.getElementById(id)?.value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-function calcQuickBR(){
-  const base = g('qbr_base'), benefitsPct = g('qbr_benefits')/100;
-  const overheadPct = g('qbr_overhead')/100, profitPct = g('qbr_profit')/100;
-  const benefitsAmt = base * benefitsPct;
-  const burdened = base + benefitsAmt;
-  const overheadAmt = burdened * overheadPct;
-  const withOverhead = burdened + overheadAmt;
-  const billRate = withOverhead / (1 - profitPct);
-  const markup = base>0 ? ((billRate-base)/base)*100 : 0;
+async function calcQuickBR(){
+  const payload = {
+    version:'v24',
+    scenario:{ meta:{ quick:{ basePayRate:g('qbr_base'), benefitsPct:g('qbr_benefits'), overheadPct:g('qbr_overhead'), profitPct:g('qbr_profit') } } }
+  };
+  // include components too so backend can return both blocks
+  payload.scenario.meta.components = {
+    wages:g('bc_wages'), taxes:g('bc_taxes'), training:g('bc_training'), recruiting:g('bc_recruiting'),
+    uniforms:g('bc_uniforms'), overhead:g('bc_overhead'), profit:g('bc_profit')
+  };
+  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'bill-rate-analysis']) }}', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept':'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); return; }
+  const out = (data.kpis||{}).quick||{};
 
-  setText('qr_base', fmt(base)+'/hr');
-  setText('qr_benefitsAmt', '+'+fmt(benefitsAmt)+'/hr');
-  setText('qr_burdened', fmt(burdened)+'/hr');
-  setText('qr_burdened2', fmt(burdened)+'/hr');
-  setText('qr_overheadAmt', '+'+fmt(overheadAmt)+'/hr');
-  setText('qr_withOverhead', fmt(withOverhead)+'/hr');
-  setText('qr_billRate', fmt(billRate));
-  setText('qr_markup', markup.toFixed(1)+'%');
-  setText('qr_weekly', fmt(billRate*40));
+  setText('qr_base', fmt(out.basePayRate||0)+'/hr');
+  setText('qr_benefitsAmt', '+'+fmt(out.benefitsAmt||0)+'/hr');
+  setText('qr_burdened', fmt(out.burdenedCost||0)+'/hr');
+  setText('qr_burdened2', fmt(out.burdenedCost||0)+'/hr');
+  setText('qr_overheadAmt', '+'+fmt(out.overheadAmt||0)+'/hr');
+  setText('qr_withOverhead', fmt(out.withOverhead||0)+'/hr');
+  setText('qr_billRate', fmt(out.billRate||0));
+  setText('qr_markup', (out.markupPct||0).toFixed(1)+'%');
+  setText('qr_weekly', fmt(out.weeklyAt40||0));
 }
 
-function calcComponents(){
-  const vals = COMP_IDS.map((id,i)=>({id,label:COMP_LABELS[i],val:g(id),color:COMP_COLORS[i]}));
-  const total = vals.reduce((s,c)=>s+c.val,0);
-  setText('bcc_total', fmt(total));
+async function calcComponents(){
+  await calcQuickBR(); // compute endpoint returns both quick + component breakdown
+  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'bill-rate-analysis']) }}', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept':'application/json'
+    },
+    body: JSON.stringify({
+      version:'v24',
+      scenario:{ meta:{ components:{
+        wages:g('bc_wages'), taxes:g('bc_taxes'), training:g('bc_training'), recruiting:g('bc_recruiting'),
+        uniforms:g('bc_uniforms'), overhead:g('bc_overhead'), profit:g('bc_profit')
+      } } }
+    })
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); return; }
+  const out = (data.kpis||{}).components||{};
+  setText('bcc_total', fmt(out.totalBillRate||0));
   const bd = document.getElementById('bcc_breakdown');
-  bd.innerHTML = vals.filter(c=>c.val>0).map(c=>{
-    const pct = total>0 ? (c.val/total)*100 : 0;
+  bd.innerHTML = (out.rows||[]).filter(c=>(c.value||0)>0).map((c,i)=>{
+    const pct = c.pct||0;
+    const color = COMP_COLORS[i%COMP_COLORS.length];
     return `<div>
       <div class="d-flex justify-content-between small mb-1">
         <div class="d-flex align-items-center gap-2">
-          <span class="rounded-circle d-inline-block" style="width:10px;height:10px;background:${c.color}"></span>
+          <span class="rounded-circle d-inline-block" style="width:10px;height:10px;background:${color}"></span>
           <span class="text-gasq-muted">${c.label}</span>
         </div>
-        <span class="fw-medium">${fmt(c.val)} (${pct.toFixed(1)}%)</span>
+        <span class="fw-medium">${fmt(c.value||0)} (${pct.toFixed(1)}%)</span>
       </div>
       <div class="progress mb-1" style="height:6px">
-        <div class="progress-bar" style="width:${pct.toFixed(1)}%;background:${c.color}"></div>
+        <div class="progress-bar" style="width:${pct.toFixed(1)}%;background:${color}"></div>
       </div>
     </div>`;
   }).join('');

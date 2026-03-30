@@ -1,0 +1,10 @@
+{
+  "version": "v24",
+  "scenario": {
+    "categories": [
+      { "category": "Access Control Officer", "armed": false, "weeklyHours": 54, "payRate": 18, "billRate": 26.5, "otHours": 0 },
+      { "category": "Unarmed Security Officer", "armed": false, "weeklyHours": 40, "payRate": 16, "billRate": 24, "otHours": 4 }
+    ]
+  }
+}
+

@@ -1,0 +1,2 @@
+{ "version":"v24", "scenario": { "meta": { "coverageHoursPerDay":24, "shiftPattern":"8-hour", "schedulingFactor":1.4, "maxHoursPerGuardPerWeek":40 } } }
+

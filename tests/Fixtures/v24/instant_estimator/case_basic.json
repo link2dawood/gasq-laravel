@@ -1,0 +1,10 @@
+{
+  "version": "v24",
+  "scenario": {
+    "posts": [
+      { "postName": "Post 1", "positionTitle": "unarmed", "weeklyHours": 40, "qtyRequired": 1 }
+    ],
+    "meta": { "locationState": "california", "serviceType": "unarmed", "hoursPerWeek": 40, "guards": 1 }
+  }
+}
+

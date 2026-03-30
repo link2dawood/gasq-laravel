@@ -142,43 +142,49 @@ function fmtN(v,dec=1){return new Intl.NumberFormat('en-US',{minimumFractionDigi
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-function calcMH(){
+async function calcMH(){
   const coverage = g('mh_coverage');
   const shiftEl = document.querySelector('[name=mh_shift]:checked');
   const shiftVal = shiftEl?.value||'8-hour';
-  const shiftMul = SHIFT_MULTIPLIERS[shiftVal]||3;
   const factor = g('mh_factor');
   const maxHrs = g('mh_maxHrs')||40;
 
-  const requiredHrsPerDay = coverage * shiftMul * factor;
-  const weekly = requiredHrsPerDay * 7;
-  const monthly = requiredHrsPerDay * 30;
-  const annual = requiredHrsPerDay * 365;
-  const guards = Math.ceil(weekly / maxHrs);
+  const payload = { version:'v24', scenario:{ meta:{ coverageHoursPerDay:coverage, shiftPattern:shiftVal, schedulingFactor:factor, maxHoursPerGuardPerWeek:maxHrs } } };
+  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'manpower-hours']) }}', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept':'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); return; }
+  const out = data.kpis||{};
 
-  setText('r_daily', fmtN(requiredHrsPerDay,1));
-  setText('r_weekly', fmtN(weekly,1));
-  setText('r_monthly', fmtN(monthly,1));
-  setText('r_annual', fmtN(annual,1));
-  setText('r_guards', guards);
-  setText('r_maxHrs', maxHrs);
-  setText('d_coverage', coverage+' hrs');
-  setText('d_multiplier', shiftMul.toFixed(1)+'x');
-  setText('d_factor', factor.toFixed(2)+'x');
-  setText('d_requiredHrs', fmtN(requiredHrsPerDay,1)+' hrs');
-  setText('d_weeklyRequired', fmtN(weekly,1)+' hrs');
+  setText('r_daily', fmtN(out.dailyHours||0,1));
+  setText('r_weekly', fmtN(out.weeklyHours||0,1));
+  setText('r_monthly', fmtN(out.monthlyHours||0,1));
+  setText('r_annual', fmtN(out.annualHours||0,1));
+  setText('r_guards', out.guardsRequired||0);
+  setText('r_maxHrs', (out.details||{}).maxHoursPerGuardPerWeek||maxHrs);
+  setText('d_coverage', ((out.details||{}).coverageHoursPerDay||coverage)+' hrs');
+  setText('d_multiplier', ((out.details||{}).shiftMultiplier||0).toFixed(1)+'x');
+  setText('d_factor', ((out.details||{}).schedulingFactor||0).toFixed(2)+'x');
+  setText('d_requiredHrs', fmtN((out.details||{}).requiredDailyLaborHours||0,1)+' hrs');
+  setText('d_weeklyRequired', fmtN((out.details||{}).requiredWeeklyLaborHours||0,1)+' hrs');
 
   // Matrix
   const tbody = document.getElementById('mh_matrix');
-  tbody.innerHTML = SHIFTS_LIST.map(([shiftName, mul])=>{
-    const wkHrs = coverage * mul * factor * 7;
-    const gRequired = Math.ceil(wkHrs / maxHrs);
+  tbody.innerHTML = (out.matrix||[]).map((r)=>{
+    const shiftName = r.shiftPattern||'';
     const active = shiftName === shiftVal;
     return `<tr class="${active?'table-primary fw-semibold':''}">
       <td>${shiftName.charAt(0).toUpperCase()+shiftName.slice(1)}</td>
-      <td class="text-center">${mul.toFixed(1)}x</td>
-      <td class="text-center">${fmtN(wkHrs,1)}</td>
-      <td class="text-center"><span class="badge ${active?'bg-primary':'text-bg-secondary'}">${gRequired}</span></td>
+      <td class="text-center">${(r.multiplier||0).toFixed(1)}x</td>
+      <td class="text-center">${fmtN(r.weeklyHours||0,1)}</td>
+      <td class="text-center"><span class="badge ${active?'bg-primary':'text-bg-secondary'}">${r.guardsNeeded||0}</span></td>
     </tr>`;
   }).join('');
 }

@@ -1,0 +1,16 @@
+{
+  "kpis": {
+    "inHouseWeekly": 22344,
+    "inHouseMonthly": 96824,
+    "inHouseAnnual": 1161888,
+    "vendorHourly": 93.1,
+    "vendorWeekly": 15640.8,
+    "vendorMonthly": 67776.8,
+    "vendorAnnual": 813321.6,
+    "savings": 348566.4,
+    "roiPct": 30,
+    "paybackMonths": 8.4,
+    "dollarForDollar": 0.43
+  }
+}
+

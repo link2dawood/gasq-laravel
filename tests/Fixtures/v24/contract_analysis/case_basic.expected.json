@@ -1,0 +1,25 @@
+{
+  "footers": {
+    "totalWeeklyHours": 94,
+    "totalWeeklyOtHours": 4,
+    "totalWeeklyRevenue": 3773,
+    "totalWeeklyPayCost": 1976
+  },
+  "perHour": {
+    "avgBillRateWeighted": 40.14,
+    "avgPayRateWeighted": 21.02,
+    "grossMarginPerHour": 19.12,
+    "directLaborRatioPct": 52.4,
+    "annualHours": 4888,
+    "annualRevenue": 196196,
+    "annualPayCost": 102752,
+    "annualGrossMargin": 93444
+  },
+  "summary": {
+    "annualHours": 4888,
+    "annualRevenue": 196196,
+    "annualPayCost": 102752,
+    "grossMargin": 93444
+  }
+}
+

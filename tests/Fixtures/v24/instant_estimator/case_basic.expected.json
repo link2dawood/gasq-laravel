@@ -1,0 +1,12 @@
+{
+  "kpis": {
+    "livingWageBase": 19.41,
+    "withOverheadHourly": 25.23,
+    "serviceMultiplier": 1,
+    "estimatedHourlyRate": 25.23,
+    "estimatedWeeklyTotal": 1009.32,
+    "estimatedMonthlyTotal": 4371.37,
+    "estimatedAnnualTotal": 52484.64
+  }
+}
+

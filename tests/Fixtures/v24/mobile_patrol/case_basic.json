@@ -1,0 +1,22 @@
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "hoursPerDay": 24,
+      "daysPerYear": 365,
+      "patrolmanHourlyWage": 30,
+      "payrollBurdenPercent": 24,
+      "vehicleAnnualFinanceCost": 7980,
+      "milesDrivenPerDay": 360,
+      "milesPerGallon": 20,
+      "fuelPricePerGallon": 2.57,
+      "annualRepairs": 4000,
+      "tiresAnnualCost": 1200,
+      "oilChangeCostPerService": 32,
+      "milesBetweenOilChanges": 6000,
+      "autoInsuranceAnnualCost": 1500,
+      "markupPercent": 27
+    }
+  }
+}
+

@@ -158,7 +158,7 @@ function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-function calcBudget(){
+async function calcBudget(){
   const total = g('bg_total');
   const pcts = CATS.map(c=>({...c, pct:g(c.id)}));
   const sumPct = pcts.reduce((s,c)=>s+c.pct,0);
@@ -203,6 +203,19 @@ function calcBudget(){
   if(laborPct<55){ laborStatus.textContent='Below benchmark'; laborStatus.className='fw-medium text-warning'; }
   else if(laborPct>70){ laborStatus.textContent='Above benchmark'; laborStatus.className='fw-medium text-danger'; }
   else{ laborStatus.textContent='Within benchmark'; laborStatus.className='fw-medium text-success'; }
+
+  // Also publish basic budget KPIs via backend (keeps parity harness consistent).
+  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'budget-calculator']) }}', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept':'application/json'
+    },
+    body: JSON.stringify({ version:'v24', scenario:{ meta:{ annualBudget: total } } })
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); }
 }
 
 function resetBudget(){

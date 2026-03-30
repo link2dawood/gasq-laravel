@@ -175,36 +175,43 @@ function fmtN(v,dec=0){return new Intl.NumberFormat('en-US',{minimumFractionDigi
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-function calcEJ(){
+async function calcEJ(){
   const empCost = g('ej_empCost');
   const weeklyHours = g('ej_weeklyHours');
   const weeksInYear = g('ej_weeksInYear');
   const monthsInYear = g('ej_monthsInYear');
   const companyName = document.getElementById('ej_company').value || 'ABC COMPANY';
 
-  const vendorHourly = empCost * 0.70;
-  const vendorRecovery = empCost * 0.70 * 0.70;
-  const weeksPerMonth = weeksInYear / monthsInYear;
+  const payload = { version:'v24', scenario:{ meta:{ employeeTrueHourlyCost: empCost, weeklyHours: weeklyHours, weeksInYear: weeksInYear, monthsInYear: monthsInYear } } };
+  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'economic-justification']) }}', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept':'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); return; }
+  const out = data.kpis||{};
 
-  const ihWeekly = empCost * weeklyHours;
-  const vWeekly = vendorHourly * weeklyHours;
-  const ihMonthly = ihWeekly * weeksPerMonth;
-  const vMonthly = vWeekly * weeksPerMonth;
-  const ihAnnual = ihWeekly * weeksInYear;
-  const vAnnual = vWeekly * weeksInYear;
-
-  const savings = ihAnnual - vAnnual;
-  const roiPct = ihAnnual > 0 ? (savings / ihAnnual) * 100 : 0;
-  const payback = savings > 0 ? (vAnnual / ihMonthly) : 0;
-  const dollar = vAnnual > 0 ? savings / vAnnual : 0;
+  const vendorHourly = out.vendorHourly||0;
+  const vendorRecovery = vendorHourly * 0.70;
+  const ihAnnual = out.inHouseAnnual||0;
+  const vAnnual = out.vendorAnnual||0;
+  const savings = out.savings||0;
+  const roiPct = out.roiPct||0;
+  const payback = out.paybackMonths||0;
+  const dollar = out.dollarForDollar||0;
 
   const projHrs = weeklyHours * weeksInYear;
   const staffRequired = Math.ceil(weeklyHours / 28);
 
-  setText('r_ihWeekly', fmt(ihWeekly)); setText('r_ihMonthly', fmt(ihMonthly)); setText('r_ihAnnual', fmt(ihAnnual));
+  setText('r_ihWeekly', fmt(out.inHouseWeekly||0)); setText('r_ihMonthly', fmt(out.inHouseMonthly||0)); setText('r_ihAnnual', fmt(ihAnnual));
   setText('r_vHourly', fmt(vendorHourly)+'/hr'); setText('r_vRecovery', fmt(vendorRecovery)+'/hr');
   setText('r_vWeeklyHrs', fmtN(weeklyHours));
-  setText('r_vWeekly', fmt(vWeekly)); setText('r_vMonthly', fmt(vMonthly)); setText('r_vAnnual', fmt(vAnnual));
+  setText('r_vWeekly', fmt(out.vendorWeekly||0)); setText('r_vMonthly', fmt(out.vendorMonthly||0)); setText('r_vAnnual', fmt(vAnnual));
   setText('r_savings', fmt(savings));
   const rosiEl = document.getElementById('r_roiPct');
   rosiEl.textContent = roiPct.toFixed(1)+'%';

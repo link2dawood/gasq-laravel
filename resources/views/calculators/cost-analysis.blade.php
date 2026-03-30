@@ -99,33 +99,48 @@ function fmt2(v){return new Intl.NumberFormat('en-US',{style:'currency',currency
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-function calcCA(){
-  const budget=g('ca_budget'), guards=g('ca_guards'), hours=g('ca_hours');
-  const theft=g('ca_theft'), insurance=g('ca_insurance'), liability=g('ca_liability'), reduction=g('ca_reduction')/100;
-  const annualHours = hours * 365;
-  const perGuard = guards>0 ? budget/guards : 0;
-  const perHour = annualHours>0 ? budget/annualHours : 0;
-  const totalRisk = theft + insurance + liability;
-  const riskReduction = totalRisk * reduction;
-  const netValue = riskReduction - budget;
-  const rosi = budget>0 ? (netValue/budget)*100 : 0;
-  const monthly = budget/12;
-  const weekly = budget/52;
-  const payback = riskReduction>0 ? (budget/riskReduction)*12 : 0;
+async function calcCA(){
+  const payload = {
+    version: 'v24',
+    scenario: {
+      meta: {
+        annualBudget: g('ca_budget'),
+        guards: g('ca_guards'),
+        coverageHoursPerDay: g('ca_hours'),
+        annualTheftLosses: g('ca_theft'),
+        annualInsurancePremium: g('ca_insurance'),
+        annualLiabilityExposure: g('ca_liability'),
+        riskReductionPct: g('ca_reduction'),
+      }
+    }
+  };
+  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'cost-analysis']) }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); return; }
+  const out = data.kpis || {};
 
-  setText('r_perGuard', fmt(perGuard));
-  setText('r_perHour', fmt2(perHour));
-  setText('r_monthly', fmt(monthly));
-  setText('r_weekly', fmt(weekly));
-  setText('r_totalRisk', fmt(totalRisk));
-  setText('r_riskReduction', fmt(riskReduction));
-  setText('r_netValue', fmt(netValue));
+  setText('r_perGuard', fmt(out.costPerGuardPerYear||0));
+  setText('r_perHour', fmt2(out.costPerHour||0));
+  setText('r_monthly', fmt(out.monthlyCost||0));
+  setText('r_weekly', fmt(out.weeklyCost||0));
+  setText('r_totalRisk', fmt(out.totalAnnualRiskExposure||0));
+  setText('r_riskReduction', fmt(out.riskReductionValue||0));
+  setText('r_netValue', fmt(out.netValue||0));
   setText('r_reductionPct', g('ca_reduction').toFixed(0));
   const rosiEl=document.getElementById('r_rosi');
+  const rosi = out.rosiPct||0;
   rosiEl.textContent = rosi.toFixed(1)+'%';
   rosiEl.className = 'display-5 fw-bold '+(rosi>=0?'text-white':'text-warning');
-  setText('r_savings', fmt(riskReduction));
-  setText('r_payback', payback.toFixed(1)+' mo');
+  setText('r_savings', fmt(out.riskSavings||0));
+  setText('r_payback', (out.paybackMonths||0).toFixed(1)+' mo');
 }
 
 document.addEventListener('DOMContentLoaded', calcCA);

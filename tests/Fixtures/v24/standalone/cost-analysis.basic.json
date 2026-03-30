@@ -1,0 +1,2 @@
+{ "version":"v24", "scenario": { "meta": { "annualBudget":180000, "guards":3, "coverageHoursPerDay":24, "annualTheftLosses":50000, "annualInsurancePremium":25000, "annualLiabilityExposure":30000, "riskReductionPct":70 } } }
+

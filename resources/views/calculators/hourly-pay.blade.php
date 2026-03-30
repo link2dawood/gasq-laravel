@@ -162,36 +162,42 @@ function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-function calcHP(){
+async function calcHP(){
   const rate=g('hp_rate'), regHrs=g('hp_regHrs'), otHrs=g('hp_otHrs'), dtHrs=g('hp_dtHrs');
-  const fedTaxPct=g('hp_fedTax')/100, stateTaxPct=g('hp_stateTax')/100;
-  const ficaPct=g('hp_fica')/100, medicarePct=g('hp_medicare')/100;
-  const healthWk=g('hp_health'), otherWk=g('hp_other');
-
-  const regPay = rate * regHrs;
-  const otPay = rate * 1.5 * otHrs;
-  const dtPay = rate * 2.0 * dtHrs;
-  const weeklyGross = regPay + otPay + dtPay;
-  const totalHrs = regHrs + otHrs + dtHrs;
-
-  const fedTax = weeklyGross * fedTaxPct;
-  const stateTax = weeklyGross * stateTaxPct;
-  const ficaAmt = weeklyGross * ficaPct;
-  const medicareAmt = weeklyGross * medicarePct;
-  const totalDed = fedTax + stateTax + ficaAmt + medicareAmt + healthWk + otherWk;
-  const netPay = weeklyGross - totalDed;
-  const effTaxRate = weeklyGross > 0 ? (totalDed / weeklyGross) * 100 : 0;
-  const effHourly = totalHrs > 0 ? netPay / totalHrs : 0;
+  const payload = { version:'v24', scenario:{ meta:{
+    hourlyRate: rate,
+    regularHours: regHrs,
+    otHours: otHrs,
+    doubleTimeHours: dtHrs,
+    fedTaxPct: g('hp_fedTax'),
+    stateTaxPct: g('hp_stateTax'),
+    ficaPct: g('hp_fica'),
+    medicarePct: g('hp_medicare'),
+    healthWeekly: g('hp_health'),
+    otherWeekly: g('hp_other'),
+  } } };
+  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'hourly-pay-calculator']) }}', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept':'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); return; }
+  const out = data.kpis||{};
 
   setText('r_regHrs', regHrs); setText('r_rate', fmt(rate)); setText('r_otHrs', otHrs); setText('r_dtHrs', dtHrs);
-  setText('r_regPay', fmt(regPay)); setText('r_otPay', fmt(otPay)); setText('r_dtPay', fmt(dtPay));
-  setText('r_weeklyGross', fmt(weeklyGross));
-  setText('r_fedTax', fmt(fedTax)); setText('r_stateTax', fmt(stateTax));
-  setText('r_ficaAmt', fmt(ficaAmt)); setText('r_medicareAmt', fmt(medicareAmt));
-  setText('r_otherDed', fmt(healthWk+otherWk)); setText('r_totalDed', fmt(totalDed));
-  setText('r_netPay', fmt(netPay));
-  setText('r_biweekly', fmt(netPay*2)); setText('r_monthly', fmt(netPay*4.333)); setText('r_annual', fmt(netPay*52));
-  setText('r_effTaxRate', effTaxRate.toFixed(1)+'%'); setText('r_effHourly', fmt(effHourly)+'/hr');
+  setText('r_regPay', fmt(out.regPay||0)); setText('r_otPay', fmt(out.otPay||0)); setText('r_dtPay', fmt(out.dtPay||0));
+  setText('r_weeklyGross', fmt(out.weeklyGross||0));
+  setText('r_fedTax', fmt(out.fedTax||0)); setText('r_stateTax', fmt(out.stateTax||0));
+  setText('r_ficaAmt', fmt(out.ficaAmt||0)); setText('r_medicareAmt', fmt(out.medicareAmt||0));
+  setText('r_otherDed', fmt(out.otherDeductions||0)); setText('r_totalDed', fmt(out.totalDeductions||0));
+  setText('r_netPay', fmt(out.netPay||0));
+  setText('r_biweekly', fmt(out.biweeklyNetPay||0)); setText('r_monthly', fmt(out.monthlyNetPay||0)); setText('r_annual', fmt(out.annualNetPay||0));
+  setText('r_effTaxRate', (out.effectiveTaxRatePct||0).toFixed(1)+'%'); setText('r_effHourly', fmt(out.effectiveNetHourly||0)+'/hr');
 }
 
 function resetForm(){

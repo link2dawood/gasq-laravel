@@ -1,0 +1,15 @@
+{
+  "kpis": {
+    "costPerGuardPerYear": 60000,
+    "costPerHour": 20.55,
+    "monthlyCost": 15000,
+    "weeklyCost": 3462,
+    "totalAnnualRiskExposure": 105000,
+    "riskReductionValue": 73500,
+    "netValue": -106500,
+    "rosiPct": -59.2,
+    "riskSavings": 73500,
+    "paybackMonths": 29.4
+  }
+}
+

@@ -387,6 +387,106 @@ This tab should be driven by V24 burden build (Inputs + downstream burden build)
 | `cs_vehPassthrough` | `meta.vehiclePassthroughBillingsAnnual` | TBD |
 | `cs_vehCosts` | `vehicle.totalAnnualVehicleCost` | `Vehicle!C29` (derived) |
 | `cs_workingCapital` | `meta.workingCapitalRequirement` | TBD |
+
+---
+
+## H) Instant Estimator (Laravel) — payload mapping (V24)
+
+Source UI: `resources/views/calculators/instant-estimator.blade.php`
+
+### H.1 UI inputs → payload keys → spreadsheet cells
+
+| UI field (HTML id) | Payload key | Spreadsheet cell (V24) | Notes |
+|---|---|---:|---|
+| `loc` | `scenario.meta.locationState` | TBD | Current UI uses a state dropdown; V24 uses Inputs + locality assumptions (needs exact mapping). |
+| `hours` | `scenario.meta.hoursPerWeek` | TBD | For spreadsheet parity, prefer driving hours via `posts[].weeklyHours` + coverage rules. |
+| `guards` | `scenario.meta.guards` | TBD | For parity, prefer driving staffing via `posts[].qtyRequired` / shifts. |
+| `svc_unarmed|svc_armed|svc_patrol` | `scenario.meta.serviceType` | TBD | V24 logic depends on wage/burden + posts rather than a simple multiplier. |
+| `reportEmail` | `scenario.meta.reportEmail` | N/A | UI-only, not part of spreadsheet. |
+
+Canonical payload recommendation (to reuse scenario engines):
+- Represent the estimate as a single post row:
+  - `scenario.posts[0].weeklyHours` = `hours`
+  - `scenario.posts[0].qtyRequired` = `guards`
+  - `scenario.posts[0].positionTitle` = `serviceType`
+
+### H.2 UI outputs → KPI keys → spreadsheet cells
+
+| UI output (HTML id) | KPI key | Spreadsheet cell (V24) |
+|---|---|---:|
+| `r_hourly` | `kpi.estimatedHourlyRate` | TBD |
+| `r_weekly` | `kpi.estimatedWeeklyTotal` | TBD |
+| `r_monthly` | `kpi.estimatedMonthlyTotal` | TBD |
+| `r_annual` | `kpi.estimatedAnnualTotal` | TBD |
+| `r_livingWage` | `kpi.livingWageBase` | TBD |
+| `r_bigRate` | `kpi.estimatedHourlyRate` | TBD |
+
+### H.3 Rounding/display rules (lock down)
+- Currency outputs displayed to **2 decimals**.\n
+- Percent outputs (if any) displayed to **1 decimal**.\n
+- Excel parity requires matching where rounding occurs (intermediate vs final). Document per field once V24 cells are confirmed.\n
+
+---
+
+## I) Security Billing (Laravel) — payload mapping (V24)
+
+Source UI: `resources/views/calculators/security-billing.blade.php`
+
+This calculator is currently implemented as a V24 endpoint that mirrors the UI math. As V24 workbook cells are confirmed, replace the engine formulas and lock golden fixtures to the spreadsheet.
+
+### I.1 UI inputs → payload keys → spreadsheet cells
+
+| UI field (HTML id) | Payload key | Spreadsheet cell (V24) |
+|---|---|---:|
+| `sb_basePay` | `scenario.meta.basePayRate` | `Inputs!B4` (or equivalent) |
+| `sb_hours` | `scenario.meta.hoursPerWeek` | `Post_Positions!E{r}` (or derived) |
+| `sb_weeks` | `scenario.meta.weeksPerYear` | `Post_Positions!X29` (or equivalent) |
+| `sb_fica` | `scenario.meta.ficaPct` | `Inputs!B12` |
+| `sb_futa` | `scenario.meta.futaPct` | `Inputs!B13` |
+| `sb_suta` | `scenario.meta.sutaPct` | `Inputs!B14` |
+| `sb_overhead` | `scenario.meta.overheadPct` | `Inputs!B37` (G&A) / overhead blocks (TBD) |
+| `sb_profitPct` | `scenario.meta.profitPct` | `Inputs!B38` |
+| `sb_uniformCost` | `scenario.meta.uniformCostPerUniform` | `Uniform_Equipment!B8` |
+| `sb_uniformQty` | `scenario.meta.uniformsPerEmployee` | `Uniform_Equipment!B7` |
+| `sb_trainingCost` | `scenario.meta.trainingCostPerHire` | `Training_Module` (TBD) |
+
+---
+
+## J) Contract Analysis (Laravel) — payload mapping (V24)
+
+Source UI: `resources/views/calculators/contract-analysis.blade.php`
+
+### J.1 UI inputs → payload keys → spreadsheet cells
+
+Contract Analysis uses a table of categories (posts) with per-row rates/hours. For V24 parity, map each row into scenario posts/shifts (preferred), or pass it as a `categories[]` block until full scenario normalization is complete.
+
+| UI field | Payload key | Spreadsheet cell (V24) | Notes |
+|---|---|---:|---|
+| Row: Weekly Hours | `scenario.categories[i].weeklyHours` | `Post_Positions!E{r}` | Preferred: map into `posts[]`. |
+| Row: Pay Rate | `scenario.categories[i].payRate` | `Post_Positions!F{r}` / `Inputs!B4` | Wage mode affects which cell is authoritative. |
+| Row: Bill Rate | `scenario.categories[i].billRate` | `Post_Positions!H{r}` | For manual bill rate parity. |
+| Row: OT Hours | `scenario.categories[i].otHours` | TBD | Excel likely derives OT; confirm. |
+
+---
+
+## K) Mobile Patrol (Laravel) — payload mapping (V24)
+
+Source UI: `resources/views/calculators/mobile-patrol.blade.php`
+
+This calculator is currently implemented as a V24 endpoint that mirrors the UI math. Google Maps route miles (Directions) auto-fill remains in the UI and feeds `milesDrivenPerDay`.
+
+### K.1 UI inputs → payload keys → spreadsheet cells
+
+| UI field (HTML id) | Payload key | Spreadsheet cell (V24) |
+|---|---|---:|
+| `hoursPerDay` | `scenario.meta.hoursPerDay` | TBD |
+| `daysPerYear` | `scenario.meta.daysPerYear` | TBD |
+| `patrolmanHourlyWage` | `scenario.meta.patrolmanHourlyWage` | `Inputs!B4` (or wage mode) |
+| `payrollBurdenPercent` | `scenario.meta.payrollBurdenPercent` | Derived from Inputs burden build (TBD) |
+| `milesDrivenPerDay` | `scenario.meta.milesDrivenPerDay` | `Vehicle!B6` (avg miles/day) |
+| `milesPerGallon` | `scenario.meta.milesPerGallon` | `Vehicle!B9` (fuel economy) |
+| `fuelPricePerGallon` | `scenario.meta.fuelPricePerGallon` | `Vehicle!B10` |
+| `markupPercent` | `scenario.meta.markupPercent` | `Inputs!B38` / pricing controls (TBD) |
 - `Vendor_Pricing!D15:D19` Floor eligible?
 - `Vendor_Pricing!E15:E19` Range position
 - `Vendor_Pricing!F15:F19` Interpretation

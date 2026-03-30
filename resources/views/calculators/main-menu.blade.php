@@ -22,17 +22,20 @@
   </div>
 
   {{-- Tabs --}}
-  <ul class="nav nav-tabs mb-0 d-print-none border-bottom-0" role="tablist" id="mainTabs">
-    <li class="nav-item"><a class="nav-link active fw-medium" data-bs-toggle="tab" href="#tab-security"><i class="fa fa-shield me-1"></i> Security Cost</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#tab-manpower"><i class="fa fa-users me-1"></i> Manpower Hours</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#tab-justification"><i class="fa fa-chart-line me-1"></i> Economic Justification</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#tab-billrate"><i class="fa fa-dollar-sign me-1"></i> Bill Rate</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#tab-components"><i class="fa fa-chart-pie me-1"></i> Bill Rate Components</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#tab-summary"><i class="fa fa-file-text me-1"></i> Contract Summary</a></li>
-  </ul>
+  <div class="card gasq-card">
+    <div class="card-header p-0 d-print-none" style="background:transparent">
+      <ul class="nav nav-tabs px-2 px-md-3 pt-2 flex-nowrap overflow-auto" role="tablist" id="mainTabs" style="border-bottom:1px solid rgba(0,0,0,.08)">
+        <li class="nav-item"><a class="nav-link active fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-security"><i class="fa fa-shield me-1"></i> Security Cost</a></li>
+        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-manpower"><i class="fa fa-users me-1"></i> Manpower Hours</a></li>
+        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-justification"><i class="fa fa-chart-line me-1"></i> Economic Justification</a></li>
+        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-billrate"><i class="fa fa-dollar-sign me-1"></i> Bill Rate</a></li>
+        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-components"><i class="fa fa-chart-pie me-1"></i> Bill Rate Components</a></li>
+        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-summary"><i class="fa fa-file-text me-1"></i> Contract Summary</a></li>
+      </ul>
+    </div>
 
-  <div class="tab-content card gasq-card" style="border-top-left-radius:0;border-top-right-radius:0">
     <div class="card-body p-4">
+      <div class="tab-content">
 
       {{-- ========== SECURITY COST TAB ========== --}}
       <div class="tab-pane fade show active" id="tab-security">
@@ -400,6 +403,7 @@
         </div>
       </div>
 
+      </div><!-- /tab-content -->
     </div><!-- /card-body -->
   </div><!-- /card -->
 

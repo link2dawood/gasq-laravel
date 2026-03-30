@@ -361,42 +361,55 @@ function fmtN(v, dec=1){
 }
 function g(id){ return parseFloat(document.getElementById(id).value)||0; }
 
-function calculate(){
-  const hoursPerDay = g('hoursPerDay'), daysPerYear = g('daysPerYear');
-  const wage = g('patrolmanHourlyWage'), burden = g('payrollBurdenPercent')/100;
-  const vehFin = g('vehicleAnnualFinanceCost'), miles = g('milesDrivenPerDay');
-  const mpg = g('milesPerGallon'), fuelPrice = g('fuelPricePerGallon');
-  const repairs = g('annualRepairs'), tires = g('tiresAnnualCost');
-  const oilCost = g('oilChangeCostPerService'), oilMiles = g('milesBetweenOilChanges');
-  const insurance = g('autoInsuranceAnnualCost'), markup = g('markupPercent')/100;
+async function calculate(){
+  const payload = {
+    version: 'v24',
+    scenario: {
+      meta: {
+        hoursPerDay: g('hoursPerDay'),
+        daysPerYear: g('daysPerYear'),
+        patrolmanHourlyWage: g('patrolmanHourlyWage'),
+        payrollBurdenPercent: g('payrollBurdenPercent'),
+        vehicleAnnualFinanceCost: g('vehicleAnnualFinanceCost'),
+        milesDrivenPerDay: g('milesDrivenPerDay'),
+        milesPerGallon: g('milesPerGallon'),
+        fuelPricePerGallon: g('fuelPricePerGallon'),
+        annualRepairs: g('annualRepairs'),
+        tiresAnnualCost: g('tiresAnnualCost'),
+        oilChangeCostPerService: g('oilChangeCostPerService'),
+        milesBetweenOilChanges: g('milesBetweenOilChanges'),
+        autoInsuranceAnnualCost: g('autoInsuranceAnnualCost'),
+        markupPercent: g('markupPercent')
+      }
+    }
+  };
 
-  const hoursPerYear = hoursPerDay * daysPerYear;
-  const annualWageCost = hoursPerYear * wage * (1 + burden);
-  const milesDrivenPerYear = miles * daysPerYear;
-  const fuelGallonsPerYear = mpg > 0 ? milesDrivenPerYear / mpg : 0;
-  const annualFuelCost = fuelGallonsPerYear * fuelPrice;
-  const numberOfOilChangesPerYear = oilMiles > 0 ? milesDrivenPerYear / oilMiles : 0;
-  const annualOilChangeCost = numberOfOilChangesPerYear * oilCost;
-  const totalPreMarkup = annualWageCost + vehFin + annualFuelCost + repairs + tires + annualOilChangeCost + insurance;
-  const annualCostWithMarkup = markup < 1 ? totalPreMarkup / (1 - markup) : totalPreMarkup;
-  const hourlyBillableRate = hoursPerYear > 0 ? annualCostWithMarkup / hoursPerYear : 0;
+  const res = await fetch('{{ route('backend.mobile-patrol.v24.compute') }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){ console.error(data); return; }
+  const out = data.kpis || {};
 
-  setText('r-hoursPerYear', fmtN(hoursPerYear, 0));
-  setText('r-annualWageCost', fmt(annualWageCost));
-  setText('r-milesDrivenPerYear', fmtN(milesDrivenPerYear, 0));
-  setText('r-fuelGallonsPerYear', fmtN(fuelGallonsPerYear, 0));
-  setText('r-annualFuelCost', fmt(annualFuelCost));
-  setText('r-oilChangesPerYear', fmtN(numberOfOilChangesPerYear, 1));
-  setText('r-annualOilChangeCost', fmt(annualOilChangeCost));
-  setText('r-preMarkupCost', fmt(totalPreMarkup));
-  setText('r-dailyCost', fmt(annualCostWithMarkup / 365));
-  setText('r-weeklyCost', fmt(annualCostWithMarkup / 52));
-  setText('r-monthlyCost', fmt(annualCostWithMarkup / 12));
-  setText('r-annualCost', fmt(annualCostWithMarkup));
-  setText('r-hourlyRate', fmt(hourlyBillableRate));
-
-  window._calcData = { hoursPerYear, annualWageCost, milesDrivenPerYear, fuelGallonsPerYear, annualFuelCost,
-    numberOfOilChangesPerYear, annualOilChangeCost, totalPreMarkup, annualCostWithMarkup, hourlyBillableRate };
+  setText('r-hoursPerYear', fmtN(out.hoursPerYear||0, 0));
+  setText('r-annualWageCost', fmt(out.annualWageCost||0));
+  setText('r-milesDrivenPerYear', fmtN(out.milesDrivenPerYear||0, 0));
+  setText('r-fuelGallonsPerYear', fmtN(out.fuelGallonsPerYear||0, 0));
+  setText('r-annualFuelCost', fmt(out.annualFuelCost||0));
+  setText('r-oilChangesPerYear', fmtN(out.oilChangesPerYear||0, 1));
+  setText('r-annualOilChangeCost', fmt(out.annualOilChangeCost||0));
+  setText('r-preMarkupCost', fmt(out.preMarkupCost||0));
+  setText('r-dailyCost', fmt(out.dailyCost||0));
+  setText('r-weeklyCost', fmt(out.weeklyCost||0));
+  setText('r-monthlyCost', fmt(out.monthlyCost||0));
+  setText('r-annualCost', fmt(out.annualCost||0));
+  setText('r-hourlyRate', fmt(out.hourlyBillableRate||0));
 }
 
 function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }

@@ -1,0 +1,10 @@
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "quick": { "basePayRate": 18, "benefitsPct": 20, "overheadPct": 35, "profitPct": 15 },
+      "components": { "wages": 41.05, "taxes": 10.96, "training": 2.02, "recruiting": 0.09, "uniforms": 1.47, "overhead": 0.5, "profit": 3.07 }
+    }
+  }
+}
+

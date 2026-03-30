@@ -1,0 +1,19 @@
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "basePayRate": 18,
+      "hoursPerWeek": 40,
+      "weeksPerYear": 52,
+      "ficaPct": 7.65,
+      "futaPct": 0.8,
+      "sutaPct": 5.76,
+      "overheadPct": 35,
+      "profitPct": 15,
+      "uniformCostPerUniform": 75,
+      "uniformsPerEmployee": 2,
+      "trainingCostPerHire": 500
+    }
+  }
+}
+

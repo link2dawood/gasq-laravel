@@ -234,35 +234,59 @@ function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-function calcSB(){
+async function calcSB(){
   const basePay = g('sb_basePay'), hours = g('sb_hours'), weeks = g('sb_weeks');
   const fica = g('sb_fica')/100, futa = g('sb_futa')/100, suta = g('sb_suta')/100;
   const overhead = g('sb_overhead')/100, profitPct = g('sb_profitPct')/100;
   const uCost = g('sb_uniformCost'), uQty = g('sb_uniformQty'), trainingCost = g('sb_trainingCost');
 
-  const taxRate = fica + futa + suta;
-  const withTaxes = basePay * (1 + taxRate);
-  const withOverhead = withTaxes * (1 + overhead);
-  const billRate = withOverhead / (1 - profitPct);
-  const otRate = billRate * 1.5;
-  const weekly = billRate * hours;
-  const monthly = weekly * (weeks/12);
-  const annual = weekly * weeks;
-  const uniformTotal = uCost * uQty;
-  const trainingHr = hours > 0 ? trainingCost / (hours * weeks) : 0;
+  const payload = {
+    version: 'v24',
+    scenario: {
+      meta: {
+        basePayRate: basePay,
+        hoursPerWeek: hours,
+        weeksPerYear: weeks,
+        ficaPct: fica*100,
+        futaPct: futa*100,
+        sutaPct: suta*100,
+        overheadPct: overhead*100,
+        profitPct: profitPct*100,
+        uniformCostPerUniform: uCost,
+        uniformsPerEmployee: uQty,
+        trainingCostPerHire: trainingCost
+      }
+    }
+  };
+
+  const res = await fetch('{{ route('backend.security-billing.v24.compute') }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){
+    console.error(data);
+    return;
+  }
+  const out = data.kpis || {};
 
   setText('sb_r_basePay', fmt(basePay)+'/hr');
-  setText('sb_r_withTaxes', fmt(withTaxes)+'/hr');
-  setText('sb_r_withOverhead', fmt(withOverhead)+'/hr');
-  setText('sb_r_billRate', fmt(billRate)+'/hr');
-  setText('sb_r_otRate', fmt(otRate)+'/hr');
-  setText('sb_r_holidayRate', fmt(otRate)+'/hr');
-  setText('sb_r_weekly', fmt(weekly));
-  setText('sb_r_monthly', fmt(monthly));
-  setText('sb_r_annual', fmt(annual));
-  setText('sb_r_uniforms', fmt(uniformTotal));
-  setText('sb_r_trainingHr', fmt(trainingHr)+'/hr');
-  setText('sb_r_totalBillRate', fmt(billRate));
+  setText('sb_r_withTaxes', fmt(out.costWithPayrollTaxes||0)+'/hr');
+  setText('sb_r_withOverhead', fmt(out.costWithOverhead||0)+'/hr');
+  setText('sb_r_billRate', fmt(out.billRate||0)+'/hr');
+  setText('sb_r_otRate', fmt(out.otBillRate||0)+'/hr');
+  setText('sb_r_holidayRate', fmt(out.holidayBillRate||0)+'/hr');
+  setText('sb_r_weekly', fmt(out.weeklyTotal||0));
+  setText('sb_r_monthly', fmt(out.monthlyTotal||0));
+  setText('sb_r_annual', fmt(out.annualTotal||0));
+  setText('sb_r_uniforms', fmt(out.uniformTotal||0));
+  setText('sb_r_trainingHr', fmt(out.trainingCostPerHour||0)+'/hr');
+  setText('sb_r_totalBillRate', fmt(out.totalBillRate||0));
 }
 
 function calcCmp(){

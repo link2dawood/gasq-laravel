@@ -181,14 +181,7 @@
 @push('scripts')
 <style>.x-sm{font-size:0.75rem;line-height:1.2} .cursor-pointer{cursor:pointer}</style>
 <script>
-const LIVING_WAGE = {
-  california:19.41,'new-york':17.87,texas:14.53,florida:15.45,illinois:16.20,
-  georgia:13.98,'north-carolina':13.50,arizona:14.25,colorado:16.80,washington:18.90,
-  pennsylvania:14.40,'new-jersey':17.10,ohio:13.25,michigan:14.10
-};
-const SERVICE_MULT = {unarmed:1.0,armed:1.25,patrol:1.15};
-
-function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(v);}
+function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(v);}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 function syncSlider(sid,iid){document.getElementById(sid).value=document.getElementById(iid).value;}
 function syncInput(sid,iid){document.getElementById(iid).value=document.getElementById(sid).value;}
@@ -199,34 +192,58 @@ function selectService(val, container){
   calculate();
 }
 
-function calculate(){
+async function calculate(){
   const loc = document.getElementById('loc').value;
   const hours = parseFloat(document.getElementById('hours').value)||40;
   const guards = parseFloat(document.getElementById('guards').value)||1;
   const svcEl = document.querySelector('[name=serviceType]:checked');
-  const svcMult = svcEl ? (SERVICE_MULT[svcEl.value]||1.0) : 1.0;
-  const livingWage = LIVING_WAGE[loc]||15.00;
-  const withOverhead = livingWage * 1.3;
-  const hourlyRate = withOverhead * svcMult;
-  const weeklyPerGuard = hourlyRate * hours;
-  const weekly = weeklyPerGuard * guards;
-  const monthly = weekly * 4.333;
-  const annual = weekly * 52;
+  const serviceType = svcEl ? svcEl.value : 'unarmed';
 
-  const locLabel = loc.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  const payload = {
+    version: 'v24',
+    scenario: {
+      posts: [
+        { postName: 'Post 1', positionTitle: serviceType, weeklyHours: hours, qtyRequired: guards }
+      ],
+      meta: {
+        locationState: loc,
+        serviceType: serviceType,
+        hoursPerWeek: hours,
+        guards: guards
+      }
+    }
+  };
+
+  const res = await fetch('{{ route('backend.instant-estimator.compute') }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if(!res.ok || !data || !data.ok){
+    console.error(data);
+    return;
+  }
+
+  const k = data.kpis || {};
+  const locLabel = loc.replace(/-/g,' ').replace(/\\b\\w/g,c=>c.toUpperCase());
   setText('r_location', locLabel);
-  setText('r_livingWage', fmt(livingWage)+'/hr');
-  setText('r_hourly', fmt(hourlyRate));
-  setText('r_weekly', fmt(weekly));
-  setText('r_monthly', fmt(monthly));
-  setText('r_annual', fmt(annual));
-  setText('r_bigRate', fmt(hourlyRate));
+  setText('r_livingWage', fmt(k.livingWageBase||0)+'/hr');
+  setText('r_hourly', fmt(k.estimatedHourlyRate||0));
+  setText('r_weekly', fmt(k.estimatedWeeklyTotal||0));
+  setText('r_monthly', fmt(k.estimatedMonthlyTotal||0));
+  setText('r_annual', fmt(k.estimatedAnnualTotal||0));
+  setText('r_bigRate', fmt(k.estimatedHourlyRate||0));
   setText('r_guards', guards);
   setText('r_hours', hours);
-  setText('r_bLivingWage', fmt(livingWage)+'/hr');
-  setText('r_bOverhead', fmt(withOverhead-livingWage)+'/hr');
-  setText('r_bMultiplier', svcMult.toFixed(2)+'x');
-  setText('r_bFinal', fmt(hourlyRate)+'/hr');
+  setText('r_bLivingWage', fmt(k.livingWageBase||0)+'/hr');
+  setText('r_bOverhead', fmt((k.withOverheadHourly||0)-(k.livingWageBase||0))+'/hr');
+  setText('r_bMultiplier', (k.serviceMultiplier||1).toFixed(2)+'x');
+  setText('r_bFinal', fmt(k.estimatedHourlyRate||0)+'/hr');
 }
 
 function resetForm(){

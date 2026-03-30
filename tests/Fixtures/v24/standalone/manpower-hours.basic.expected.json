@@ -1,0 +1,25 @@
+{
+  "kpis": {
+    "dailyHours": 100.8,
+    "weeklyHours": 705.6,
+    "monthlyHours": 3024,
+    "annualHours": 36792,
+    "guardsRequired": 18,
+    "details": {
+      "coverageHoursPerDay": 24,
+      "shiftMultiplier": 3,
+      "schedulingFactor": 1.4,
+      "requiredDailyLaborHours": 100.8,
+      "requiredWeeklyLaborHours": 705.6,
+      "maxHoursPerGuardPerWeek": 40
+    },
+    "matrix": [
+      { "shiftPattern": "8-hour", "multiplier": 3, "weeklyHours": 705.6, "guardsNeeded": 18 },
+      { "shiftPattern": "10-hour", "multiplier": 2.4, "weeklyHours": 564.5, "guardsNeeded": 15 },
+      { "shiftPattern": "12-hour", "multiplier": 2, "weeklyHours": 470.4, "guardsNeeded": 12 },
+      { "shiftPattern": "16-hour", "multiplier": 1.5, "weeklyHours": 352.8, "guardsNeeded": 9 },
+      { "shiftPattern": "24-hour", "multiplier": 1, "weeklyHours": 235.2, "guardsNeeded": 6 }
+    ]
+  }
+}
+

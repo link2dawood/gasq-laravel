@@ -1,0 +1,21 @@
+{
+  "kpis": {
+    "regPay": 720,
+    "otPay": 0,
+    "dtPay": 0,
+    "weeklyGross": 720,
+    "fedTax": 86.4,
+    "stateTax": 36,
+    "ficaAmt": 44.64,
+    "medicareAmt": 10.44,
+    "otherDeductions": 0,
+    "totalDeductions": 177.48,
+    "netPay": 542.52,
+    "biweeklyNetPay": 1085.04,
+    "monthlyNetPay": 2350.92,
+    "annualNetPay": 28211.04,
+    "effectiveTaxRatePct": 24.6,
+    "effectiveNetHourly": 13.56
+  }
+}
+

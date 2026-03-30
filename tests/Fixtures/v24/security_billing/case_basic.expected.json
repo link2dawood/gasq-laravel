@@ -1,0 +1,17 @@
+{
+  "kpis": {
+    "basePayRate": 18,
+    "costWithPayrollTaxes": 20.56,
+    "costWithOverhead": 27.75,
+    "billRate": 32.65,
+    "otBillRate": 48.98,
+    "holidayBillRate": 48.98,
+    "weeklyTotal": 1305.99,
+    "monthlyTotal": 5659.31,
+    "annualTotal": 67911.49,
+    "uniformTotal": 150,
+    "trainingCostPerHour": 0.2404,
+    "totalBillRate": 32.65
+  }
+}
+
