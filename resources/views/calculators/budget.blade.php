@@ -98,27 +98,27 @@
         <div class="card-body">
           <div class="row g-3 mb-4">
             <div class="col-6">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Annual Budget</div>
-                <div class="fs-5 fw-bold text-primary" id="r_annual">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Annual Budget</div>
+                <div class="metric-value text-primary" id="r_annual">$0.00</div>
               </div>
             </div>
             <div class="col-6">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Monthly Budget</div>
-                <div class="fs-5 fw-bold" id="r_monthly">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Monthly Budget</div>
+                <div class="metric-value" id="r_monthly">$0.00</div>
               </div>
             </div>
             <div class="col-6">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Weekly Budget</div>
-                <div class="fs-5 fw-bold" id="r_weekly">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Weekly Budget</div>
+                <div class="metric-value" id="r_weekly">$0.00</div>
               </div>
             </div>
             <div class="col-6">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Daily Budget</div>
-                <div class="fs-5 fw-bold" id="r_daily">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Daily Budget</div>
+                <div class="metric-value" id="r_daily">$0.00</div>
               </div>
             </div>
           </div>

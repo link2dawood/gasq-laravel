@@ -22,13 +22,15 @@
   </div>
 
   {{-- Tabs --}}
-  <ul class="nav nav-tabs mb-0 d-print-none border-bottom-0" role="tablist">
-    <li class="nav-item"><a class="nav-link active fw-medium" data-bs-toggle="tab" href="#br-basic"><i class="fa fa-calculator me-1"></i> Quick Calculator</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#br-components"><i class="fa fa-chart-pie me-1"></i> Component Builder</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#br-comparison"><i class="fa fa-code-compare me-1"></i> Rate Comparison</a></li>
-  </ul>
+  <div class="gasq-tabs-scroll d-print-none mb-3">
+    <ul class="gasq-tabs-pill" role="tablist">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#br-basic"><i class="fa fa-calculator me-1"></i> Quick Calculator</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#br-components"><i class="fa fa-chart-pie me-1"></i> Component Builder</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#br-comparison"><i class="fa fa-code-compare me-1"></i> Rate Comparison</a></li>
+    </ul>
+  </div>
 
-  <div class="tab-content card gasq-card" style="border-top-left-radius:0;border-top-right-radius:0">
+  <div class="tab-content card gasq-card">
     <div class="card-body p-4">
 
       {{-- ===== QUICK CALCULATOR ===== --}}

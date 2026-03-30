@@ -1,0 +1,75 @@
+/**
+ * Loaded only on embedded React calculator pages (after the SPA stylesheet).
+ * Tailwind preflight/components from the SPA bundle can override Bootstrap navbar
+ * (e.g. .collapse display) and fixed layers can stack above the Laravel header.
+ */
+
+/* Keep Laravel chrome above typical React fixed/z-index layers */
+#app > header.gasq-navbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 99990 !important;
+}
+
+#app > header.gasq-navbar .dropdown-menu {
+  z-index: 99995 !important;
+}
+
+/*
+ * Tailwind defines a `.collapse` utility (visibility: collapse) that collides with
+ * Bootstrap’s `.collapse` navbar region and can hide all nav items while the logo stays.
+ */
+#app > header.gasq-navbar .navbar-collapse.collapse {
+  visibility: visible !important;
+}
+
+/* Force Bootstrap 5 expanded navbar on md+ even if Tailwind reset wins on .collapse */
+@media (min-width: 768px) {
+  #app > header.gasq-navbar .navbar-expand-md .navbar-collapse {
+    display: flex !important;
+    flex-basis: auto !important;
+    flex-grow: 1 !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* Mobile: when open, Bootstrap adds .show */
+  #app > header.gasq-navbar .navbar-collapse.collapse.show {
+    display: block !important;
+  }
+}
+
+/* Reassert link colors if global SPA styles flatten them */
+#app > header.gasq-navbar .navbar-nav .nav-link,
+#app > header.gasq-navbar .navbar-nav .dropdown-toggle.nav-link {
+  color: var(--gasq-muted) !important;
+}
+
+#app > header.gasq-navbar .navbar-nav .nav-link:hover,
+#app > header.gasq-navbar .navbar-nav .nav-link:focus,
+#app > header.gasq-navbar .navbar-nav .dropdown-toggle.nav-link:hover {
+  color: var(--gasq-foreground) !important;
+}
+
+#app > header.gasq-navbar .navbar-toggler-icon {
+  /* Bootstrap background image can be lost if Tailwind resets backgrounds */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833, 37, 41, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+#app > header.gasq-navbar .gasq-navbar-nav-right .navbar-nav {
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+}
+
+/* SPA content stays below the sticky header in stacking order */
+#app > main {
+  position: relative;
+  z-index: 1;
+}

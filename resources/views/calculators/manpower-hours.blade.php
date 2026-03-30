@@ -70,27 +70,27 @@
           {{-- Summary cards --}}
           <div class="row g-3 mb-4">
             <div class="col-6 col-md-3">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Daily Hours</div>
-                <div class="fs-4 fw-bold text-primary" id="r_daily">0</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Daily Hours</div>
+                <div class="metric-value text-primary" id="r_daily">0</div>
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Weekly Hours</div>
-                <div class="fs-4 fw-bold text-primary" id="r_weekly">0</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Weekly Hours</div>
+                <div class="metric-value text-primary" id="r_weekly">0</div>
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Monthly Hours</div>
-                <div class="fs-4 fw-bold" id="r_monthly">0</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Monthly Hours</div>
+                <div class="metric-value" id="r_monthly">0</div>
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Annual Hours</div>
-                <div class="fs-4 fw-bold" id="r_annual">0</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Annual Hours</div>
+                <div class="metric-value" id="r_annual">0</div>
               </div>
             </div>
           </div>
@@ -103,7 +103,7 @@
           </div>
 
           {{-- Detail breakdown --}}
-          <div class="rounded p-3 mb-3" style="background:var(--gasq-muted-bg)">
+          <div class="gasq-input-section mb-3">
             <h6 class="fw-semibold mb-2">Calculation Details</h6>
             <div class="d-flex justify-content-between small mb-1"><span class="text-gasq-muted">Coverage hours/day</span><span id="d_coverage">24</span></div>
             <div class="d-flex justify-content-between small mb-1"><span class="text-gasq-muted">Shift multiplier</span><span id="d_multiplier">3.0x</span></div>

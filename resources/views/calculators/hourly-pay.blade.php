@@ -93,24 +93,24 @@
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold d-flex align-items-center gap-2"><i class="fa fa-chart-bar text-primary"></i> Pay Summary</h5></div>
         <div class="card-body d-flex flex-column gap-3">
 
-          <div class="rounded p-3" style="background:var(--gasq-muted-bg)">
+          <div class="gasq-input-section">
             <h6 class="fw-semibold mb-2">Gross Pay</h6>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Regular pay (<span id="r_regHrs">40</span>hr × <span id="r_rate">$18.00</span>)</span><span class="fw-medium" id="r_regPay">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Overtime pay (<span id="r_otHrs">0</span>hr × 1.5x)</span><span class="fw-medium" id="r_otPay">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Double-time pay (<span id="r_dtHrs">0</span>hr × 2.0x)</span><span class="fw-medium" id="r_dtPay">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Regular pay (<span id="r_regHrs">40</span>hr × <span id="r_rate">$18.00</span>)</span><span class="fw-medium gasq-mono" id="r_regPay">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Overtime pay (<span id="r_otHrs">0</span>hr × 1.5x)</span><span class="fw-medium gasq-mono" id="r_otPay">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Double-time pay (<span id="r_dtHrs">0</span>hr × 2.0x)</span><span class="fw-medium gasq-mono" id="r_dtPay">$0.00</span></div>
             <hr class="my-1">
-            <div class="d-flex justify-content-between fw-semibold"><span>Weekly Gross Pay</span><span id="r_weeklyGross">$0.00</span></div>
+            <div class="d-flex justify-content-between fw-semibold"><span>Weekly Gross Pay</span><span class="gasq-mono" id="r_weeklyGross">$0.00</span></div>
           </div>
 
-          <div class="rounded p-3" style="background:var(--gasq-muted-bg)">
+          <div class="gasq-input-section">
             <h6 class="fw-semibold mb-2">Deductions</h6>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Federal tax</span><span class="fw-medium" id="r_fedTax">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">State tax</span><span class="fw-medium" id="r_stateTax">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">FICA / Social Security</span><span class="fw-medium" id="r_ficaAmt">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Medicare</span><span class="fw-medium" id="r_medicareAmt">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Health &amp; other</span><span class="fw-medium" id="r_otherDed">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Federal tax</span><span class="fw-medium gasq-mono" id="r_fedTax">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">State tax</span><span class="fw-medium gasq-mono" id="r_stateTax">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">FICA / Social Security</span><span class="fw-medium gasq-mono" id="r_ficaAmt">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Medicare</span><span class="fw-medium gasq-mono" id="r_medicareAmt">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Health &amp; other</span><span class="fw-medium gasq-mono" id="r_otherDed">$0.00</span></div>
             <hr class="my-1">
-            <div class="d-flex justify-content-between fw-semibold"><span>Total Deductions</span><span id="r_totalDed">$0.00</span></div>
+            <div class="d-flex justify-content-between fw-semibold"><span>Total Deductions</span><span class="gasq-mono" id="r_totalDed">$0.00</span></div>
           </div>
 
           {{-- Net Pay --}}
@@ -121,21 +121,21 @@
 
           <div class="row g-3">
             <div class="col-4">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Bi-Weekly Net</div>
-                <div class="fs-5 fw-bold" id="r_biweekly">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Bi-Weekly Net</div>
+                <div class="metric-value text-primary" id="r_biweekly">$0.00</div>
               </div>
             </div>
             <div class="col-4">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Monthly Net</div>
-                <div class="fs-5 fw-bold" id="r_monthly">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Monthly Net</div>
+                <div class="metric-value text-primary" id="r_monthly">$0.00</div>
               </div>
             </div>
             <div class="col-4">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Annual Net</div>
-                <div class="fs-5 fw-bold" id="r_annual">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Annual Net</div>
+                <div class="metric-value text-primary" id="r_annual">$0.00</div>
               </div>
             </div>
           </div>

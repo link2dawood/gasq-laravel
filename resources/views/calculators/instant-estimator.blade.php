@@ -101,7 +101,7 @@
         <div class="card-body">
 
           {{-- Location info bar --}}
-          <div class="d-flex align-items-center gap-2 p-3 rounded mb-4" style="background:var(--gasq-muted-bg)">
+          <div class="d-flex align-items-center gap-2 p-3 mb-4 gasq-input-section">
             <i class="fa fa-map-marker-alt text-primary"></i>
             <span class="small">Estimating for: <span class="fw-semibold" id="r_location">—</span></span>
             <span class="ms-auto small text-gasq-muted">Living wage: <span id="r_livingWage">$0.00/hr</span></span>
@@ -110,27 +110,28 @@
           {{-- Main stats --}}
           <div class="row g-3 mb-4">
             <div class="col-6 col-md-3">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Hourly Rate</div>
-                <div class="fs-5 fw-bold text-primary" id="r_hourly">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Hourly Rate</div>
+                <div class="metric-value text-primary" id="r_hourly">$0.00</div>
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Weekly</div>
-                <div class="fs-5 fw-bold" id="r_weekly">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Weekly</div>
+                <div class="metric-value" id="r_weekly">$0.00</div>
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                <div class="x-sm text-gasq-muted mb-1">Monthly</div>
-                <div class="fs-5 fw-bold" id="r_monthly">$0.00</div>
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Monthly</div>
+                <div class="metric-value" id="r_monthly">$0.00</div>
               </div>
             </div>
             <div class="col-6 col-md-3">
-              <div class="rounded p-3 text-center" style="background:rgba(6,45,121,0.08);border:1px solid rgba(6,45,121,0.2)">
-                <div class="x-sm text-gasq-muted mb-1">Annual</div>
-                <div class="fs-5 fw-bold text-primary" id="r_annual">$0.00</div>
+              <div class="gasq-metric-card text-center" style="border-color:rgba(6,45,121,0.2)">
+                <div class="metric-desc">Annual</div>
+                <div class="metric-value text-primary" id="r_annual">$0.00</div>
+                <div class="gasq-progress"><div class="gasq-progress-fill fill-success" style="width:100%"></div></div>
               </div>
             </div>
           </div>

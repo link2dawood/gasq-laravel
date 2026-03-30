@@ -24,13 +24,15 @@
   </div>
 
   {{-- Tabs --}}
-  <ul class="nav nav-tabs mb-0 d-print-none border-bottom-0" role="tablist">
-    <li class="nav-item"><a class="nav-link active fw-medium" data-bs-toggle="tab" href="#ca-inputs"><i class="fa fa-table me-1"></i> Category Inputs</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#ca-analysis"><i class="fa fa-chart-bar me-1"></i> Per-Hour Analysis</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#ca-summary"><i class="fa fa-file-text me-1"></i> Summary</a></li>
-  </ul>
+  <div class="gasq-tabs-scroll d-print-none mb-3">
+    <ul class="gasq-tabs-pill" role="tablist">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#ca-inputs"><i class="fa fa-table me-1"></i> Category Inputs</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ca-analysis"><i class="fa fa-chart-bar me-1"></i> Per-Hour Analysis</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ca-summary"><i class="fa fa-file-alt me-1"></i> Summary</a></li>
+    </ul>
+  </div>
 
-  <div class="tab-content card gasq-card" style="border-top-left-radius:0;border-top-right-radius:0">
+  <div class="tab-content card gasq-card">
     <div class="card-body p-4">
 
       {{-- ===== CATEGORY INPUTS ===== --}}

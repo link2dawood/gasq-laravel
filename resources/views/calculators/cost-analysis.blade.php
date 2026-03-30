@@ -50,10 +50,10 @@
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Cost Analysis Results</h5></div>
         <div class="card-body">
           <div class="row g-3 mb-4">
-            <div class="col-6 col-md-3"><div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)"><div class="x-sm text-gasq-muted mb-1">Cost/Guard/Year</div><div class="fs-5 fw-bold" id="r_perGuard">$0</div></div></div>
-            <div class="col-6 col-md-3"><div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)"><div class="x-sm text-gasq-muted mb-1">Cost/Hour</div><div class="fs-5 fw-bold" id="r_perHour">$0.00</div></div></div>
-            <div class="col-6 col-md-3"><div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)"><div class="x-sm text-gasq-muted mb-1">Monthly Cost</div><div class="fs-5 fw-bold" id="r_monthly">$0</div></div></div>
-            <div class="col-6 col-md-3"><div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)"><div class="x-sm text-gasq-muted mb-1">Weekly Cost</div><div class="fs-5 fw-bold" id="r_weekly">$0</div></div></div>
+            <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Cost/Guard/Year</div><div class="metric-value text-primary" id="r_perGuard">$0</div></div></div>
+            <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Cost/Hour</div><div class="metric-value text-primary" id="r_perHour">$0.00</div></div></div>
+            <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Monthly Cost</div><div class="metric-value text-primary" id="r_monthly">$0</div></div></div>
+            <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Weekly Cost</div><div class="metric-value text-primary" id="r_weekly">$0</div></div></div>
           </div>
 
           <h6 class="fw-semibold mb-3">Risk Reduction Value</h6>

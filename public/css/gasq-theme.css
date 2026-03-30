@@ -322,3 +322,275 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
 .list-group-item { border-color: var(--gasq-border); }
 .badge.bg-success { background-color: var(--gasq-success) !important; }
 .badge.bg-warning { background-color: hsl(45, 100%, 50%) !important; color: var(--gasq-foreground); }
+
+/* =====================================================
+   REACT-MATCHING ENHANCEMENTS
+   ===================================================== */
+
+/* Calculator page header bar – matches React bg-primary py-6 */
+.gasq-calc-header {
+  background: var(--gasq-primary);
+  color: var(--gasq-primary-foreground);
+  padding: 1.5rem 0;
+}
+.gasq-calc-header .gasq-btn-ghost {
+  color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.25);
+  background: transparent;
+  border-radius: var(--gasq-radius);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.gasq-calc-header .gasq-btn-ghost:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.gasq-calc-header h1,.gasq-calc-header h2,.gasq-calc-header h3 { color: #fff; margin-bottom: 0; }
+.gasq-calc-header .text-muted-white { color: rgba(255,255,255,0.7) !important; font-size: 0.875rem; }
+
+/* View toggle (Buyer / Vendor) inside the header */
+.gasq-view-toggle {
+  display: inline-flex;
+  background: rgba(255,255,255,0.15);
+  border-radius: var(--gasq-radius);
+  padding: 3px;
+  gap: 2px;
+}
+.gasq-view-toggle .btn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 4px 14px;
+  border-radius: calc(var(--gasq-radius) - 2px);
+  color: rgba(255,255,255,0.75);
+  border: none;
+  background: transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.gasq-view-toggle .btn.active,
+.gasq-view-toggle .btn:focus {
+  background: #fff;
+  color: var(--gasq-primary);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+/* ─── Pill-style tabs – matches React TabsList ──────────────── */
+.gasq-tabs-pill {
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--gasq-muted-bg);
+  border-radius: var(--gasq-radius);
+  padding: 4px;
+  gap: 2px;
+  border: none !important;
+  margin-bottom: 1rem;
+}
+.gasq-tabs-pill .nav-link {
+  border: none !important;
+  border-radius: calc(var(--gasq-radius) - 2px) !important;
+  color: var(--gasq-muted) !important;
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  background: transparent !important;
+  white-space: nowrap;
+}
+.gasq-tabs-pill .nav-link.active,
+.gasq-tabs-pill .nav-link[aria-selected="true"] {
+  background: var(--gasq-card) !important;
+  color: var(--gasq-foreground) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06) !important;
+}
+.gasq-tabs-pill .nav-link:hover:not(.active) {
+  color: var(--gasq-foreground) !important;
+  background: rgba(255,255,255,0.6) !important;
+}
+/* Scrollable wrapper for pill tabs on mobile */
+.gasq-tabs-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+.gasq-tabs-scroll .gasq-tabs-pill {
+  flex-wrap: nowrap;
+  min-width: max-content;
+}
+
+/* ─── Icon badge – matches React p-2 rounded-lg bg-primary/10 ── */
+.gasq-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--gasq-radius);
+  background: rgba(6, 45, 121, 0.1);
+  color: var(--gasq-primary);
+  flex-shrink: 0;
+  font-size: 0.875rem;
+}
+.gasq-icon-badge.gasq-icon-success { background: rgba(34,197,94,0.1);  color: var(--gasq-success); }
+.gasq-icon-badge.gasq-icon-warning { background: rgba(234,179,8,0.12); color: hsl(45,90%,35%); }
+.gasq-icon-badge.gasq-icon-danger  { background: rgba(220,53,69,0.1);  color: var(--gasq-destructive); }
+.gasq-icon-badge.gasq-icon-muted   { background: var(--gasq-muted-bg); color: var(--gasq-muted); }
+
+/* ─── Metric result card – matches React category result card ── */
+.gasq-metric-card {
+  background: hsla(220,15%,95%,0.35);
+  border: 1px solid var(--gasq-border);
+  border-radius: var(--gasq-radius);
+  padding: 1rem;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.gasq-metric-card:hover { box-shadow: var(--gasq-shadow-card); border-color: rgba(6,45,121,0.2); }
+.gasq-metric-card .metric-label  { font-size: 0.8125rem; font-weight: 500; color: var(--gasq-foreground); }
+.gasq-metric-card .metric-pct    { font-size: 0.75rem; color: var(--gasq-muted); }
+.gasq-metric-card .metric-value  {
+  font-size: 1.25rem; font-weight: 700;
+  font-family: ui-monospace, "SFMono-Regular", "Courier New", monospace;
+  color: var(--gasq-foreground);
+  margin: 4px 0 2px;
+}
+.gasq-metric-card .metric-desc   { font-size: 0.75rem; color: var(--gasq-muted); }
+.gasq-metric-card .metric-value.text-primary { color: var(--gasq-primary) !important; }
+.gasq-metric-card .metric-value.text-success { color: var(--gasq-success) !important; }
+
+/* ─── Progress bar ────────────────────────────────────────────── */
+.gasq-progress {
+  height: 6px;
+  background: var(--gasq-muted-bg);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.gasq-progress-fill {
+  height: 100%;
+  background: var(--gasq-primary);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+.gasq-progress-fill.fill-success { background: var(--gasq-success); }
+.gasq-progress-fill.fill-warning { background: hsl(45,100%,50%); }
+.gasq-progress-fill.fill-danger  { background: var(--gasq-destructive); }
+
+/* ─── Summary / elevated card ─────────────────────────────────── */
+.gasq-summary-card {
+  border-color: rgba(6,45,121,0.25) !important;
+  box-shadow: 0 10px 40px -10px rgba(6,45,121,0.15), 0 4px 12px -4px rgba(6,45,121,0.08) !important;
+}
+
+/* ─── Monospace currency display ──────────────────────────────── */
+.gasq-mono    { font-family: ui-monospace,"SFMono-Regular","Courier New",monospace; }
+.gasq-num-lg  { font-family: ui-monospace,"SFMono-Regular","Courier New",monospace; font-size: 1.5rem; font-weight: 700; }
+.gasq-num-xl  { font-family: ui-monospace,"SFMono-Regular","Courier New",monospace; font-size: 2rem;   font-weight: 700; }
+
+/* ─── Dashboard stat card ─────────────────────────────────────── */
+.gasq-stat-card {
+  background: var(--gasq-card);
+  border: 1px solid var(--gasq-border);
+  border-radius: var(--gasq-radius);
+  padding: 1.25rem 1.375rem;
+  box-shadow: var(--gasq-shadow-card);
+  height: 100%;
+}
+.gasq-stat-card .stat-label { font-size: 0.8125rem; color: var(--gasq-muted); font-weight: 500; margin-bottom: 0.25rem; }
+.gasq-stat-card .stat-value { font-size: 1.625rem; font-weight: 700; color: var(--gasq-foreground); line-height: 1.1; }
+.gasq-stat-card .stat-sub   { font-size: 0.75rem; color: var(--gasq-muted); margin-top: 0.25rem; }
+
+/* ─── Input section (muted bg) ────────────────────────────────── */
+.gasq-input-section {
+  background: hsla(220,15%,95%,0.35);
+  border: 1px solid var(--gasq-border);
+  border-radius: var(--gasq-radius);
+  padding: 1.25rem;
+}
+
+/* ─── Compact field (xs label + sm input) ─────────────────────── */
+.gasq-field { display: flex; flex-direction: column; gap: 4px; }
+.gasq-field .gasq-label { font-size: 0.75rem; color: var(--gasq-muted); font-weight: 500; line-height: 1; margin-bottom: 0; }
+.gasq-field .form-control,
+.gasq-field .form-select { height: 32px; font-size: 0.875rem; padding: 4px 8px; }
+
+/* ─── Quick-action link card ──────────────────────────────────── */
+.gasq-action-card {
+  background: var(--gasq-card);
+  border: 1px solid var(--gasq-border);
+  border-radius: var(--gasq-radius);
+  padding: 1rem 1.125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  text-decoration: none;
+  color: var(--gasq-foreground);
+  height: 100%;
+}
+.gasq-action-card:hover {
+  box-shadow: var(--gasq-shadow-form);
+  border-color: var(--gasq-primary);
+  transform: translateY(-2px);
+  color: var(--gasq-foreground);
+}
+.gasq-action-card .action-title { font-weight: 600; font-size: 0.9375rem; line-height: 1.2; }
+.gasq-action-card .action-desc  { font-size: 0.8125rem; color: var(--gasq-muted); margin-top: 2px; }
+
+/* ─── Welcome banner ──────────────────────────────────────────── */
+.gasq-welcome-banner {
+  background: linear-gradient(135deg, var(--gasq-primary) 0%, hsl(220,90%,33%) 100%);
+  color: #fff;
+  border-radius: var(--gasq-radius);
+  padding: 2rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.gasq-welcome-banner::before {
+  content: '';
+  position: absolute; top: -40%; right: -8%;
+  width: 380px; height: 380px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.gasq-welcome-banner::after {
+  content: '';
+  position: absolute; bottom: -55%; right: 18%;
+  width: 260px; height: 260px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.gasq-welcome-banner .banner-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.65; margin-bottom: 0.375rem; }
+.gasq-welcome-banner h1,.gasq-welcome-banner h2 { color: #fff; font-weight: 700; margin-bottom: 0.375rem; }
+.gasq-welcome-banner .banner-sub { opacity: 0.8; font-size: 0.9375rem; margin-bottom: 0; }
+.gasq-welcome-banner .gasq-btn-banner {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: var(--gasq-radius);
+  padding: 0.5rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+.gasq-welcome-banner .gasq-btn-banner:hover { background: rgba(255,255,255,0.22); color: #fff; }
+
+/* ─── Section header inside cards ─────────────────────────────── */
+.gasq-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.gasq-section-header .section-title { font-size: 1rem; font-weight: 600; line-height: 1.2; margin-bottom: 2px; }
+.gasq-section-header .section-desc  { font-size: 0.8125rem; color: var(--gasq-muted); }

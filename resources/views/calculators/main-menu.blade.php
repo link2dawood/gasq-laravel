@@ -23,15 +23,17 @@
 
   {{-- Tabs --}}
   <div class="card gasq-card">
-    <div class="card-header p-0 d-print-none" style="background:transparent">
-      <ul class="nav nav-tabs px-2 px-md-3 pt-2 flex-nowrap overflow-auto" role="tablist" id="mainTabs" style="border-bottom:1px solid rgba(0,0,0,.08)">
-        <li class="nav-item"><a class="nav-link active fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-security"><i class="fa fa-shield me-1"></i> Security Cost</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-manpower"><i class="fa fa-users me-1"></i> Manpower Hours</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-justification"><i class="fa fa-chart-line me-1"></i> Economic Justification</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-billrate"><i class="fa fa-dollar-sign me-1"></i> Bill Rate</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-components"><i class="fa fa-chart-pie me-1"></i> Bill Rate Components</a></li>
-        <li class="nav-item"><a class="nav-link fw-medium text-nowrap" data-bs-toggle="tab" href="#tab-summary"><i class="fa fa-file-text me-1"></i> Contract Summary</a></li>
-      </ul>
+    <div class="card-header px-3 px-md-4 pt-3 pb-0 d-print-none" style="background:transparent;border-bottom:none">
+      <div class="gasq-tabs-scroll">
+        <ul class="gasq-tabs-pill" role="tablist" id="mainTabs">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-security"><i class="fa fa-shield me-1"></i> Security Cost</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-manpower"><i class="fa fa-users me-1"></i> Manpower Hours</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-justification"><i class="fa fa-chart-line me-1"></i> Economic Justification</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-billrate"><i class="fa fa-dollar-sign me-1"></i> Bill Rate</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-components"><i class="fa fa-chart-pie me-1"></i> Bill Rate Components</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-summary"><i class="fa fa-file-alt me-1"></i> Contract Summary</a></li>
+        </ul>
+      </div>
     </div>
 
     <div class="card-body p-4">
@@ -75,27 +77,31 @@
             <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2"><i class="fa fa-chart-bar text-primary"></i> Results</h5>
             <div class="row g-3 mb-4">
               <div class="col-6">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Hourly Rate</div>
-                  <div class="fs-4 fw-bold text-primary" id="sc_r_hourly">$0.00</div>
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Hourly Rate</div>
+                  <div class="metric-value text-primary" id="sc_r_hourly">$0.00</div>
+                  <div class="gasq-progress"><div class="gasq-progress-fill" id="sc_p_hourly" style="width:0%"></div></div>
                 </div>
               </div>
               <div class="col-6">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Weekly Total</div>
-                  <div class="fs-4 fw-bold text-primary" id="sc_r_weekly">$0.00</div>
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Weekly Total</div>
+                  <div class="metric-value text-primary" id="sc_r_weekly">$0.00</div>
+                  <div class="gasq-progress"><div class="gasq-progress-fill" id="sc_p_weekly" style="width:0%"></div></div>
                 </div>
               </div>
               <div class="col-6">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Monthly Total</div>
-                  <div class="fs-4 fw-bold text-primary" id="sc_r_monthly">$0.00</div>
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Monthly Total</div>
+                  <div class="metric-value text-primary" id="sc_r_monthly">$0.00</div>
+                  <div class="gasq-progress"><div class="gasq-progress-fill" id="sc_p_monthly" style="width:0%"></div></div>
                 </div>
               </div>
               <div class="col-6">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Annual Total</div>
-                  <div class="fs-4 fw-bold text-primary" id="sc_r_annual">$0.00</div>
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Annual Total</div>
+                  <div class="metric-value text-primary" id="sc_r_annual">$0.00</div>
+                  <div class="gasq-progress"><div class="gasq-progress-fill fill-success" id="sc_p_annual" style="width:0%"></div></div>
                 </div>
               </div>
             </div>
@@ -145,25 +151,28 @@
             <h5 class="fw-semibold mb-3">Results</h5>
             <div class="row g-3 mb-4">
               <div class="col-4">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Weekly Hours</div>
-                  <div class="fs-4 fw-bold text-primary" id="mp_r_weekly">0</div>
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Weekly Hours</div>
+                  <div class="metric-value text-primary" id="mp_r_weekly">0</div>
+                  <div class="gasq-progress"><div class="gasq-progress-fill" style="width:0%"></div></div>
                 </div>
               </div>
               <div class="col-4">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Monthly Hours</div>
-                  <div class="fs-4 fw-bold text-primary" id="mp_r_monthly">0</div>
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Monthly Hours</div>
+                  <div class="metric-value text-primary" id="mp_r_monthly">0</div>
+                  <div class="gasq-progress"><div class="gasq-progress-fill" style="width:0%"></div></div>
                 </div>
               </div>
               <div class="col-4">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Annual Hours</div>
-                  <div class="fs-4 fw-bold text-primary" id="mp_r_annual">0</div>
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Annual Hours</div>
+                  <div class="metric-value text-primary" id="mp_r_annual">0</div>
+                  <div class="gasq-progress"><div class="gasq-progress-fill fill-success" style="width:0%"></div></div>
                 </div>
               </div>
             </div>
-            <div class="rounded p-3" style="background:var(--gasq-muted-bg)">
+            <div class="gasq-input-section">
               <h6 class="fw-semibold mb-2">Staffing Details</h6>
               <div class="d-flex justify-content-between small mb-1">
                 <span class="text-gasq-muted">Estimated guards required (part-time 28hr/wk)</span>

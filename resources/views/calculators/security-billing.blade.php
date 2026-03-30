@@ -3,7 +3,7 @@
 @section('header_variant', 'dashboard')
 
 @section('content')
-<div class="min-vh-100 py-4 px-3 px-md-4" style="background:var(--gasq-background)">
+<div class="py-4 px-3 px-md-4" style="background:var(--gasq-background)">
 <div class="container-xl">
 
   {{-- Header --}}
@@ -24,15 +24,20 @@
     </div>
   </div>
 
-  {{-- Tabs --}}
-  <ul class="nav nav-tabs mb-0 d-print-none border-bottom-0" role="tablist">
-    <li class="nav-item"><a class="nav-link active fw-medium" data-bs-toggle="tab" href="#sb-calculator"><i class="fa fa-calculator me-1"></i> Calculator</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#sb-comparison"><i class="fa fa-code-compare me-1"></i> Side-by-Side Comparison</a></li>
-    <li class="nav-item"><a class="nav-link fw-medium" data-bs-toggle="tab" href="#sb-profile"><i class="fa fa-user me-1"></i> Profile &amp; Rates</a></li>
-  </ul>
+  <div class="card gasq-card">
+    {{-- Tabs: same pattern as Main Menu — header + body so tabs align with content --}}
+    <div class="card-header px-3 px-md-4 pt-3 pb-0 d-print-none" style="background:transparent;border-bottom:none">
+      <div class="gasq-tabs-scroll">
+        <ul class="gasq-tabs-pill mb-0" role="tablist">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#sb-calculator"><i class="fa fa-calculator me-1"></i> Calculator</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#sb-comparison"><i class="fa fa-code-compare me-1"></i> Side-by-Side Comparison</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#sb-profile"><i class="fa fa-user me-1"></i> Profile &amp; Rates</a></li>
+        </ul>
+      </div>
+    </div>
 
-  <div class="tab-content card gasq-card" style="border-top-left-radius:0;border-top-right-radius:0">
     <div class="card-body p-4">
+      <div class="tab-content">
 
       {{-- ===== CALCULATOR TAB ===== --}}
       <div class="tab-pane fade show active" id="sb-calculator">
@@ -124,13 +129,13 @@
               <div class="card-body d-flex flex-column gap-3">
 
                 {{-- Key metrics --}}
-                <div class="rounded p-3" style="background:var(--gasq-muted-bg)">
+                <div class="gasq-input-section">
                   <h6 class="fw-semibold mb-2">Hourly Rates</h6>
-                  <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Base Pay Rate</span><span class="fw-medium" id="sb_r_basePay">$0.00/hr</span></div>
-                  <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Cost with Payroll Taxes</span><span class="fw-medium" id="sb_r_withTaxes">$0.00/hr</span></div>
-                  <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Cost with Overhead</span><span class="fw-medium" id="sb_r_withOverhead">$0.00/hr</span></div>
+                  <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Base Pay Rate</span><span class="fw-medium gasq-mono" id="sb_r_basePay">$0.00/hr</span></div>
+                  <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Cost with Payroll Taxes</span><span class="fw-medium gasq-mono" id="sb_r_withTaxes">$0.00/hr</span></div>
+                  <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Cost with Overhead</span><span class="fw-medium gasq-mono" id="sb_r_withOverhead">$0.00/hr</span></div>
                   <hr class="my-2">
-                  <div class="d-flex justify-content-between"><span class="fw-semibold small">Bill Rate</span><span class="fw-bold text-primary" id="sb_r_billRate">$0.00/hr</span></div>
+                  <div class="d-flex justify-content-between"><span class="fw-semibold small">Bill Rate</span><span class="fw-bold text-primary gasq-mono" id="sb_r_billRate">$0.00/hr</span></div>
                 </div>
 
                 <div class="rounded p-3" style="background:var(--gasq-muted-bg)">
@@ -220,6 +225,7 @@
         </div>
       </div>
 
+      </div><!-- /tab-content -->
     </div><!-- /card-body -->
   </div><!-- /card -->
 

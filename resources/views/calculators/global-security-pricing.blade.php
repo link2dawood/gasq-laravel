@@ -31,8 +31,8 @@
         </a>
     </div>
 
-    <div style="overflow-x:auto; white-space:nowrap;">
-        <ul class="nav nav-tabs mb-4" role="tablist">
+    <div class="gasq-tabs-scroll mb-4">
+        <ul class="gasq-tabs-pill" role="tablist">
             @foreach($tabs as $key => $label)
                 <li class="nav-item" role="presentation">
                     <a
