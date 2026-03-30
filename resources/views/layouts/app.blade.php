@@ -40,26 +40,7 @@
                             <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ url('/#sellers') }}">For Sellers</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ url('/#how-it-works') }}">How It Works</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('job-board') }}">Job Board</a></li>
-                            @auth
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-gasq-muted" href="#" data-bs-toggle="dropdown">Calculators</a>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Main Menu</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('gasq-instant-estimator.index') }}"><i class="fa fa-bolt me-2"></i>Instant Estimator</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('contract-analysis.index') }}"><i class="fa fa-file-contract me-2"></i>Contract Analysis</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('security-billing.index') }}"><i class="fa fa-file-invoice-dollar me-2"></i>Security Billing</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('budget-calculator.index') }}"><i class="fa fa-piggy-bank me-2"></i>Budget Calculator</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('hourly-pay-calculator.index') }}"><i class="fa fa-clock me-2"></i>Hourly Pay Calculator</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('manpower-hours.index') }}"><i class="fa fa-users me-2"></i>Manpower Hours</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('bill-rate-analysis.index') }}"><i class="fa fa-dollar-sign me-2"></i>Bill Rate Analysis</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol-calculator') }}"><i class="fa fa-car me-2"></i>Mobile Patrol</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol-comparison') }}"><i class="fa fa-code-compare me-2"></i>Mobile Patrol Comparison</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('economic-justification.index') }}"><i class="fa fa-chart-line me-2"></i>Economic Justification</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('cost-analysis.index') }}"><i class="fa fa-chart-bar me-2"></i>Cost Analysis</a></li>
-                                    </ul>
-                                </li>
-                            @endauth
+                            @include('partials.nav-calculators-dropdown', ['toggleId' => 'navbarCalculatorsSite'])
                             @guest
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('login') }}">Login</a></li>
                             @else

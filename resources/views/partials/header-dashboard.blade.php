@@ -15,9 +15,7 @@
                     <li class="nav-item">
                         <a class="nav-link text-gasq-muted" href="{{ route('job-board') }}">Job Board</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-gasq-muted" href="{{ url('/main-menu-calculator') }}">Calculators</a>
-                    </li>
+                    @include('partials.nav-calculators-dropdown', ['toggleId' => 'navbarCalculatorsDash'])
                     <li class="nav-item">
                         <a class="nav-link text-gasq-muted" href="{{ route('credits') }}">Credits</a>
                     </li>
