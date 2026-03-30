@@ -44,14 +44,19 @@
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle text-gasq-muted" href="#" data-bs-toggle="dropdown">Calculators</a>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="{{ url('/main-menu-calculator') }}">Main Menu</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('gasq-instant-estimator.index') }}">Instant Estimator</a></li>
-                                        <li><a class="dropdown-item" href="{{ url('/contract-analysis') }}">Contract Analysis</a></li>
-                                        <li><a class="dropdown-item" href="{{ url('/security-billing') }}">Security Billing</a></li>
-                                        <li><a class="dropdown-item" href="{{ url('/budget-calculator') }}">Budget Calculator</a></li>
-                                        <li><a class="dropdown-item" href="{{ url('/hourly-pay-calculator') }}">Hourly Pay Calculator</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol-calculator.react-ui') }}">Mobile Patrol</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol-comparison.react-ui') }}">Mobile Patrol Comparison</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Main Menu</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('gasq-instant-estimator.index') }}"><i class="fa fa-bolt me-2"></i>Instant Estimator</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('contract-analysis.index') }}"><i class="fa fa-file-contract me-2"></i>Contract Analysis</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('security-billing.index') }}"><i class="fa fa-file-invoice-dollar me-2"></i>Security Billing</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('budget-calculator.index') }}"><i class="fa fa-piggy-bank me-2"></i>Budget Calculator</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('hourly-pay-calculator.index') }}"><i class="fa fa-clock me-2"></i>Hourly Pay Calculator</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('manpower-hours.index') }}"><i class="fa fa-users me-2"></i>Manpower Hours</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('bill-rate-analysis.index') }}"><i class="fa fa-dollar-sign me-2"></i>Bill Rate Analysis</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol-calculator') }}"><i class="fa fa-car me-2"></i>Mobile Patrol</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('mobile-patrol-comparison') }}"><i class="fa fa-code-compare me-2"></i>Mobile Patrol Comparison</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('economic-justification.index') }}"><i class="fa fa-chart-line me-2"></i>Economic Justification</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('cost-analysis.index') }}"><i class="fa fa-chart-bar me-2"></i>Cost Analysis</a></li>
                                     </ul>
                                 </li>
                             @endauth
@@ -86,7 +91,7 @@
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="{{ route('credits') }}"><i class="fa fa-coins me-2"></i>Buy Credits</a></li>
                                         <li><a class="dropdown-item" href="{{ route('profile.show') }}"><i class="fa fa-user me-2"></i>Profile</a></li>
-                                        <li><a class="dropdown-item" href="{{ url('/main-menu-calculator') }}"><i class="fa fa-calculator me-2"></i>Dashboard</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Dashboard</a></li>
                                         @if(auth()->user()->isBuyer() || auth()->user()->isVendor())
                                             <li><a class="dropdown-item" href="{{ route('jobs.index') }}">My Jobs</a></li>
                                         @endif
@@ -126,5 +131,6 @@
         @endif
     </div>
     <script src="{{ mix('js/app.js') }}"></script>
+    @stack('scripts')
 </body>
 </html>

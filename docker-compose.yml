@@ -16,12 +16,16 @@ services:
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
+      - APP_URL=http://localhost:8082
       - DB_CONNECTION=mysql
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=gasq
       - DB_USERNAME=gasq
       - DB_PASSWORD=secret
+      - SESSION_DRIVER=database
+      - CACHE_STORE=database
+      - QUEUE_CONNECTION=database
     depends_on:
       db:
         condition: service_healthy

@@ -36,7 +36,12 @@
 
     <x-card class="mb-4">
         <p class="text-gasq-muted small mb-2">Posted by {{ $job->user->name }} @if($job->user->company)({{ $job->user->company }})@endif · {{ $job->created_at->format('M j, Y') }}</p>
-        @if($job->location)<p class="mb-1"><strong>Location:</strong> {{ $job->location }}</p>@endif
+        @if($job->location)
+            <p class="mb-1"><strong>Location:</strong> {{ $job->location }}</p>
+        @endif
+        @if($job->hasGeoPoint())
+            <p class="mb-1 small text-gasq-muted"><i class="fa fa-map-pin me-1"></i>{{ number_format((float) $job->latitude, 5) }}, {{ number_format((float) $job->longitude, 5) }}</p>
+        @endif
         @if($job->category)<p class="mb-1"><strong>Category:</strong> {{ $job->category }}</p>@endif
         @if($job->service_start_date || $job->service_end_date)
             <p class="mb-1"><strong>Period:</strong> {{ $job->service_start_date?->format('M j, Y') }} – {{ $job->service_end_date?->format('M j, Y') }}</p>
@@ -59,6 +64,27 @@
             </ul>
         @endif
     </x-card>
+
+    @php($mapsKey = config('services.google.maps_api_key'))
+    @if($job->hasGeoPoint() && $mapsKey)
+        <x-card title="Job site map" class="mb-4">
+            <div id="job-show-map" class="rounded border" style="height: 280px; min-height: 200px; border-color: var(--gasq-border);"></div>
+        </x-card>
+        @push('scripts')
+            <script>
+                window.initJobShowMap = function () {
+                    const el = document.getElementById('job-show-map');
+                    if (!el || !window.google || !google.maps) {
+                        return;
+                    }
+                    const center = { lat: {{ (float) $job->latitude }}, lng: {{ (float) $job->longitude }} };
+                    const map = new google.maps.Map(el, { zoom: 14, center, mapTypeControl: true });
+                    new google.maps.Marker({ position: center, map: map, title: @json(Str::limit($job->title, 80)) });
+                };
+            </script>
+            <script src="https://maps.googleapis.com/maps/api/js?key={{ $mapsKey }}&callback=initJobShowMap" async defer></script>
+        @endpush
+    @endif
 
     <h2 class="gasq-card-title-lg mb-3">Bids ({{ $job->bids->count() }})</h2>
 

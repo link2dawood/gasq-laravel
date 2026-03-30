@@ -1,6 +1,11 @@
 # GASQ Laravel — Make targets for artisan, Docker, and common tasks
 # Use Docker: make migrate  (default, uses docker compose)
 # Local PHP:  make migrate DOCKER=0
+#
+# React UI (gasq-calculator-project) lives in its own repo.
+# Point REACT_DIST at that project's dist/ folder to sync built assets here:
+#   make sync-react-ui REACT_DIST=../gasq-calculator/dist
+REACT_DIST ?= ../gasq-calculator/dist
 
 DOCKER ?= 1
 COMPOSE = docker compose
@@ -9,18 +14,17 @@ APP_SVC = app
 ifeq ($(DOCKER),1)
   ARTISAN = $(COMPOSE) exec $(APP_SVC) php artisan
   COMPOSER = $(COMPOSE) exec $(APP_SVC) composer
-  NPM_RUN = $(COMPOSE) run --rm $(APP_SVC) npm
 else
   ARTISAN = php artisan
   COMPOSER = composer
-  NPM_RUN = npm run
 endif
 
 .PHONY: help install key-generate migrate migrate-fresh migrate-rollback migrate-status \
 	optimize optimize-clear config-clear cache-clear view-clear route-clear \
 	queue-work queue-restart db-seed test serve dusk \
-	up down build shell composer-install composer-update npm-install npm-dev npm-build \
-	storage-link horizon tinker route-list event-list artisan
+	up down build rebuild fresh-start logs shell \
+	composer-install composer-update sync-react-ui \
+	storage-link tinker route-list event-list artisan
 
 # Default target
 help:
@@ -31,8 +35,9 @@ help:
 	@echo "    make key-generate     - php artisan key:generate"
 	@echo "    make composer-install"
 	@echo "    make composer-update  - composer update (e.g. after adding a package)"
-	@echo "    make npm-install      - npm install (in container or host)"
 	@echo "    make storage-link     - php artisan storage:link"
+	@echo "    make sync-react-ui    - copy gasq-calculator dist/ into public/react-ui/"
+	@echo "                           (override path: make sync-react-ui REACT_DIST=/path/to/dist)"
 	@echo ""
 	@echo "  Database"
 	@echo "    make migrate          - php artisan migrate"
@@ -62,7 +67,10 @@ help:
 	@echo "  Docker"
 	@echo "    make up              - docker compose up -d (app :8082, phpMyAdmin :8083)"
 	@echo "    make down            - docker compose down"
-	@echo "    make build           - docker compose build"
+	@echo "    make build           - docker compose build --no-cache"
+	@echo "    make rebuild         - down + build + up"
+	@echo "    make fresh-start     - full first-time setup (build + up + composer + key + migrate)"
+	@echo "    make logs            - follow app container logs"
 	@echo "    make shell           - shell into app container"
 	@echo ""
 	@echo "  Tests"
@@ -87,14 +95,16 @@ composer-install:
 composer-update:
 	$(COMPOSER) update --no-interaction
 
-npm-install:
-	$(NPM_RUN) install
-
-npm-dev:
-	$(NPM_RUN) run dev
-
-npm-build:
-	$(NPM_RUN) run prod
+# Sync the built React UI into Laravel's public folder.
+# Build the React project first (cd gasq-calculator && npm run build), then run this.
+sync-react-ui:
+ifndef REACT_DIST
+	$(error REACT_DIST is not set. Example: make sync-react-ui REACT_DIST=../gasq-calculator/dist)
+endif
+	@test -d "$(REACT_DIST)" || (echo "ERROR: $(REACT_DIST) does not exist"; exit 1)
+	@echo "Syncing $(REACT_DIST) → public/react-ui/ ..."
+	rsync -a --delete "$(REACT_DIST)/" public/react-ui/
+	@echo "Done. Commit public/react-ui/ if you want to track the updated build."
 
 storage-link:
 	$(ARTISAN) storage:link
@@ -169,7 +179,17 @@ down:
 	$(COMPOSE) down
 
 build:
-	$(COMPOSE) build
+	$(COMPOSE) build --no-cache
+
+rebuild: down build up
+	@echo "Done: rebuild and restart"
+
+# First-time setup: build image, start, then run install (composer + key + migrate)
+fresh-start: down build up install
+	@echo "Done: fresh-start"
+
+logs:
+	$(COMPOSE) logs -f $(APP_SVC)
 
 shell:
 	$(COMPOSE) exec $(APP_SVC) sh

@@ -13,6 +13,9 @@ class JobPosting extends Model
         'title',
         'category',
         'location',
+        'latitude',
+        'longitude',
+        'google_place_id',
         'service_start_date',
         'service_end_date',
         'guards_per_shift',
@@ -30,8 +33,18 @@ class JobPosting extends Model
         'expires_at' => 'datetime',
         'budget_min' => 'decimal:2',
         'budget_max' => 'decimal:2',
+        'latitude' => 'float',
+        'longitude' => 'float',
         'special_requirements' => 'array',
     ];
+
+    public function hasGeoPoint(): bool
+    {
+        return $this->latitude !== null
+            && $this->longitude !== null
+            && is_numeric($this->latitude)
+            && is_numeric($this->longitude);
+    }
 
     public function user(): BelongsTo
     {

@@ -25,3 +25,9 @@ docker-compose*.yml
 tests
 phpunit.xml
 .phpunit.result.cache
+
+# React project lives in its own repo — never embed here
+gasq-calculator-project/
+
+# React-built UI assets are served from the host volume; skip from build context
+/public/react-ui/

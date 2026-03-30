@@ -20,9 +20,13 @@
                     @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Location</label>
-                    <input type="text" name="location" class="form-control @error('location') is-invalid @enderror" value="{{ old('location') }}">
-                    @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @include('jobs.partials.location-fields', [
+                        'suffix' => 'create',
+                        'location' => old('location'),
+                        'latitude' => old('latitude'),
+                        'longitude' => old('longitude'),
+                        'googlePlaceId' => old('google_place_id'),
+                    ])
                 </div>
             </div>
             <div class="row">

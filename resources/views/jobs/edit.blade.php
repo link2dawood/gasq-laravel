@@ -20,8 +20,13 @@
                     <input type="text" name="category" class="form-control" value="{{ old('category', $job->category) }}">
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Location</label>
-                    <input type="text" name="location" class="form-control" value="{{ old('location', $job->location) }}">
+                    @include('jobs.partials.location-fields', [
+                        'suffix' => 'edit',
+                        'location' => old('location', $job->location),
+                        'latitude' => old('latitude', $job->latitude),
+                        'longitude' => old('longitude', $job->longitude),
+                        'googlePlaceId' => old('google_place_id', $job->google_place_id),
+                    ])
                 </div>
             </div>
             <div class="row">

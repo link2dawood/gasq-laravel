@@ -23,17 +23,18 @@ class SecurityHeaders
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
         
         // Content Security Policy
+        // Google Maps JS/Places/Directions: maps.googleapis.com + *.googleapis.com / *.gstatic.com
         $csp = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com",
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com https://maps.googleapis.com https://maps.gstatic.com",
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self' https://accounts.google.com",
+            "connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://*.googleapis.com https://*.gstatic.com",
             "frame-src https://accounts.google.com",
             "object-src 'none'",
             "base-uri 'self'",
-            "form-action 'self'"
+            "form-action 'self'",
         ];
         
         $response->headers->set('Content-Security-Policy', implode('; ', $csp));

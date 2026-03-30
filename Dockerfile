@@ -19,6 +19,8 @@ RUN apk add --no-cache \
         bcmath \
         gd \
         intl \
+        mbstring \
+        fileinfo \
         opcache
 
 # Composer
