@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('header_variant', 'dashboard')
-
 @section('title', 'Security Quote')
 
 @section('content')
@@ -9,7 +7,8 @@
     <div class="text-center mb-5">
         <h1 class="display-5 fw-bold mb-3">Security Quote</h1>
         <p class="lead text-gasq-muted mx-auto" style="max-width: 900px;">
-            UI preview for <code>/security-quote</code>. No quote calculations are performed here.
+            Sample layout only. Figures are illustrative examples; this page does not run quote calculations.
+            Use the Security Cost calculator for estimates.
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
             <a class="btn btn-primary btn-lg" href="{{ url('/main-menu-calculator?tab=security') }}">Open Security Cost Calculator</a>

@@ -66,7 +66,12 @@ Route::get('/register/vendor', function () {
     return view('calculators.spa-shell', ['title' => 'Register as Vendor']);
 })->name('register.vendor.index');
 
-// Calculator Blade routes (pixel-perfect, all require auth)
+// Public Blade preview (marketing sample; no server-side quote math)
+Route::get('/security-quote', function () {
+    return view('calculators.security-quote');
+})->name('security-quote.index');
+
+// Calculator Blade routes (pixel-perfect; require auth unless listed as public above)
 Route::middleware('auth')->group(function () {
     Route::get('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.index');
     Route::post('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.post');
@@ -90,7 +95,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/hourly-pay-calculator', function () { return view('calculators.hourly-pay'); })->name('hourly-pay-calculator.index');
     Route::get('/budget-calculator', function () { return view('calculators.budget'); })->name('budget-calculator.index');
     Route::get('/unarmed-security-guard-services', function () { return view('calculators.unarmed-security-guard-services'); })->name('unarmed-security-guard-services.index');
-    Route::get('/security-quote', function () { return view('calculators.security-quote'); })->name('security-quote.index');
     Route::get('/mobile-patrol-analysis', function () { return view('calculators.mobile-patrol-analysis'); })->name('mobile-patrol-analysis.index');
     Route::get('/global-security-pricing', function () { return view('calculators.global-security-pricing'); })->name('global-security-pricing.index');
 });

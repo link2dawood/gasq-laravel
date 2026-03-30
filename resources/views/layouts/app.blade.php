@@ -36,6 +36,7 @@
                     'post-coverage-schedule',
                     'vendor-form',
                     'register/*',
+                    'security-quote',
                 ))
                     ? 'dashboard'
                     : 'site';
