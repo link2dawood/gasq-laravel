@@ -51,11 +51,11 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('job_matches')) {
-            if ($this->indexExists('job_matches', 'job_matches_job_id_vendor_id_index')) {
-                Schema::table('job_matches', function (Blueprint $table) {
-                    $table->dropIndex(['job_id', 'vendor_id']);
-                });
-            }
+            // MySQL requires an index for FK constraints; some environments create a named
+            // job_id+vendor_id index that is also used to satisfy one of those FKs.
+            // Attempting to drop it can fail with:
+            //   Cannot drop index ... needed in a foreign key constraint
+            // We keep the existing index and only add the new unique/indexes.
             $this->addUnique(
                 'job_matches',
                 ['job_id', 'vendor_id'],
