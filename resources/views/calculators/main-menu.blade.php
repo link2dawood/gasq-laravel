@@ -3,7 +3,7 @@
 @section('header_variant', 'dashboard')
 
 @section('content')
-<div class="min-vh-100 py-4 px-3 px-md-4" style="background:var(--gasq-background)">
+<div class="py-4 px-3 px-md-4" style="background:var(--gasq-background)">
 <div class="container-xl">
 
   {{-- Page header --}}
@@ -409,181 +409,192 @@
 
 @push('scripts')
 <script>
-const LIVING_WAGE = { california:19.41,'new-york':17.87,texas:14.53,florida:15.45,illinois:16.20 };
-const COMPONENT_COLORS = ['#3b82f6','#84cc16','#ef4444','#8b5cf6','#06b6d4','#f97316','#a855f7'];
-
-function fmt(v,dec=2){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
-function fmtN(v,dec=0){return new Intl.NumberFormat('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
-function g(id){return parseFloat(document.getElementById(id).value)||0;}
-function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
-
-/* ---- Security Cost ---- */
-function calcSecurity(){
-  const loc = document.getElementById('sc_location').value;
-  const livingWage = LIVING_WAGE[loc]||15.00;
-  const hourlyRate = livingWage * 1.3;
-  const hours = g('sc_hours'), guards = g('sc_guards');
-  const weekly = hours * guards * hourlyRate;
-  setText('sc_r_hourly', fmt(hourlyRate));
-  setText('sc_r_weekly', fmt(weekly));
-  setText('sc_r_monthly', fmt(weekly * 4.333));
-  setText('sc_r_annual', fmt(weekly * 52));
-  setText('sc_r_livingWage', fmt(livingWage)+'/hr');
-  setText('sc_r_withOverhead', fmt(hourlyRate)+'/hr');
-  return { hourlyRate, weekly, monthly: weekly*4.333, annual: weekly*52 };
+function fmt(v, dec = 2) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
+}
+function fmtN(v, dec = 0) {
+  return new Intl.NumberFormat('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
+}
+function gNum(id) {
+  const el = document.getElementById(id);
+  const n = el ? parseFloat(el.value) : NaN;
+  return Number.isFinite(n) ? n : 0;
+}
+function gVal(id) {
+  const el = document.getElementById(id);
+  return el ? (el.value ?? '') : '';
+}
+function setText(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = v;
 }
 
-/* ---- Manpower Hours ---- */
-const SHIFT_MUL = {'8-hour':3,'10-hour':2.4,'12-hour':2,'16-hour':1.5,'24-hour':1};
-function calcManpower(){
-  const coverage = g('mp_coverage');
-  const shiftMul = SHIFT_MUL[document.getElementById('mp_shift').value]||3;
-  const factor = g('mp_factor');
-  const requiredHours = coverage * shiftMul * factor;
-  const weekly = requiredHours * 7;
-  const monthly = requiredHours * 30;
-  const annual = requiredHours * 365;
-  const guards = Math.ceil(weekly/28);
-  setText('mp_r_weekly', fmtN(weekly,1));
-  setText('mp_r_monthly', fmtN(monthly,1));
-  setText('mp_r_annual', fmtN(annual,1));
-  setText('mp_r_guards', guards);
-  setText('mp_r_multiplier', shiftMul.toFixed(1)+'x');
-  return { weekly, monthly, annual };
+async function computeMainMenu() {
+  const payload = {
+    version: 'v24',
+    scenario: {
+      assumptions: {},
+      scope: {
+        hoursOfCoveragePerDay: gNum('mp_coverage'),
+        daysOfCoveragePerWeek: 7,
+        weeksOfCoverage: 52,
+        staffPerShift: 1,
+      },
+      posts: [
+        {
+          postName: 'Post 1',
+          positionTitle: gVal('sc_serviceType'),
+          weeklyHours: gNum('sc_hours'),
+          qtyRequired: Math.max(1, gNum('sc_guards')),
+          wageMode: 'AUTO',
+          manualPayWage: null,
+          manualBillRate: null,
+        },
+      ],
+      vehicle: {},
+      uniform: {},
+      meta: {
+        locationState: gVal('sc_location'),
+        serviceType: gVal('sc_serviceType'),
+        hoursPerWeek: gNum('sc_hours'),
+        guards: Math.max(1, gNum('sc_guards')),
+        siteCoverageHoursPerDay: gNum('mp_coverage'),
+        shiftPattern: gVal('mp_shift'),
+        schedulingFactor: gNum('mp_factor'),
+        employeeTrueHourlyCost: gNum('ej_employeeCost'),
+        weeklyHoursPerformed: gNum('ej_weeklyHours'),
+        weeksInYear: gNum('ej_weeksInYear') || 52,
+        monthsInYear: gNum('ej_monthsInYear') || 12,
+        basePayRate: gNum('br_basePay'),
+        profitMarginPct: gNum('br_profit') || 15,
+        components: {
+          wages: gNum('bc_wages'),
+          taxes: gNum('bc_taxes'),
+          training: gNum('bc_training'),
+          recruiting: gNum('bc_recruiting'),
+          uniforms: gNum('bc_uniforms'),
+          overhead: gNum('bc_overhead'),
+          profit: gNum('bc_profit'),
+        },
+        vehiclePassthroughBillingsAnnual: gNum('cs_vehPassthrough'),
+        vehiclePassthroughCostsAnnual: gNum('cs_vehCosts'),
+        workingCapitalRequirement: gNum('cs_workingCapital'),
+      },
+    },
+  };
+
+  const res = await fetch('{{ route('backend.main-menu.compute') }}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data || !data.ok) {
+    throw new Error((data && (data.message || data.error)) || 'Compute failed');
+  }
+  return data;
 }
 
-/* ---- Economic Justification ---- */
-function calcEJ(){
-  const employeeCost = g('ej_employeeCost');
-  const weeklyHours = g('ej_weeklyHours');
-  const weeksInYear = g('ej_weeksInYear');
-  const monthsInYear = g('ej_monthsInYear');
-  const vendorHourlyCost = employeeCost * 0.70;
-  const weeksPerMonth = weeksInYear / monthsInYear;
-  const ihWeekly = employeeCost * weeklyHours;
-  const vWeekly = vendorHourlyCost * weeklyHours;
-  const ihMonthly = ihWeekly * weeksPerMonth;
-  const vMonthly = vWeekly * weeksPerMonth;
-  const ihAnnual = ihWeekly * weeksInYear;
-  const vAnnual = vWeekly * weeksInYear;
-  const savings = ihAnnual - vAnnual;
-  const roiPct = ihAnnual>0 ? (savings/ihAnnual)*100 : 0;
-  const payback = savings>0 ? vAnnual/ihMonthly : 0;
-  const dollar = savings>0 ? savings/vAnnual : 0;
-  setText('ej_r_ihHourly', fmt(employeeCost));
-  setText('ej_r_vHourly', fmt(vendorHourlyCost));
-  setText('ej_r_ihWeekly', fmt(ihWeekly));
-  setText('ej_r_vWeekly', fmt(vWeekly));
-  setText('ej_r_ihMonthly', fmt(ihMonthly));
-  setText('ej_r_vMonthly', fmt(vMonthly));
-  setText('ej_r_ihAnnual', fmt(ihAnnual));
-  setText('ej_r_vAnnual', fmt(vAnnual));
-  setText('ej_r_savings', fmt(savings));
-  setText('ej_r_roi', roiPct.toFixed(1)+'%');
-  setText('ej_r_payback', payback.toFixed(1)+' mo');
-  setText('ej_r_dollar', fmt(dollar));
-  return { ihAnnual, vAnnual, savings, roiPct };
-}
+function renderMainMenu(data) {
+  const tabs = data.tabs || {};
 
-/* ---- Bill Rate ---- */
-function calcBillRate(){
-  const base = g('br_basePay');
-  const profitPct = g('br_profit')/100;
-  const costWithBenefits = base>0 ? base/0.70 : 0;
-  const billRate = costWithBenefits * (1+profitPct);
-  const markup = base>0 ? ((billRate-base)/base)*100 : 0;
-  setText('br_r_withBenefits', fmt(costWithBenefits));
-  setText('br_r_billRate', fmt(billRate));
-  setText('br_r_weekly', fmt(billRate*40));
-  setText('br_r_markup', markup.toFixed(1)+'%');
-  return { billRate, costWithBenefits };
-}
+  const sc = tabs.securityCost || {};
+  setText('sc_r_hourly', fmt(sc.hourlyRate || 0));
+  setText('sc_r_weekly', fmt(sc.weeklyTotal || 0));
+  setText('sc_r_monthly', fmt(sc.monthlyTotal || 0));
+  setText('sc_r_annual', fmt(sc.annualTotal || 0));
+  setText('sc_r_livingWage', fmt(sc.livingWageBase || 0) + '/hr');
+  setText('sc_r_withOverhead', fmt(sc.withOverheadHourly || 0) + '/hr');
 
-/* ---- Bill Rate Components ---- */
-function calcComponents(){
-  const comps = [
-    {label:'Wages & Benefits', id:'bc_wages'},
-    {label:'Taxes & Insurance', id:'bc_taxes'},
-    {label:'Training Costs', id:'bc_training'},
-    {label:'Recruiting & Screening', id:'bc_recruiting'},
-    {label:'Uniforms & Equipment', id:'bc_uniforms'},
-    {label:'Overhead', id:'bc_overhead'},
-    {label:'Profit', id:'bc_profit'},
-  ];
-  const vals = comps.map((c,i)=>({...c, val:g(c.id), color:COMPONENT_COLORS[i]}));
-  const total = vals.reduce((s,c)=>s+c.val,0);
-  setText('bc_r_total', fmt(total));
+  const mp = tabs.manpowerHours || {};
+  setText('mp_r_weekly', fmtN(mp.weeklyHours || 0, 1));
+  setText('mp_r_monthly', fmtN(mp.monthlyHours || 0, 1));
+  setText('mp_r_annual', fmtN(mp.annualHours || 0, 1));
+  setText('mp_r_guards', mp.estimatedGuardsPartTime28hr || 0);
+  setText('mp_r_multiplier', (mp.shiftMultiplierUsed || 0).toFixed(1) + 'x');
+
+  const ej = tabs.economicJustification || {};
+  setText('ej_r_ihHourly', fmt(ej.inHouseHourly || 0));
+  setText('ej_r_vHourly', fmt(ej.vendorHourly || 0));
+  setText('ej_r_ihWeekly', fmt(ej.inHouseWeekly || 0));
+  setText('ej_r_vWeekly', fmt(ej.vendorWeekly || 0));
+  setText('ej_r_ihMonthly', fmt(ej.inHouseMonthly || 0));
+  setText('ej_r_vMonthly', fmt(ej.vendorMonthly || 0));
+  setText('ej_r_ihAnnual', fmt(ej.inHouseAnnual || 0));
+  setText('ej_r_vAnnual', fmt(ej.vendorAnnual || 0));
+  setText('ej_r_savings', fmt(ej.costSavings || 0));
+  setText('ej_r_roi', (ej.roiPct || 0).toFixed(1) + '%');
+  setText('ej_r_payback', (ej.paybackMonths || 0).toFixed(1) + ' mo');
+  setText('ej_r_dollar', fmt(ej.dollarForDollarReturn || 0));
+
+  const br = tabs.billRate || {};
+  setText('br_r_withBenefits', fmt(br.costWithBenefits || 0));
+  setText('br_r_billRate', fmt(br.finalBillRate || 0));
+  setText('br_r_weekly', fmt(br.weeklyAt40 || 0));
+  setText('br_r_markup', (br.markupPct || 0).toFixed(1) + '%');
+
+  const bc = tabs.billRateComponents || {};
+  setText('bc_r_total', fmt(bc.totalBillRate || 0));
   const bd = document.getElementById('bc_r_breakdown');
-  bd.innerHTML = vals.filter(c=>c.val>0).map(c=>{
-    const pct = total>0 ? (c.val/total)*100 : 0;
-    return `<div>
-      <div class="d-flex justify-content-between small mb-1">
-        <div class="d-flex align-items-center gap-2">
-          <span class="rounded-circle d-inline-block" style="width:10px;height:10px;background:${c.color}"></span>
-          <span class="text-gasq-muted">${c.label}</span>
+  if (bd) {
+    bd.innerHTML = (bc.components || []).filter(c => (c.value || 0) > 0).map(c => {
+      return `<div>
+        <div class="d-flex justify-content-between small mb-1">
+          <div class="d-flex align-items-center gap-2">
+            <span class="rounded-circle d-inline-block" style="width:10px;height:10px;background:var(--gasq-primary)"></span>
+            <span class="text-gasq-muted">${c.label}</span>
+          </div>
+          <span class="fw-medium">${fmt(c.value || 0)}</span>
         </div>
-        <span class="fw-medium">${fmt(c.val)}</span>
-      </div>
-      <div class="progress" style="height:6px">
-        <div class="progress-bar" style="width:${pct.toFixed(1)}%;background:${c.color}"></div>
-      </div>
-    </div>`;
-  }).join('');
-  return total;
+        <div class="progress" style="height:6px">
+          <div class="progress-bar" style="width:${(c.pct || 0).toFixed(1)}%;background:var(--gasq-primary)"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const cs = tabs.contractSummary || {};
+  const tbody = document.getElementById('cs_table');
+  if (tbody) {
+    tbody.innerHTML = (cs.tableRows || []).map(r => {
+      const bold = r.highlight ? 'fw-semibold table-active' : '';
+      return `<tr class="${bold}"><td class="small py-1">${r.label}</td><td class="small py-1 text-end font-monospace">${fmt(r.value || 0)}</td></tr>`;
+    }).join('');
+  }
+  setText('cs_r_profit', fmt(cs.contributoryProfit || 0));
+  setText('cs_r_profitPct', (cs.profitPctOfRevenue || 0).toFixed(1) + '%');
+  setText('cs_r_profitPerHr', fmt(cs.profitPerHour || 0));
 }
 
-/* ---- Contract Summary ---- */
-function calcContractSummary(){
-  const sec = calcSecurity();
-  const mp = calcManpower();
-  const br = calcBillRate();
-  const weeklyBillings = mp.weekly * br.billRate;
-  const annualRevenue = weeklyBillings * 52;
-  const vehPass = g('cs_vehPassthrough');
-  const vehCosts = g('cs_vehCosts');
-  const totalRevenue = annualRevenue + vehPass;
-  const directExpense = mp.annual * sec.hourlyRate;
-  const totalCosts = directExpense + vehCosts;
-  const profit = totalRevenue - totalCosts;
-  const profitPct = totalRevenue>0 ? profit/totalRevenue*100 : 0;
-  const profitPerHr = mp.annual>0 ? profit/mp.annual : 0;
-
-  const rows = [
-    ['Weekly Hours', fmtN(mp.weekly,1)],
-    ['Weekly Billings', fmt(weeklyBillings)],
-    ['Blended Straight Time Pay Rate', fmt(sec.hourlyRate)],
-    ['Blended Straight Time Bill Rate', fmt(br.billRate)],
-    ['Overtime Bill Rate', fmt(br.billRate*1.5)],
-    ['Holiday Bill Rate', fmt(br.billRate*1.5)],
-    ['— Revenue —', ''],
-    ['Total Annual Revenue (hourly billings)', fmt(annualRevenue)],
-    ['Vehicle & Other Pass-Through Billings', fmt(vehPass)],
-    ['Total Annual Contract Revenue', fmt(totalRevenue), true],
-    ['— Costs —', ''],
-    ['Direct Expense', fmt(directExpense)],
-    ['Vehicle & Other Pass-Through Costs', fmt(vehCosts)],
-    ['Total Annual Costs', fmt(totalCosts), true],
-    ['Working Capital Requirement', fmt(g('cs_workingCapital'))],
-  ];
-
-  const tbody = document.getElementById('cs_table');
-  tbody.innerHTML = rows.map(([label,val,bold=false])=>{
-    if(val==='') return `<tr><td colspan="2" class="small fw-semibold py-2 text-gasq-muted pt-3">${label}</td></tr>`;
-    return `<tr class="${bold?'fw-semibold table-active':''}"><td class="small py-1">${label}</td><td class="small py-1 text-end font-monospace">${val}</td></tr>`;
-  }).join('');
-
-  setText('cs_r_profit', fmt(profit));
-  setText('cs_r_profitPct', profitPct.toFixed(1)+'%');
-  setText('cs_r_profitPerHr', fmt(profitPerHr));
+let computeTimer = null;
+function scheduleCompute() {
+  clearTimeout(computeTimer);
+  computeTimer = setTimeout(async () => {
+    try {
+      const data = await computeMainMenu();
+      renderMainMenu(data);
+    } catch (e) {
+      // Keep UI stable; log for debugging
+      console.error(e);
+    }
+  }, 150);
 }
 
 function downloadReport(){ window.print(); }
 function emailReport(){ alert('Email functionality: connect to POST /api/spa/mail/calculator-pdf'); }
 
-function recalcAll(){
-  calcSecurity(); calcManpower(); calcEJ(); calcBillRate(); calcComponents(); calcContractSummary();
-}
-
-document.addEventListener('DOMContentLoaded', recalcAll);
+document.addEventListener('DOMContentLoaded', function () {
+  // Recompute on any input change on this page.
+  document.querySelectorAll('input,select,textarea').forEach(el => {
+    el.addEventListener('input', scheduleCompute);
+    el.addEventListener('change', scheduleCompute);
+  });
+  scheduleCompute();
+});
 </script>
 @endpush

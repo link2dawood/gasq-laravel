@@ -1,0 +1,52 @@
+{
+  "version": "v24",
+  "scenario": {
+    "assumptions": {},
+    "scope": {
+      "hoursOfCoveragePerDay": 24,
+      "daysOfCoveragePerWeek": 7,
+      "weeksOfCoverage": 52,
+      "staffPerShift": 1
+    },
+    "posts": [
+      {
+        "postName": "Post 1",
+        "positionTitle": "unarmed",
+        "weeklyHours": 40,
+        "qtyRequired": 1,
+        "wageMode": "AUTO",
+        "manualPayWage": null,
+        "manualBillRate": null
+      }
+    ],
+    "vehicle": {},
+    "uniform": {},
+    "meta": {
+      "locationState": "california",
+      "hoursPerWeek": 40,
+      "guards": 1,
+      "siteCoverageHoursPerDay": 24,
+      "shiftPattern": "8-hour",
+      "schedulingFactor": 1.4,
+      "employeeTrueHourlyCost": 133,
+      "weeklyHoursPerformed": 168,
+      "weeksInYear": 52,
+      "monthsInYear": 12,
+      "basePayRate": 18,
+      "profitMarginPct": 15,
+      "components": {
+        "wages": 41.05,
+        "taxes": 10.96,
+        "training": 2.02,
+        "recruiting": 0.09,
+        "uniforms": 1.47,
+        "overhead": 0.5,
+        "profit": 3.07
+      },
+      "vehiclePassthroughBillingsAnnual": 12000,
+      "vehiclePassthroughCostsAnnual": 163286,
+      "workingCapitalRequirement": 0
+    }
+  }
+}
+

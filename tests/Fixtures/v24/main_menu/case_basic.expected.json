@@ -1,0 +1,79 @@
+{
+  "kpis": {
+    "annualCoverageHours": null,
+    "annualLaborHours": null,
+    "ftesRequiredAtPaidHoursBasis": null
+  },
+  "tabs": {
+    "securityCost": {
+      "hourlyRate": 25.23,
+      "weeklyTotal": 1009.32,
+      "monthlyTotal": 4371.37,
+      "annualTotal": 52484.64,
+      "livingWageBase": 19.41,
+      "withOverheadHourly": 25.23
+    },
+    "manpowerHours": {
+      "weeklyHours": 705.6,
+      "monthlyHours": 3024,
+      "annualHours": 36792,
+      "estimatedGuardsPartTime28hr": 26,
+      "shiftMultiplierUsed": 3,
+      "coverageDerived": {}
+    },
+    "economicJustification": {
+      "inHouseHourly": 133,
+      "vendorHourly": 93.1,
+      "inHouseWeekly": 22344,
+      "vendorWeekly": 15640.8,
+      "inHouseMonthly": 96824,
+      "vendorMonthly": 67776.8,
+      "inHouseAnnual": 1161888,
+      "vendorAnnual": 813321.6,
+      "costSavings": 348566.4,
+      "roiPct": 30,
+      "paybackMonths": 8.4,
+      "dollarForDollarReturn": 0.43
+    },
+    "billRate": {
+      "basePayRate": 18,
+      "costWithBenefits": 25.71,
+      "finalBillRate": 29.57,
+      "markupPct": 64.3,
+      "weeklyAt40": 1182.86
+    },
+    "billRateComponents": {
+      "totalBillRate": 59.16,
+      "components": [
+        { "key": "wages", "label": "Wages & Benefits", "value": 41.05, "pct": 69.39 },
+        { "key": "taxes", "label": "Taxes & Insurance", "value": 10.96, "pct": 18.52 },
+        { "key": "training", "label": "Training Costs", "value": 2.02, "pct": 3.41 },
+        { "key": "recruiting", "label": "Recruiting & Screening", "value": 0.09, "pct": 0.15 },
+        { "key": "uniforms", "label": "Uniforms & Equipment", "value": 1.47, "pct": 2.48 },
+        { "key": "overhead", "label": "Overhead", "value": 0.5, "pct": 0.85 },
+        { "key": "profit", "label": "Profit", "value": 3.07, "pct": 5.19 }
+      ]
+    },
+    "contractSummary": {
+      "tableRows": [
+        { "label": "Weekly Hours", "value": 0 },
+        { "label": "Weekly Billings", "value": 0 },
+        { "label": "Blended Straight Time Pay Rate", "value": 25.23 },
+        { "label": "Blended Straight Time Bill Rate", "value": 29.57 },
+        { "label": "Overtime Bill Rate", "value": 44.36 },
+        { "label": "Holiday Bill Rate", "value": 44.36 },
+        { "label": "Total Annual Revenue (hourly billings)", "value": 0 },
+        { "label": "Vehicle & Other Pass-Through Billings", "value": 12000 },
+        { "label": "Total Annual Contract Revenue", "value": 12000, "highlight": true },
+        { "label": "Direct Expense", "value": 0 },
+        { "label": "Vehicle & Other Pass-Through Costs", "value": 163286 },
+        { "label": "Total Annual Costs", "value": 163286, "highlight": true },
+        { "label": "Working Capital Requirement", "value": 0 }
+      ],
+      "contributoryProfit": -151286,
+      "profitPctOfRevenue": -1260.7,
+      "profitPerHour": 0
+    }
+  }
+}
+

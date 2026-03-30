@@ -1,6 +1,6 @@
 ---
 title: Spreadsheet ↔ UI Cell Mapping
-workbook: GASQ_TCO_Model_TCO_Draft_Updated_v12.xlsx
+workbook: GASQ_TCO_Model_UPDATED_Final_V24 Lovable.xlsx
 purpose: Map UI inputs/outputs to authoritative spreadsheet cells
 status: draft
 ---
@@ -13,6 +13,9 @@ status: draft
   - Golden test fixtures
   - Backend parity endpoints
   - UI-to-backend payload contracts
+
+Important:
+- The current Laravel `resources/views/calculators/main-menu.blade.php` contains **demo JS math**. This document defines the **canonical payload keys** that the Main Menu UI must send to the backend and the **authoritative spreadsheet cells** those keys correspond to in V24.
 
 ---
 
@@ -258,6 +261,132 @@ Vendor evaluation inputs (editable):
 - Vendor 5: `Vendor_Pricing!B19`, `Vendor_Pricing!C19`
 
 Computed vendor evaluation outputs (display candidates):
+
+---
+
+## G) Main Menu Calculator (Laravel) — payload mapping (V24)
+
+Source UI: `resources/views/calculators/main-menu.blade.php` (6 tabs)
+
+### G.1 Canonical payload keys (used by backend compute)
+
+The Main Menu backend compute endpoint will accept a payload shaped like:
+
+- `assumptions.*` → mapped from `Inputs` (see Section A)
+- `scope.*` → mapped from `Post_Positions` X-block (see Section B)
+- `posts[]` → mapped from `Post_Positions` rows (see Section C)
+- `vehicle.*` → mapped from `Vehicle` (see Section D)
+- `uniform.*` → mapped from `Uniform_Equipment` (see Section E)
+- `vendorPricing.*` → mapped from `Vendor_Pricing` (TBD section)
+
+Request envelope (versioned):
+
+```json
+{
+  "version": "v24",
+  "scenario": {
+    "assumptions": {},
+    "scope": {
+      "hoursOfCoveragePerDay": 8,
+      "daysOfCoveragePerWeek": 5,
+      "weeksOfCoverage": 52,
+      "staffPerShift": 1
+    },
+    "posts": [
+      {
+        "postName": "Post 1",
+        "positionTitle": "Unarmed Guard",
+        "weeklyHours": 40,
+        "qtyRequired": 1,
+        "wageMode": "AUTO",
+        "manualPayWage": null,
+        "manualBillRate": null
+      }
+    ],
+    "vehicle": {},
+    "uniform": {},
+    "meta": {}
+  }
+}
+```
+
+Response envelope:
+
+```json
+{
+  "ok": true,
+  "version": "v24",
+  "kpis": {},
+  "tabs": {
+    "securityCost": {},
+    "manpowerHours": {},
+    "economicJustification": {},
+    "billRate": {},
+    "billRateComponents": {},
+    "contractSummary": {}
+  }
+}
+```
+
+### G.2 UI field → payload key → spreadsheet cell (where known)
+
+#### Security Cost tab (UI IDs: `sc_*`)
+
+| UI field (HTML id) | Payload key | Spreadsheet cell (V24) | Notes |
+|---|---|---:|---|
+| `sc_location` | `meta.locationState` | TBD | V24 model is not state-dropdown driven; this will be normalized into assumptions/locality inputs (TBD). |
+| `sc_serviceType` | `meta.serviceType` | TBD | V24 uses post positions + wage/burden; not a simple enum (TBD). |
+| `sc_hours` | `posts[0].weeklyHours` (or derived) | `Post_Positions!E{r}` | For parity we’ll model hours via `posts[]` + `scope` rather than a single scalar. |
+| `sc_guards` | `posts[0].qtyRequired` (or derived) | TBD | V24 represents staffing by posts + shifts; `qtyRequired` is stored in scenario. |
+
+Displayed outputs (UI IDs) → KPI keys → spreadsheet output cells:
+
+| UI output (HTML id) | KPI key | Spreadsheet cell (V24) |
+|---|---|---:|
+| `sc_r_hourly` | `kpi.vendorTcoRate` (or similar) | TBD |
+| `sc_r_weekly` | `kpi.weeklyTotalCost` | TBD |
+| `sc_r_monthly` | `kpi.monthlyTotalCost` | TBD |
+| `sc_r_annual` | `kpi.annualTotalCostOfOwnership` | `Summary!B7` (or equivalent) |
+
+#### Manpower Hours tab (UI IDs: `mp_*` in Main Menu)
+
+| UI field (HTML id) | Payload key | Spreadsheet cell (V24) |
+|---|---|---:|
+| `mp_coverage` | `scope.hoursOfCoveragePerDay` | `Post_Positions!X27` |
+| `mp_shift` | `meta.shiftPattern` | TBD |
+| `mp_factor` | `meta.schedulingFactor` | TBD |
+
+Displayed outputs:
+
+| UI output (HTML id) | KPI key | Spreadsheet cell (V24) |
+|---|---|---:|
+| `mp_r_weekly` | `kpi.totalWeeklyPostHours` | Derived from `Post_Positions` rows |
+| `mp_r_monthly` | `kpi.monthlyCoverageHours` | TBD |
+| `mp_r_annual` | `kpi.annualCoverageHours` | `Summary!B4` |
+| `mp_r_guards` | `kpi.ftesRequired` | `Summary!B5` (or Post_Positions derived) |
+
+#### Economic Justification tab (UI IDs: `ej_*`)
+
+This tab must map to the V24 “capital recovery saved / ROI” style outputs (likely `Summary`, `Government_TCO`, and/or `Vendor_Pricing`). Exact cell mapping TBD until outputs are confirmed.
+
+#### Bill Rate tab (UI IDs: `br_*`)
+
+| UI field (HTML id) | Payload key | Spreadsheet cell (V24) |
+|---|---|---:|
+| `br_basePay` | `assumptions.directLaborWage` (or post wage mode) | `Inputs!B4` |
+| `br_profit` | `assumptions.profitFeePct` | `Inputs!B38` |
+
+#### Bill Rate Components tab (UI IDs: `bc_*`)
+
+This tab should be driven by V24 burden build (Inputs + downstream burden build). The current UI exposes per-component $/hr directly; for V24 parity, those values should be computed and displayed from mapped inputs (TBD).
+
+#### Contract Summary tab (UI IDs: `cs_*`)
+
+| UI field (HTML id) | Payload key | Spreadsheet cell (V24) |
+|---|---|---:|
+| `cs_vehPassthrough` | `meta.vehiclePassthroughBillingsAnnual` | TBD |
+| `cs_vehCosts` | `vehicle.totalAnnualVehicleCost` | `Vehicle!C29` (derived) |
+| `cs_workingCapital` | `meta.workingCapitalRequirement` | TBD |
 - `Vendor_Pricing!D15:D19` Floor eligible?
 - `Vendor_Pricing!E15:E19` Range position
 - `Vendor_Pricing!F15:F19` Interpretation

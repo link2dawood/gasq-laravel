@@ -145,6 +145,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/_backend/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('backend.main-menu-calculator.index');
     Route::post('/_backend/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('backend.main-menu-calculator.post');
+    Route::post('/_backend/main-menu/compute', \App\Http\Controllers\Backend\MainMenuComputeController::class)
+        ->name('backend.main-menu.compute');
 
     Route::get('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.index');
     Route::post('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.post');
