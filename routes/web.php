@@ -12,37 +12,37 @@ Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/payscale', [PageController::class, 'payScale'])->name('payscale');
 Route::get('/payment-model', [PageController::class, 'paymentPolicy'])->name('payment-policy');
 Route::get('/post-coverage-schedule', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Post Coverage Schedule']);
 })->name('post-coverage-schedule');
 
 // UI-only calculator/marketing pages (match gasq-calculator-project routes)
 Route::get('/gasq-tco-calculator', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'GASQ TCO Calculator']);
 })->name('gasq-tco-calculator.index');
 
 Route::get('/absorbed-rate-calculator', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Absorbed Rate Calculator']);
 })->name('absorbed-rate-calculator.index');
 
 Route::get('/government-contract-calculator', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Government Contract Calculator']);
 })->name('government-contract-calculator.index');
 
 Route::get('/keeps-doors-open-calculator', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Keeps Doors Open Calculator']);
 })->name('keeps-doors-open-calculator.index');
 
 Route::get('/open-bid-offer', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Open Bid Offer']);
 })->name('open-bid-offer.index');
 
 // Route aliases to match gasq-calculator-project SPA paths
 Route::get('/post-job', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Post Job']);
 })->name('post-job.index');
 
 Route::get('/calculator', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Security Calculator']);
 })->name('calculator.index');
 
 Route::get('/gasq-instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('gasq-instant-estimator.index');
@@ -55,15 +55,15 @@ Route::get('/instant-estimator', function () {
 
 // UI-only pages (match gasq-calculator-project routes)
 Route::get('/vendor-form', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Vendor Form']);
 })->name('vendor-form.index');
 
 Route::get('/register/buyer', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Register as Buyer']);
 })->name('register.buyer.index');
 
 Route::get('/register/vendor', function () {
-    return response()->file(public_path('react-ui/index.html'));
+    return view('calculators.spa-shell', ['title' => 'Register as Vendor']);
 })->name('register.vendor.index');
 
 // Calculator Blade routes (pixel-perfect, all require auth)

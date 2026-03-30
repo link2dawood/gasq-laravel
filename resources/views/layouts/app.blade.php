@@ -10,13 +10,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/gasq-theme.css') }}" rel="stylesheet">
+    @stack('styles')
 </head>
 <body class="bg-gasq-background">
     <div id="app">
         @php
             $headerVariant = trim($__env->yieldContent('header_variant'));
             if ($headerVariant === '') {
-                $headerVariant = (auth()->check() && request()->is('home', 'profile*', 'credits*', 'account-balance*', 'discovery-call*', 'jobs*', 'admin*', '_backend*'))
+                $headerVariant = (auth()->check() && request()->is(
+                    'home',
+                    'profile*',
+                    'credits*',
+                    'account-balance*',
+                    'discovery-call*',
+                    'jobs*',
+                    'admin*',
+                    '_backend*',
+                    'gasq-tco-calculator',
+                    'absorbed-rate-calculator',
+                    'government-contract-calculator',
+                    'keeps-doors-open-calculator',
+                    'calculator',
+                    'open-bid-offer',
+                    'post-job',
+                    'post-coverage-schedule',
+                    'vendor-form',
+                    'register/*',
+                ))
                     ? 'dashboard'
                     : 'site';
             }
@@ -98,7 +118,7 @@
         </header>
         @endif
 
-        <main class="py-4">
+        <main class="@yield('main_class', 'py-4')">
             @if(session('success'))
                 <div class="container"><div class="alert alert-success alert-dismissible fade show" role="alert">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>
             @endif
