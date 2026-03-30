@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Schema;
  *
  * Laravel bids use job_posting_id + user_id (Supabase: job_id + vendor_id).
  * Feed table: site_notifications; Supabase idx_notifications_* names applied there.
+ *
+ * MySQL note: never drop an index that may be required by a foreign key
+ * (error 1553). When an index already covers the needed columns, we skip adding a
+ * duplicate-named index instead of dropping the Laravel-generated one.
  */
 return new class extends Migration
 {
@@ -76,14 +80,12 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('referral_share_events')) {
-            if ($this->indexExists('referral_share_events', 'referral_share_events_user_id_index')
-                && ! $this->indexExists('referral_share_events', 'idx_referral_share_events_user_id')) {
-                Schema::table('referral_share_events', function (Blueprint $table) {
-                    $table->dropIndex(['user_id']);
-                });
-            }
             $this->addIndex('referral_share_events', ['sharing_method'], 'idx_referral_share_events_method');
-            $this->addIndex('referral_share_events', ['user_id'], 'idx_referral_share_events_user_id');
+            // user_id index may already exist (e.g. referral_share_events_user_id_index) and back an FK.
+            // Do not drop it; only add Supabase-named index if no index on user_id exists yet.
+            if (! $this->hasIndexWithColumns('referral_share_events', ['user_id'])) {
+                $this->addIndex('referral_share_events', ['user_id'], 'idx_referral_share_events_user_id');
+            }
         }
 
         if (Schema::hasTable('referrals')) {
@@ -110,16 +112,15 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('user_tier_achievements')) {
-            if ($this->indexExists('user_tier_achievements', 'user_tier_achievements_user_id_tier_id_index')) {
-                Schema::table('user_tier_achievements', function (Blueprint $table) {
-                    $table->dropIndex(['user_id', 'tier_id']);
-                });
+            // Composite (user_id, tier_id) index may back FK(s); dropping it fails with 1553 on MySQL.
+            // Add the Supabase unique only when no index on those columns exists yet.
+            if (! $this->hasIndexWithColumns('user_tier_achievements', ['user_id', 'tier_id'])) {
+                $this->addUnique(
+                    'user_tier_achievements',
+                    ['user_id', 'tier_id'],
+                    'user_tier_achievements_user_id_tier_id_key'
+                );
             }
-            $this->addUnique(
-                'user_tier_achievements',
-                ['user_id', 'tier_id'],
-                'user_tier_achievements_user_id_tier_id_key'
-            );
         }
 
         if (Schema::hasTable('verification_codes')) {
@@ -307,6 +308,21 @@ return new class extends Migration
     {
         foreach (Schema::getIndexes($tableName) as $index) {
             if (strcasecmp($index['name'], $indexName) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  list<string>  $columns
+     */
+    protected function hasIndexWithColumns(string $tableName, array $columns): bool
+    {
+        foreach (Schema::getIndexes($tableName) as $index) {
+            $cols = $index['columns'] ?? [];
+            if ($cols === $columns) {
                 return true;
             }
         }
