@@ -24,7 +24,7 @@
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
         <div>
             <h1 class="h2 mb-1">Global Security Pricing</h1>
-            <div class="text-gasq-muted small">UI preview with React-matching tabs.</div>
+            <div class="text-gasq-muted small">UI preview with tab navigation aligned to the reference design.</div>
         </div>
         <a class="btn btn-outline-primary" href="{{ url('/contract-analysis') }}">
             Open Contract Analysis
@@ -81,7 +81,7 @@
     @else
         <x-card title="{{ $tabs[$tab] ?? 'Tab' }}">
             <p class="mb-0 text-gasq-muted">
-                UI placeholder for this tab. (React wires this to interactive data + calculations.)
+                Layout preview only. Editable inputs and live calculations for this section are not enabled here yet.
             </p>
         </x-card>
     @endif

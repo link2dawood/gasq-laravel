@@ -9,7 +9,7 @@
     <div class="text-center mb-5">
         <h1 class="display-5 fw-bold mb-3">Security Quote</h1>
         <p class="lead text-gasq-muted mx-auto" style="max-width: 900px;">
-            UI preview of the React route <code>/security-quote</code>. No quote calculations are performed here.
+            UI preview for <code>/security-quote</code>. No quote calculations are performed here.
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
             <a class="btn btn-primary btn-lg" href="{{ url('/main-menu-calculator?tab=security') }}">Open Security Cost Calculator</a>

@@ -301,13 +301,13 @@
         </div>
       </div>
 
-      {{-- Advanced (React SPA) Calculators --}}
+      {{-- Advanced embedded calculators (SPA) --}}
       <hr class="my-4" style="border-color:var(--gasq-border)">
       <div class="d-flex align-items-center gap-2 mb-3">
         <div class="gasq-icon-badge gasq-icon-warning"><i class="fa fa-rocket fa-sm"></i></div>
         <div>
           <div class="fw-semibold small">Advanced Calculators</div>
-          <div class="text-gasq-muted" style="font-size:0.75rem">Powered by the GASQ React engine</div>
+          <div class="text-gasq-muted" style="font-size:0.75rem">Powered by the GASQ calculator engine</div>
         </div>
       </div>
       <div class="row g-3">

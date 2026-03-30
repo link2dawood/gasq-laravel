@@ -20,7 +20,7 @@
 
     <div class="row g-4">
         <div class="col-lg-8">
-            <x-card title="Steps (UI only)" subtitle="Mirrors the React tabs structure">
+            <x-card title="Steps (UI only)" subtitle="Mirrors the step-by-step tab structure">
                 <div class="list-group">
                     <div class="list-group-item">
                         <strong>1) Client Registration</strong>

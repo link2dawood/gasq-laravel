@@ -16,7 +16,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-gasq-muted mb-3">
-                        This Laravel page matches the React route <code>/manpower-hours</code> visually (tab highlight),
+                        This Laravel page matches <code>/manpower-hours</code> visually (tab highlight),
                         but does not compute values.
                     </p>
 

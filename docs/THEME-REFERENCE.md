@@ -1,6 +1,6 @@
-# GASQ Theme Reference (Lovable / React preview)
+# GASQ Theme Reference (Lovable preview)
 
-Reference for matching [Lovable preview](https://preview--gasq-calculator-project.lovable.app/) in the Laravel app. Source: `src/index.css`, `tailwind.config.ts`, `src/pages/Index.tsx`, and UI components.
+Reference for matching [Lovable preview](https://preview--gasq-calculator-project.lovable.app/) in the Laravel app. Design tokens and layout mirror the preview’s stylesheet and component structure.
 
 ---
 
@@ -62,7 +62,7 @@ Tailwind uses these as `hsl(var(--name))`; gasq-theme.css uses equivalent `--gas
 - **Primary**: `bg-primary text-primary-foreground hover:bg-primary/90`
 - **Outline**: `border border-input bg-background hover:bg-accent hover:text-accent-foreground`
 - **Secondary**: `bg-secondary text-secondary-foreground hover:bg-secondary/80`
-- **Vendor CTA (sellers)**: In React sometimes `variant="outline"` with `className="... bg-[#062d79]"` (primary blue); for theme consistency use primary or outline-primary.
+- **Vendor CTA (sellers)**: On the preview, outline CTAs sometimes use a solid primary blue background; for Laravel theme consistency use `primary` or `outline-primary`.
 
 ---
 

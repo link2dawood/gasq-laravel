@@ -1,6 +1,6 @@
 {{--
-  React calculator SPA (gasq-calculator-project) embedded in Laravel layout with navbar.
-  Assets live under public/assets (same paths as react-ui/index.html).
+  Embedded full-calculator UI (SPA) inside the Laravel layout with global navbar.
+  Bundled assets are served from public/assets.
 --}}
 @extends('layouts.app')
 

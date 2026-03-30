@@ -4,7 +4,7 @@ This file gives AI assistants and developers a quick overview of the project for
 
 ## What this project is
 
-- **GASQ Laravel**: Laravel 12 application that replicates the GASQ security services marketplace and calculators (originally React + Supabase). Auth and data are fully on Laravel; no Supabase.
+- **GASQ Laravel**: Laravel 12 application for the GASQ security services marketplace and calculators. Auth and application data live in Laravel.
 - **Stack**: Laravel 12, PHP 8.2+, Blade + Bootstrap 5, session auth + Google OAuth. DB: SQLite default; MySQL/PostgreSQL supported. Docker is for **local development only**.
 
 ## Important paths

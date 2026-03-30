@@ -42,7 +42,7 @@ php artisan test
 
 - Shared UI: use Blade components in `resources/views/components/`.
 - Prefer Bootstrap 5 utility classes and components for layout and forms.
-- Match existing GASQ UI/UX from the reference React app where specified in the plan.
+- Match existing GASQ UI/UX from the reference design where specified in the plan.
 
 ## Adding a new module
 

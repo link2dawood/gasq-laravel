@@ -16,7 +16,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-gasq-muted mb-3">
-                        This page is a UI-only preview to match the React route <code>/economic-justification</code>.
+                        This page is a UI-only preview aligned with <code>/economic-justification</code>.
                         Tabs match the calculator navigation highlight.
                     </p>
 

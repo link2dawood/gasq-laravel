@@ -21,7 +21,7 @@
         <div>
             <h1 class="h2 mb-1">Mobile Patrol Cost Analysis</h1>
             <div class="text-gasq-muted small">
-                UI preview with React-matching tabs (no functional calculations).
+                UI preview with tab navigation matching the reference design (no functional calculations).
             </div>
         </div>
         <a class="btn btn-outline-primary" href="{{ url('/mobile-patrol-calculator') }}">

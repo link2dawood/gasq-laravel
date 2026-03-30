@@ -9,7 +9,7 @@
     <div class="text-center mb-5">
         <h1 class="display-5 fw-bold mb-3">Unarmed Security Guard Services</h1>
         <p class="lead text-gasq-muted mx-auto" style="max-width: 900px;">
-            UI preview of the React route <code>/unarmed-security-guard-services</code>.
+            UI preview for <code>/unarmed-security-guard-services</code>.
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
             <a class="btn btn-primary btn-lg" href="{{ url('/main-menu-calculator?tab=security') }}">Open Security Cost Calculator</a>

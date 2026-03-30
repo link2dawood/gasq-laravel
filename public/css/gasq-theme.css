@@ -1,4 +1,4 @@
-/* GASQ design system – matches src/index.css (Lovable/React theme) */
+/* GASQ design system – aligns with the Lovable reference theme */
 :root {
   --gasq-background: hsl(240, 10%, 98%);
   --gasq-foreground: hsl(225, 15%, 15%);
@@ -40,7 +40,7 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
 .navbar-brand.text-primary { color: var(--gasq-primary) !important; }
 .badge.bg-primary { background-color: var(--gasq-primary) !important; }
 
-/* Theme navbar – match React: sticky, border-b, bg-background/95, backdrop-blur, muted → foreground on hover */
+/* Theme navbar – sticky, border-b, muted → foreground on hover */
 .gasq-navbar {
   position: sticky;
   top: 0;
@@ -141,7 +141,7 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
 .gasq-card .card-body { padding: 1.5rem; }
 .gasq-card .card-title { font-size: 1.25rem; font-weight: 600; }
 
-/* Typography – match React scale */
+/* Typography – reference scale */
 .gasq-hero-title { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 700; color: var(--gasq-foreground); }
 .gasq-section-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: var(--gasq-foreground); }
 .gasq-hero-lead { font-size: 1.25rem; color: var(--gasq-muted); max-width: 48rem; }
@@ -150,7 +150,7 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
 .text-gasq-success { color: var(--gasq-success) !important; }
 .gasq-star { color: #eab308; }
 
-/* Hero / section gradients – match React */
+/* Hero / section gradients */
 .gasq-hero-bg {
   background: linear-gradient(135deg, hsla(220, 90%, 25%, 0.05) 0%, var(--gasq-background) 50%, hsla(220, 15%, 95%, 0.05) 100%);
   padding: 5rem 0;
@@ -201,7 +201,7 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
   display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem;
 }
 
-/* Footer – match React: bg-muted/50, border-t */
+/* Footer – muted background, top border */
 .gasq-footer { background-color: hsla(220, 15%, 95%, 0.5); border-top: 1px solid var(--gasq-border); padding-top: 3rem; padding-bottom: 3rem; }
 .gasq-footer a {
   transition: color 0.2s ease;
@@ -327,7 +327,7 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
    REACT-MATCHING ENHANCEMENTS
    ===================================================== */
 
-/* Calculator page header bar – matches React bg-primary py-6 */
+/* Calculator page header bar – primary bg, vertical padding */
 .gasq-calc-header {
   background: var(--gasq-primary);
   color: var(--gasq-primary-foreground);
@@ -378,7 +378,7 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
   box-shadow: none;
 }
 
-/* ─── Pill-style tabs – matches React TabsList ──────────────── */
+/* ─── Pill-style tabs ──────────────── */
 .gasq-tabs-pill {
   display: flex;
   flex-wrap: wrap;
@@ -421,7 +421,7 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
   min-width: max-content;
 }
 
-/* ─── Icon badge – matches React p-2 rounded-lg bg-primary/10 ── */
+/* ─── Icon badge ── */
 .gasq-icon-badge {
   display: inline-flex;
   align-items: center;
@@ -439,7 +439,7 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
 .gasq-icon-badge.gasq-icon-danger  { background: rgba(220,53,69,0.1);  color: var(--gasq-destructive); }
 .gasq-icon-badge.gasq-icon-muted   { background: var(--gasq-muted-bg); color: var(--gasq-muted); }
 
-/* ─── Metric result card – matches React category result card ── */
+/* ─── Metric result card ── */
 .gasq-metric-card {
   background: hsla(220,15%,95%,0.35);
   border: 1px solid var(--gasq-border);

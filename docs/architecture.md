@@ -2,7 +2,7 @@
 
 ## Overview
 
-GASQ Laravel is a Laravel application that replicates the GASQ React + Supabase product: a security services marketplace with calculators, credits (tokens), and admin tooling. All data and auth are handled by Laravel (no Supabase).
+GASQ Laravel is a Laravel application that delivers the GASQ security services marketplace with calculators, credits (tokens), and admin tooling. All data and auth are handled in Laravel (no external BaaS for core app data).
 
 ## Stack
 

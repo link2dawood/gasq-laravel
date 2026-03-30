@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="min-vh-100">
-    {{-- Hero – match React: py-20, gradient, title/lead scale --}}
+    {{-- Hero – py-20, gradient, title/lead scale --}}
     <section class="gasq-hero-bg">
         <div class="container text-center px-4">
             <h1 class="gasq-hero-title mb-4">The Smarter Way to Buy & Sell Security Services</h1>
@@ -224,7 +224,7 @@
         </div>
     </section>
 
-    {{-- ROI Guarantee – match React ROIGuaranteeSection --}}
+    {{-- ROI Guarantee section --}}
     <section class="gasq-roi-section">
         <div class="container px-4">
             <div class="gasq-card card gasq-roi-card p-4 p-lg-5 mx-auto" style="max-width: 56rem;">

@@ -15,7 +15,7 @@ class SpaSessionController extends Controller
     ) {}
 
     /**
-     * Single JSON bootstrap for the embedded React SPA: CSRF, auth user, wallet, feature rules.
+     * Single JSON bootstrap for the embedded SPA: CSRF, auth user, wallet, feature rules.
      */
     public function show(Request $request): JsonResponse
     {

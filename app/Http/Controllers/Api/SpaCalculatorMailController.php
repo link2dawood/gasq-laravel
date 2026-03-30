@@ -18,7 +18,7 @@ class SpaCalculatorMailController extends Controller
     }
 
     /**
-     * Email a calculator PDF generated client-side (React SPA).
+     * Email a calculator PDF generated client-side (embedded SPA).
      */
     public function calculatorPdf(Request $request): JsonResponse
     {

@@ -51,7 +51,7 @@ Route::post('/gasq-instant-estimator', [App\Http\Controllers\InstantEstimatorCon
 // Keep navbar/calculator paths aligned
 Route::get('/instant-estimator', function () {
     return redirect('/gasq-instant-estimator');
-})->name('instant-estimator.react-ui');
+})->name('instant-estimator.redirect');
 
 // UI-only pages (match gasq-calculator-project routes)
 Route::get('/vendor-form', function () {
@@ -105,7 +105,7 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-// React SPA: session, CSRF, wallet balance, feature rules (same-origin Laravel session)
+// Embedded SPA: session, CSRF, wallet balance, feature rules (same-origin Laravel session)
 Route::get('/api/spa/session', [App\Http\Controllers\Api\SpaSessionController::class, 'show'])->name('api.spa.session');
 
 // Profile & Account

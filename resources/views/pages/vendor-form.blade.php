@@ -59,7 +59,7 @@
                 </div>
                 <hr class="my-4">
                 <p class="text-gasq-muted mb-0">
-                    In the React app, this section is a multi-step questionnaire + capability statement.
+                    In the live flow, this section is a multi-step questionnaire and capability statement.
                 </p>
             </x-card>
         </div>

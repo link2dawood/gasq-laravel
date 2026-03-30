@@ -16,7 +16,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-gasq-muted mb-3">
-                        This Laravel page is a UI preview to match the React route <code>/bill-rate-analysis</code>.
+                        This Laravel page is a UI preview aligned with <code>/bill-rate-analysis</code>.
                         No calculator logic is wired here.
                     </p>
 
@@ -69,7 +69,7 @@
                 <div class="card-body">
                     <ul class="mb-0 ps-3">
                         <li>How labor + burden components feed into a bill rate</li>
-                        <li>UI matches the tab highlight from React</li>
+                        <li>UI matches the reference tab highlight</li>
                         <li>Functional calculator lives in the main menu tab</li>
                     </ul>
                 </div>

@@ -9,14 +9,14 @@ status: active
 
 Make the GASQ web app match `**GASQ_TCO_Model_TCO_Draft_Updated_v12.xlsx**`:
 
-- **UI/UX**: pixel-perfect to the existing React UI.
+- **UI/UX**: pixel-perfect to the established calculator UI.
 - **Logic**: calculator outputs match spreadsheet outputs exactly for the same inputs.
 
 This plan is intentionally incremental: we will enable backend functionality **one route at a time**, with testable spreadsheet parity at each step.
 
 ## Current State (as of this plan)
 
-- Laravel serves the React production build for many calculator/onboarding routes to keep UI pixel-perfect.
+- Laravel serves the bundled SPA for many calculator/onboarding routes to keep UI pixel-perfect.
 - Duplicate route conflicts were cleaned up; backend endpoints were moved under `/_backend/*` to avoid collisions.
 - Spreadsheet workbook is present at repo root: `GASQ_TCO_Model_TCO_Draft_Updated_v12.xlsx`.
 
@@ -38,12 +38,12 @@ For each calculator route:
 
 ## Phase 0 — Lock UI Routing (already mostly done)
 
-- Serve React UI from Laravel (`public/react-ui/index.html`, `public/assets/*`) for the calculator routes.
+- Serve the SPA shell from Laravel (bundled assets under `public/assets/*`) for the calculator routes.
 - Keep Laravel backend endpoints under `/_backend/*` (auth-protected) until each route is wired.
 
 Deliverable:
 
-- Stable list of “React UI routes” that always load the SPA.
+- Stable list of routes that load the embedded SPA shell.
 
 ## Phase 1 — Spreadsheet Reverse-Engineering (foundation)
 
@@ -102,7 +102,7 @@ For each calculator route (order below):
 
 1. Implement backend compute endpoint under `/_backend/*`.
 2. Ensure it matches the spreadsheet using the golden tests.
-3. Wire the React UI to call that endpoint (no UI changes).
+3. Wire the SPA or Blade UI to call that endpoint (no visual changes unless required).
 4. Repeat until stable, then move to the next route.
 
 ### Recommended order
@@ -141,5 +141,5 @@ We consider parity complete when:
 
 - All target calculator routes use backend endpoints for computations.
 - Golden tests pass for every calculator route against the spreadsheet workbook.
-- UI remains pixel-perfect to the React frontend.
+- UI remains pixel-perfect to the reference calculator design.
 

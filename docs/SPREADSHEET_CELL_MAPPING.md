@@ -7,7 +7,7 @@ status: draft
 
 ## How to use this document
 
-- **UI field** is the website input name we will standardize on (matches the TypeScript calc engine in `gasqTcoCalculations.ts`).
+- **UI field** is the website input name we will standardize on (aligned with the spreadsheet mapping and backend payload contract).
 - **Spreadsheet cell** is the authoritative value/formula location in Excel.
 - This mapping is the basis for:
   - Golden test fixtures

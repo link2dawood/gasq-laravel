@@ -1,10 +1,10 @@
 /**
- * Loaded only on embedded React calculator pages (after the SPA stylesheet).
+ * Loaded only on embedded full-calculator (SPA) pages (after the SPA stylesheet).
  * Tailwind preflight/components from the SPA bundle can override Bootstrap navbar
  * (e.g. .collapse display) and fixed layers can stack above the Laravel header.
  */
 
-/* Keep Laravel chrome above typical React fixed/z-index layers */
+/* Keep Laravel chrome above typical SPA fixed/z-index layers */
 #app > header.gasq-navbar {
   position: sticky !important;
   top: 0 !important;
