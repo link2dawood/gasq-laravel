@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('header_variant', 'dashboard')
+
 @section('title', 'Buyer Registration (UI)')
 
 @section('content')

@@ -11,38 +11,37 @@ Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/payscale', [PageController::class, 'payScale'])->name('payscale');
 Route::get('/payment-model', [PageController::class, 'paymentPolicy'])->name('payment-policy');
+// Marketing / preview calculator pages — native Blade (no React shell)
 Route::get('/post-coverage-schedule', function () {
-    return view('calculators.spa-shell', ['title' => 'Post Coverage Schedule']);
+    return view('calculators.post-coverage-schedule');
 })->name('post-coverage-schedule');
 
-// UI-only calculator/marketing pages (match gasq-calculator-project routes)
 Route::get('/gasq-tco-calculator', function () {
-    return view('calculators.spa-shell', ['title' => 'GASQ TCO Calculator']);
+    return view('calculators.gasq-tco-calculator');
 })->name('gasq-tco-calculator.index');
 
 Route::get('/absorbed-rate-calculator', function () {
-    return view('calculators.spa-shell', ['title' => 'Absorbed Rate Calculator']);
+    return view('calculators.absorbed-rate-calculator');
 })->name('absorbed-rate-calculator.index');
 
 Route::get('/government-contract-calculator', function () {
-    return view('calculators.spa-shell', ['title' => 'Government Contract Calculator']);
+    return view('calculators.government-contract-calculator');
 })->name('government-contract-calculator.index');
 
 Route::get('/keeps-doors-open-calculator', function () {
-    return view('calculators.spa-shell', ['title' => 'Keeps Doors Open Calculator']);
+    return view('calculators.keeps-doors-open-calculator');
 })->name('keeps-doors-open-calculator.index');
 
 Route::get('/open-bid-offer', function () {
-    return view('calculators.spa-shell', ['title' => 'Open Bid Offer']);
+    return view('calculators.open-bid-offer');
 })->name('open-bid-offer.index');
 
-// Route aliases to match gasq-calculator-project SPA paths
 Route::get('/post-job', function () {
-    return view('calculators.spa-shell', ['title' => 'Post Job']);
+    return view('calculators.post-job');
 })->name('post-job.index');
 
 Route::get('/calculator', function () {
-    return view('calculators.spa-shell', ['title' => 'Security Calculator']);
+    return view('calculators.security-calculator');
 })->name('calculator.index');
 
 Route::get('/gasq-instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('gasq-instant-estimator.index');
@@ -53,17 +52,16 @@ Route::get('/instant-estimator', function () {
     return redirect('/gasq-instant-estimator');
 })->name('instant-estimator.redirect');
 
-// UI-only pages (match gasq-calculator-project routes)
 Route::get('/vendor-form', function () {
-    return view('calculators.spa-shell', ['title' => 'Vendor Form']);
+    return view('pages.vendor-form');
 })->name('vendor-form.index');
 
 Route::get('/register/buyer', function () {
-    return view('calculators.spa-shell', ['title' => 'Register as Buyer']);
+    return view('pages.register-buyer');
 })->name('register.buyer.index');
 
 Route::get('/register/vendor', function () {
-    return view('calculators.spa-shell', ['title' => 'Register as Vendor']);
+    return view('pages.register-vendor');
 })->name('register.vendor.index');
 
 // Public Blade preview (marketing sample; no server-side quote math)

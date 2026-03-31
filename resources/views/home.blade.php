@@ -301,7 +301,7 @@
         </div>
       </div>
 
-      {{-- Advanced embedded calculators (SPA) --}}
+      {{-- Advanced calculator previews (Blade) --}}
       <hr class="my-4" style="border-color:var(--gasq-border)">
       <div class="d-flex align-items-center gap-2 mb-3">
         <div class="gasq-icon-badge gasq-icon-warning"><i class="fa fa-rocket fa-sm"></i></div>
