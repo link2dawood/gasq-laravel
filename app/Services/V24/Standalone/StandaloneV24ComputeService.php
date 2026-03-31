@@ -15,6 +15,7 @@ class StandaloneV24ComputeService
         private BudgetEngine $budget,
         private MobilePatrolAnalysisEngine $mobilePatrolAnalysis,
         private GlobalSecurityPricingEngine $globalSecurityPricing,
+        private WorkforceAppraisalReportEngine $workforceAppraisalReport,
     ) {}
 
     /**
@@ -32,6 +33,7 @@ class StandaloneV24ComputeService
             'budget-calculator' => ['kpis' => $this->budget->compute($scenario)],
             'mobile-patrol-analysis' => ['kpis' => $this->mobilePatrolAnalysis->compute($scenario)],
             'global-security-pricing' => ['kpis' => $this->globalSecurityPricing->compute($scenario)],
+            'workforce-appraisal-report' => ['kpis' => $this->workforceAppraisalReport->compute($scenario)],
             default => throw ValidationException::withMessages([
                 'type' => ['Unknown calculator type.'],
             ]),

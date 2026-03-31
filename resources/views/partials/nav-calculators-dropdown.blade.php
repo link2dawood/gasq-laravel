@@ -40,6 +40,13 @@
         <li><a class="dropdown-item" href="{{ route('keeps-doors-open-calculator.index') }}"><i class="fa fa-door-open me-2"></i>Keeps Doors Open Calculator</a></li>
 
         <li><hr class="dropdown-divider my-0"></li>
+        <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Capital recovery report</h6></li>
+        <li><a class="dropdown-item" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-file-invoice me-2"></i>Workforce Appraisal (all tabs)</a></li>
+        <li><a class="dropdown-item" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-percent me-2"></i>CFO Bill Rate Breakdown</a></li>
+        <li><a class="dropdown-item" href="{{ route('post-position-summary.index') }}"><i class="fa fa-user-shield me-2"></i>Post Position Summary</a></li>
+        <li><a class="dropdown-item" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale me-2"></i>Appraisal Comparison Summary</a></li>
+
+        <li><hr class="dropdown-divider my-0"></li>
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Services &amp; pricing</h6></li>
         <li><a class="dropdown-item" href="{{ route('unarmed-security-guard-services.index') }}"><i class="fa fa-shield-halved me-2"></i>Unarmed Guard Services</a></li>
         <li><a class="dropdown-item" href="{{ route('security-quote.index') }}"><i class="fa fa-file-signature me-2"></i>Security Quote</a></li>

@@ -103,6 +103,18 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/unarmed-security-guard-services', function () { return view('calculators.unarmed-security-guard-services'); })->name('unarmed-security-guard-services.index');
     Route::get('/mobile-patrol-analysis', function () { return view('calculators.mobile-patrol-analysis'); })->name('mobile-patrol-analysis.index');
     Route::get('/global-security-pricing', function () { return view('calculators.global-security-pricing'); })->name('global-security-pricing.index');
+    Route::get('/workforce-appraisal-report', function () {
+        return view('calculators.workforce-appraisal-report', ['initialTab' => 'cfo']);
+    })->name('workforce-appraisal-report.index');
+    Route::get('/cfo-bill-rate-breakdown', function () {
+        return view('calculators.workforce-appraisal-report', ['initialTab' => 'cfo']);
+    })->name('cfo-bill-rate-breakdown.index');
+    Route::get('/post-position-summary', function () {
+        return view('calculators.workforce-appraisal-report', ['initialTab' => 'posts']);
+    })->name('post-position-summary.index');
+    Route::get('/appraisal-comparison-summary', function () {
+        return view('calculators.workforce-appraisal-report', ['initialTab' => 'appraisal']);
+    })->name('appraisal-comparison-summary.index');
 });
 
 // Public marketplace (view only)
@@ -185,6 +197,7 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
             'budget-calculator',
             'mobile-patrol-analysis',
             'global-security-pricing',
+            'workforce-appraisal-report',
         ])
         ->name('backend.standalone.v24.compute');
 
