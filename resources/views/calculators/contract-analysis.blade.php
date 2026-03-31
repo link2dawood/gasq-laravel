@@ -3,7 +3,7 @@
 @section('header_variant', 'dashboard')
 
 @section('content')
-<div class="min-vh-100 py-4 px-3 px-md-4" style="background:var(--gasq-background)">
+<div class="py-4 px-3 px-md-4" style="background:var(--gasq-background)">
 <div class="container-xl">
 
   {{-- Header --}}
@@ -23,17 +23,20 @@
     </div>
   </div>
 
-  {{-- Tabs --}}
-  <div class="gasq-tabs-scroll d-print-none mb-3">
-    <ul class="gasq-tabs-pill" role="tablist">
-      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#ca-inputs"><i class="fa fa-table me-1"></i> Category Inputs</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ca-analysis"><i class="fa fa-chart-bar me-1"></i> Per-Hour Analysis</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ca-summary"><i class="fa fa-file-alt me-1"></i> Summary</a></li>
-    </ul>
-  </div>
+  {{-- Tabs + body: Bootstrap 5 expects .tab-pane as direct children of .tab-content --}}
+  <div class="card gasq-card">
+    <div class="card-header px-3 px-md-4 pt-3 pb-0 d-print-none" style="background:transparent;border-bottom:none">
+      <div class="gasq-tabs-scroll">
+        <ul class="gasq-tabs-pill mb-0" role="tablist" id="caTabs">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#ca-inputs"><i class="fa fa-table me-1"></i> Category Inputs</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ca-analysis"><i class="fa fa-chart-bar me-1"></i> Per-Hour Analysis</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ca-summary"><i class="fa fa-file-alt me-1"></i> Summary</a></li>
+        </ul>
+      </div>
+    </div>
 
-  <div class="tab-content card gasq-card">
     <div class="card-body p-4">
+      <div class="tab-content">
 
       {{-- ===== CATEGORY INPUTS ===== --}}
       <div class="tab-pane fade show active" id="ca-inputs">
@@ -142,6 +145,7 @@
         </div>
       </div>
 
+      </div>
     </div>
   </div>
 

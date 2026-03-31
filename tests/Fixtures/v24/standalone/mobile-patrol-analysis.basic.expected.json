@@ -1,0 +1,33 @@
+{
+  "kpis": {
+    "summaryAnnualTotal": 50400.0,
+    "monthlyOperatingTotals": [200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 200.0],
+    "monthlyChartRows": [
+      {"month": "Jan", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Feb", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Mar", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Apr", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "May", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Jun", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Jul", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Aug", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Sep", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Oct", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Nov", "UnitVehicle": 200.0, "totalOperating": 200.0},
+      {"month": "Dec", "UnitVehicle": 200.0, "totalOperating": 200.0}
+    ],
+    "fleet": [
+      {
+        "name": "UnitVehicle",
+        "totalHits": 600,
+        "totalMiles": 12000,
+        "avgCostPerStop": 84.0,
+        "efficiency": 20.0,
+        "annualTotal": 50400.0,
+        "monthlyCostPerStop": [84.0, 84.0, 84.0, 84.0, 84.0, 84.0, 84.0, 84.0, 84.0, 84.0, 84.0, 84.0]
+      }
+    ],
+    "laborRates": {"regularHourlyUsd": 25.0, "overtimeHourlyUsd": 37.5},
+    "reference": "react_bundle:bDe"
+  }
+}

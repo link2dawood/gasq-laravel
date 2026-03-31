@@ -78,7 +78,7 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Phone <span class="text-gasq-muted">(optional)</span></label>
+                <label class="form-label">Phone</label>
                 <input
                     type="text"
                     name="phone"

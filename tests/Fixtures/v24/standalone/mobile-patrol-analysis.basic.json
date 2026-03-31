@@ -1,0 +1,27 @@
+{
+  "version": "v24",
+  "scenario": {
+    "fiscalYear": "2024",
+    "vehicles": [
+      {
+        "id": "v1",
+        "name": "UnitVehicle",
+        "active": true,
+        "monthlyData": [
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100},
+          {"costPerMile": 0.1, "milesDriven": 1000, "hitsPerMonth": 50, "regularHours": 160, "overtimeHours": 0, "equipmentCost": 100}
+        ]
+      }
+    ]
+  }
+}

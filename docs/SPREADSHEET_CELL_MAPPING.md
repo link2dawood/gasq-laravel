@@ -197,6 +197,19 @@ The following workbook areas still need explicit UI ↔ cell mapping:
 
 ---
 
+## React parity calculators (not V24 cell-mapped yet)
+
+These Blade-backed screens use **`/_backend/standalone/{type}/v24/compute`** with math ported from the shipped React bundle (`public/react-ui/assets/index-Bx21dMi4.js`), **not** from Excel cell references:
+
+| Laravel route | Standalone `type` | Bundle symbol | Notes |
+|---|---|---|---|
+| `/mobile-patrol-analysis` | `mobile-patrol-analysis` | `bDe` | Patrol fleet monthly grid; labor rates fixed at **$25 / $37.5** per regular/OT hour in the React UI. |
+| `/global-security-pricing` | `global-security-pricing` | `_De` | Posts + equipment/recruiting/vehicle buckets; includes React’s **hard-coded** bill-rate “totals” row and static bill-component pie values from the `de` memo. |
+
+Golden fixtures: `tests/Fixtures/v24/standalone/mobile-patrol-analysis.basic*.json` and `global-security-pricing.basic*.json`. When the workbook mapping exists, either replace these engines with cell-true implementations or mark them as legacy UI parity.
+
+---
+
 ## F) KPI outputs (for UI display + golden tests)
 
 ### F.1 Executive summary KPIs (`Summary`)

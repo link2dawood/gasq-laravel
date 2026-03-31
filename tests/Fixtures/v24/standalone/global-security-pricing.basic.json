@@ -1,0 +1,46 @@
+{
+  "version": "v24",
+  "scenario": {
+    "county": "Test County",
+    "contractType": "permanent",
+    "useFixedHeadcount": true,
+    "fixedHeadcount": 262,
+    "holidaysPerYear": 88,
+    "vacationWeeks": 1,
+    "benefits": {"hwPerHour": 4.93},
+    "equipment": {
+      "communications": 0,
+      "guardTourSystem": 0,
+      "weapons": 1000,
+      "cellPhones": 0,
+      "other1": 0,
+      "other2": 0
+    },
+    "recruiting": {
+      "recruiting": 0,
+      "medicalScreening": 0,
+      "drugTesting": 75,
+      "backgroundInvest": 50,
+      "psychTesting": 0,
+      "other": 0
+    },
+    "vehicleCosts": {
+      "annualCost": 1000,
+      "mileage": 500,
+      "annualAllowance": 0,
+      "vehicleDamage": 0
+    },
+    "posts": [
+      {
+        "id": 1,
+        "armed": true,
+        "position": "Site A",
+        "weeklyHours": 40,
+        "stPayRate": 18,
+        "overtimeUnbilled": 0,
+        "overtimeBilled": 0,
+        "stBillRate": 26
+      }
+    ]
+  }
+}

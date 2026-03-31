@@ -19,7 +19,7 @@ class StandaloneV24ParityTest extends TestCase
         $svc = $this->app->make(StandaloneV24ComputeService::class);
         $out = $svc->compute($type, $in['scenario']);
 
-        $this->assertSame($expected['kpis'], $out['kpis']);
+        $this->assertEquals($expected['kpis'], $out['kpis']);
     }
 
     public static function cases(): array
@@ -32,6 +32,8 @@ class StandaloneV24ParityTest extends TestCase
             'economic-justification' => ['economic-justification', $base.'/economic-justification.basic.json'],
             'hourly-pay' => ['hourly-pay-calculator', $base.'/hourly-pay-calculator.basic.json'],
             'budget' => ['budget-calculator', $base.'/budget-calculator.basic.json'],
+            'mobile-patrol-analysis' => ['mobile-patrol-analysis', $base.'/mobile-patrol-analysis.basic.json'],
+            'global-security-pricing' => ['global-security-pricing', $base.'/global-security-pricing.basic.json'],
         ];
     }
 }

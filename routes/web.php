@@ -73,6 +73,14 @@ Route::get('/security-quote', function () {
 
 // Calculator Blade routes (pixel-perfect; require auth unless listed as public above)
 Route::middleware('auth')->group(function () {
+    // Phone verification (signup OTP)
+    Route::get('/phone/verify', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'show'])->name('phone.verify.show');
+    Route::post('/phone/verify/send', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'send'])->name('phone.verify.send');
+    Route::post('/phone/verify', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'check'])->name('phone.verify.check');
+});
+
+// Calculator Blade routes (pixel-perfect; require auth + phone verification)
+Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.index');
     Route::post('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.post');
 
@@ -113,7 +121,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::get('/api/spa/session', [App\Http\Controllers\Api\SpaSessionController::class, 'show'])->name('api.spa.session');
 
 // Profile & Account
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::post('/api/spa/wallet/spend', [App\Http\Controllers\Api\SpaWalletController::class, 'spend'])->name('api.spa.wallet.spend');
     Route::post('/api/spa/mail/economic-justification', [App\Http\Controllers\Api\SpaCalculatorMailController::class, 'economicJustification'])->name('api.spa.mail.economic-justification');
     Route::post('/api/spa/mail/calculator-pdf', [App\Http\Controllers\Api\SpaCalculatorMailController::class, 'calculatorPdf'])->name('api.spa.mail.calculator-pdf');
