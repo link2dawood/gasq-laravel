@@ -1,0 +1,18 @@
+{
+  "kpis": {
+    "inputs": {
+      "guards": 1,
+      "hoursPerWeekPerGuard": 40,
+      "billRateHourly": 30.63,
+      "weeksPerMonth": 4.3333
+    },
+    "kpis": {
+      "weeklyHours": 40,
+      "weeklyTotal": 1225.2,
+      "monthlyTotal": 5309.3,
+      "annualTotal": 63710.4
+    },
+    "reference": "standalone:unarmed-security-guard-services"
+  }
+}
+

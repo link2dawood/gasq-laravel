@@ -1,0 +1,85 @@
+{
+  "kpis": {
+    "title": "GASQ Direct Labor Build-Up",
+    "annualBillableHours": 21322,
+    "stack": {
+      "annualBillableHours": 21322,
+      "sections": [
+        {
+          "key": "directLabor",
+          "title": "Direct Labor",
+          "titleClass": "text-primary fw-semibold",
+          "rows": [
+            { "key": "baseBlended", "label": "Base Consolidated Blended Direct Labor Wage", "hourly": 20.76, "annual": 442644.72, "highlight": true },
+            { "key": "localityPay", "label": "Locality Pay", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "laborMarketAdj", "label": "Labor Market Adjustment", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "hwCash", "label": "H&W (Cash)", "hourly": 4.22, "annual": 89978.84, "highlight": false },
+            { "key": "shiftDifferential", "label": "Shift Differential", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "otHolidayPremium", "label": "OT/Holiday Premium", "hourly": 0.88, "annual": 18723.87, "highlight": false },
+            { "key": "donDoff", "label": "DON/DOFF", "hourly": 0.81, "annual": 17229.61, "highlight": false }
+          ],
+          "subtotal": { "key": "totalDirectLabor", "label": "Total Direct Labor", "hourly": 26.67, "annual": 568577.04, "highlight": true },
+          "laborPlusFringe": null
+        },
+        {
+          "key": "fringe",
+          "title": "Fringe / Employer Burden",
+          "titleClass": "text-primary fw-semibold",
+          "rows": [
+            { "key": "ficaMedicare", "label": "FICA / Medicare", "hourly": 2.04, "annual": 43496.14, "highlight": false },
+            { "key": "futa", "label": "FUTA", "hourly": 0.16, "annual": 3411.46, "highlight": false },
+            { "key": "suta", "label": "SUTA", "hourly": 0.53, "annual": 11371.54, "highlight": false },
+            { "key": "workersComp", "label": "Workers Compensation", "hourly": 0.43, "annual": 9097.23, "highlight": false },
+            { "key": "healthWelfare", "label": "Health & Welfare", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "vacation", "label": "Vacation", "hourly": 0.27, "annual": 5685.77, "highlight": false },
+            { "key": "paidHolidays", "label": "Paid Holidays", "hourly": 0.29, "annual": 6083.77, "highlight": false },
+            { "key": "sickLeave", "label": "Sick Leave", "hourly": 0.05, "annual": 1137.15, "highlight": false }
+          ],
+          "subtotal": { "key": "totalFringe", "label": "Total Fringe / Burden", "hourly": 3.77, "annual": 80283.08, "highlight": true },
+          "laborPlusFringe": { "label": "Total Direct Labor + Fringe", "hourly": 30.43, "annual": 648860.12, "highlight": true }
+        },
+        {
+          "key": "operations",
+          "title": "Operations / Support",
+          "titleClass": "text-primary fw-semibold",
+          "rows": [
+            { "key": "recruiting", "label": "Recruiting / Hiring", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "training", "label": "Training / Certification", "hourly": 0.4, "annual": 8528.66, "highlight": false },
+            { "key": "uniformsEquipment", "label": "Uniforms / Equipment", "hourly": 1.13, "annual": 24179.93, "highlight": false },
+            { "key": "fieldSupervision", "label": "Field Supervision", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "contractManagement", "label": "Contract Management", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "qualityAssurance", "label": "Quality Assurance", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "vehiclesPatrol", "label": "Vehicles / Patrol", "hourly": 1.31, "annual": 27953.13, "highlight": false },
+            { "key": "technologySystems", "label": "Technology / Systems", "hourly": 0.27, "annual": 5685.77, "highlight": false },
+            { "key": "generalLiability", "label": "General Liability Insurance", "hourly": 2.38, "annual": 50717.07, "highlight": false },
+            { "key": "umbrellaInsurance", "label": "Umbrella / Other Insurance", "hourly": 0.2, "annual": 4264.33, "highlight": false }
+          ],
+          "subtotal": { "key": "totalOperations", "label": "Total Operations / Support", "hourly": 5.69, "annual": 121328.88, "highlight": true },
+          "laborPlusFringe": null
+        },
+        {
+          "key": "overhead",
+          "title": "Overhead / G&A / Profit",
+          "titleClass": "text-primary fw-semibold",
+          "rows": [
+            { "key": "adminHrPayroll", "label": "Administrative / HR / Payroll", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "accountingLegal", "label": "Accounting / Legal", "hourly": 0, "annual": 0, "highlight": false },
+            { "key": "corporateOverhead", "label": "Corporate Overhead", "hourly": 3.2, "annual": 68229.24, "highlight": false },
+            { "key": "ga", "label": "G&A", "hourly": 1.33, "annual": 28428.85, "highlight": false },
+            { "key": "profitFee", "label": "Profit / Fee", "hourly": 3.01, "annual": 64237.15, "highlight": false }
+          ],
+          "subtotal": { "key": "totalOverhead", "label": "Total Overhead / G&A / Profit", "hourly": 7.55, "annual": 160895.25, "highlight": true },
+          "laborPlusFringe": null
+        }
+      ],
+      "grandTotal": {
+        "label": "Total Loaded Bill Rate (Hourly / Annual)",
+        "hourly": 43.67,
+        "annual": 931084.24,
+        "highlight": true
+      }
+    },
+    "reference": "standalone:gasq-direct-labor-build-up"
+  }
+}
+

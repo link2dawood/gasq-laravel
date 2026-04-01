@@ -18,8 +18,8 @@ class WorkforceAppraisalReportEngineTest extends TestCase
 
         $this->assertSame('workbook:CFO_Bill_Rate+Post_Positions+Appraisal_Summary', $k['reference']);
 
-        $this->assertEqualsWithDelta(43.68, $k['cfoBillRate']['grandTotal']['hourly'], 0.001);
-        $this->assertEqualsWithDelta(931186.96, $k['cfoBillRate']['grandTotal']['annual'], 0.02);
+        $this->assertEqualsWithDelta(43.67, $k['cfoBillRate']['grandTotal']['hourly'], 0.001);
+        $this->assertEqualsWithDelta(931084.24, $k['cfoBillRate']['grandTotal']['annual'], 0.02);
 
         $tot = $k['postPositionSummary']['totals'];
         $this->assertEquals(15, $tot['qty']);

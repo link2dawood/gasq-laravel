@@ -69,7 +69,7 @@ Route::get('/security-quote', function () {
     return view('calculators.security-quote');
 })->name('security-quote.index');
 
-// Calculator Blade routes (pixel-perfect; require auth unless listed as public above)
+// Auth-only routes (phone verification)
 Route::middleware('auth')->group(function () {
     // Phone verification (signup OTP)
     Route::get('/phone/verify', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'show'])->name('phone.verify.show');
@@ -77,8 +77,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/phone/verify', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'check'])->name('phone.verify.check');
 });
 
-// Calculator Blade routes (pixel-perfect; require auth + phone verification)
-Route::middleware(['auth', 'phone.verified'])->group(function () {
+// Calculator Blade routes (pixel-perfect; require auth + phone verification + credits + buyer job posted)
+Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job'])->group(function () {
     Route::get('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.index');
     Route::post('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.post');
 
@@ -103,6 +103,18 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/unarmed-security-guard-services', function () { return view('calculators.unarmed-security-guard-services'); })->name('unarmed-security-guard-services.index');
     Route::get('/mobile-patrol-analysis', function () { return view('calculators.mobile-patrol-analysis'); })->name('mobile-patrol-analysis.index');
     Route::get('/global-security-pricing', function () { return view('calculators.global-security-pricing'); })->name('global-security-pricing.index');
+    Route::get('/mobile-patrol-hit-calculator', function () {
+        return view('calculators.mobile-patrol-hit-calculator');
+    })->name('mobile-patrol-hit-calculator.index');
+    Route::get('/buyer-fit-index', function () {
+        return view('calculators.buyer-fit-index');
+    })->name('buyer-fit-index.index');
+    Route::get('/gasq-direct-labor-build-up', function () {
+        return view('calculators.gasq-direct-labor-build-up');
+    })->name('gasq-direct-labor-build-up.index');
+    Route::get('/gasq-additional-cost-stack', function () {
+        return view('calculators.gasq-additional-cost-stack');
+    })->name('gasq-additional-cost-stack.index');
     Route::get('/workforce-appraisal-report', function () {
         return view('calculators.workforce-appraisal-report', ['initialTab' => 'cfo']);
     })->name('workforce-appraisal-report.index');
@@ -198,6 +210,15 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
             'mobile-patrol-analysis',
             'global-security-pricing',
             'workforce-appraisal-report',
+            'mobile-patrol-hit-calculator',
+            'gasq-tco-calculator',
+            'absorbed-rate-calculator',
+            'government-contract-calculator',
+            'keeps-doors-open-calculator',
+            'unarmed-security-guard-services',
+            'buyer-fit-index',
+            'gasq-direct-labor-build-up',
+            'gasq-additional-cost-stack',
         ])
         ->name('backend.standalone.v24.compute');
 

@@ -34,6 +34,13 @@ class StandaloneV24ParityTest extends TestCase
             'budget' => ['budget-calculator', $base.'/budget-calculator.basic.json'],
             'mobile-patrol-analysis' => ['mobile-patrol-analysis', $base.'/mobile-patrol-analysis.basic.json'],
             'global-security-pricing' => ['global-security-pricing', $base.'/global-security-pricing.basic.json'],
+            'gasq-tco-calculator' => ['gasq-tco-calculator', $base.'/gasq-tco-calculator.basic.json'],
+            'absorbed-rate-calculator' => ['absorbed-rate-calculator', $base.'/absorbed-rate-calculator.basic.json'],
+            'government-contract-calculator' => ['government-contract-calculator', $base.'/government-contract-calculator.basic.json'],
+            'keeps-doors-open-calculator' => ['keeps-doors-open-calculator', $base.'/keeps-doors-open-calculator.basic.json'],
+            'unarmed-security-guard-services' => ['unarmed-security-guard-services', $base.'/unarmed-security-guard-services.basic.json'],
+            'gasq-direct-labor-build-up' => ['gasq-direct-labor-build-up', $base.'/gasq-direct-labor-build-up.basic.json'],
+            'gasq-additional-cost-stack' => ['gasq-additional-cost-stack', $base.'/gasq-additional-cost-stack.basic.json'],
         ];
     }
 }

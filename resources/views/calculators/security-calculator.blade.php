@@ -54,6 +54,12 @@
                 <a class="btn btn-primary" href="{{ url('/global-security-pricing') }}">Open</a>
             </x-card>
         </div>
+        <div class="col-md-6 col-lg-4">
+            <x-card title="Mobile patrol (per hit)" subtitle="Hit / stop cost model">
+                <p class="text-gasq-muted small">Estimate cost per hit and billable per hit.</p>
+                <a class="btn btn-primary" href="{{ url('/mobile-patrol-hit-calculator') }}">Open</a>
+            </x-card>
+        </div>
     </div>
 </div>
 @endsection

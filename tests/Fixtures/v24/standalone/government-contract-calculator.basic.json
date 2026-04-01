@@ -1,0 +1,17 @@
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "baseWage": 20.76,
+      "localityPayPct": 0,
+      "shiftDifferentialPct": 0,
+      "healthWelfareCashPerHour": 4.22,
+      "employerBurdenPct": 18.15,
+      "opsSupportPct": 13.05,
+      "overheadPct": 17.23,
+      "profitPct": 6.89,
+      "annualHours": 21322
+    }
+  }
+}
+

@@ -1,0 +1,16 @@
+{
+  "kpis": {
+    "summary": {
+      "annualBillableHours": 21322,
+      "gasqBillRateHourly": 43.67,
+      "gasqAnnualTotal": 930987.74,
+      "vendorTcoHourly": 54.78,
+      "vendorAnnualTotal": 1167779.16,
+      "vendorPremiumHourly": 11.11,
+      "vendorPremiumAnnual": 236791.42
+    },
+    "report": null,
+    "reference": "standalone:gasq-tco-calculator"
+  }
+}
+

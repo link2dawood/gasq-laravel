@@ -1,0 +1,14 @@
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "basePayRate": 18,
+      "benefitsPct": 20,
+      "opsPct": 10,
+      "overheadPct": 35,
+      "profitPct": 15,
+      "annualHours": 2080
+    }
+  }
+}
+

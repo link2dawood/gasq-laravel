@@ -7,13 +7,9 @@
 @section('content')
 <div class="container py-5">
     <div class="text-center mb-5">
-        <div class="d-inline-block px-4 py-2 rounded-pill bg-secondary text-white mb-4">
-            UI Preview Only
-        </div>
         <h1 class="display-4 fw-bold mb-3">Total Cost of Ownership, Made Clear</h1>
         <p class="lead text-gasq-muted mx-auto" style="max-width: 900px;">
-            Review a sample cost breakdown layout designed to help buyers compare coverage approaches without
-            enabling calculator logic.
+            Compare an internal should-cost bill rate vs vendor TCO benchmark.
         </p>
 
         <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
@@ -23,69 +19,99 @@
     </div>
 
     <div class="row g-4">
-        <div class="col-md-4">
-            <x-card title="Example Buyer TCO" subtitle="Static UI example">
-                <div class="display-5 fw-bold mb-1">$145,200</div>
-                <div class="text-gasq-muted small">per year (example)</div>
+        <div class="col-lg-5">
+            <x-card title="Inputs" subtitle="Instant compute">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-medium">Annual billable hours</label>
+                        <input type="number" id="tco_hours" class="form-control" value="21322" step="1" min="1">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-medium">Vendor TCO ($/hr)</label>
+                        <input type="number" id="tco_vendor" class="form-control" value="54.78" step="0.01" min="0">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-medium">GASQ bill rate ($/hr)</label>
+                        <input type="number" id="tco_gasq" class="form-control" value="43.67" step="0.01" min="0">
+                        <div class="form-text">Defaults align with the CFO bill rate excerpt.</div>
+                    </div>
+                </div>
             </x-card>
         </div>
-        <div class="col-md-4">
-            <x-card title="Example Vendor TCO" subtitle="Static UI example">
-                <div class="display-5 fw-bold mb-1">$132,900</div>
-                <div class="text-gasq-muted small">per year (example)</div>
-            </x-card>
-        </div>
-        <div class="col-md-4">
-            <x-card title="Decision Support" subtitle="Clarity over guesswork">
-                <p class="mb-0 text-gasq-muted">
-                    View cost components at-a-glance and understand what drives the estimate.
-                </p>
-            </x-card>
-        </div>
-    </div>
-
-    <div class="mt-5">
-        <x-card title="Sample Cost Breakdown" subtitle="Static preview table (no calculations)">
-            <div class="table-responsive">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Cost Component</th>
-                            <th class="text-center">Hourly (example)</th>
-                            <th class="text-end">Annual (example)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Direct Labor</td>
-                            <td class="text-center fw-semibold font-monospace">$18.40</td>
-                            <td class="text-end font-monospace">$62,720</td>
-                        </tr>
-                        <tr>
-                            <td>Fringe & Benefits</td>
-                            <td class="text-center fw-semibold font-monospace">$6.15</td>
-                            <td class="text-end font-monospace">$20,970</td>
-                        </tr>
-                        <tr>
-                            <td>Operations</td>
-                            <td class="text-center fw-semibold font-monospace">$4.30</td>
-                            <td class="text-end font-monospace">$14,700</td>
-                        </tr>
-                        <tr>
-                            <td>Overhead</td>
-                            <td class="text-center fw-semibold font-monospace">$2.05</td>
-                            <td class="text-end font-monospace">$7,010</td>
-                        </tr>
-                        <tr class="fw-bold">
-                            <td>Total (Example)</td>
-                            <td class="text-center font-monospace">$30.90</td>
-                            <td class="text-end font-monospace">$105,400</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div class="col-lg-7">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <x-card title="GASQ should-cost" subtitle="Annual total">
+                        <div class="display-6 fw-bold font-monospace mb-1" id="tco_gasqAnnual">$0.00</div>
+                        <div class="text-gasq-muted small">Hourly <span class="fw-semibold" id="tco_gasqHr">$0.00</span></div>
+                    </x-card>
+                </div>
+                <div class="col-md-6">
+                    <x-card title="Vendor TCO" subtitle="Annual total">
+                        <div class="display-6 fw-bold font-monospace mb-1" id="tco_vendorAnnual">$0.00</div>
+                        <div class="text-gasq-muted small">Hourly <span class="fw-semibold" id="tco_vendorHr">$0.00</span></div>
+                    </x-card>
+                </div>
+                <div class="col-12">
+                    <x-card title="Premium / (discount)" subtitle="Vendor vs GASQ">
+                        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
+                            <div>
+                                <div class="small text-gasq-muted">Hourly</div>
+                                <div class="h3 fw-bold font-monospace mb-0" id="tco_premHr">$0.00</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-gasq-muted">Annual</div>
+                                <div class="h3 fw-bold font-monospace mb-0" id="tco_premAnnual">$0.00</div>
+                            </div>
+                        </div>
+                    </x-card>
+                </div>
             </div>
-        </x-card>
+        </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(() => {
+  const url = @json(route('backend.standalone.v24.compute', ['type' => 'gasq-tco-calculator']));
+  let t = null;
+  const money = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+
+  function payload(){
+    return { version:'v24', scenario:{ meta:{
+      annualBillableHours: parseFloat(tco_hours.value)||21322,
+      vendorTcoHourly: parseFloat(tco_vendor.value)||0,
+      gasqBillRateHourly: parseFloat(tco_gasq.value)||0,
+      includeReport: false
+    } } };
+  }
+
+  async function compute(){
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Accept':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content') },
+      body: JSON.stringify(payload())
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok){ console.error(data); return; }
+    const s = (data.kpis||{}).summary || {};
+    set('tco_gasqAnnual', money(s.gasqAnnualTotal));
+    set('tco_vendorAnnual', money(s.vendorAnnualTotal));
+    set('tco_gasqHr', money(s.gasqBillRateHourly) + '/hr');
+    set('tco_vendorHr', money(s.vendorTcoHourly) + '/hr');
+    set('tco_premHr', money(s.vendorPremiumHourly));
+    set('tco_premAnnual', money(s.vendorPremiumAnnual));
+  }
+
+  function schedule(){ clearTimeout(t); t=setTimeout(compute, 200); }
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input').forEach(el=> el.addEventListener('input', schedule));
+    compute();
+  });
+})();
+</script>
+@endpush
 

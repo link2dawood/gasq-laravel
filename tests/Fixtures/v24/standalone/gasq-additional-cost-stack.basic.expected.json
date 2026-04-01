@@ -1,0 +1,21 @@
+{
+  "kpis": {
+    "title": "GASQ Additional Cost Stack",
+    "subtitle": "Merged view of Vehicle, Uniform & Equipment, and Workforce Maintenance costs",
+    "note": "Source tabs remain in the workbook for audit support. Additional Cost is the consolidated operating view.",
+    "annualBillableHours": 21322,
+    "rows": [
+      { "key": "vehiclePatrol", "module": "Vehicle / Patrol", "sourceTab": "Vehicle", "hourlyRaw": 1.310695806, "hourly": 1.31, "annual": 27953.13 },
+      { "key": "uniformEquipment", "module": "Uniform & Equipment", "sourceTab": "Uniform_Equipment", "hourlyRaw": 1.133933966, "hourly": 1.13, "annual": 24179.93 },
+      { "key": "workforceMaintenance", "module": "Workforce Maintenance", "sourceTab": "Workforce_Maintenance_Module", "hourlyRaw": 4.03864553, "hourly": 4.04, "annual": 86100 },
+      { "key": "training", "module": "Training", "sourceTab": "Training_Module", "hourlyRaw": 3.466336742, "hourly": 3.47, "annual": 73914.29 }
+    ],
+    "totals": {
+      "hourlyRaw": 9.949612044,
+      "hourly": 9.95,
+      "annual": 212147.34
+    },
+    "reference": "standalone:gasq-additional-cost-stack"
+  }
+}
+

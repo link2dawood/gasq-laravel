@@ -1,0 +1,12 @@
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "guards": 1,
+      "hoursPerWeekPerGuard": 40,
+      "billRateHourly": 30.63,
+      "weeksPerMonth": 4.3333
+    }
+  }
+}
+

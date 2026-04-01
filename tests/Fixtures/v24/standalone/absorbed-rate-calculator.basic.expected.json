@@ -1,0 +1,23 @@
+{
+  "kpis": {
+    "inputs": {
+      "basePayRate": 18,
+      "benefitsPct": 20,
+      "opsPct": 10,
+      "overheadPct": 35,
+      "profitPct": 15,
+      "annualHours": 2080
+    },
+    "breakdown": {
+      "benefitsAmt": 3.6,
+      "burdenedCost": 21.6,
+      "opsAmt": 2.16,
+      "overheadAmt": 7.56,
+      "costWithSupport": 31.32,
+      "absorbedRate": 36.85,
+      "annualAbsorbedTotal": 76648
+    },
+    "reference": "standalone:absorbed-rate-calculator"
+  }
+}
+

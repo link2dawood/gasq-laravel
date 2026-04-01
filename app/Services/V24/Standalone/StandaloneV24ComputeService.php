@@ -16,6 +16,15 @@ class StandaloneV24ComputeService
         private MobilePatrolAnalysisEngine $mobilePatrolAnalysis,
         private GlobalSecurityPricingEngine $globalSecurityPricing,
         private WorkforceAppraisalReportEngine $workforceAppraisalReport,
+        private MobilePatrolHitCalculatorEngine $mobilePatrolHitCalculator,
+        private GasqTcoCalculatorEngine $gasqTcoCalculator,
+        private AbsorbedRateCalculatorEngine $absorbedRateCalculator,
+        private GovernmentContractCalculatorEngine $governmentContractCalculator,
+        private KeepsDoorsOpenCalculatorEngine $keepsDoorsOpenCalculator,
+        private UnarmedSecurityGuardServicesEngine $unarmedGuardServices,
+        private BuyerFitIndexEngine $buyerFitIndex,
+        private GasqDirectLaborBuildUpEngine $gasqDirectLaborBuildUp,
+        private GasqAdditionalCostStackEngine $gasqAdditionalCostStack,
     ) {}
 
     /**
@@ -34,6 +43,15 @@ class StandaloneV24ComputeService
             'mobile-patrol-analysis' => ['kpis' => $this->mobilePatrolAnalysis->compute($scenario)],
             'global-security-pricing' => ['kpis' => $this->globalSecurityPricing->compute($scenario)],
             'workforce-appraisal-report' => ['kpis' => $this->workforceAppraisalReport->compute($scenario)],
+            'mobile-patrol-hit-calculator' => ['kpis' => $this->mobilePatrolHitCalculator->compute($scenario)],
+            'gasq-tco-calculator' => ['kpis' => $this->gasqTcoCalculator->compute($scenario)],
+            'absorbed-rate-calculator' => ['kpis' => $this->absorbedRateCalculator->compute($scenario)],
+            'government-contract-calculator' => ['kpis' => $this->governmentContractCalculator->compute($scenario)],
+            'keeps-doors-open-calculator' => ['kpis' => $this->keepsDoorsOpenCalculator->compute($scenario)],
+            'unarmed-security-guard-services' => ['kpis' => $this->unarmedGuardServices->compute($scenario)],
+            'buyer-fit-index' => ['kpis' => $this->buyerFitIndex->compute($scenario)],
+            'gasq-direct-labor-build-up' => ['kpis' => $this->gasqDirectLaborBuildUp->compute($scenario)],
+            'gasq-additional-cost-stack' => ['kpis' => $this->gasqAdditionalCostStack->compute($scenario)],
             default => throw ValidationException::withMessages([
                 'type' => ['Unknown calculator type.'],
             ]),

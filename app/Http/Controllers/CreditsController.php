@@ -31,6 +31,14 @@ class CreditsController extends Controller
         $user = $request->user();
         $balance = $this->walletService->getBalance($user);
 
+        // If user has credits, send buyers to post a job next.
+        if ($balance > 0 && $user->isBuyer()) {
+            $hasJob = \App\Models\JobPosting::query()->where('user_id', $user->id)->exists();
+            if (! $hasJob) {
+                return redirect()->route('jobs.create')->with('success', 'Credits added. Now post your job to unlock calculators.');
+            }
+        }
+
         return view('credits.success', [
             'sessionId' => $sessionId,
             'balance' => $balance,

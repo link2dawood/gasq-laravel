@@ -1,0 +1,10 @@
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "annualBillableHours": 21322,
+      "totals": { "hourly": 9.95, "annual": 212147.34 }
+    }
+  }
+}
+

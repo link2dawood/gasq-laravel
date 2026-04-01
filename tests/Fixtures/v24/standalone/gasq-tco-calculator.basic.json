@@ -1,0 +1,12 @@
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "annualBillableHours": 21322,
+      "gasqBillRateHourly": 43.67,
+      "vendorTcoHourly": 54.78,
+      "includeReport": false
+    }
+  }
+}
+
