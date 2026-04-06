@@ -21,10 +21,14 @@ class EnsureHasCredits
         }
 
         $balance = $this->walletService->getBalance($user);
-        if ($balance <= 0) {
+        $minCredits = (int) config('credits.calculator_per_run');
+        if ($balance < $minCredits) {
             return redirect()
                 ->route('credits')
-                ->with('error', 'Purchase credits to unlock calculators.');
+                ->with(
+                    'error',
+                    'Each calculator run uses ' . $minCredits . ' credits. Purchase more credits to continue.',
+                );
         }
 
         return $next($request);

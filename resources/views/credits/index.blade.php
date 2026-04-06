@@ -7,6 +7,7 @@
     <h1 class="h2 mb-4">Credits</h1>
     <x-card title="Current balance" class="mb-4">
         <p class="fs-2 mb-0">{{ number_format($balance) }} credits</p>
+        <p class="text-muted small mb-0 mt-2">Each calculator run uses {{ config('credits.calculator_per_run') }} credits (deducted when results are calculated).</p>
         <a href="{{ route('account-balance') }}" class="btn btn-sm btn-outline-primary mt-2">View history</a>
     </x-card>
     <h2 class="h5 mb-3">Purchase credits</h2>
