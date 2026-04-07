@@ -42,6 +42,7 @@ class WorkforceAppraisalReportEngine
     private function computeCfoBreakdown(array $meta, float $hours): array
     {
         $ov = (array) Arr::get($meta, 'cfoHourlyOverrides', []);
+        $inputs = (array) Arr::get($meta, 'inputs', []);
 
         $sections = [
             [
@@ -112,39 +113,9 @@ class WorkforceAppraisalReportEngine
             ],
         ];
 
-        $defaults = [
-            'baseBlended' => 20.76,
-            'localityPay' => 0.0,
-            'laborMarketAdj' => 0.0,
-            'hwCash' => 4.22,
-            'shiftDifferential' => 0.0,
-            'otHolidayPremium' => 0.88,
-            'donDoff' => 0.81,
-            // Use higher precision inputs; output is rounded to cents.
-            'ficaMedicare' => 2.039965457,
-            'futa' => 0.1599972908,
-            'suta' => 0.5333243025,
-            'workersComp' => 0.426659442,
-            'healthWelfare' => 0.0,
-            'vacation' => 0.27,
-            'paidHolidays' => 0.29,
-            'sickLeave' => 0.05,
-            'recruiting' => 0.0,
-            'training' => 0.3999932269,
-            'uniformsEquipment' => 1.13,
-            'fieldSupervision' => 0.0,
-            'contractManagement' => 0.0,
-            'qualityAssurance' => 0.0,
-            'vehiclesPatrol' => 1.31,
-            'technologySystems' => 0.2666621513,
-            'generalLiability' => 2.378626389,
-            'umbrellaInsurance' => 0.1999966134,
-            'adminHrPayroll' => 0.0,
-            'accountingLegal' => 0.0,
-            'corporateOverhead' => 3.199945815,
-            'ga' => 1.333310756,
-            'profitFee' => 3.012716985,
-        ];
+        // Spreadsheet-driven defaults (V28): Inputs → Direct_Labor → CFO_Bill_Rate_Breakdown
+        // If inputs are not provided, fall back to the historical demo defaults.
+        $defaults = $this->cfoDefaultsFromInputs($meta, $inputs);
 
         $hourlyMap = array_replace($defaults, $ov);
 
@@ -211,6 +182,171 @@ class WorkforceAppraisalReportEngine
                 'annual' => round($grandAnnual, 2),
                 'highlight' => true,
             ],
+        ];
+    }
+
+    /**
+     * Compute CFO hourly stack using the V28 workbook logic:
+     * Inputs!B* drive Direct_Labor!C* line items; CFO sheet references Direct_Labor!C*.
+     *
+     * @param  array<string, mixed>  $meta
+     * @param  array<string, mixed>  $inputs
+     * @return array<string, float>
+     */
+    private function cfoDefaultsFromInputs(array $meta, array $inputs): array
+    {
+        $hasInputs = $inputs !== [];
+
+        // Historical demo defaults (used when no workbook inputs are supplied).
+        $demo = [
+            'baseBlended' => 20.76,
+            'localityPay' => 0.0,
+            'laborMarketAdj' => 0.0,
+            'hwCash' => 4.22,
+            'shiftDifferential' => 0.0,
+            'otHolidayPremium' => 0.88,
+            'donDoff' => 0.81,
+            // Use higher precision inputs; output is rounded to cents.
+            'ficaMedicare' => 2.039965457,
+            'futa' => 0.1599972908,
+            'suta' => 0.5333243025,
+            'workersComp' => 0.426659442,
+            'healthWelfare' => 0.0,
+            'vacation' => 0.27,
+            'paidHolidays' => 0.29,
+            'sickLeave' => 0.05,
+            'recruiting' => 0.0,
+            'training' => 0.3999932269,
+            'uniformsEquipment' => 1.13,
+            'fieldSupervision' => 0.0,
+            'contractManagement' => 0.0,
+            'qualityAssurance' => 0.0,
+            'vehiclesPatrol' => 1.31,
+            'technologySystems' => 0.2666621513,
+            'generalLiability' => 2.378626389,
+            'umbrellaInsurance' => 0.1999966134,
+            'adminHrPayroll' => 0.0,
+            'accountingLegal' => 0.0,
+            'corporateOverhead' => 3.199945815,
+            'ga' => 1.333310756,
+            'profitFee' => 3.012716985,
+        ];
+
+        if (! $hasInputs) {
+            return $demo;
+        }
+
+        $get = fn (string $k, float $d = 0.0): float => is_numeric($inputs[$k] ?? null) ? (float) $inputs[$k] : $d;
+
+        // Inputs sheet (V28) references used by Direct_Labor formulas.
+        $directWage = $get('directLaborWage', 27.48); // Inputs!B4
+        $localityPct = $get('localityPayPct', 0.0); // Inputs!B7
+        $shiftDiffPct = $get('shiftDifferentialPct', 0.0); // Inputs!B8
+        $otHolidayPct = $get('otHolidayPremiumPct', 0.08); // Inputs!B9
+        $laborMarketPct = $get('laborMarketAdjPct', 0.0); // Inputs!B10
+        $hwCash = $get('hwCashPerHour', 4.22); // Inputs!B11
+        $donDoffMinutes = $get('donDoffMinutesPerShift', 15.0); // Inputs!B21
+
+        // Direct_Labor!C4..C10 (hourly)
+        $baseBlended = $directWage;
+        $localityPay = $baseBlended * $localityPct;
+        $laborMarketAdj = $baseBlended * $laborMarketPct;
+        $shiftDifferential = $baseBlended * $shiftDiffPct;
+        $otHolidayPremium = $baseBlended * $otHolidayPct;
+        $donDoff = ($donDoffMinutes > 0) ? (($baseBlended + $localityPay + $laborMarketAdj + $hwCash + $shiftDifferential + $otHolidayPremium) * ($donDoffMinutes / 480.0)) : 0.0;
+
+        $totalDirectLabor = $baseBlended + $localityPay + $laborMarketAdj + $hwCash + $shiftDifferential + $otHolidayPremium + $donDoff; // Direct_Labor!C11
+
+        // Fringe / Burden (percent-of-direct-labor + some $/hr lines)
+        $ficaPct = $get('ficaMedicarePct', 0.0765); // Inputs!B13
+        $futaPct = $get('futaPct', 0.006); // Inputs!B14
+        $sutaPct = $get('sutaPct', 0.02); // Inputs!B15
+        $wcPct = $get('workersCompPct', 0.016); // Inputs!B16
+        $healthWelfare = $get('healthWelfarePerHour', 0.0); // Inputs!B17
+        $vacPct = $get('vacationPct', 0.02); // Inputs!B18
+        $holPct = $get('paidHolidaysPct', 0.04); // Inputs!B19
+        $sickPct = $get('sickLeavePct', 0.027); // Inputs!B20
+
+        $ficaMedicare = $totalDirectLabor * $ficaPct;
+        $futa = $totalDirectLabor * $futaPct;
+        $suta = $totalDirectLabor * $sutaPct;
+        $workersComp = $totalDirectLabor * $wcPct;
+        $vacation = $totalDirectLabor * $vacPct;
+        $paidHolidays = $totalDirectLabor * $holPct;
+        $sickLeave = $totalDirectLabor * $sickPct;
+
+        // Operations / Support (some percent-of-direct-labor; uniform/vehicle are module-driven in Excel)
+        $recruitPct = $get('recruitingHiringPct', 0.0); // Inputs!B23
+        $trainingPct = $get('trainingCertificationPct', 0.015); // Inputs!B24
+        $fieldSupPct = $get('fieldSupervisionPct', 0.0); // Inputs!B26
+        $contractMgmtPct = $get('contractManagementPct', 0.0); // Inputs!B27
+        $qaPct = $get('qualityAssurancePct', 0.0); // Inputs!B28
+        $techPct = $get('technologySystemsPct', 0.01); // Inputs!B30
+        $glPct = $get('generalLiabilityPct', 0.0892); // Inputs!B31
+        $umbPct = $get('umbrellaInsurancePct', 0.0075); // Inputs!B32
+
+        $recruiting = $totalDirectLabor * $recruitPct;
+        $training = $totalDirectLabor * $trainingPct;
+        $fieldSupervision = $totalDirectLabor * $fieldSupPct;
+        $contractManagement = $totalDirectLabor * $contractMgmtPct;
+        $qualityAssurance = $totalDirectLabor * $qaPct;
+        $technologySystems = $totalDirectLabor * $techPct;
+        $generalLiability = $totalDirectLabor * $glPct;
+        $umbrellaInsurance = $totalDirectLabor * $umbPct;
+
+        // Module feeds (Uniform_Equipment, Vehicle) are spreadsheet-driven; allow overrides from payload for now.
+        $uniformsEquipment = (float) Arr::get($meta, 'moduleFeeds.uniformsEquipmentHourly', $demo['uniformsEquipment']);
+        $vehiclesPatrol = (float) Arr::get($meta, 'moduleFeeds.vehiclesPatrolHourly', $demo['vehiclesPatrol']);
+
+        // Overhead / G&A / Profit
+        $adminPct = $get('adminHrPayrollPct', 0.0); // Inputs!B35
+        $acctPct = $get('accountingLegalPct', 0.0); // Inputs!B36
+        $corpPct = $get('corporateOverheadPct', 0.1); // Inputs!B37
+        $gaPct = $get('gaPct', 0.08); // Inputs!B38
+        $profitPct = $get('profitFeePct', 0.21); // Inputs!B39 (note: workbook label says 5–8% but file uses 0.21)
+
+        $adminHrPayroll = $totalDirectLabor * $adminPct;
+        $accountingLegal = $totalDirectLabor * $acctPct;
+        $corporateOverhead = $totalDirectLabor * $corpPct;
+        $ga = $totalDirectLabor * $gaPct;
+
+        // Excel profit is more complex (depends on Appraisal_Full_Scope_Report). Default to percent-of-direct-labor unless overridden.
+        $profitFee = (float) Arr::get($meta, 'moduleFeeds.profitFeeHourly', $totalDirectLabor * $profitPct);
+
+        return [
+            'baseBlended' => $baseBlended,
+            'localityPay' => $localityPay,
+            'laborMarketAdj' => $laborMarketAdj,
+            'hwCash' => $hwCash,
+            'shiftDifferential' => $shiftDifferential,
+            'otHolidayPremium' => $otHolidayPremium,
+            'donDoff' => $donDoff,
+
+            'ficaMedicare' => $ficaMedicare,
+            'futa' => $futa,
+            'suta' => $suta,
+            'workersComp' => $workersComp,
+            'healthWelfare' => $healthWelfare,
+            'vacation' => $vacation,
+            'paidHolidays' => $paidHolidays,
+            'sickLeave' => $sickLeave,
+
+            'recruiting' => $recruiting,
+            'training' => $training,
+            'uniformsEquipment' => $uniformsEquipment,
+            'fieldSupervision' => $fieldSupervision,
+            'contractManagement' => $contractManagement,
+            'qualityAssurance' => $qualityAssurance,
+            'vehiclesPatrol' => $vehiclesPatrol,
+            'technologySystems' => $technologySystems,
+            'generalLiability' => $generalLiability,
+            'umbrellaInsurance' => $umbrellaInsurance,
+
+            'adminHrPayroll' => $adminHrPayroll,
+            'accountingLegal' => $accountingLegal,
+            'corporateOverhead' => $corporateOverhead,
+            'ga' => $ga,
+            'profitFee' => $profitFee,
         ];
     }
 

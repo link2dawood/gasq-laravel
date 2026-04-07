@@ -164,6 +164,8 @@
     <p>Proprietary Confidential Report — <span id="r_company">ABC COMPANY</span> | Prepared: {{ now()->format('M d, Y') }}</p>
   </div>
 
+  <x-report-actions reportType="economic-justification" />
+
 </div>
 </div>
 @endsection
@@ -175,6 +177,28 @@ function fmtN(v,dec=0){return new Intl.NumberFormat('en-US',{minimumFractionDigi
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
+let ejTimer = null;
+let ejInflight = null;
+function ejSetError(msg){
+  const host = document.querySelector('.container-xl');
+  let el = document.getElementById('ej_error');
+  if(!el && host){
+    el = document.createElement('div');
+    el.id = 'ej_error';
+    el.className = 'alert alert-light border gasq-border small d-print-none mb-3';
+    host.insertBefore(el, host.firstChild);
+  }
+  if(!el) return;
+  if(!msg){ el.style.display='none'; el.textContent=''; return; }
+  el.style.display='';
+  el.textContent = msg;
+}
+
+function scheduleEJ(){
+  clearTimeout(ejTimer);
+  ejTimer = setTimeout(calcEJ, 300);
+}
+
 async function calcEJ(){
   const empCost = g('ej_empCost');
   const weeklyHours = g('ej_weeklyHours');
@@ -183,17 +207,31 @@ async function calcEJ(){
   const companyName = document.getElementById('ej_company').value || 'ABC COMPANY';
 
   const payload = { version:'v24', scenario:{ meta:{ employeeTrueHourlyCost: empCost, weeklyHours: weeklyHours, weeksInYear: weeksInYear, monthsInYear: monthsInYear } } };
-  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'economic-justification']) }}', {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
-      'Accept':'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json();
-  if(!res.ok || !data || !data.ok){ console.error(data); return; }
+  try{
+    ejSetError('');
+    if(ejInflight){ ejInflight.abort(); }
+    ejInflight = new AbortController();
+    const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'economic-justification']) }}', {
+      method:'POST',
+      signal: ejInflight.signal,
+      headers:{
+        'Content-Type':'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept':'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+    if(!res.ok || !data || !data.ok){
+      if (data && data.error === 'insufficient_credits') {
+        ejSetError(data.message || 'Not enough credits to run this calculator.');
+      } else {
+        ejSetError('Unable to calculate right now. Please try again.');
+      }
+      console.error(data);
+      return;
+    }
   const out = data.kpis||{};
 
   const vendorHourly = out.vendorHourly||0;
@@ -228,6 +266,11 @@ async function calcEJ(){
   setText('r_company', companyName);
   const printComp = document.getElementById('print_company');
   if(printComp) printComp.textContent = companyName;
+  }catch(e){
+    if(e?.name === 'AbortError') return;
+    console.error(e);
+    ejSetError('Unable to calculate right now. Please try again.');
+  }
 }
 
 function downloadPDF(){ window.print(); }
@@ -237,6 +280,10 @@ function emailReport(){
   alert('Report would be emailed to: ' + email + '\n\nConnect to POST /api/spa/mail/calculator-pdf');
 }
 
-document.addEventListener('DOMContentLoaded', calcEJ);
+document.addEventListener('DOMContentLoaded', () => {
+  // Debounce compute calls to avoid spamming the endpoint.
+  document.querySelectorAll('input,select,textarea').forEach(el => el.addEventListener('input', scheduleEJ));
+  calcEJ();
+});
 </script>
 @endpush

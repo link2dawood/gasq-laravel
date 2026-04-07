@@ -69,6 +69,8 @@
             </div>
         </div>
     </div>
+
+    <x-report-actions reportType="gasq-tco-calculator" />
 </div>
 @endsection
 
@@ -77,8 +79,21 @@
 (() => {
   const url = @json(route('backend.standalone.v24.compute', ['type' => 'gasq-tco-calculator']));
   let t = null;
+  let inflight = null;
   const money = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
   const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  const setError = (msg) => {
+    let el = document.getElementById('tco_error');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'tco_error';
+      el.className = 'alert alert-light border gasq-border small mt-3';
+      tco_hours.closest('.card')?.querySelector('.card-body')?.appendChild(el);
+    }
+    if(!msg){ el.style.display='none'; el.textContent=''; return; }
+    el.style.display='';
+    el.textContent = msg;
+  };
 
   function payload(){
     return { version:'v24', scenario:{ meta:{
@@ -90,13 +105,27 @@
   }
 
   async function compute(){
-    const res = await fetch(url, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'Accept':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content') },
-      body: JSON.stringify(payload())
-    });
-    const data = await res.json();
-    if(!res.ok || !data.ok){ console.error(data); return; }
+    try{
+      setError('');
+      if(inflight){ inflight.abort(); }
+      inflight = new AbortController();
+      const res = await fetch(url, {
+        method:'POST',
+        signal: inflight.signal,
+        headers:{ 'Content-Type':'application/json', 'Accept':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify(payload())
+      });
+      let data = null;
+      try { data = await res.json(); } catch { data = null; }
+      if(!res.ok || !data || !data.ok){
+        if (data && data.error === 'insufficient_credits') {
+          setError(data.message || 'Not enough credits to run this calculator.');
+        } else {
+          setError('Unable to calculate right now. Please try again.');
+        }
+        console.error(data);
+        return;
+      }
     const s = (data.kpis||{}).summary || {};
     set('tco_gasqAnnual', money(s.gasqAnnualTotal));
     set('tco_vendorAnnual', money(s.vendorAnnualTotal));
@@ -104,6 +133,11 @@
     set('tco_vendorHr', money(s.vendorTcoHourly) + '/hr');
     set('tco_premHr', money(s.vendorPremiumHourly));
     set('tco_premAnnual', money(s.vendorPremiumAnnual));
+    }catch(e){
+      if(e?.name === 'AbortError') return;
+      console.error(e);
+      setError('Unable to calculate right now. Please try again.');
+    }
   }
 
   function schedule(){ clearTimeout(t); t=setTimeout(compute, 200); }

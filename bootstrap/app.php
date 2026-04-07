@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'phone.verified' => \App\Http\Middleware\EnsurePhoneVerified::class,
             'has.credits' => \App\Http\Middleware\EnsureHasCredits::class,
             'buyer.has_job' => \App\Http\Middleware\EnsureBuyerHasPostedJob::class,
+            'master.inputs' => \App\Http\Middleware\EnsureMasterInputsComplete::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

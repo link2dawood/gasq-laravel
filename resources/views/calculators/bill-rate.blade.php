@@ -21,17 +21,21 @@
     </div>
   </div>
 
-  {{-- Tabs --}}
-  <div class="gasq-tabs-scroll d-print-none mb-3">
-    <ul class="gasq-tabs-pill" role="tablist">
-      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#br-basic"><i class="fa fa-calculator me-1"></i> Quick Calculator</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#br-components"><i class="fa fa-chart-pie me-1"></i> Component Builder</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#br-comparison"><i class="fa fa-code-compare me-1"></i> Rate Comparison</a></li>
-    </ul>
-  </div>
+  {{-- Tabs + body: Bootstrap 5 expects .tab-pane as direct children of .tab-content --}}
+  <div class="card gasq-card">
+    <div class="card-header px-3 px-md-4 pt-3 pb-0 d-print-none" style="background:transparent;border-bottom:none">
+      <div class="gasq-tabs-scroll">
+        <ul class="gasq-tabs-pill mb-0" role="tablist" id="brTabs">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#br-basic"><i class="fa fa-calculator me-1"></i> Quick Calculator</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#br-components"><i class="fa fa-chart-pie me-1"></i> Component Builder</a></li>
+        </ul>
+      </div>
+    </div>
 
-  <div class="tab-content card gasq-card">
     <div class="card-body p-4">
+      <div class="tab-content">
+
+      <div class="alert alert-light border gasq-border small d-print-none mb-3" id="br_error" style="display:none"></div>
 
       {{-- ===== QUICK CALCULATOR ===== --}}
       <div class="tab-pane fade show active" id="br-basic">
@@ -40,20 +44,20 @@
             <h5 class="fw-semibold mb-3">Inputs</h5>
             <div class="mb-3">
               <label class="form-label fw-medium">Base Pay Rate ($/hr)</label>
-              <div class="input-group"><span class="input-group-text">$</span><input type="number" id="qbr_base" class="form-control" value="18.00" step="0.01" oninput="calcQuickBR()"></div>
+              <div class="input-group"><span class="input-group-text">$</span><input type="number" id="qbr_base" class="form-control" value="18.00" step="0.01" oninput="scheduleCompute()"></div>
             </div>
             <div class="mb-3">
               <label class="form-label fw-medium">Payroll Tax &amp; Benefits (%)</label>
-              <input type="number" id="qbr_benefits" class="form-control" value="20" step="0.1" oninput="calcQuickBR()">
+              <input type="number" id="qbr_benefits" class="form-control" value="20" step="0.1" oninput="scheduleCompute()">
               <div class="form-text">FICA, SUTA, FUTA, workers comp, etc.</div>
             </div>
             <div class="mb-3">
               <label class="form-label fw-medium">Overhead (%)</label>
-              <input type="number" id="qbr_overhead" class="form-control" value="35" step="0.1" oninput="calcQuickBR()">
+              <input type="number" id="qbr_overhead" class="form-control" value="35" step="0.1" oninput="scheduleCompute()">
             </div>
             <div class="mb-3">
               <label class="form-label fw-medium">Profit Margin (%)</label>
-              <input type="number" id="qbr_profit" class="form-control" value="15" step="0.1" oninput="calcQuickBR()">
+              <input type="number" id="qbr_profit" class="form-control" value="15" step="0.1" oninput="scheduleCompute()">
             </div>
           </div>
           <div class="col-lg-7">
@@ -104,7 +108,7 @@
                 <span class="small text-gasq-muted flex-grow-1">{{ $c['label'] }}</span>
                 <div class="input-group" style="max-width:120px">
                   <span class="input-group-text py-1 px-2">$</span>
-                  <input type="number" id="{{ $c['id'] }}" class="form-control form-control-sm text-end py-1" value="{{ $c['default'] }}" step="0.01" oninput="calcComponents()">
+                  <input type="number" id="{{ $c['id'] }}" class="form-control form-control-sm text-end py-1" value="{{ $c['default'] }}" step="0.01" oninput="scheduleCompute()">
                 </div>
               </div>
               @endforeach
@@ -122,69 +126,11 @@
         </div>
       </div>
 
-      {{-- ===== COMPARISON ===== --}}
-      <div class="tab-pane fade" id="br-comparison">
-        <p class="text-gasq-muted small mb-3">Compare up to 4 different bill rate scenarios side by side.</p>
-        <div class="table-responsive">
-          <table class="table align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>Parameter</th>
-                @foreach(['A','B','C','D'] as $s)
-                <th class="text-center">Scenario {{ $s }}</th>
-                @endforeach
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="small text-gasq-muted">Base Pay ($/hr)</td>
-                @foreach(['A'=>18,'B'=>20,'C'=>22,'D'=>16] as $s=>$def)
-                <td><input type="number" id="cmp_base{{ $s }}" class="form-control form-control-sm text-center" value="{{ $def }}" step="0.01" oninput="calcCmpTable()"></td>
-                @endforeach
-              </tr>
-              <tr>
-                <td class="small text-gasq-muted">Overhead (%)</td>
-                @foreach(['A'=>35,'B'=>30,'C'=>40,'D'=>35] as $s=>$def)
-                <td><input type="number" id="cmp_overhead{{ $s }}" class="form-control form-control-sm text-center" value="{{ $def }}" step="0.1" oninput="calcCmpTable()"></td>
-                @endforeach
-              </tr>
-              <tr>
-                <td class="small text-gasq-muted">Profit (%)</td>
-                @foreach(['A'=>15,'B'=>18,'C'=>12,'D'=>20] as $s=>$def)
-                <td><input type="number" id="cmp_profit{{ $s }}" class="form-control form-control-sm text-center" value="{{ $def }}" step="0.1" oninput="calcCmpTable()"></td>
-                @endforeach
-              </tr>
-              <tr class="table-light fw-semibold">
-                <td>Bill Rate ($/hr)</td>
-                @foreach(['A','B','C','D'] as $s)
-                <td class="text-center" id="cmp_rate{{ $s }}">$0.00</td>
-                @endforeach
-              </tr>
-              <tr>
-                <td class="small text-gasq-muted">Weekly (40hr)</td>
-                @foreach(['A','B','C','D'] as $s)
-                <td class="text-center small" id="cmp_weekly{{ $s }}">$0.00</td>
-                @endforeach
-              </tr>
-              <tr>
-                <td class="small text-gasq-muted">Annual (40hr/52wk)</td>
-                @foreach(['A','B','C','D'] as $s)
-                <td class="text-center small" id="cmp_annual{{ $s }}">$0.00</td>
-                @endforeach
-              </tr>
-              <tr>
-                <td class="small text-gasq-muted">Markup %</td>
-                @foreach(['A','B','C','D'] as $s)
-                <td class="text-center small" id="cmp_markup{{ $s }}">0%</td>
-                @endforeach
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </div>
-
     </div>
   </div>
+
+  <x-report-actions reportType="bill-rate-analysis" />
 
 </div>
 </div>
@@ -200,96 +146,98 @@ function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:
 function g(id){return parseFloat(document.getElementById(id)?.value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-async function calcQuickBR(){
-  const payload = {
-    version:'v24',
-    scenario:{ meta:{ quick:{ basePayRate:g('qbr_base'), benefitsPct:g('qbr_benefits'), overheadPct:g('qbr_overhead'), profitPct:g('qbr_profit') } } }
-  };
-  // include components too so backend can return both blocks
-  payload.scenario.meta.components = {
-    wages:g('bc_wages'), taxes:g('bc_taxes'), training:g('bc_training'), recruiting:g('bc_recruiting'),
-    uniforms:g('bc_uniforms'), overhead:g('bc_overhead'), profit:g('bc_profit')
-  };
-  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'bill-rate-analysis']) }}', {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
-      'Accept':'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json();
-  if(!res.ok || !data || !data.ok){ console.error(data); return; }
-  const out = (data.kpis||{}).quick||{};
-
-  setText('qr_base', fmt(out.basePayRate||0)+'/hr');
-  setText('qr_benefitsAmt', '+'+fmt(out.benefitsAmt||0)+'/hr');
-  setText('qr_burdened', fmt(out.burdenedCost||0)+'/hr');
-  setText('qr_burdened2', fmt(out.burdenedCost||0)+'/hr');
-  setText('qr_overheadAmt', '+'+fmt(out.overheadAmt||0)+'/hr');
-  setText('qr_withOverhead', fmt(out.withOverhead||0)+'/hr');
-  setText('qr_billRate', fmt(out.billRate||0));
-  setText('qr_markup', (out.markupPct||0).toFixed(1)+'%');
-  setText('qr_weekly', fmt(out.weeklyAt40||0));
+function setError(msg){
+  const el = document.getElementById('br_error');
+  if(!el) return;
+  if(!msg){ el.style.display='none'; el.textContent=''; return; }
+  el.style.display='';
+  el.textContent = msg;
 }
 
-async function calcComponents(){
-  await calcQuickBR(); // compute endpoint returns both quick + component breakdown
-  const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'bill-rate-analysis']) }}', {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
-      'Accept':'application/json'
-    },
-    body: JSON.stringify({
-      version:'v24',
-      scenario:{ meta:{ components:{
+let t = null;
+let inflight = null;
+function scheduleCompute(){ clearTimeout(t); t = setTimeout(runCompute, 250); }
+
+function buildPayload(){
+  return {
+    version:'v24',
+    scenario:{ meta:{
+      quick:{ basePayRate:g('qbr_base'), benefitsPct:g('qbr_benefits'), overheadPct:g('qbr_overhead'), profitPct:g('qbr_profit') },
+      components:{
         wages:g('bc_wages'), taxes:g('bc_taxes'), training:g('bc_training'), recruiting:g('bc_recruiting'),
         uniforms:g('bc_uniforms'), overhead:g('bc_overhead'), profit:g('bc_profit')
-      } } }
-    })
-  });
-  const data = await res.json();
-  if(!res.ok || !data || !data.ok){ console.error(data); return; }
-  const out = (data.kpis||{}).components||{};
-  setText('bcc_total', fmt(out.totalBillRate||0));
-  const bd = document.getElementById('bcc_breakdown');
-  bd.innerHTML = (out.rows||[]).filter(c=>(c.value||0)>0).map((c,i)=>{
-    const pct = c.pct||0;
-    const color = COMP_COLORS[i%COMP_COLORS.length];
-    return `<div>
-      <div class="d-flex justify-content-between small mb-1">
-        <div class="d-flex align-items-center gap-2">
-          <span class="rounded-circle d-inline-block" style="width:10px;height:10px;background:${color}"></span>
-          <span class="text-gasq-muted">${c.label}</span>
-        </div>
-        <span class="fw-medium">${fmt(c.value||0)} (${pct.toFixed(1)}%)</span>
-      </div>
-      <div class="progress mb-1" style="height:6px">
-        <div class="progress-bar" style="width:${pct.toFixed(1)}%;background:${color}"></div>
-      </div>
-    </div>`;
-  }).join('');
+      }
+    } }
+  };
 }
 
-function calcCmpTable(){
-  ['A','B','C','D'].forEach(s=>{
-    const base = g('cmp_base'+s), overhead = g('cmp_overhead'+s)/100, profit = g('cmp_profit'+s)/100;
-    const taxRate = 0.2; // default 20% burden
-    const burdened = base * (1+taxRate);
-    const withOverhead = burdened * (1+overhead);
-    const billRate = withOverhead / (1-profit);
-    const markup = base>0 ? ((billRate-base)/base)*100 : 0;
-    const rateEl = document.getElementById('cmp_rate'+s);
-    if(rateEl){ rateEl.textContent=fmt(billRate); rateEl.className='text-center fw-semibold text-primary'; }
-    setText('cmp_weekly'+s, fmt(billRate*40));
-    setText('cmp_annual'+s, fmt(billRate*40*52));
-    setText('cmp_markup'+s, markup.toFixed(1)+'%');
-  });
+async function runCompute(){
+  try{
+    setError('');
+    if(inflight){ inflight.abort(); }
+    inflight = new AbortController();
+    const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'bill-rate-analysis']) }}', {
+      method:'POST',
+      signal: inflight.signal,
+      headers:{
+        'Content-Type':'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept':'application/json'
+      },
+      body: JSON.stringify(buildPayload())
+    });
+
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+    if(!res.ok || !data || !data.ok){
+      if(data && data.error === 'insufficient_credits'){
+        setError(data.message || 'Not enough credits to run this calculator.');
+      } else {
+        setError('Unable to calculate right now. Please try again.');
+      }
+      console.error(data);
+      return;
+    }
+
+    const quick = (data.kpis||{}).quick||{};
+    setText('qr_base', fmt(quick.basePayRate||0)+'/hr');
+    setText('qr_benefitsAmt', '+'+fmt(quick.benefitsAmt||0)+'/hr');
+    setText('qr_burdened', fmt(quick.burdenedCost||0)+'/hr');
+    setText('qr_burdened2', fmt(quick.burdenedCost||0)+'/hr');
+    setText('qr_overheadAmt', '+'+fmt(quick.overheadAmt||0)+'/hr');
+    setText('qr_withOverhead', fmt(quick.withOverhead||0)+'/hr');
+    setText('qr_billRate', fmt(quick.billRate||0));
+    setText('qr_markup', (quick.markupPct||0).toFixed(1)+'%');
+    setText('qr_weekly', fmt(quick.weeklyAt40||0));
+
+    const comp = (data.kpis||{}).components||{};
+    setText('bcc_total', fmt(comp.totalBillRate||0));
+    const bd = document.getElementById('bcc_breakdown');
+    if(bd){
+      bd.innerHTML = (comp.rows||[]).filter(c=>(c.value||0)>0).map((c,i)=>{
+        const pct = c.pct||0;
+        const color = COMP_COLORS[i%COMP_COLORS.length];
+        return `<div>
+          <div class="d-flex justify-content-between small mb-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="rounded-circle d-inline-block" style="width:10px;height:10px;background:${color}"></span>
+              <span class="text-gasq-muted">${c.label}</span>
+            </div>
+            <span class="fw-medium">${fmt(c.value||0)} (${pct.toFixed(1)}%)</span>
+          </div>
+          <div class="progress mb-1" style="height:6px">
+            <div class="progress-bar" style="width:${pct.toFixed(1)}%;background:${color}"></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }catch(e){
+    if(e?.name === 'AbortError') return;
+    console.error(e);
+    setError('Unable to calculate right now. Please try again.');
+  }
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{ calcQuickBR(); calcComponents(); calcCmpTable(); });
+document.addEventListener('DOMContentLoaded', ()=>{ runCompute(); });
 </script>
 @endpush

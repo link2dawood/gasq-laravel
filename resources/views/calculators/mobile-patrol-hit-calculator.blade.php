@@ -166,6 +166,9 @@
       </div>
     </div>
   </div>
+
+  <x-report-actions reportType="mobile-patrol-hit-calculator" />
+
 </div>
 @endsection
 
@@ -174,10 +177,24 @@
 (() => {
   const url = @json(route('backend.standalone.v24.compute', ['type' => 'mobile-patrol-hit-calculator']));
   let t = null;
+  let inflight = null;
 
   const money = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
   const money4 = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:4,maximumFractionDigits:4}).format(n||0);
   const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  const setError = (msg) => {
+    let el = document.getElementById('mphc_error');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'mphc_error';
+      el.className = 'alert alert-light border gasq-border small d-print-none mb-3';
+      document.querySelector('.container-xl')?.insertBefore(el, document.querySelector('.container-xl')?.firstChild || null);
+    }
+    if(!el) return;
+    if(!msg){ el.style.display='none'; el.textContent=''; return; }
+    el.style.display='';
+    el.textContent = msg;
+  };
 
   function payload(){
     return {
@@ -199,17 +216,31 @@
   }
 
   async function compute(){
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
-      },
-      body: JSON.stringify(payload())
-    });
-    const data = await res.json();
-    if(!res.ok || !data.ok){ console.error(data); return; }
+    try{
+      setError('');
+      if(inflight){ inflight.abort(); }
+      inflight = new AbortController();
+      const res = await fetch(url, {
+        method: 'POST',
+        signal: inflight.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
+        body: JSON.stringify(payload())
+      });
+      let data = null;
+      try { data = await res.json(); } catch { data = null; }
+      if(!res.ok || !data || !data.ok){
+        if (data && data.error === 'insufficient_credits') {
+          setError(data.message || 'Not enough credits to run this calculator.');
+        } else {
+          setError('Unable to calculate right now. Please try again.');
+        }
+        console.error(data);
+        return;
+      }
     const k = data.kpis || {};
     const d = k.daily || {};
     const a = k.annual || {};
@@ -223,6 +254,11 @@
     set('o_billHr', money(d.billRatePerHour) + '/hr');
     set('o_annualBill', money(a.billTotal));
     set('o_hitsAnnual', (a.totalHits||0).toLocaleString('en-US'));
+    }catch(e){
+      if(e?.name === 'AbortError') return;
+      console.error(e);
+      setError('Unable to calculate right now. Please try again.');
+    }
   }
 
   function schedule(){

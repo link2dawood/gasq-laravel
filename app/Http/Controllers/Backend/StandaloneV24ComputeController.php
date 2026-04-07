@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Services\CalculatorRunBillingService;
+use App\Services\ScenarioMasterInputsMerger;
 use App\Services\V24\Standalone\StandaloneV24ComputeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ class StandaloneV24ComputeController extends Controller
     public function __construct(
         private StandaloneV24ComputeService $compute,
         private CalculatorRunBillingService $calculatorBilling,
+        private ScenarioMasterInputsMerger $masterInputsMerger,
     ) {}
 
     public function __invoke(Request $request, string $type): JsonResponse
@@ -23,12 +25,23 @@ class StandaloneV24ComputeController extends Controller
             'scenario.meta' => ['nullable', 'array'],
         ]);
 
+        $scenario = $this->masterInputsMerger->merge($request->user(), $validated['scenario']);
+
         [$out, $remaining] = $this->calculatorBilling->chargeAndRun(
             $request->user(),
             'standalone_v24',
             $type,
-            fn () => $this->compute->compute($type, $validated['scenario']),
+            fn () => $this->compute->compute($type, $scenario),
         );
+
+        // Persist last run for PDF download/email.
+        session([
+            'report_payload' => [
+                'type' => $type,
+                'scenario' => $scenario,
+                'result' => $out,
+            ],
+        ]);
 
         return response()->json([
             'ok' => true,

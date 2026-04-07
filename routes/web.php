@@ -20,17 +20,9 @@ Route::get('/gasq-tco-calculator', function () {
     return view('calculators.gasq-tco-calculator');
 })->name('gasq-tco-calculator.index');
 
-Route::get('/absorbed-rate-calculator', function () {
-    return view('calculators.absorbed-rate-calculator');
-})->name('absorbed-rate-calculator.index');
-
 Route::get('/government-contract-calculator', function () {
     return view('calculators.government-contract-calculator');
 })->name('government-contract-calculator.index');
-
-Route::get('/keeps-doors-open-calculator', function () {
-    return view('calculators.keeps-doors-open-calculator');
-})->name('keeps-doors-open-calculator.index');
 
 Route::get('/open-bid-offer', function () {
     return view('calculators.open-bid-offer');
@@ -44,14 +36,6 @@ Route::get('/calculator', function () {
     return view('calculators.security-calculator');
 })->name('calculator.index');
 
-Route::get('/gasq-instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('gasq-instant-estimator.index');
-Route::post('/gasq-instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])->name('gasq-instant-estimator.post');
-
-// Keep navbar/calculator paths aligned
-Route::get('/instant-estimator', function () {
-    return redirect('/gasq-instant-estimator');
-})->name('instant-estimator.redirect');
-
 Route::get('/vendor-form', function () {
     return view('pages.vendor-form');
 })->name('vendor-form.index');
@@ -64,11 +48,6 @@ Route::get('/register/vendor', function () {
     return view('pages.register-vendor');
 })->name('register.vendor.index');
 
-// Public Blade preview (marketing sample; no server-side quote math)
-Route::get('/security-quote', function () {
-    return view('calculators.security-quote');
-})->name('security-quote.index');
-
 // Auth-only routes (phone verification)
 Route::middleware('auth')->group(function () {
     // Phone verification (signup OTP)
@@ -78,12 +57,11 @@ Route::middleware('auth')->group(function () {
 });
 
 // Calculator Blade routes (pixel-perfect; require auth + phone verification + credits + buyer job posted)
-Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job'])->group(function () {
+Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job', 'master.inputs'])->group(function () {
+    Route::get('/master-inputs', [App\Http\Controllers\MasterInputsController::class, 'index'])->name('master-inputs.index');
+
     Route::get('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.index');
     Route::post('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.post');
-
-    Route::get('/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('contract-analysis.index');
-    Route::post('/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('contract-analysis.post');
 
     Route::get('/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('security-billing.index');
     Route::post('/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('security-billing.post');
@@ -94,15 +72,10 @@ Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job'])->g
     Route::get('/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('mobile-patrol-comparison');
     Route::post('/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('mobile-patrol-comparison.post');
 
-    Route::get('/cost-analysis', function () { return view('calculators.cost-analysis'); })->name('cost-analysis.index');
     Route::get('/bill-rate-analysis', function () { return view('calculators.bill-rate'); })->name('bill-rate-analysis.index');
-    Route::get('/manpower-hours', function () { return view('calculators.manpower-hours'); })->name('manpower-hours.index');
     Route::get('/economic-justification', function () { return view('calculators.economic-justification'); })->name('economic-justification.index');
-    Route::get('/hourly-pay-calculator', function () { return view('calculators.hourly-pay'); })->name('hourly-pay-calculator.index');
     Route::get('/budget-calculator', function () { return view('calculators.budget'); })->name('budget-calculator.index');
-    Route::get('/unarmed-security-guard-services', function () { return view('calculators.unarmed-security-guard-services'); })->name('unarmed-security-guard-services.index');
     Route::get('/mobile-patrol-analysis', function () { return view('calculators.mobile-patrol-analysis'); })->name('mobile-patrol-analysis.index');
-    Route::get('/global-security-pricing', function () { return view('calculators.global-security-pricing'); })->name('global-security-pricing.index');
     Route::get('/mobile-patrol-hit-calculator', function () {
         return view('calculators.mobile-patrol-hit-calculator');
     })->name('mobile-patrol-hit-calculator.index');
@@ -130,7 +103,9 @@ Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job'])->g
 });
 
 // Public marketplace (view only)
-Route::get('/job-board', [App\Http\Controllers\JobPostingController::class, 'index'])->name('job-board');
+Route::get('/job-board', function () {
+    return redirect()->route('jobs.index');
+})->name('job-board');
 Route::get('/jobs', [App\Http\Controllers\JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job}', [App\Http\Controllers\JobPostingController::class, 'show'])->name('jobs.show');
 Route::get('/vendor-profile/{user}', [App\Http\Controllers\VendorProfileController::class, 'show'])->name('vendor-profile.show');
@@ -147,6 +122,9 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::post('/api/spa/wallet/spend', [App\Http\Controllers\Api\SpaWalletController::class, 'spend'])->name('api.spa.wallet.spend');
     Route::post('/api/spa/mail/economic-justification', [App\Http\Controllers\Api\SpaCalculatorMailController::class, 'economicJustification'])->name('api.spa.mail.economic-justification');
     Route::post('/api/spa/mail/calculator-pdf', [App\Http\Controllers\Api\SpaCalculatorMailController::class, 'calculatorPdf'])->name('api.spa.mail.calculator-pdf');
+
+    Route::get('/api/master-inputs', [App\Http\Controllers\Api\MasterInputsApiController::class, 'show'])->name('api.master-inputs.show');
+    Route::put('/api/master-inputs', [App\Http\Controllers\Api\MasterInputsApiController::class, 'update'])->name('api.master-inputs.update');
 
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -199,23 +177,19 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::post('/_backend/mobile-patrol/v24/compute', \App\Http\Controllers\Backend\MobilePatrolV24ComputeController::class)
         ->name('backend.mobile-patrol.v24.compute');
 
+    Route::post('/_backend/report-payload', \App\Http\Controllers\Backend\ReportPayloadController::class)
+        ->name('backend.report-payload.store');
+
     Route::post('/_backend/standalone/{type}/v24/compute', \App\Http\Controllers\Backend\StandaloneV24ComputeController::class)
         ->whereIn('type', [
-            'cost-analysis',
             'bill-rate-analysis',
-            'manpower-hours',
             'economic-justification',
-            'hourly-pay-calculator',
             'budget-calculator',
             'mobile-patrol-analysis',
-            'global-security-pricing',
             'workforce-appraisal-report',
             'mobile-patrol-hit-calculator',
             'gasq-tco-calculator',
-            'absorbed-rate-calculator',
             'government-contract-calculator',
-            'keeps-doors-open-calculator',
-            'unarmed-security-guard-services',
             'buyer-fit-index',
             'gasq-direct-labor-build-up',
             'gasq-additional-cost-stack',

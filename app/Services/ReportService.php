@@ -42,11 +42,24 @@ class ReportService
             'security-billing' => 'pdf.security-billing',
             'mobile-patrol' => 'pdf.mobile-patrol',
             'mobile-patrol-comparison' => 'pdf.mobile-patrol-comparison',
+            // Generic standalone calculators (server-rendered PDF from latest session payload)
+            'mobile-patrol-hit-calculator',
+            'mobile-patrol-analysis',
+            'gasq-tco-calculator',
+            'government-contract-calculator',
+            'budget-calculator',
+            'economic-justification',
+            'bill-rate-analysis',
+            'workforce-appraisal-report',
+            'buyer-fit-index',
+            'gasq-direct-labor-build-up',
+            'gasq-additional-cost-stack' => 'pdf.standalone',
             default => throw new \InvalidArgumentException("Unknown report type: {$type}"),
         };
 
         $data = array_merge($payload, [
             'generatedAt' => now()->format('M j, Y g:i A'),
+            'reportType' => $type,
         ]);
 
         return $this->pdf()->loadView($view, $data)->setPaper('a4')->setWarnings(false);

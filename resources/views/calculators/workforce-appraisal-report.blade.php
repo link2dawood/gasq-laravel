@@ -52,7 +52,10 @@
         </div>
         <div class="col-md-4">
           <label class="form-label fw-medium mb-0">Annual billable hours (CFO × appraisal)</label>
-          <input type="number" id="wa_hours" class="form-control form-control-sm gasq-wa-input" value="21322" step="1" min="1" oninput="scheduleCompute()">
+          <div class="d-flex align-items-center gap-2">
+            <input type="number" id="wa_hours" class="form-control form-control-sm gasq-wa-input" value="21322" step="1" min="1" oninput="scheduleCompute()">
+            <input type="range" id="wa_hours_range" class="form-range mb-0" min="1" max="100000" step="1" value="21322" data-sync="wa_hours">
+          </div>
         </div>
       </div>
     </div>
@@ -71,40 +74,197 @@
           <div class="card-body small">
             <div class="mb-2">
               <label class="form-label mb-0">Baseline labor ($/hr)</label>
-              <input type="number" id="wa_baseL" class="form-control form-control-sm gasq-wa-input" value="30.43" step="0.01" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_baseL" class="form-control form-control-sm gasq-wa-input" value="30.43" step="0.01" oninput="scheduleCompute()">
+                <input type="range" id="wa_baseL_range" class="form-range mb-0" min="0" max="150" step="0.01" value="30.43" data-sync="wa_baseL">
+              </div>
             </div>
             <div class="mb-2">
               <label class="form-label mb-0">Government should-cost ($/hr)</label>
-              <input type="number" id="wa_govH" class="form-control form-control-sm gasq-wa-input" value="78.25" step="0.01" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_govH" class="form-control form-control-sm gasq-wa-input" value="78.25" step="0.01" oninput="scheduleCompute()">
+                <input type="range" id="wa_govH_range" class="form-range mb-0" min="0" max="250" step="0.01" value="78.25" data-sync="wa_govH">
+              </div>
             </div>
             <div class="mb-2">
               <label class="form-label mb-0">Vendor TCO ($/hr)</label>
-              <input type="number" id="wa_vendH" class="form-control form-control-sm gasq-wa-input" value="54.78" step="0.01" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_vendH" class="form-control form-control-sm gasq-wa-input" value="54.78" step="0.01" oninput="scheduleCompute()">
+                <input type="range" id="wa_vendH_range" class="form-range mb-0" min="0" max="250" step="0.01" value="54.78" data-sync="wa_vendH">
+              </div>
             </div>
             <div class="mb-2">
               <label class="form-label mb-0">Weekly coverage hours</label>
-              <input type="number" id="wa_wkH" class="form-control form-control-sm gasq-wa-input" value="410" step="1" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_wkH" class="form-control form-control-sm gasq-wa-input" value="410" step="1" oninput="scheduleCompute()">
+                <input type="range" id="wa_wkH_range" class="form-range mb-0" min="0" max="3000" step="1" value="410" data-sync="wa_wkH">
+              </div>
             </div>
             <div class="mb-2">
               <label class="form-label mb-0">Monthly coverage hours</label>
-              <input type="number" id="wa_moH" class="form-control form-control-sm gasq-wa-input" value="1777" step="1" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_moH" class="form-control form-control-sm gasq-wa-input" value="1777" step="1" oninput="scheduleCompute()">
+                <input type="range" id="wa_moH_range" class="form-range mb-0" min="0" max="12000" step="1" value="1777" data-sync="wa_moH">
+              </div>
             </div>
             <div class="mb-2">
               <label class="form-label mb-0">FTEs required</label>
-              <input type="number" id="wa_ftes" class="form-control form-control-sm gasq-wa-input" value="15" step="1" min="1" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_ftes" class="form-control form-control-sm gasq-wa-input" value="15" step="1" min="1" oninput="scheduleCompute()">
+                <input type="range" id="wa_ftes_range" class="form-range mb-0" min="1" max="250" step="1" value="15" data-sync="wa_ftes">
+              </div>
             </div>
             <div class="mb-2">
               <label class="form-label mb-0">Annual hrs / professional</label>
-              <input type="number" id="wa_hrProf" class="form-control form-control-sm gasq-wa-input" value="1456" step="1" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_hrProf" class="form-control form-control-sm gasq-wa-input" value="1456" step="1" oninput="scheduleCompute()">
+                <input type="range" id="wa_hrProf_range" class="form-range mb-0" min="0" max="3000" step="1" value="1456" data-sync="wa_hrProf">
+              </div>
             </div>
             <hr>
             <div class="mb-2">
               <label class="form-label mb-0">Memo — training ($/hr)</label>
-              <input type="number" id="wa_pr_train" class="form-control form-control-sm gasq-wa-input" value="3.47" step="0.01" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_pr_train" class="form-control form-control-sm gasq-wa-input" value="3.47" step="0.01" oninput="scheduleCompute()">
+                <input type="range" id="wa_pr_train_range" class="form-range mb-0" min="0" max="25" step="0.01" value="3.47" data-sync="wa_pr_train">
+              </div>
             </div>
             <div class="mb-0">
               <label class="form-label mb-0">Reserved gov rate ($/hr)</label>
-              <input type="number" id="wa_pr_res" class="form-control form-control-sm gasq-wa-input" value="38.34" step="0.01" oninput="scheduleCompute()">
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="wa_pr_res" class="form-control form-control-sm gasq-wa-input" value="38.34" step="0.01" oninput="scheduleCompute()">
+                <input type="range" id="wa_pr_res_range" class="form-range mb-0" min="0" max="250" step="0.01" value="38.34" data-sync="wa_pr_res">
+              </div>
+            </div>
+
+            <hr>
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="fw-semibold">Spreadsheet Inputs (V28)</div>
+              <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" data-bs-toggle="collapse" data-bs-target="#wa_inputs_collapse">Show</button>
+            </div>
+            <div class="collapse mt-2" id="wa_inputs_collapse">
+              <div class="small text-gasq-muted mb-2">These drive the CFO stack exactly like the workbook Inputs tab: some are <strong>$</strong>, others are <strong>%</strong>.</div>
+
+              <div class="mb-2">
+                <label class="form-label mb-0">Direct Labor Wage ($/paid hour)</label>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="number" id="in_wage" class="form-control form-control-sm gasq-wa-input" value="27.48" step="0.01" oninput="scheduleCompute()">
+                  <input type="range" id="in_wage_range" class="form-range mb-0" min="0" max="150" step="0.01" value="27.48" data-sync="in_wage">
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label mb-0">H&amp;W Cash ($/paid hour)</label>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="number" id="in_hwCash" class="form-control form-control-sm gasq-wa-input" value="4.22" step="0.01" oninput="scheduleCompute()">
+                  <input type="range" id="in_hwCash_range" class="form-range mb-0" min="0" max="50" step="0.01" value="4.22" data-sync="in_hwCash">
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label mb-0">Health &amp; Welfare ($/paid hour)</label>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="number" id="in_hw" class="form-control form-control-sm gasq-wa-input" value="0" step="0.01" oninput="scheduleCompute()">
+                  <input type="range" id="in_hw_range" class="form-range mb-0" min="0" max="50" step="0.01" value="0" data-sync="in_hw">
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label mb-0">DON/DOFF minutes per 8-hour shift</label>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="number" id="in_donDoffMin" class="form-control form-control-sm gasq-wa-input" value="15" step="1" min="0" oninput="scheduleCompute()">
+                  <input type="range" id="in_donDoffMin_range" class="form-range mb-0" min="0" max="120" step="1" value="15" data-sync="in_donDoffMin">
+                </div>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label mb-0">Locality Pay %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_locality" class="form-control form-control-sm gasq-wa-input" value="0" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_locality_range" class="form-range mb-0" min="0" max="0.5" step="0.0001" value="0" data-sync="in_locality">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">Labor Market Adj %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_lma" class="form-control form-control-sm gasq-wa-input" value="0" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_lma_range" class="form-range mb-0" min="0" max="0.5" step="0.0001" value="0" data-sync="in_lma">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">Shift Differential %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_shiftDiff" class="form-control form-control-sm gasq-wa-input" value="0" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_shiftDiff_range" class="form-range mb-0" min="0" max="0.5" step="0.0001" value="0" data-sync="in_shiftDiff">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">OT/Holiday Premium %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_ot" class="form-control form-control-sm gasq-wa-input" value="0.08" step="0.0001" min="0" max="2" oninput="scheduleCompute()">
+                    <input type="range" id="in_ot_range" class="form-range mb-0" min="0" max="0.5" step="0.0001" value="0.08" data-sync="in_ot">
+                  </div>
+                </div>
+
+                <div class="col-6">
+                  <label class="form-label mb-0">FICA / Medicare %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_fica" class="form-control form-control-sm gasq-wa-input" value="0.0765" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_fica_range" class="form-range mb-0" min="0" max="0.2" step="0.0001" value="0.0765" data-sync="in_fica">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">FUTA %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_futa" class="form-control form-control-sm gasq-wa-input" value="0.006" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_futa_range" class="form-range mb-0" min="0" max="0.05" step="0.0001" value="0.006" data-sync="in_futa">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">SUTA %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_suta" class="form-control form-control-sm gasq-wa-input" value="0.02" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_suta_range" class="form-range mb-0" min="0" max="0.2" step="0.0001" value="0.02" data-sync="in_suta">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">Workers Comp %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_wc" class="form-control form-control-sm gasq-wa-input" value="0.016" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_wc_range" class="form-range mb-0" min="0" max="0.2" step="0.0001" value="0.016" data-sync="in_wc">
+                  </div>
+                </div>
+
+                <div class="col-6">
+                  <label class="form-label mb-0">Vacation %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_vac" class="form-control form-control-sm gasq-wa-input" value="0.02" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_vac_range" class="form-range mb-0" min="0" max="0.2" step="0.0001" value="0.02" data-sync="in_vac">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">Paid Holidays %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_hol" class="form-control form-control-sm gasq-wa-input" value="0.04" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_hol_range" class="form-range mb-0" min="0" max="0.2" step="0.0001" value="0.04" data-sync="in_hol">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">Sick Leave %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_sick" class="form-control form-control-sm gasq-wa-input" value="0.027" step="0.0001" min="0" max="1" oninput="scheduleCompute()">
+                    <input type="range" id="in_sick_range" class="form-range mb-0" min="0" max="0.2" step="0.0001" value="0.027" data-sync="in_sick">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label mb-0">Profit / Fee %</label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="in_profit" class="form-control form-control-sm gasq-wa-input" value="0.21" step="0.0001" min="0" max="2" oninput="scheduleCompute()">
+                    <input type="range" id="in_profit_range" class="form-range mb-0" min="0" max="1" step="0.0001" value="0.21" data-sync="in_profit">
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -212,6 +372,8 @@
       </div>
     </div>
 
+    <x-report-actions reportType="workforce-appraisal-report" />
+
   </div>
 </div>
 @endsection
@@ -277,6 +439,27 @@
       scenario: {
         meta: {
           annualBillableHours: H,
+          inputs: {
+            // Inputs tab (V28) values – keep as decimals for % fields (e.g. 0.0765 for 7.65%).
+            directLaborWage: parseFloat(document.getElementById('in_wage')?.value)||0,
+            localityPayPct: parseFloat(document.getElementById('in_locality')?.value)||0,
+            shiftDifferentialPct: parseFloat(document.getElementById('in_shiftDiff')?.value)||0,
+            otHolidayPremiumPct: parseFloat(document.getElementById('in_ot')?.value)||0,
+            laborMarketAdjPct: parseFloat(document.getElementById('in_lma')?.value)||0,
+            hwCashPerHour: parseFloat(document.getElementById('in_hwCash')?.value)||0,
+            healthWelfarePerHour: parseFloat(document.getElementById('in_hw')?.value)||0,
+            donDoffMinutesPerShift: parseFloat(document.getElementById('in_donDoffMin')?.value)||0,
+
+            ficaMedicarePct: parseFloat(document.getElementById('in_fica')?.value)||0,
+            futaPct: parseFloat(document.getElementById('in_futa')?.value)||0,
+            sutaPct: parseFloat(document.getElementById('in_suta')?.value)||0,
+            workersCompPct: parseFloat(document.getElementById('in_wc')?.value)||0,
+            vacationPct: parseFloat(document.getElementById('in_vac')?.value)||0,
+            paidHolidaysPct: parseFloat(document.getElementById('in_hol')?.value)||0,
+            sickLeavePct: parseFloat(document.getElementById('in_sick')?.value)||0,
+
+            profitFeePct: parseFloat(document.getElementById('in_profit')?.value)||0,
+          },
           appraisal: {
             preparedFor: document.getElementById('wa_prep').value||'',
             reportDate: document.getElementById('wa_date').value||'',
@@ -421,8 +604,39 @@
     debounce = setTimeout(runCompute, 260);
   };
 
+  function initSliderSync(){
+    document.querySelectorAll('input[type="range"][data-sync]').forEach((rangeEl)=>{
+      const id = rangeEl.getAttribute('data-sync');
+      const numEl = document.getElementById(id);
+      if(!numEl) return;
+
+      // Initialize slider from number, then keep them in sync both ways.
+      const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+      const syncRangeFromNumber = () => {
+        const min = parseFloat(rangeEl.min || '0');
+        const max = parseFloat(rangeEl.max || '100');
+        const v = parseFloat(numEl.value || rangeEl.value || '0');
+        rangeEl.value = String(clamp(v, min, max));
+      };
+      const syncNumberFromRange = () => {
+        numEl.value = rangeEl.value;
+      };
+
+      syncRangeFromNumber();
+
+      rangeEl.addEventListener('input', () => {
+        syncNumberFromRange();
+        scheduleCompute();
+      });
+      numEl.addEventListener('input', () => {
+        syncRangeFromNumber();
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', ()=>{
     buildPostBody();
+    initSliderSync();
     const tab = @json($initialTab);
     const map = { cfo:'tab-cfo', posts:'tab-posts', appraisal:'tab-appraisal', price:'tab-price' };
     const id = map[tab] || 'tab-cfo';

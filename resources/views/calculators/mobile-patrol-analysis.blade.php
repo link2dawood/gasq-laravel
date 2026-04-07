@@ -82,6 +82,9 @@
   </div>
 </div>
 </div>
+
+<x-report-actions reportType="mobile-patrol-analysis" />
+
 @endsection
 
 @push('scripts')
@@ -200,6 +203,8 @@
   async function runCompute() {
     const scenario = readScenario();
     try {
+      const err = document.getElementById('mpa_error');
+      if (err) { err.style.display = 'none'; err.textContent = ''; }
       const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'mobile-patrol-analysis']) }}', {
         method: 'POST',
         headers: {
@@ -209,8 +214,25 @@
         },
         body: JSON.stringify({ version: 'v24', scenario }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.ok) { console.error(data); return; }
+      let data = null;
+      try { data = await res.json(); } catch { data = null; }
+      if (!res.ok || !data || !data.ok) {
+        if (!document.getElementById('mpa_error')) {
+          const el = document.createElement('div');
+          el.id = 'mpa_error';
+          el.className = 'alert alert-light border gasq-border small d-print-none mb-3';
+          document.querySelector('.container-xl')?.insertBefore(el, document.querySelector('.container-xl')?.firstChild || null);
+        }
+        const el = document.getElementById('mpa_error');
+        if (el) {
+          el.style.display = '';
+          el.textContent = (data && data.error === 'insufficient_credits')
+            ? (data.message || 'Not enough credits to run this calculator.')
+            : 'Unable to calculate right now. Please try again.';
+        }
+        console.error(data);
+        return;
+      }
       lastKpis = data.kpis;
       paintDashboard(data.kpis);
       paintReports(data.kpis);

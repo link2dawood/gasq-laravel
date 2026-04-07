@@ -113,4 +113,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Scenario::class);
     }
+
+    public function masterInputProfile(): HasOne
+    {
+        return $this->hasOne(MasterInputProfile::class);
+    }
 }

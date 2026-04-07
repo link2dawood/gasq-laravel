@@ -13,7 +13,7 @@
         </p>
 
         <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
-            <a class="btn btn-primary btn-lg" href="{{ url('/gasq-instant-estimator') }}">Try Instant Estimator</a>
+            <a class="btn btn-primary btn-lg" href="{{ route('pricing') }}">Know Before You Buy</a>
             <a class="btn btn-outline-primary btn-lg" href="{{ url('/open-bid-offer') }}">Open Bid Offer</a>
         </div>
     </div>
@@ -92,6 +92,8 @@
             </x-card>
         </div>
     </div>
+
+    <x-report-actions reportType="government-contract-calculator" />
 </div>
 @endsection
 

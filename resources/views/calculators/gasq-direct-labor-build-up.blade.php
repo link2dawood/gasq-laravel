@@ -57,6 +57,8 @@
       </div>
     </div>
 
+    <x-report-actions reportType="gasq-direct-labor-build-up" />
+
   </div>
 </div>
 @endsection

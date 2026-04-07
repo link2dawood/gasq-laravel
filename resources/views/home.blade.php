@@ -219,33 +219,6 @@
           </a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/contract-analysis') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-file-contract"></i></div>
-            <div>
-              <div class="action-title">Contract Analysis</div>
-              <div class="action-desc">Evaluate contract terms &amp; profitability</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/cost-analysis') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-chart-bar"></i></div>
-            <div>
-              <div class="action-title">Cost Analysis</div>
-              <div class="action-desc">Breakdown &amp; cost comparison</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/security-quote') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-file-alt"></i></div>
-            <div>
-              <div class="action-title">Security Quote</div>
-              <div class="action-desc">Generate client-ready quotes</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
           <a href="{{ url('/mobile-patrol-comparison') }}" class="gasq-action-card">
             <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-code-compare"></i></div>
             <div>
@@ -255,38 +228,11 @@
           </a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/global-security-pricing') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-globe"></i></div>
-            <div>
-              <div class="action-title">Global Security Pricing</div>
-              <div class="action-desc">International rate benchmarks</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/hourly-pay-calculator') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-dollar-sign"></i></div>
-            <div>
-              <div class="action-title">Hourly Pay Calculator</div>
-              <div class="action-desc">Guard pay rate estimator</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
           <a href="{{ url('/budget-calculator') }}" class="gasq-action-card">
             <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-piggy-bank"></i></div>
             <div>
               <div class="action-title">Budget Calculator</div>
               <div class="action-desc">Annual security budget planning</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/unarmed-security-guard-services') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-shield-alt"></i></div>
-            <div>
-              <div class="action-title">Unarmed Guard Services</div>
-              <div class="action-desc">Unarmed service rate calculator</div>
             </div>
           </a>
         </div>
@@ -321,29 +267,11 @@
           </a>
         </div>
         <div class="col-md-6 col-lg-3">
-          <a href="{{ url('/absorbed-rate-calculator') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-layer-group"></i></div>
-            <div>
-              <div class="action-title">Absorbed Rate</div>
-              <div class="action-desc">All-in rate analysis</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-3">
           <a href="{{ url('/government-contract-calculator') }}" class="gasq-action-card">
             <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-landmark"></i></div>
             <div>
               <div class="action-title">Gov't Contract</div>
               <div class="action-desc">SCA/PWA compliance calculator</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <a href="{{ url('/keeps-doors-open-calculator') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-door-open"></i></div>
-            <div>
-              <div class="action-title">Keeps Doors Open</div>
-              <div class="action-desc">Break-even &amp; profitability</div>
             </div>
           </a>
         </div>

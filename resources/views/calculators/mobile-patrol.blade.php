@@ -115,6 +115,7 @@
   @endif
 
   {{-- Main two-column layout --}}
+  <div class="alert alert-light border gasq-border small d-print-none mb-3" id="mp_error" style="display:none"></div>
   <div class="row g-4">
 
     {{-- Left: Submission Details --}}
@@ -336,6 +337,7 @@
 
         </div>
       </div>
+      <x-report-actions reportType="mobile-patrol" />
     </div>
   </div><!-- /row -->
 
@@ -361,6 +363,15 @@ function fmtN(v, dec=1){
 }
 function g(id){ return parseFloat(document.getElementById(id).value)||0; }
 
+function setError(msg){
+  const el = document.getElementById('mp_error');
+  if(!el) return;
+  if(!msg){ el.style.display='none'; el.textContent=''; return; }
+  el.style.display='';
+  el.textContent = msg;
+}
+
+let mpInflight = null;
 async function calculate(){
   const payload = {
     version: 'v24',
@@ -384,32 +395,52 @@ async function calculate(){
     }
   };
 
-  const res = await fetch('{{ route('backend.mobile-patrol.v24.compute') }}', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-  const data = await res.json();
-  if(!res.ok || !data || !data.ok){ console.error(data); return; }
-  const out = data.kpis || {};
+  try{
+    setError('');
+    if (mpInflight) { mpInflight.abort(); }
+    mpInflight = new AbortController();
+    const res = await fetch('{{ route('backend.mobile-patrol.v24.compute') }}', {
+      method: 'POST',
+      signal: mpInflight.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+    if(!res.ok || !data || !data.ok){
+      if (data && data.error === 'insufficient_credits') {
+        setError(data.message || 'Not enough credits to run this calculator.');
+      } else {
+        setError('Unable to calculate right now. Please try again.');
+      }
+      console.error(data);
+      return;
+    }
 
-  setText('r-hoursPerYear', fmtN(out.hoursPerYear||0, 0));
-  setText('r-annualWageCost', fmt(out.annualWageCost||0));
-  setText('r-milesDrivenPerYear', fmtN(out.milesDrivenPerYear||0, 0));
-  setText('r-fuelGallonsPerYear', fmtN(out.fuelGallonsPerYear||0, 0));
-  setText('r-annualFuelCost', fmt(out.annualFuelCost||0));
-  setText('r-oilChangesPerYear', fmtN(out.oilChangesPerYear||0, 1));
-  setText('r-annualOilChangeCost', fmt(out.annualOilChangeCost||0));
-  setText('r-preMarkupCost', fmt(out.preMarkupCost||0));
-  setText('r-dailyCost', fmt(out.dailyCost||0));
-  setText('r-weeklyCost', fmt(out.weeklyCost||0));
-  setText('r-monthlyCost', fmt(out.monthlyCost||0));
-  setText('r-annualCost', fmt(out.annualCost||0));
-  setText('r-hourlyRate', fmt(out.hourlyBillableRate||0));
+    const out = data.kpis || {};
+
+    setText('r-hoursPerYear', fmtN(out.hoursPerYear||0, 0));
+    setText('r-annualWageCost', fmt(out.annualWageCost||0));
+    setText('r-milesDrivenPerYear', fmtN(out.milesDrivenPerYear||0, 0));
+    setText('r-fuelGallonsPerYear', fmtN(out.fuelGallonsPerYear||0, 0));
+    setText('r-annualFuelCost', fmt(out.annualFuelCost||0));
+    setText('r-oilChangesPerYear', fmtN(out.oilChangesPerYear||0, 1));
+    setText('r-annualOilChangeCost', fmt(out.annualOilChangeCost||0));
+    setText('r-preMarkupCost', fmt(out.preMarkupCost||0));
+    setText('r-dailyCost', fmt(out.dailyCost||0));
+    setText('r-weeklyCost', fmt(out.weeklyCost||0));
+    setText('r-monthlyCost', fmt(out.monthlyCost||0));
+    setText('r-annualCost', fmt(out.annualCost||0));
+    setText('r-hourlyRate', fmt(out.hourlyBillableRate||0));
+  } catch(e){
+    if(e?.name === 'AbortError') return;
+    console.error(e);
+    setError('Unable to calculate right now. Please try again.');
+  }
 }
 
 function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
@@ -437,7 +468,14 @@ function sendEmail(){
   alert('PDF report would be emailed to: ' + email);
 }
 
-document.addEventListener('DOMContentLoaded', calculate);
+let mpTimer = null;
+function scheduleCalculate(){ clearTimeout(mpTimer); mpTimer = setTimeout(calculate, 350); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Debounce calls so we don't spam the compute endpoint on every keystroke.
+  document.querySelectorAll('input,select,textarea').forEach(el => el.addEventListener('input', scheduleCalculate));
+  calculate();
+});
 </script>
 @if(!empty($mpMapsKey))
 <script>

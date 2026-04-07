@@ -16,7 +16,7 @@
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
             <a class="btn btn-primary btn-lg" href="{{ url('/main-menu-calculator') }}">Open Main Menu Calculator</a>
-            <a class="btn btn-outline-primary btn-lg" href="{{ url('/cost-analysis') }}">View Cost Analysis UI</a>
+            <a class="btn btn-outline-primary btn-lg" href="{{ url('/calculator') }}">Open Calculator Hub</a>
         </div>
     </div>
 

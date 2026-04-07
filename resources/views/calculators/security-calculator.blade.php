@@ -12,8 +12,7 @@
         </div>
         <h1 class="display-4 fw-bold mb-3">Security Calculators</h1>
         <p class="lead text-gasq-muted mx-auto" style="max-width: 900px;">
-            The <code>/calculator</code> path now opens this native Laravel hub instead of the React shell. Pick a tool
-            below (sign in may be required).
+            Pick a tool below (sign in may be required). Some calculators are currently hidden while we finalize updates.
         </p>
     </div>
 
@@ -25,39 +24,39 @@
             </x-card>
         </div>
         <div class="col-md-6 col-lg-4">
-            <x-card title="Instant estimator" subtitle="Public quick estimate">
-                <p class="text-gasq-muted small">Location-aware wage and rate snapshot.</p>
-                <a class="btn btn-primary" href="{{ url('/gasq-instant-estimator') }}">Open</a>
-            </x-card>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <x-card title="Contract analysis" subtitle="Signed-in">
-                <p class="text-gasq-muted small">Multi-tab contract breakdown.</p>
-                <a class="btn btn-primary" href="{{ url('/contract-analysis') }}">Open</a>
-            </x-card>
-        </div>
-        <div class="col-md-6 col-lg-4">
             <x-card title="Security billing" subtitle="Signed-in">
                 <p class="text-gasq-muted small">Billing scenarios and reports.</p>
                 <a class="btn btn-primary" href="{{ url('/security-billing') }}">Open</a>
             </x-card>
         </div>
         <div class="col-md-6 col-lg-4">
-            <x-card title="TCO (preview)" subtitle="Static Blade page">
-                <p class="text-gasq-muted small">Illustrative total cost of ownership layout.</p>
-                <a class="btn btn-outline-primary" href="{{ url('/gasq-tco-calculator') }}">Open</a>
-            </x-card>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <x-card title="Pricing" subtitle="Global security pricing">
-                <p class="text-gasq-muted small">Posts, bill rate, and scenario comparison.</p>
-                <a class="btn btn-primary" href="{{ url('/global-security-pricing') }}">Open</a>
-            </x-card>
-        </div>
-        <div class="col-md-6 col-lg-4">
             <x-card title="Mobile patrol (per hit)" subtitle="Hit / stop cost model">
                 <p class="text-gasq-muted small">Estimate cost per hit and billable per hit.</p>
                 <a class="btn btn-primary" href="{{ url('/mobile-patrol-hit-calculator') }}">Open</a>
+            </x-card>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <x-card title="Mobile patrol" subtitle="Calculator + analysis">
+                <p class="text-gasq-muted small">Mobile patrol billable rate calculator and analysis tools.</p>
+                <a class="btn btn-primary" href="{{ url('/mobile-patrol-calculator') }}">Open</a>
+            </x-card>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <x-card title="Economic justification" subtitle="ROI analysis">
+                <p class="text-gasq-muted small">Compare in-house vs vendor cost and savings.</p>
+                <a class="btn btn-primary" href="{{ url('/economic-justification') }}">Open</a>
+            </x-card>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <x-card title="Government contract" subtitle="Rate build-up">
+                <p class="text-gasq-muted small">Estimate government contract bill rates from burdens and fee.</p>
+                <a class="btn btn-primary" href="{{ url('/government-contract-calculator') }}">Open</a>
+            </x-card>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <x-card title="GASQ TCO" subtitle="Vendor vs should-cost">
+                <p class="text-gasq-muted small">Compare vendor TCO benchmark vs GASQ should-cost bill rate.</p>
+                <a class="btn btn-primary" href="{{ url('/gasq-tco-calculator') }}">Open</a>
             </x-card>
         </div>
     </div>

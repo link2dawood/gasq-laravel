@@ -63,6 +63,8 @@
         <div class="small text-gasq-muted mt-3" id="acs_note"></div>
       </div>
     </div>
+
+    <x-report-actions reportType="gasq-additional-cost-stack" />
   </div>
 </div>
 @endsection

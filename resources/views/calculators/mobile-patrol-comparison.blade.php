@@ -145,6 +145,8 @@
     </div>
 
   </div><!-- /row -->
+
+  <x-report-actions reportType="mobile-patrol-comparison" />
 </div>
 </div>
 @endsection
@@ -186,6 +188,33 @@ function readScenario(prefix){
 
 function updateLabel(p){ document.getElementById('label'+p.toUpperCase()).textContent = document.getElementById(p+'_name').value; }
 
+let persistT = null;
+async function persistReportPayload(a, b){
+  try{
+    const res = await fetch(@json(route('backend.report-payload.store')), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      },
+      body: JSON.stringify({
+        type: 'mobile-patrol-comparison',
+        scenario: { a: readScenario('a'), b: readScenario('b') },
+        result: {
+          scenario_a_annual: a.annualCostWithMarkup,
+          scenario_b_annual: b.annualCostWithMarkup,
+          savings: a.annualCostWithMarkup - b.annualCostWithMarkup,
+          savings_percent: a.annualCostWithMarkup > 0 ? ((a.annualCostWithMarkup - b.annualCostWithMarkup) / a.annualCostWithMarkup) * 100 : 0,
+        },
+      }),
+    });
+    if(!res.ok){ return; }
+  }catch(e){
+    return;
+  }
+}
+
 function calculate(){
   const a = calcScenario(readScenario('a'));
   const b = calcScenario(readScenario('b'));
@@ -221,6 +250,9 @@ function calculate(){
   // Icons
   function setIcon(id, diff){ document.getElementById(id).className='fa ' + (diff>0?'fa-arrow-trend-up text-danger':diff<0?'fa-arrow-trend-down text-success':'fa-minus text-gasq-muted'); }
   setIcon('s-hourlyIcon', hourlyDiff); setIcon('s-monthlyIcon', monthlyDiff); setIcon('s-annualIcon', annualDiff);
+
+  clearTimeout(persistT);
+  persistT = setTimeout(() => persistReportPayload(a, b), 400);
 }
 
 document.addEventListener('DOMContentLoaded', calculate);

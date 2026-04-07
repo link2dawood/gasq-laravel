@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GASQ — The Smarter Way to Buy &amp; Sell Security Services</title>
+
+  <!-- Inter (Apple-style sans) + JetBrains Mono (Nerd Font companion) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 (same glyph vocabulary as Nerd Fonts FA set) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+
+  <style>
+    /* ── Nerd Font Symbols Only (private-use glyph icons) ─────────────── */
+    @font-face {
+      font-family: 'NerdIcons';
+      src: url('https://cdn.jsdelivr.net/gh/ryanoasis/nerd-fonts@3.1.1/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf') format('truetype');
+      font-display: swap;
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ── Design Tokens ─────────────────────────────────────────────────── */
+    :root {
+      --bg:          #000000;
+      --white:       #f5f5f7;
+      --silver:      #98989d;
+      --dim:         #636366;
+      --blue:        #1d6fd8;
+      --blue-mid:    #3b82f6;
+      --blue-light:  #5ac8fa;
+      --green:       #30d158;
+      --glow-blue:   rgba(29, 111, 216, 0.22);
+      --ease-apple:  cubic-bezier(0.4, 0, 0.2, 1);
+      --inter:       'Inter', -apple-system, sans-serif;
+      --mono:        'JetBrains Mono', 'NerdIcons', monospace;
+      --nerd:        'NerdIcons', 'JetBrains Mono', monospace;
+    }
+
+    /* ── Shell ─────────────────────────────────────────────────────────── */
+    html, body {
+      width: 100%; height: 100%;
+      background: #0d0d0d;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--inter);
+      overflow: hidden;
+    }
+
+    /* ── Stage wrapper for responsive scaling ──────────────────────────── */
+    #stage-wrap {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Stage 1280 × 720 (16:9) ───────────────────────────────────────── */
+    #stage {
+      position: relative;
+      width: 1280px; height: 720px;
+      background: var(--bg);
+      overflow: hidden;
+      transform-origin: center center;
+    }
+
+    /* ── Subtle grid ───────────────────────────────────────────────────── */
+    .bg-grid {
+      position: absolute; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+    }
+
+    /* ── Ambient centre glow (always on) ───────────────────────────────── */
+    .bg-ambient {
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 900px 500px at 50% 50%,
+        rgba(29,111,216,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── Progress bar ──────────────────────────────────────────────────── */
+    #pb {
+      position: absolute; bottom: 0; left: 0;
+      height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--blue), var(--blue-light));
+      border-radius: 0 1px 1px 0;
+      z-index: 100;
+    }
+
+    /* ── Timer + replay ────────────────────────────────────────────────── */
+    #timer {
+      position: absolute; bottom: 14px; left: 20px;
+      font-family: var(--mono); font-size: 11px; font-weight: 400;
+      color: rgba(255,255,255,0.18); letter-spacing: 0.08em;
+      z-index: 100;
+    }
+
+    .ctrl-btn {
+      position: absolute; bottom: 10px; right: 16px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.11);
+      color: rgba(255,255,255,0.55);
+      padding: 5px 14px; border-radius: 100px;
+      cursor: pointer;
+      font-family: var(--mono); font-size: 11px; font-weight: 400;
+      letter-spacing: 0.05em;
+      z-index: 100;
+      transition: background 0.2s, color 0.2s;
+      backdrop-filter: blur(8px);
+    }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       SCENE BASE
+    ══════════════════════════════════════════════════════════════════════ */
+    .scene {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0;
+      transition: opacity 0.75s var(--ease-apple);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .scene.active { opacity: 1; pointer-events: auto; }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       SCENE 1 — LOGO INTRO
+    ══════════════════════════════════════════════════════════════════════ */
+    #s1 { gap: 28px; }
+
+    /* Pulsing glow orb behind logo */
+    .s1-orb {
+      position: absolute;
+      width: 640px; height: 380px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(29,111,216,0.26) 0%, transparent 68%);
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      animation: orb-pulse 3.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes orb-pulse {
+      0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+      50%       { opacity: 1;    transform: translate(-50%, -50%) scale(1.07); }
+    }
+
+    .s1-logo {
+      width: 360px;
+      opacity: 0;
+      transform: translateY(22px) scale(0.95);
+      transition: opacity 1s var(--ease-apple) 0.25s,
+                  transform 1s var(--ease-apple) 0.25s;
+      position: relative; z-index: 2;
+      filter: drop-shadow(0 0 24px rgba(29,111,216,0.35));
+    }
+    #s1.active .s1-logo { opacity: 1; transform: translateY(0) scale(1); }
+
+    .s1-badge {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: 13px; font-weight: 400;
+      color: var(--silver); letter-spacing: 0.22em; text-transform: uppercase;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.75s var(--ease-apple) 1.1s,
+                  transform 0.75s var(--ease-apple) 1.1s;
+      position: relative; z-index: 2;
+    }
+    #s1.active .s1-badge { opacity: 1; transform: translateY(0); }
+
+    .s1-badge .nf-icon {
+      font-family: var(--nerd); font-size: 16px;
+      color: var(--blue-light);
+    }
+
+    /* Small blue divider dots */
+    .s1-dots {
+      display: flex; gap: 6px;
+      opacity: 0;
+      transition: opacity 0.6s ease 1.7s;
+      position: relative; z-index: 2;
+    }
+    #s1.active .s1-dots { opacity: 1; }
+    .s1-dots span {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--blue-mid); opacity: 0.5;
+    }
+    .s1-dots span:nth-child(2) { background: var(--blue-light); opacity: 0.7; }
+    .s1-dots span:nth-child(3) { background: var(--blue); opacity: 0.4; }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       SCENE 2 — TAGLINE
+    ══════════════════════════════════════════════════════════════════════ */
+    #s2 { gap: 18px; }
+
+    .s2-pre {
+      font-size: 30px; font-weight: 200;
+      color: var(--silver); letter-spacing: -0.01em;
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.7s var(--ease-apple) 0.1s,
+                  transform 0.7s var(--ease-apple) 0.1s;
+    }
+    #s2.active .s2-pre { opacity: 1; transform: translateY(0); }
+
+    .s2-main {
+      font-size: 72px; font-weight: 700;
+      color: var(--white); letter-spacing: -0.035em; line-height: 1.05;
+      text-align: center; max-width: 880px;
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.7s var(--ease-apple) 0.35s,
+                  transform 0.7s var(--ease-apple) 0.35s;
+    }
+    #s2.active .s2-main { opacity: 1; transform: translateY(0); }
+
+    .s2-accent {
+      font-size: 16px; font-weight: 400;
+      color: var(--blue-light); letter-spacing: 0.12em;
+      font-family: var(--mono);
+      opacity: 0;
+      transition: opacity 0.6s ease 1.0s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #s2.active .s2-accent { opacity: 1; }
+    .s2-accent::before, .s2-accent::after {
+      content: ''; flex: 1; max-width: 80px;
+      height: 1px; background: linear-gradient(90deg, transparent, var(--blue-mid));
+    }
+    .s2-accent::after { background: linear-gradient(90deg, var(--blue-mid), transparent); }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       SCENE 3 — FEATURE CARDS
+    ══════════════════════════════════════════════════════════════════════ */
+    #s3 { gap: 38px; }
+
+    .s3-head {
+      font-size: 22px; font-weight: 300;
+      color: var(--silver); letter-spacing: 0.01em;
+      opacity: 0; transform: translateY(18px);
+      transition: opacity 0.6s var(--ease-apple) 0.1s,
+                  transform 0.6s var(--ease-apple) 0.1s;
+    }
+    #s3.active .s3-head { opacity: 1; transform: translateY(0); }
+
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 230px);
+      gap: 18px;
+    }
+
+    .feat-card {
+      background: rgba(255,255,255,0.038);
+      border: 1px solid rgba(255,255,255,0.075);
+      border-radius: 20px;
+      padding: 28px 20px 24px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 12px;
+      opacity: 0; transform: translateY(38px);
+      will-change: opacity, transform;
+      transition: opacity 0.55s var(--ease-apple),
+                  transform 0.55s var(--ease-apple);
+      position: relative; overflow: hidden;
+    }
+
+    /* Card shimmer strip */
+    .feat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(90,200,250,0.35), transparent);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    #s3.active .feat-card:nth-child(1) { opacity: 1; transform: none; transition-delay: 0.20s; }
+    #s3.active .feat-card:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.36s; }
+    #s3.active .feat-card:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.52s; }
+    #s3.active .feat-card:nth-child(4) { opacity: 1; transform: none; transition-delay: 0.68s; }
+    #s3.active .feat-card::before { opacity: 1; }
+
+    .feat-icon-wrap {
+      width: 54px; height: 54px; border-radius: 15px;
+      background: linear-gradient(135deg,
+        rgba(29,111,216,0.28) 0%,
+        rgba(90,200,250,0.12) 100%);
+      border: 1px solid rgba(90,200,250,0.18);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: var(--blue-light);
+    }
+
+    .feat-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--white); text-align: center; letter-spacing: -0.01em;
+    }
+
+    .feat-desc {
+      font-size: 11px; color: var(--silver);
+      text-align: center; line-height: 1.45;
+    }
+
+    /* Nerd-font monospace tag at bottom of card */
+    .feat-tag {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--dim); letter-spacing: 0.06em;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px; padding: 2px 8px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       SCENE 4 — VALUE PROPOSITIONS
+    ══════════════════════════════════════════════════════════════════════ */
+    #s4 { gap: 6px; }
+
+    .val-word {
+      font-size: 96px; font-weight: 800;
+      letter-spacing: -0.045em; line-height: 1.06;
+      opacity: 0; transform: translateY(42px);
+      will-change: opacity, transform;
+      transition: opacity 0.58s var(--ease-apple),
+                  transform 0.58s var(--ease-apple);
+    }
+
+    .val-word.w1 { color: var(--white);      transition-delay: 0.05s; }
+    .val-word.w2 { color: var(--blue-light); transition-delay: 0.30s; }
+    .val-word.w3 {
+      background: linear-gradient(95deg, var(--blue-light) 0%, var(--green) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition-delay: 0.55s;
+    }
+
+    #s4.active .val-word { opacity: 1; transform: translateY(0); }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       SCENE 5 — BIG STAT
+    ══════════════════════════════════════════════════════════════════════ */
+    #s5 { gap: 14px; }
+
+    .stat-num {
+      font-size: 148px; font-weight: 900;
+      color: var(--white); letter-spacing: -0.06em; line-height: 1;
+      opacity: 0; transform: scale(0.82);
+      will-change: opacity, transform;
+      transition: opacity 0.75s var(--ease-apple) 0.1s,
+                  transform 0.75s var(--ease-apple) 0.1s;
+    }
+    .stat-num .plus {
+      font-size: 88px; font-weight: 300;
+      color: var(--blue-light); vertical-align: middle;
+    }
+
+    #s5.active .stat-num { opacity: 1; transform: scale(1); }
+
+    .stat-label {
+      font-size: 20px; font-weight: 300;
+      color: var(--silver); letter-spacing: 0.1em; text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 0.7s ease 0.55s;
+    }
+    #s5.active .stat-label { opacity: 1; }
+
+    .stat-sub {
+      font-family: var(--mono); font-size: 14px; font-weight: 400;
+      color: var(--blue-light); letter-spacing: 0.1em;
+      display: flex; align-items: center; gap: 10px;
+      opacity: 0;
+      transition: opacity 0.7s ease 0.8s;
+    }
+    #s5.active .stat-sub { opacity: 1; }
+
+    .stat-sub .nf-icon { font-family: var(--nerd); font-size: 16px; }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       SCENE 6 — OUTRO / CTA
+    ══════════════════════════════════════════════════════════════════════ */
+    #s6 { gap: 22px; }
+
+    .s6-orb {
+      position: absolute;
+      width: 740px; height: 440px;
+      background: radial-gradient(ellipse, rgba(29,111,216,0.28) 0%, transparent 68%);
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      animation: orb-pulse 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .s6-logo {
+      width: 320px;
+      opacity: 0; transform: translateY(22px);
+      filter: drop-shadow(0 0 32px rgba(29,111,216,0.45));
+      transition: opacity 0.9s var(--ease-apple) 0.25s,
+                  transform 0.9s var(--ease-apple) 0.25s;
+      position: relative; z-index: 2;
+    }
+    #s6.active .s6-logo { opacity: 1; transform: translateY(0); }
+
+    .s6-rule {
+      width: 120px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--blue-mid), transparent);
+      opacity: 0; transition: opacity 0.7s ease 0.9s;
+      position: relative; z-index: 2;
+    }
+    #s6.active .s6-rule { opacity: 1; }
+
+    .s6-tagline {
+      font-size: 19px; font-weight: 300;
+      color: var(--silver); letter-spacing: 0.03em;
+      opacity: 0; transition: opacity 0.8s ease 1.0s;
+      position: relative; z-index: 2;
+    }
+    #s6.active .s6-tagline { opacity: 1; }
+
+    .s6-url {
+      font-family: var(--mono); font-size: 17px; font-weight: 400;
+      color: var(--blue-light); letter-spacing: 0.14em;
+      opacity: 0; transition: opacity 0.8s ease 1.2s;
+      position: relative; z-index: 2;
+    }
+    #s6.active .s6-url { opacity: 1; }
+
+    /* Nerd font terminal prompt decoration */
+    .s6-url::before {
+      content: '❯ ';
+      font-family: var(--nerd); color: var(--green); font-size: 14px;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="stage-wrap">
+    <div id="stage">
+
+      <!-- ── Background ──────────────────────────────────────── -->
+      <div class="bg-grid"></div>
+      <div class="bg-ambient"></div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SCENE 1 · Logo Intro
+      ════════════════════════════════════════════════════════ -->
+      <div class="scene" id="s1">
+        <div class="s1-orb"></div>
+
+        <img class="s1-logo"
+             src="https://dimgrey-gerbil-250553.hostingersite.com/images/site-logo.png"
+             alt="GASQ">
+
+        <div class="s1-badge">
+          <span class="nf-icon">&#xf132;</span>
+          Professional Security Calculators
+        </div>
+
+        <div class="s1-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SCENE 2 · Tagline
+      ════════════════════════════════════════════════════════ -->
+      <div class="scene" id="s2">
+        <div class="s2-pre">The Smarter Way to</div>
+        <div class="s2-main">Buy &amp; Sell<br>Security Services</div>
+        <div class="s2-accent">GETASECURITYQUOTE.COM</div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SCENE 3 · Feature Cards
+      ════════════════════════════════════════════════════════ -->
+      <div class="scene" id="s3">
+        <div class="s3-head">Everything You Need. One Platform.</div>
+
+        <div class="feat-grid">
+          <div class="feat-card">
+            <div class="feat-icon-wrap">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div class="feat-name">Bill Rate Analysis</div>
+            <div class="feat-desc">Benchmark pricing against industry standards</div>
+            <div class="feat-tag"><span style="font-family:var(--nerd)">&#xf080;</span> analytics</div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-icon-wrap">
+              <i class="fa-solid fa-calculator"></i>
+            </div>
+            <div class="feat-name">TCO Calculator</div>
+            <div class="feat-desc">Total cost of ownership, fully itemised</div>
+            <div class="feat-tag"><span style="font-family:var(--nerd)">&#xf1ec;</span> tco</div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-icon-wrap">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="feat-name">Mobile Patrol</div>
+            <div class="feat-desc">Route, hit &amp; comparison analysis</div>
+            <div class="feat-tag"><span style="font-family:var(--nerd)">&#xf132;</span> patrol</div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-icon-wrap">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div class="feat-name">CFO Reports</div>
+            <div class="feat-desc">Capital recovery &amp; workforce appraisal</div>
+            <div class="feat-tag"><span style="font-family:var(--nerd)">&#xf155;</span> cfo</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SCENE 4 · Value Props
+      ════════════════════════════════════════════════════════ -->
+      <div class="scene" id="s4">
+        <div class="val-word w1">Transparent.</div>
+        <div class="val-word w2">Fair.</div>
+        <div class="val-word w3">ROI-Driven.</div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SCENE 5 · Big Stat
+      ════════════════════════════════════════════════════════ -->
+      <div class="scene" id="s5">
+        <div class="stat-num">20<span class="plus">+</span></div>
+        <div class="stat-label">Professional Calculators</div>
+        <div class="stat-sub">
+          <span class="nf-icon">&#xf1ec;</span>
+          One Platform.&nbsp; Zero Guesswork.
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SCENE 6 · Outro
+      ════════════════════════════════════════════════════════ -->
+      <div class="scene" id="s6">
+        <div class="s6-orb"></div>
+        <img class="s6-logo"
+             src="https://dimgrey-gerbil-250553.hostingersite.com/images/site-logo.png"
+             alt="GASQ">
+        <div class="s6-rule"></div>
+        <div class="s6-tagline">Security Services. Simplified.</div>
+        <div class="s6-url">GetASecurityQuote.com</div>
+      </div>
+
+      <!-- ── Progress + Controls ─────────────────────────────── -->
+      <div id="pb"></div>
+      <div id="timer">◉ &nbsp;0:00 / 0:20</div>
+      <button class="ctrl-btn" onclick="restart()">↺ replay</button>
+
+    </div><!-- /stage -->
+  </div><!-- /stage-wrap -->
+
+  <script>
+    /* ── Timeline (ms) ────────────────────────────────────────────────── */
+    const TOTAL = 20000;
+
+    const timeline = [
+      { id: 's1', start:    0, end:  3900 },
+      { id: 's2', start: 3200, end:  7500 },
+      { id: 's3', start: 6900, end: 11400 },
+      { id: 's4', start:10800, end: 15200 },
+      { id: 's5', start:14600, end: 18000 },
+      { id: 's6', start:17300, end: 22000 },
+    ];
+
+    /* ── Responsive stage scaling ─────────────────────────────────────── */
+    function fitStage() {
+      const scale = Math.min(
+        window.innerWidth  / 1280,
+        window.innerHeight /  720
+      ) * 0.97;
+      document.getElementById('stage').style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', fitStage);
+    fitStage();
+
+    /* ── Animation loop ───────────────────────────────────────────────── */
+    let startTs = null;
+    let raf     = null;
+
+    function restart() {
+      if (raf) cancelAnimationFrame(raf);
+      timeline.forEach(({ id }) => document.getElementById(id).classList.remove('active'));
+      const pb = document.getElementById('pb');
+      pb.style.transition = 'none';
+      pb.style.width = '0%';
+      startTs = null;
+      raf = requestAnimationFrame(tick);
+    }
+
+    function tick(ts) {
+      if (!startTs) startTs = ts;
+      const elapsed = ts - startTs;
+
+      /* Progress bar */
+      const pct = Math.min((elapsed / TOTAL) * 100, 100);
+      const pb = document.getElementById('pb');
+      pb.style.transition = 'width 0.04s linear';
+      pb.style.width = pct + '%';
+
+      /* Timer display */
+      const s  = Math.min(Math.floor(elapsed / 1000), 20);
+      const ss = String(s).padStart(2, '0');
+      document.getElementById('timer').textContent = `◉  0:${ss} / 0:20`;
+
+      /* Activate / deactivate scenes */
+      timeline.forEach(({ id, start, end }) => {
+        const el = document.getElementById(id);
+        if (elapsed >= start && elapsed < end) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      if (elapsed < TOTAL + 2500) {
+        raf = requestAnimationFrame(tick);
+      }
+    }
+
+    /* ── Auto-start on load ───────────────────────────────────────────── */
+    window.addEventListener('load', () => setTimeout(restart, 400));
+  </script>
+</body>
+</html>

@@ -229,6 +229,8 @@
     </div><!-- /card-body -->
   </div><!-- /card -->
 
+  <x-report-actions reportType="security-billing" />
+
 </div>
 </div>
 @endsection

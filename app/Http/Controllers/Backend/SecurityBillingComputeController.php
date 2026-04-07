@@ -34,6 +34,14 @@ class SecurityBillingComputeController extends Controller
             ),
         );
 
+        session([
+            'report_payload' => [
+                'type' => 'security-billing',
+                'scenario' => ['meta' => $validated],
+                'result' => ['kpis' => $result],
+            ],
+        ]);
+
         return response()->json([
             'ok' => true,
             'kpis' => $result,

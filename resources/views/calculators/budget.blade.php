@@ -73,6 +73,7 @@
                 </div>
               </div>
             </div>
+            <input type="range" id="{{ $cat['id'] }}_range" class="form-range mb-1" min="0" max="100" step="1" value="{{ $cat['default'] }}" data-sync="{{ $cat['id'] }}">
             <div class="progress" style="height:6px">
               <div class="progress-bar" id="{{ $cat['id'] }}_bar" style="width:{{ $cat['default'] }}%;background:{{ $cat['color'] }}"></div>
             </div>
@@ -137,6 +138,8 @@
     </div>
   </div>
 
+  <x-report-actions reportType="budget-calculator" />
+
 </div>
 </div>
 @endsection
@@ -157,6 +160,35 @@ const CATS = [
 function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(v);}
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+
+function initSliderSync(){
+  document.querySelectorAll('input[type="range"][data-sync]').forEach((rangeEl)=>{
+    const id = rangeEl.getAttribute('data-sync');
+    const numEl = document.getElementById(id);
+    if(!numEl) return;
+
+    const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+    const syncRangeFromNumber = () => {
+      const min = parseFloat(rangeEl.min || '0');
+      const max = parseFloat(rangeEl.max || '100');
+      const v = parseFloat(numEl.value || rangeEl.value || '0');
+      rangeEl.value = String(clamp(v, min, max));
+    };
+    const syncNumberFromRange = () => {
+      numEl.value = rangeEl.value;
+    };
+
+    syncRangeFromNumber();
+
+    rangeEl.addEventListener('input', () => {
+      syncNumberFromRange();
+      calcBudget();
+    });
+    numEl.addEventListener('input', () => {
+      syncRangeFromNumber();
+    });
+  });
+}
 
 async function calcBudget(){
   const total = g('bg_total');
@@ -222,9 +254,10 @@ function resetBudget(){
   document.getElementById('bg_total').value = 250000;
   const defaults = {bg_labor:60,bg_training:8,bg_equipment:10,bg_vehicles:8,bg_overhead:7,bg_insurance:5,bg_misc:2};
   Object.entries(defaults).forEach(([id,v])=>{ const el=document.getElementById(id); if(el) el.value=v; });
+  initSliderSync();
   calcBudget();
 }
 
-document.addEventListener('DOMContentLoaded', calcBudget);
+document.addEventListener('DOMContentLoaded', ()=>{ initSliderSync(); calcBudget(); });
 </script>
 @endpush

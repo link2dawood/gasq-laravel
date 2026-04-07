@@ -9,20 +9,15 @@
     <ul class="dropdown-menu dropdown-menu-end py-0 gasq-calculators-nav" aria-labelledby="{{ $toggleId }}" style="max-height: min(70vh, 28rem); overflow-y: auto; min-width: 16.5rem;">
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Core (V24 tools)</h6></li>
         <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Main Menu Calculator</a></li>
-        <li><a class="dropdown-item" href="{{ route('gasq-instant-estimator.index') }}"><i class="fa fa-bolt me-2"></i>Instant Estimator</a></li>
 
         <li><hr class="dropdown-divider my-0"></li>
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Contract &amp; billing</h6></li>
-        <li><a class="dropdown-item" href="{{ route('contract-analysis.index') }}"><i class="fa fa-file-contract me-2"></i>Contract Analysis</a></li>
         <li><a class="dropdown-item" href="{{ route('security-billing.index') }}"><i class="fa fa-file-invoice-dollar me-2"></i>Security Billing</a></li>
 
         <li><hr class="dropdown-divider my-0"></li>
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Rates &amp; labor</h6></li>
         <li><a class="dropdown-item" href="{{ route('bill-rate-analysis.index') }}"><i class="fa fa-dollar-sign me-2"></i>Bill Rate Analysis</a></li>
-        <li><a class="dropdown-item" href="{{ route('cost-analysis.index') }}"><i class="fa fa-chart-bar me-2"></i>Cost Analysis</a></li>
-        <li><a class="dropdown-item" href="{{ route('manpower-hours.index') }}"><i class="fa fa-users me-2"></i>Manpower Hours</a></li>
         <li><a class="dropdown-item" href="{{ route('economic-justification.index') }}"><i class="fa fa-chart-line me-2"></i>Economic Justification</a></li>
-        <li><a class="dropdown-item" href="{{ route('hourly-pay-calculator.index') }}"><i class="fa fa-clock me-2"></i>Hourly Pay Calculator</a></li>
         <li><a class="dropdown-item" href="{{ route('budget-calculator.index') }}"><i class="fa fa-piggy-bank me-2"></i>Budget Calculator</a></li>
 
         <li><hr class="dropdown-divider my-0"></li>
@@ -36,9 +31,7 @@
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Full TCO suite (app)</h6></li>
         <li><a class="dropdown-item" href="{{ route('gasq-tco-calculator.index') }}"><i class="fa fa-table me-2"></i>GASQ TCO Calculator</a></li>
         <li><a class="dropdown-item" href="{{ route('calculator.index') }}"><i class="fa fa-window-maximize me-2"></i>Calculator (full app)</a></li>
-        <li><a class="dropdown-item" href="{{ route('absorbed-rate-calculator.index') }}"><i class="fa fa-percent me-2"></i>Absorbed Rate Calculator</a></li>
         <li><a class="dropdown-item" href="{{ route('government-contract-calculator.index') }}"><i class="fa fa-landmark me-2"></i>Government Contract Calculator</a></li>
-        <li><a class="dropdown-item" href="{{ route('keeps-doors-open-calculator.index') }}"><i class="fa fa-door-open me-2"></i>Keeps Doors Open Calculator</a></li>
 
         <li><hr class="dropdown-divider my-0"></li>
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Capital recovery report</h6></li>
@@ -51,8 +44,6 @@
 
         <li><hr class="dropdown-divider my-0"></li>
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Services &amp; pricing</h6></li>
-        <li><a class="dropdown-item" href="{{ route('unarmed-security-guard-services.index') }}"><i class="fa fa-shield-halved me-2"></i>Unarmed Guard Services</a></li>
-        <li><a class="dropdown-item" href="{{ route('security-quote.index') }}"><i class="fa fa-file-signature me-2"></i>Security Quote</a></li>
-        <li><a class="dropdown-item" href="{{ route('global-security-pricing.index') }}"><i class="fa fa-earth-americas me-2"></i>Global Security Pricing</a></li>
+        <li class="px-3 py-3 small text-gasq-muted">Additional service/pricing tools are currently hidden.</li>
     </ul>
 </li>

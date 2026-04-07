@@ -1,6 +1,6 @@
 @props(['reportType'])
 @php
-    $type = $reportType; // instant-estimator, main-menu, contract-analysis, security-billing, mobile-patrol, mobile-patrol-comparison
+    $type = $reportType; // calculator type used by ReportController/ReportService
 @endphp
 <div class="mt-3 pt-3 border-top">
     <p class="small text-muted mb-2">Download or email this report</p>
