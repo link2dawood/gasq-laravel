@@ -32,6 +32,73 @@
         return $out;
     };
 
+    $displayKey = function (string $key): string {
+        foreach (['meta.inputs.', 'inputs.', 'meta.'] as $prefix) {
+            if (str_starts_with($key, $prefix)) {
+                $key = substr($key, strlen($prefix));
+                break;
+            }
+        }
+
+        $segments = array_filter(explode('.', $key), fn ($segment) => $segment !== '');
+
+        return implode(' / ', array_map(function (string $segment): string {
+            if (ctype_digit($segment)) {
+                return 'Item ' . ((int) $segment + 1);
+            }
+
+            $label = \Illuminate\Support\Str::headline($segment);
+            $label = preg_replace('/\bPct\b/', 'Percent', $label);
+            $label = preg_replace(
+                [
+                    '/\bFte\b/',
+                    '/\bOt\b/',
+                    '/\bHw\b/',
+                    '/\bFica\b/',
+                    '/\bFuta\b/',
+                    '/\bSuta\b/',
+                    '/\bQa\b/',
+                    '/\bGa\b/',
+                    '/\bTco\b/',
+                    '/\bGov\b/',
+                    '/\bVs\b/',
+                ],
+                ['FTE', 'OT', 'HW', 'FICA', 'FUTA', 'SUTA', 'QA', 'G&A', 'TCO', 'Government', 'vs'],
+                $label,
+            );
+
+            return $label;
+        }, $segments));
+    };
+
+    $formatValue = function (string $key, mixed $value): string {
+        if (is_bool($value)) {
+            return $value ? 'Yes' : 'No';
+        }
+
+        if ($value === null) {
+            return 'N/A';
+        }
+
+        if (is_numeric($value)) {
+            $number = (float) $value;
+
+            if (preg_match('/(?:Pct|Percent)$/', $key) === 1) {
+                $percent = number_format($number * 100, 2, '.', ',');
+
+                return rtrim(rtrim($percent, '0'), '.') . '%';
+            }
+
+            if (abs($number - round($number)) < 0.00001) {
+                return number_format($number, 0, '.', ',');
+            }
+
+            return rtrim(rtrim(number_format($number, 2, '.', ','), '0'), '.');
+        }
+
+        return is_scalar($value) ? (string) $value : json_encode($value);
+    };
+
     $flatScenario = $flatten((array) $scenario);
     $flatKpis = $flatten((array) $kpis);
 @endphp
@@ -48,7 +115,8 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #e5e7eb; padding: 6px 8px; vertical-align: top; }
         th { background: #f9fafb; text-align: left; }
-        .mono { font-family: DejaVu Sans Mono, monospace; }
+        td { word-break: break-word; }
+        .value { font-family: DejaVu Sans Mono, monospace; }
     </style>
 </head>
 <body>
@@ -61,8 +129,8 @@
         <tbody>
         @forelse($flatKpis as $k => $v)
             <tr>
-                <td class="mono">{{ $k }}</td>
-                <td class="mono">{{ is_bool($v) ? ($v ? 'true' : 'false') : (is_scalar($v) ? $v : json_encode($v)) }}</td>
+                <td>{{ $displayKey($k) }}</td>
+                <td class="value">{{ $formatValue($k, $v) }}</td>
             </tr>
         @empty
             <tr><td colspan="2" class="muted">No KPIs were captured. Run the calculator again and retry.</td></tr>
@@ -76,8 +144,8 @@
         <tbody>
         @forelse($flatScenario as $k => $v)
             <tr>
-                <td class="mono">{{ $k }}</td>
-                <td class="mono">{{ is_bool($v) ? ($v ? 'true' : 'false') : (is_scalar($v) ? $v : json_encode($v)) }}</td>
+                <td>{{ $displayKey($k) }}</td>
+                <td class="value">{{ $formatValue($k, $v) }}</td>
             </tr>
         @empty
             <tr><td colspan="2" class="muted">No inputs were captured.</td></tr>
@@ -86,4 +154,3 @@
     </table>
 </body>
 </html>
-
