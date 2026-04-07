@@ -4,60 +4,61 @@
     $id          — input id
     $label       — field label (HTML allowed)
     $help        — hint text below label
-    $unit        — unit symbol (e.g. '%', '$', 'hrs')
+    $unit        — unit symbol: '%', '$', 'hrs', etc.
     $unit_pos    — 'prefix' | 'suffix' (default: suffix)
-    $step        — input step attribute
-    $min         — input min attribute
+    $step        — input step
+    $min         — input min
     $max_slider  — range max
-    $data_unit   — optional 'pct' (sets data-unit attribute on input)
+    $data_unit   — 'pct' if percent field
 --}}
 @php
   $unitPos  = $unit_pos  ?? 'suffix';
   $dataUnit = $data_unit ?? null;
   $sliderMax = $max_slider ?? 100;
+  $isPct = $dataUnit === 'pct';
 @endphp
 
-<div class="mi-field">
+<div class="mi-field-card">
+
   <div class="mi-field-row">
-    <div class="mi-label-group">
-      <label class="mi-label" for="{{ $id }}">{!! $label !!}</label>
+    <div>
+      <div class="mi-label">{!! $label !!}</div>
       <div class="mi-help">{{ $help }}</div>
     </div>
 
-    <div class="mi-input-wrap">
+    <div class="mi-input-group">
       @if($unitPos === 'prefix')
-        <span class="mi-unit" style="border-right:none;border-radius:var(--mi-radius-sm) 0 0 var(--mi-radius-sm);border-left:1.5px solid var(--mi-border);">{{ $unit }}</span>
+        <span class="mi-unit mi-unit-prefix">{{ $unit }}</span>
         <input
           type="number"
-          class="mi-input"
           id="{{ $id }}"
+          class="mi-number-input has-prefix"
           step="{{ $step ?? '0.01' }}"
           min="{{ $min ?? '0' }}"
-          style="border-radius:0 var(--mi-radius-sm) var(--mi-radius-sm) 0 !important; border-left:none !important;"
-          @if($dataUnit) data-unit="{{ $dataUnit }}" @endif
+          @if($isPct) data-unit="pct" max="200" @endif
         >
       @else
         <input
           type="number"
-          class="mi-input"
           id="{{ $id }}"
+          class="mi-number-input has-suffix"
           step="{{ $step ?? '0.01' }}"
           min="{{ $min ?? '0' }}"
-          @if($dataUnit) data-unit="{{ $dataUnit }}" max="200" @endif
+          @if($isPct) data-unit="pct" max="200" @endif
         >
-        <span class="mi-unit">{{ $unit }}</span>
+        <span class="mi-unit mi-unit-suffix">{{ $unit }}</span>
       @endif
     </div>
   </div>
 
-  <div class="mi-slider-track">
-    <input
-      type="range"
-      class="mi-range"
-      min="{{ $min ?? '0' }}"
-      max="{{ $sliderMax }}"
-      step="{{ $step ?? '0.01' }}"
-      data-sync="{{ $id }}"
-    >
-  </div>
+  <input
+    type="range"
+    class="mi-range"
+    min="{{ $min ?? '0' }}"
+    max="{{ $sliderMax }}"
+    step="{{ $step ?? '0.01' }}"
+    data-sync="{{ $id }}"
+    style="display:block;width:100%;margin-top:4px;"
+  >
+
 </div>
