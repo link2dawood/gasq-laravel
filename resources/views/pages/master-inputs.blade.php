@@ -272,7 +272,7 @@
     const ok = await saveNow(true);
     if(ok){
       flashOk('Saved. Redirecting...');
-      window.location.href = @json(route('security-calculator'));
+      window.location.href = @json(route('calculator.index'));
     }
   };
 

@@ -8,7 +8,7 @@
 
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
     <div class="d-flex align-items-center gap-3">
-      <a href="{{ route('security-calculator') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
+      <a href="{{ route('calculator.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
       <div>
         <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
           <i class="fa fa-clipboard-check text-primary"></i> Buyer Fit Index
