@@ -18,6 +18,12 @@
 
     <div class="row g-4">
         <div class="col-md-6 col-lg-4">
+            <x-card title="Master inputs" subtitle="Shared settings">
+                <p class="text-gasq-muted small">Edit the shared drivers used across all calculators.</p>
+                <a class="btn btn-primary" href="{{ route('master-inputs.index') }}">Open</a>
+            </x-card>
+        </div>
+        <div class="col-md-6 col-lg-4">
             <x-card title="Main menu" subtitle="Dashboard of calculators">
                 <p class="text-gasq-muted small">Central entry with V24-backed flows.</p>
                 <a class="btn btn-primary" href="{{ url('/main-menu-calculator') }}">Open</a>

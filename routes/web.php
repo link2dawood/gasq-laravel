@@ -56,10 +56,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/phone/verify', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'check'])->name('phone.verify.check');
 });
 
+// Master Inputs should remain editable anytime (no credits needed).
+Route::middleware(['auth', 'phone.verified'])->group(function () {
+    Route::get('/master-inputs', [App\Http\Controllers\MasterInputsController::class, 'index'])->name('master-inputs.index');
+});
+
 // Calculator Blade routes (pixel-perfect; require auth + phone verification + credits + buyer job posted)
 Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job', 'master.inputs'])->group(function () {
-    Route::get('/master-inputs', [App\Http\Controllers\MasterInputsController::class, 'index'])->name('master-inputs.index');
-
     Route::get('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.index');
     Route::post('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.post');
 
