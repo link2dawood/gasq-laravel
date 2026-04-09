@@ -132,13 +132,16 @@
             @yield('footer')
         @endif
     </div>
-    <script src="{{ mix('js/app.js') }}"></script>
-    <script>
-        window.__gasqCalculatorState = @json([
+    @php
+        $gasqCalculatorState = [
             'type' => $savedCalculatorType ?? null,
             'scenario' => $savedCalculatorScenario ?? null,
             'result' => $savedCalculatorResult ?? null,
-        ]);
+        ];
+    @endphp
+    <script src="{{ mix('js/app.js') }}"></script>
+    <script>
+        window.__gasqCalculatorState = {{ \Illuminate\Support\Js::from($gasqCalculatorState) }};
     </script>
     @stack('scripts')
 </body>
