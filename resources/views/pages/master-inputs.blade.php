@@ -139,8 +139,9 @@
 
 /* Number input */
 .mi-number-input {
-  width: 100px !important;
-  font-size: 0.9375rem !important;
+  width: 140px !important;
+  min-height: 48px !important;
+  font-size: 1.05rem !important;
   font-weight: 600 !important;
   font-family: ui-monospace, 'SFMono-Regular', 'Courier New', monospace !important;
   text-align: right !important;
@@ -148,7 +149,7 @@
   background: var(--gasq-card) !important;
   border: 1px solid var(--gasq-border) !important;
   border-radius: var(--gasq-radius) !important;
-  padding: 6px 10px !important;
+  padding: 10px 14px !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
   -moz-appearance: textfield !important;
 }
@@ -280,7 +281,7 @@
 
 @media (max-width: 575.98px) {
   .mi-field-row { flex-wrap: wrap; }
-  .mi-number-input { width: 80px !important; }
+  .mi-number-input { width: 100% !important; }
 }
 </style>
 @endpush
