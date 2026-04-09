@@ -51,24 +51,21 @@
           <input type="text" id="wa_date" class="form-control form-control-sm gasq-wa-input" value="{{ date('n/j/Y') }}" oninput="scheduleCompute()">
         </div>
         <div class="col-md-4">
-          <label class="form-label fw-medium mb-0">Annual billable hours (CFO × appraisal)</label>
-          <div class="d-flex align-items-center gap-2">
-            <input type="number" id="wa_hours" class="form-control form-control-sm gasq-wa-input" value="21322" step="1" min="1" oninput="scheduleCompute()">
-            <input type="range" id="wa_hours_range" class="form-range mb-0" min="1" max="100000" step="1" value="21322" data-sync="wa_hours">
-          </div>
+          <label class="form-label fw-medium mb-0">Annual billable hours (derived from Scope of Work)</label>
+          <input type="number" id="wa_hours" class="form-control form-control-sm gasq-wa-input" value="8736" step="1" min="1" readonly>
         </div>
       </div>
     </div>
 
     <ul class="nav nav-pills flex-nowrap gap-1 mb-3 overflow-auto gasq-wa-no-print" id="wa_tablist" role="tablist">
       <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'cfo' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-cfo" id="tab-cfo"><i class="fa fa-table me-1"></i> CFO Bill Rate</button></li>
-      <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'posts' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-posts" id="tab-posts"><i class="fa fa-users me-1"></i> Post Position Summary</button></li>
+      <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'posts' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-posts" id="tab-posts"><i class="fa fa-users me-1"></i> Scope of Work</button></li>
       <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'appraisal' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-appraisal" id="tab-appraisal"><i class="fa fa-balance-scale me-1"></i> Appraisal Comparison</button></li>
       <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'price' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-price" id="tab-price"><i class="fa fa-chart-line me-1"></i> Price Realism</button></li>
     </ul>
 
     <div class="row g-3">
-      <div class="col-lg-4 gasq-wa-no-print">
+      <div class="col-lg-4 gasq-wa-no-print" id="wa-left-col">
         <div class="card gasq-card h-100">
           <div class="card-header gasq-wa-section small text-uppercase">Appraisal drivers</div>
           <div class="card-body small">
@@ -94,25 +91,16 @@
               </div>
             </div>
             <div class="mb-2">
-              <label class="form-label mb-0">Weekly coverage hours</label>
-              <div class="d-flex align-items-center gap-2">
-                <input type="number" id="wa_wkH" class="form-control form-control-sm gasq-wa-input" value="410" step="1" oninput="scheduleCompute()">
-                <input type="range" id="wa_wkH_range" class="form-range mb-0" min="0" max="3000" step="1" value="410" data-sync="wa_wkH">
-              </div>
+              <label class="form-label mb-0">Weekly billable hours</label>
+              <input type="number" id="wa_wkH" class="form-control form-control-sm gasq-wa-input" value="168" step="1" readonly>
             </div>
             <div class="mb-2">
-              <label class="form-label mb-0">Monthly coverage hours</label>
-              <div class="d-flex align-items-center gap-2">
-                <input type="number" id="wa_moH" class="form-control form-control-sm gasq-wa-input" value="1777" step="1" oninput="scheduleCompute()">
-                <input type="range" id="wa_moH_range" class="form-range mb-0" min="0" max="12000" step="1" value="1777" data-sync="wa_moH">
-              </div>
+              <label class="form-label mb-0">Monthly billable hours</label>
+              <input type="number" id="wa_moH" class="form-control form-control-sm gasq-wa-input" value="728" step="1" readonly>
             </div>
             <div class="mb-2">
               <label class="form-label mb-0">FTEs required</label>
-              <div class="d-flex align-items-center gap-2">
-                <input type="number" id="wa_ftes" class="form-control form-control-sm gasq-wa-input" value="15" step="1" min="1" oninput="scheduleCompute()">
-                <input type="range" id="wa_ftes_range" class="form-range mb-0" min="1" max="250" step="1" value="15" data-sync="wa_ftes">
-              </div>
+              <input type="number" id="wa_ftes" class="form-control form-control-sm gasq-wa-input" value="6" step="1" min="1" readonly>
             </div>
             <div class="mb-2">
               <label class="form-label mb-0">Annual hrs / professional</label>
@@ -270,7 +258,18 @@
         </div>
       </div>
 
-      <div class="col-lg-8">
+      <div class="col-lg-8" id="wa-right-col">
+        <div class="card gasq-card mb-3">
+          <div class="card-header gasq-wa-subbanner d-flex justify-content-between align-items-center">
+            <span>Direct Labor Build-Up</span>
+            <span class="small fw-normal opacity-75">Shared across all Workforce Appraisal tabs</span>
+          </div>
+          <div class="card-body p-0">
+            <p class="small text-gasq-muted px-3 pt-3 mb-2">Driven by Spreadsheet Inputs (V28) and current annual billable hours from Scope of Work.</p>
+            <div id="wa_dlb_root" class="table-responsive px-3 pb-3"></div>
+          </div>
+        </div>
+
         <div class="tab-content">
           <div class="tab-pane fade {{ $initialTab === 'cfo' ? 'show active' : '' }}" id="wa-pane-cfo" role="tabpanel">
             <div class="card gasq-card">
@@ -285,38 +284,99 @@
           <div class="tab-pane fade {{ $initialTab === 'posts' ? 'show active' : '' }}" id="wa-pane-posts" role="tabpanel">
             <div class="card gasq-card">
               <div class="card-header gasq-wa-table-head d-flex justify-content-between align-items-center">
-                <span>POST POSITION SUMMARY</span>
-                <span class="small fw-normal opacity-75">Yellow cells drive totals</span>
+                <span>SCOPE OF WORK</span>
+                <span class="small fw-normal opacity-75">Spreadsheet-aligned inputs drive derived hours</span>
               </div>
-              <div class="card-body p-0">
-                <div class="table-responsive">
+              <div class="card-body p-3">
+                <div class="row g-3 align-items-end">
+                  <div class="col-md-3">
+                    <label class="form-label mb-0">Hours of Coverage per Day</label>
+                    <input type="number" id="wa_scope_hours_day" class="form-control form-control-sm gasq-wa-input" value="24" step="0.01" min="0" max="24" oninput="scheduleCompute()">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label mb-0">Days of Coverage per Week</label>
+                    <input type="number" id="wa_scope_days_week" class="form-control form-control-sm gasq-wa-input" value="7" step="0.01" min="0" max="7" oninput="scheduleCompute()">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label mb-0">Weeks of Coverage</label>
+                    <input type="number" id="wa_scope_weeks" class="form-control form-control-sm gasq-wa-input" value="52" step="0.01" min="0" max="52" oninput="scheduleCompute()">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label mb-0">Staff per 8-Hour Shift</label>
+                    <input type="number" id="wa_scope_staff" class="form-control form-control-sm gasq-wa-input" value="1" step="0.01" min="0" oninput="scheduleCompute()">
+                  </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                  <div class="col-md-3">
+                    <div class="border rounded p-3 h-100 bg-light-subtle">
+                      <div class="small text-uppercase text-gasq-muted fw-semibold">Weekly Coverage Hours</div>
+                      <div class="h4 mb-0 font-monospace" id="wa_scope_weekly_coverage">0</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="border rounded p-3 h-100 bg-light-subtle">
+                      <div class="small text-uppercase text-gasq-muted fw-semibold">Total Annual Hours</div>
+                      <div class="h4 mb-0 font-monospace" id="wa_scope_total_annual">0</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="border rounded p-3 h-100 bg-warning-subtle">
+                      <div class="small text-uppercase text-gasq-muted fw-semibold">Annual Billable Hours</div>
+                      <div class="h4 mb-0 font-monospace" id="wa_scope_annual_billable">0</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="border rounded p-3 h-100 bg-light-subtle">
+                      <div class="small text-uppercase text-gasq-muted fw-semibold">FTEs Required</div>
+                      <div class="h4 mb-0 font-monospace" id="wa_scope_ftes">0</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="table-responsive mt-3">
+                  <table class="table table-sm mb-0">
+                    <tbody>
+                      <tr>
+                        <th class="w-50">Weekly Billable Hours</th>
+                        <td class="text-end font-monospace" id="wa_scope_weekly_billable">0</td>
+                      </tr>
+                      <tr>
+                        <th>Monthly Billable Hours</th>
+                        <td class="text-end font-monospace" id="wa_scope_monthly_billable">0</td>
+                      </tr>
+                      <tr>
+                        <th>Hours per Professional Annual</th>
+                        <td class="text-end font-monospace" id="wa_scope_hours_professional">0</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="table-responsive mt-3">
                   <table class="table table-sm align-middle mb-0" id="wa_post_table">
                     <thead class="table-light">
                       <tr class="small">
-                        <th>Post position</th>
-                        <th class="text-center">Qty</th>
-                        <th class="text-end">Blended pay</th>
-                        <th class="text-end">Annual hrs/FTE</th>
-                        <th class="text-end">Weekly hrs</th>
-                        <th class="text-end">Weekly $</th>
-                        <th class="text-end">Monthly hrs</th>
-                        <th class="text-end">Monthly $</th>
-                        <th class="text-end">Annual hrs</th>
-                        <th class="text-end">Annual labor $</th>
+                        <th>Post Position</th>
+                        <th class="text-end">User Pay Rate</th>
+                        <th class="text-end">Annual Hours</th>
+                        <th class="text-end">Weekly Hours</th>
+                        <th class="text-end">Weekly Cost</th>
+                        <th class="text-end">Monthly Hours</th>
+                        <th class="text-end">Monthly Cost</th>
+                        <th class="text-end">Annual Cost</th>
                       </tr>
                     </thead>
                     <tbody id="wa_post_body"></tbody>
                     <tfoot>
                       <tr class="gasq-wa-total-row small" id="wa_post_foot">
-                        <td>ESTIMATED TOTAL</td>
-                        <td class="text-center font-monospace" id="pf_qty">0</td>
+                        <td>TOTAL</td>
                         <td class="text-end font-monospace" id="pf_avg">$0.00</td>
-                        <td></td>
+                        <td class="text-end font-monospace" id="pf_ah">0</td>
                         <td class="text-end font-monospace" id="pf_wh">0</td>
                         <td class="text-end font-monospace" id="pf_wc">$0.00</td>
                         <td class="text-end font-monospace" id="pf_mh">0</td>
                         <td class="text-end font-monospace" id="pf_mc">$0.00</td>
-                        <td class="text-end font-monospace" id="pf_ah">0</td>
                         <td class="text-end font-monospace" id="pf_ac">$0.00</td>
                       </tr>
                     </tfoot>
@@ -384,11 +444,10 @@
   const POST_ROWS = 10;
   const computeUrl = @json(route('backend.standalone.v24.compute', ['type' => 'workforce-appraisal-report']));
   let debounce = null;
-
   const defaultPosts = [
-    { positionTitle: 'Unarmed S/O', qty: 8, blendedPayRate: 19.25, annualHours: 2080 },
-    { positionTitle: 'Supervisor', qty: 4, blendedPayRate: 24.50, annualHours: 2080 },
-    { positionTitle: 'Roving Patrol Officer', qty: 3, blendedPayRate: 21.00, annualHours: 2496 },
+    { positionTitle: 'Unarmed S/O', blendedPayRate: 19.25, annualHours: 2080 },
+    { positionTitle: 'Supervisor', blendedPayRate: 24.50, annualHours: 2080 },
+    { positionTitle: 'Roving Patrol Officer', blendedPayRate: 21.00, annualHours: 2496 },
   ];
 
   function money(n){
@@ -396,44 +455,112 @@
   }
   function num(n){ return (n===null||n===undefined||Number.isNaN(n))?'—':Number(n).toLocaleString('en-US'); }
 
+  function round2(n){
+    return Math.round((Number(n) || 0) * 100) / 100;
+  }
+
   function buildPostBody(){
     const tb = document.getElementById('wa_post_body');
+    if(!tb) return;
+
     tb.innerHTML = '';
     for(let i=0;i<POST_ROWS;i++){
-      const d = defaultPosts[i] || { positionTitle:'', qty:0, blendedPayRate:0, annualHours:0 };
+      const d = defaultPosts[i] || { positionTitle:'', blendedPayRate:0, annualHours:0 };
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><input type="text" class="form-control form-control-sm gasq-wa-input wa-p-title" data-i="${i}" value="${d.positionTitle||''}" placeholder="Role"></td>
-        <td class="text-center"><input type="number" class="form-control form-control-sm gasq-wa-input text-center wa-p-qty" data-i="${i}" value="${d.qty||''}" min="0" step="1"></td>
-        <td><input type="number" class="form-control form-control-sm gasq-wa-input text-end wa-p-pay" data-i="${i}" value="${d.blendedPayRate||''}" min="0" step="0.01"></td>
-        <td><input type="number" class="form-control form-control-sm gasq-wa-input text-end wa-p-ann" data-i="${i}" value="${d.annualHours||''}" min="0" step="1"></td>
-        <td class="text-end font-monospace small wa-p-out wh"></td>
-        <td class="text-end font-monospace small wa-p-out wc"></td>
-        <td class="text-end font-monospace small wa-p-out mh"></td>
-        <td class="text-end font-monospace small wa-p-out mc"></td>
-        <td class="text-end font-monospace small wa-p-out ah"></td>
-        <td class="text-end font-monospace small wa-p-out ac"></td>`;
+        <td><input type="text" class="form-control form-control-sm gasq-wa-input wa-p-title" data-i="${i}" value="${d.positionTitle || ''}" placeholder="Post position"></td>
+        <td><input type="number" class="form-control form-control-sm gasq-wa-input text-end wa-p-pay" data-i="${i}" value="${d.blendedPayRate || ''}" min="0" step="0.01"></td>
+        <td><input type="number" class="form-control form-control-sm gasq-wa-input text-end wa-p-ann" data-i="${i}" value="${d.annualHours || ''}" min="0" step="1"></td>
+        <td class="text-end font-monospace small wa-p-out wh">0</td>
+        <td class="text-end font-monospace small wa-p-out wc">${money(0)}</td>
+        <td class="text-end font-monospace small wa-p-out mh">0</td>
+        <td class="text-end font-monospace small wa-p-out mc">${money(0)}</td>
+        <td class="text-end font-monospace small wa-p-out ac">${money(0)}</td>`;
       tb.appendChild(tr);
     }
-    tb.querySelectorAll('input').forEach(el=> el.addEventListener('input', scheduleCompute));
+
+    tb.querySelectorAll('input').forEach((el) => el.addEventListener('input', scheduleCompute));
   }
 
   function collectPosts(){
     const rows = [];
-    document.querySelectorAll('#wa_post_body tr').forEach((tr)=>{
-      const title = tr.querySelector('.wa-p-title')?.value?.trim()||'';
-      const qty = parseInt(tr.querySelector('.wa-p-qty')?.value||'0',10)||0;
-      const pay = parseFloat(tr.querySelector('.wa-p-pay')?.value||'0')||0;
-      const ann = parseFloat(tr.querySelector('.wa-p-ann')?.value||'0')||0;
-      if(title || qty || pay || ann){
-        rows.push({ positionTitle: title||'—', qty, blendedPayRate: pay, annualHours: ann });
+    document.querySelectorAll('#wa_post_body tr').forEach((tr) => {
+      const rowIndex = parseInt(tr.querySelector('.wa-p-title')?.dataset.i || '0', 10) || 0;
+      const title = tr.querySelector('.wa-p-title')?.value?.trim() || '';
+      const pay = parseFloat(tr.querySelector('.wa-p-pay')?.value || '0') || 0;
+      const annualHours = parseFloat(tr.querySelector('.wa-p-ann')?.value || '0') || 0;
+      if(title || pay || annualHours){
+        rows.push({
+          index: rowIndex,
+          positionTitle: title || '—',
+          qty: 1,
+          blendedPayRate: pay,
+          annualHours,
+        });
       }
     });
     return rows.length ? rows : null;
   }
 
+  function deriveScopeMetrics(){
+    const hoursOfCoveragePerDay = parseFloat(document.getElementById('wa_scope_hours_day')?.value || '0') || 0;
+    const daysOfCoveragePerWeek = parseFloat(document.getElementById('wa_scope_days_week')?.value || '0') || 0;
+    const weeksOfCoverage = parseFloat(document.getElementById('wa_scope_weeks')?.value || '0') || 0;
+    const staffPerShift = parseFloat(document.getElementById('wa_scope_staff')?.value || '0') || 0;
+    const hoursPerProfessionalAnnual = parseFloat(document.getElementById('wa_hrProf')?.value || '0') || 0;
+
+    const weeklyCoverageHours = hoursOfCoveragePerDay * daysOfCoveragePerWeek;
+    const totalAnnualHours = weeklyCoverageHours * weeksOfCoverage;
+    const weeklyBillableHours = weeklyCoverageHours * staffPerShift;
+    const annualBillableHours = totalAnnualHours * staffPerShift;
+    const monthlyBillableHours = annualBillableHours / 12;
+    const ftesRequired = hoursPerProfessionalAnnual > 0 ? annualBillableHours / hoursPerProfessionalAnnual : 0;
+
+    return {
+      inputs: {
+        hoursOfCoveragePerDay,
+        daysOfCoveragePerWeek,
+        weeksOfCoverage,
+        staffPerShift,
+      },
+      weeklyCoverageHours: round2(weeklyCoverageHours),
+      totalAnnualHours: round2(totalAnnualHours),
+      weeklyBillableHours: round2(weeklyBillableHours),
+      monthlyBillableHours: round2(monthlyBillableHours),
+      annualBillableHours: round2(annualBillableHours),
+      ftesRequired: round2(ftesRequired),
+      ftesRequiredRoundedUp: Math.max(1, Math.ceil(ftesRequired || 0)),
+      hoursPerProfessionalAnnual: round2(hoursPerProfessionalAnnual),
+    };
+  }
+
+  function syncDerivedScopeFields(scope){
+    const setValue = (id, value) => {
+      const el = document.getElementById(id);
+      if(el){ el.value = value; }
+    };
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if(el){ el.textContent = value; }
+    };
+
+    setValue('wa_hours', Math.round(scope.annualBillableHours));
+    setValue('wa_wkH', Math.round(scope.weeklyBillableHours));
+    setValue('wa_moH', Math.round(scope.monthlyBillableHours));
+    setValue('wa_ftes', scope.ftesRequiredRoundedUp);
+
+    setText('wa_scope_weekly_coverage', num(scope.weeklyCoverageHours));
+    setText('wa_scope_total_annual', num(scope.totalAnnualHours));
+    setText('wa_scope_annual_billable', num(scope.annualBillableHours));
+    setText('wa_scope_ftes', scope.ftesRequired.toFixed(2));
+    setText('wa_scope_weekly_billable', num(scope.weeklyBillableHours));
+    setText('wa_scope_monthly_billable', num(scope.monthlyBillableHours));
+    setText('wa_scope_hours_professional', num(scope.hoursPerProfessionalAnnual));
+  }
+
   function buildPayload(){
-    const H = parseFloat(document.getElementById('wa_hours').value)||21322;
+    const scope = deriveScopeMetrics();
+    const H = scope.annualBillableHours || 1;
     return {
       version: 'v24',
       scenario: {
@@ -460,16 +587,22 @@
 
             profitFeePct: parseFloat(document.getElementById('in_profit')?.value)||0,
           },
+          scope: {
+            hoursOfCoveragePerDay: scope.inputs.hoursOfCoveragePerDay,
+            daysOfCoveragePerWeek: scope.inputs.daysOfCoveragePerWeek,
+            weeksOfCoverage: scope.inputs.weeksOfCoverage,
+            staffPerShift: scope.inputs.staffPerShift,
+          },
           appraisal: {
             preparedFor: document.getElementById('wa_prep').value||'',
             reportDate: document.getElementById('wa_date').value||'',
             baselineLaborRate: parseFloat(document.getElementById('wa_baseL').value)||0,
             governmentShouldCostHourly: parseFloat(document.getElementById('wa_govH').value)||0,
             vendorTcoHourly: parseFloat(document.getElementById('wa_vendH').value)||0,
-            totalWeeklyHours: parseFloat(document.getElementById('wa_wkH').value)||0,
-            totalMonthlyHours: parseFloat(document.getElementById('wa_moH').value)||0,
+            totalWeeklyHours: scope.weeklyBillableHours,
+            totalMonthlyHours: scope.monthlyBillableHours,
             totalAnnualHours: H,
-            ftesRequired: parseInt(document.getElementById('wa_ftes').value||'1',10)||1,
+            ftesRequired: scope.ftesRequiredRoundedUp,
             hoursPerProfessionalAnnual: parseFloat(document.getElementById('wa_hrProf').value)||0,
           },
           priceRealism: {
@@ -482,9 +615,11 @@
     };
   }
 
-  function renderCfo(cfo){
-    const el = document.getElementById('wa_cfo_root');
-    if(!cfo||!cfo.sections){ el.innerHTML='<p class="text-danger small">No data</p>'; return; }
+  function buildCfoMarkup(cfo){
+    if(!cfo || !cfo.sections){
+      return '<p class="text-danger small px-3 py-2 mb-0">No data</p>';
+    }
+
     let html = '<table class="table table-sm table-bordered align-middle gasq-wa-mono">';
     html += `<thead><tr><th>Description</th><th class="text-end">Hourly</th><th class="text-end text-success">Annual</th></tr></thead>`;
     for(const sec of cfo.sections){
@@ -504,28 +639,52 @@
     html += `<tr class="fw-bold table-primary"><td>${g.label}</td><td class="text-end">${money(g.hourly)}</td><td class="text-end text-success">${money(g.annual)}</td></tr>`;
     html += '</table>';
     html += `<div class="small text-gasq-muted mt-2">Annual billable hours: <span class="fw-semibold">${num(cfo.annualBillableHours)}</span></div>`;
-    el.innerHTML = html;
+    return html;
+  }
+
+  function renderCfo(cfo){
+    const el = document.getElementById('wa_cfo_root');
+    if(el){ el.innerHTML = buildCfoMarkup(cfo); }
+  }
+
+  function renderDirectLaborBuildUp(cfo){
+    const el = document.getElementById('wa_dlb_root');
+    if(el){ el.innerHTML = buildCfoMarkup(cfo); }
   }
 
   function fillPostOut(rows, totals){
-    document.querySelectorAll('#wa_post_body tr').forEach((tr,i)=>{
-      const r = rows[i];
-      if(!r){ return; }
-      tr.querySelector('.wh').textContent = num(r.weeklyHours);
-      tr.querySelector('.wc').textContent = money(r.weeklyCost);
-      tr.querySelector('.mh').textContent = num(r.monthlyHours);
-      tr.querySelector('.mc').textContent = money(r.monthlyCost);
-      tr.querySelector('.ah').textContent = num(r.annualHours);
-      tr.querySelector('.ac').textContent = money(r.annualDirectLaborCost);
+    const rowMap = new Map((rows || []).map((row) => [Number(row.index || 0), row]));
+    document.querySelectorAll('#wa_post_body tr').forEach((tr, i) => {
+      const r = rowMap.get(i);
+      const wh = tr.querySelector('.wh');
+      const wc = tr.querySelector('.wc');
+      const mh = tr.querySelector('.mh');
+      const mc = tr.querySelector('.mc');
+      const ac = tr.querySelector('.ac');
+
+      if(!r){
+        wh.textContent = '0';
+        wc.textContent = money(0);
+        mh.textContent = '0';
+        mc.textContent = money(0);
+        ac.textContent = money(0);
+        return;
+      }
+
+      wh.textContent = num(r.weeklyHours);
+      wc.textContent = money(r.weeklyCost);
+      mh.textContent = num(r.monthlyHours);
+      mc.textContent = money(r.monthlyCost);
+      ac.textContent = money(r.annualDirectLaborCost);
     });
-    const t = totals||{};
-    document.getElementById('pf_qty').textContent = num(t.qty);
+
+    const t = totals || {};
     document.getElementById('pf_avg').textContent = money(t.blendedPayRateAvg);
+    document.getElementById('pf_ah').textContent = num(t.annualHours);
     document.getElementById('pf_wh').textContent = num(t.weeklyHours);
     document.getElementById('pf_wc').textContent = money(t.weeklyCost);
     document.getElementById('pf_mh').textContent = num(t.monthlyHours);
     document.getElementById('pf_mc').textContent = money(t.monthlyCost);
-    document.getElementById('pf_ah').textContent = num(t.annualHours);
     document.getElementById('pf_ac').textContent = money(t.annualDirectLaborCost);
   }
 
@@ -580,6 +739,9 @@
   }
 
   async function runCompute(){
+    const scope = deriveScopeMetrics();
+    syncDerivedScopeFields(scope);
+
     const res = await fetch(computeUrl, {
       method: 'POST',
       headers: {
@@ -592,6 +754,7 @@
     const data = await res.json();
     if(!res.ok||!data.ok){ console.error(data); return; }
     const k = data.kpis||{};
+    renderDirectLaborBuildUp(k.cfoBillRate);
     renderCfo(k.cfoBillRate);
     const p = k.postPositionSummary||{};
     fillPostOut(p.rows||[], p.totals||{});
@@ -603,6 +766,18 @@
     clearTimeout(debounce);
     debounce = setTimeout(runCompute, 260);
   };
+
+  function syncTabLayout(){
+    const postsActive = document.getElementById('tab-posts')?.classList.contains('active');
+    const leftCol = document.getElementById('wa-left-col');
+    const rightCol = document.getElementById('wa-right-col');
+
+    if(!leftCol || !rightCol) return;
+
+    leftCol.classList.toggle('d-none', !!postsActive);
+    rightCol.classList.toggle('col-lg-8', !postsActive);
+    rightCol.classList.toggle('col-12', !!postsActive);
+  }
 
   function initSliderSync(){
     document.querySelectorAll('input[type="range"][data-sync]').forEach((rangeEl)=>{
@@ -642,6 +817,13 @@
     const id = map[tab] || 'tab-cfo';
     const btn = document.getElementById(id);
     if(btn && window.bootstrap){ new bootstrap.Tab(btn).show(); }
+
+    document.querySelectorAll('#wa_tablist .nav-link').forEach((tabBtn)=>{
+      tabBtn.addEventListener('shown.bs.tab', syncTabLayout);
+    });
+
+    syncDerivedScopeFields(deriveScopeMetrics());
+    syncTabLayout();
     runCompute();
   });
 })();

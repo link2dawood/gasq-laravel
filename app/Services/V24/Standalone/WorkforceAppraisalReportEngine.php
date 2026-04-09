@@ -18,16 +18,18 @@ class WorkforceAppraisalReportEngine
     public function compute(array $scenario): array
     {
         $meta = (array) ($scenario['meta'] ?? []);
+        $scope = $this->computeScopeOfWork($meta);
 
         $annualBillableHours = max(1.0, (float) Arr::get($meta, 'annualBillableHours', 21322));
 
         $cfo = $this->computeCfoBreakdown($meta, $annualBillableHours);
-        $posts = $this->computePostPositionSummary($meta);
+        $posts = $this->computePostPositionSummary($meta, $scope);
         $appraisal = $this->computeAppraisalComparison($meta);
         $priceRealism = $this->computePriceRealism($meta, $annualBillableHours, $cfo);
 
         return [
             'cfoBillRate' => $cfo,
+            'scopeOfWork' => $scope,
             'postPositionSummary' => $posts,
             'appraisalComparison' => $appraisal,
             'priceRealism' => $priceRealism,
@@ -354,18 +356,93 @@ class WorkforceAppraisalReportEngine
      * @param  array<string, mixed>  $meta
      * @return array<string, mixed>
      */
-    private function computePostPositionSummary(array $meta): array
+    private function computeScopeOfWork(array $meta): array
+    {
+        $scope = (array) Arr::get($meta, 'scope', []);
+        $inputs = (array) Arr::get($meta, 'inputs', []);
+        $appraisal = (array) Arr::get($meta, 'appraisal', []);
+
+        $hoursOfCoveragePerDay = max(0.0, (float) Arr::get($scope, 'hoursOfCoveragePerDay', 24.0));
+        $daysOfCoveragePerWeek = max(0.0, (float) Arr::get($scope, 'daysOfCoveragePerWeek', 7.0));
+        $weeksOfCoverage = max(0.0, (float) Arr::get($scope, 'weeksOfCoverage', 52.0));
+        $staffPerShift = max(0.0, (float) Arr::get($scope, 'staffPerShift', 1.0));
+
+        $weeklyCoverageHours = $hoursOfCoveragePerDay * $daysOfCoveragePerWeek;
+        $totalAnnualHours = $weeklyCoverageHours * $weeksOfCoverage;
+        $weeklyBillableHours = $weeklyCoverageHours * $staffPerShift;
+        $annualBillableHours = $totalAnnualHours * $staffPerShift;
+        $monthlyBillableHours = $annualBillableHours / 12.0;
+
+        $hoursPerProfessionalAnnual = (float) (
+            Arr::get($appraisal, 'hoursPerProfessionalAnnual')
+            ?? Arr::get($inputs, 'annualPaidHoursPerFte')
+            ?? Arr::get($inputs, 'annualPaidHoursPerFTE')
+            ?? 1456
+        );
+
+        $ftesRequired = $hoursPerProfessionalAnnual > 0
+            ? $annualBillableHours / $hoursPerProfessionalAnnual
+            : 0.0;
+
+        return [
+            'inputs' => [
+                'hoursOfCoveragePerDay' => round($hoursOfCoveragePerDay, 2),
+                'daysOfCoveragePerWeek' => round($daysOfCoveragePerWeek, 2),
+                'weeksOfCoverage' => round($weeksOfCoverage, 2),
+                'staffPerShift' => round($staffPerShift, 2),
+            ],
+            'derived' => [
+                'weeklyCoverageHours' => round($weeklyCoverageHours, 2),
+                'totalAnnualHours' => round($totalAnnualHours, 2),
+                'weeklyBillableHours' => round($weeklyBillableHours, 2),
+                'monthlyBillableHours' => round($monthlyBillableHours, 2),
+                'annualBillableHours' => round($annualBillableHours, 2),
+                'hoursPerProfessionalAnnual' => round($hoursPerProfessionalAnnual, 2),
+                'ftesRequired' => round($ftesRequired, 4),
+                'ftesRequiredRoundedUp' => (int) max(1, ceil($ftesRequired)),
+            ],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     * @return array<string, mixed>
+     */
+    private function computePostPositionSummary(array $meta, array $scopeOfWork): array
     {
         $rowsIn = Arr::get($meta, 'posts', null);
+        $hasPostRows = is_array($rowsIn) && $rowsIn !== [];
+
+        if ((array) Arr::get($meta, 'scope', []) !== [] && ! $hasPostRows) {
+            $d = (array) ($scopeOfWork['derived'] ?? []);
+            $staffPerShift = (float) Arr::get($scopeOfWork, 'inputs.staffPerShift', 0.0);
+
+            return [
+                'rows' => [],
+                'totals' => [
+                    'qty' => round($staffPerShift, 2),
+                    'blendedPayRateAvg' => 0.0,
+                    'weeklyHours' => round((float) ($d['weeklyBillableHours'] ?? 0.0), 2),
+                    'weeklyCost' => 0.0,
+                    'monthlyHours' => round((float) ($d['monthlyBillableHours'] ?? 0.0), 2),
+                    'monthlyCost' => 0.0,
+                    'annualHours' => round((float) ($d['annualBillableHours'] ?? 0.0), 2),
+                    'annualDirectLaborCost' => 0.0,
+                    'totalAnnualHours' => round((float) ($d['totalAnnualHours'] ?? 0.0), 2),
+                ],
+                'derivedAnnualHoursFromPosts' => round((float) ($d['annualBillableHours'] ?? 0.0), 2),
+            ];
+        }
+
         if (! is_array($rowsIn) || $rowsIn === []) {
             $rowsIn = $this->defaultPostRows();
         }
 
         $rowsOut = [];
         $sumQty = 0;
-        $sumWeeklyHrs = 0;
+        $sumWeeklyHrs = 0.0;
         $sumWeeklyCost = 0.0;
-        $sumMonthlyHrs = 0;
+        $sumMonthlyHrs = 0.0;
         $sumMonthlyCost = 0.0;
         $sumAnnualHrs = 0.0;
         $sumAnnualCost = 0.0;
@@ -373,8 +450,9 @@ class WorkforceAppraisalReportEngine
 
         foreach ($rowsIn as $i => $r) {
             $r = (array) $r;
+            $rowIndex = max(0, (int) ($r['index'] ?? $i));
             $title = (string) ($r['positionTitle'] ?? $r['title'] ?? '—');
-            $qty = max(0, (int) ($r['qty'] ?? 0));
+            $qty = max(0, (int) ($r['qty'] ?? 1));
             $pay = (float) ($r['blendedPayRate'] ?? 0.0);
 
             /** Annual hours per person (FTE) in this row */
@@ -384,8 +462,8 @@ class WorkforceAppraisalReportEngine
             }
             $annualHoursPer = $annualHoursPer ?? 0.0;
 
-            $weeklyHoursPer = (int) round($annualHoursPer / 52.0);
-            $monthlyHoursPer = (int) round($annualHoursPer / 12.0);
+            $weeklyHoursPer = round($annualHoursPer / 52.0, 2);
+            $monthlyHoursPer = round($annualHoursPer / 12.0, 2);
 
             $annualHoursLine = $annualHoursPer * $qty;
             $annualCost = round($annualHoursPer * $pay * $qty, 2);
@@ -405,7 +483,7 @@ class WorkforceAppraisalReportEngine
             $sumAnnualCost += $annualCost;
 
             $rowsOut[] = [
-                'index' => $i,
+                'index' => $rowIndex,
                 'positionTitle' => $title,
                 'qty' => $qty,
                 'blendedPayRate' => round($pay, 2),
@@ -419,18 +497,21 @@ class WorkforceAppraisalReportEngine
         }
 
         $avgBlended = count($ratesForAvg) > 0 ? array_sum($ratesForAvg) / count($ratesForAvg) : 0.0;
+        $scopeDerived = (array) ($scopeOfWork['derived'] ?? []);
 
         return [
             'rows' => $rowsOut,
             'totals' => [
                 'qty' => $sumQty,
                 'blendedPayRateAvg' => round($avgBlended, 2),
-                'weeklyHours' => $sumWeeklyHrs,
+                'weeklyHours' => round($sumWeeklyHrs, 2),
                 'weeklyCost' => round($sumWeeklyCost, 2),
-                'monthlyHours' => $sumMonthlyHrs,
+                'monthlyHours' => round($sumMonthlyHrs, 2),
                 'monthlyCost' => round($sumMonthlyCost, 2),
                 'annualHours' => round($sumAnnualHrs, 2),
                 'annualDirectLaborCost' => round($sumAnnualCost, 2),
+                'totalAnnualHours' => round((float) ($scopeDerived['totalAnnualHours'] ?? $sumAnnualHrs), 2),
+                'annualBillableHours' => round((float) ($scopeDerived['annualBillableHours'] ?? $sumAnnualHrs), 2),
             ],
             'derivedAnnualHoursFromPosts' => round($sumAnnualHrs, 2),
         ];
