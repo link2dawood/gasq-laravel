@@ -133,15 +133,40 @@
         @endif
     </div>
     @php
+        $gasqMasterInputs = $masterInputs ?? null;
         $gasqCalculatorState = [
             'type' => $savedCalculatorType ?? null,
             'scenario' => $savedCalculatorScenario ?? null,
             'result' => $savedCalculatorResult ?? null,
         ];
+
+        if (is_array($gasqMasterInputs) && is_array($gasqCalculatorState['scenario'] ?? null)) {
+            $scenario = $gasqCalculatorState['scenario'];
+            $meta = (array) ($scenario['meta'] ?? []);
+            $meta['inputs'] = array_replace($gasqMasterInputs, (array) ($meta['inputs'] ?? []));
+            $scenario['meta'] = $meta;
+            $gasqCalculatorState['scenario'] = $scenario;
+        }
     @endphp
     <script src="{{ mix('js/app.js') }}"></script>
     <script>
         window.__gasqCalculatorState = {{ \Illuminate\Support\Js::from($gasqCalculatorState) }};
+        window.__gasqMasterInputs = {{ \Illuminate\Support\Js::from($gasqMasterInputs) }};
+        window.GASQ = Object.assign(window.GASQ || {}, {
+            getMasterInput(key, fallback = null) {
+                const inputs = window.__gasqMasterInputs || {};
+                return Object.prototype.hasOwnProperty.call(inputs, key) ? inputs[key] : fallback;
+            },
+            getMasterPercentInput(key, fallback = null) {
+                const value = this.getMasterInput(key, fallback);
+                if (value === null || value === undefined || value === '') {
+                    return fallback;
+                }
+
+                const numeric = Number(value);
+                return Number.isFinite(numeric) ? numeric * 100 : fallback;
+            }
+        });
     </script>
     @stack('scripts')
 </body>

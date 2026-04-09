@@ -23,6 +23,7 @@ class WorkforceAppraisalReportViewTest extends TestCase
         $this->assertStringContainsString('id="wa-pane-posts"', $html);
         $this->assertStringContainsString('id="wa-pane-appraisal"', $html);
         $this->assertStringContainsString('id="wa-pane-price"', $html);
+        $this->assertStringContainsString('gasq-wa-tabs', $html);
     }
 
     public function test_post_position_summary_entry_point_uses_posts_tab_with_shared_workspace_layout(): void
@@ -49,6 +50,9 @@ class WorkforceAppraisalReportViewTest extends TestCase
         $this->assertStringContainsString('Live Workforce Appraisal Outputs', $html);
         $this->assertStringContainsString('data-bs-target="#wa-pane-appraisal"', $html);
         $this->assertStringContainsString('id="wa-pane-appraisal"', $html);
+        $this->assertStringContainsString('id="tab-appraisal"', $html);
+        $this->assertStringContainsString('aria-controls="wa-pane-appraisal"', $html);
+        $this->assertStringContainsString('aria-selected="true"', $html);
         $this->assertStringContainsString('Appraisal Comparison Summary', $html);
         $this->assertStringContainsString('Coverage Statement', $html);
         $this->assertStringContainsString('tab-pane fade show active', $html);

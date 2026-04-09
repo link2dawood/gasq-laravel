@@ -20,6 +20,7 @@ class MasterInputsViewTest extends TestCase
         $this->assertStringContainsString('id="mi_stat_burdenPct"', $html);
         $this->assertStringContainsString('id="mi_stat_supportPct"', $html);
         $this->assertStringContainsString('id="mi_stat_fleetMiles"', $html);
+        $this->assertStringContainsString('mi-input-stack', $html);
         $this->assertStringNotContainsString('mi-input-group', $html);
         $this->assertStringNotContainsString('input-group-text', $html);
         $this->assertStringContainsString('type="number"', $html);

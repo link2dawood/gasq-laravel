@@ -263,6 +263,7 @@
 <script>
 (() => {
   const savedScenario = window.__gasqCalculatorState?.scenario || null;
+  const masterInputs = window.__gasqMasterInputs || {};
   const url = @json(route('backend.standalone.v24.compute', ['type' => 'government-contract-calculator']));
   const DEFAULTS = {
     gc_base: 20.76,
@@ -321,6 +322,51 @@
       if(value === undefined || value === null) return;
       const el = document.getElementById(id);
       if(el) el.value = value;
+    });
+
+    const burdenPct = [
+      masterInputs.ficaMedicarePct,
+      masterInputs.futaPct,
+      masterInputs.sutaPct,
+      masterInputs.workersCompPct,
+      masterInputs.vacationPct,
+      masterInputs.paidHolidaysPct,
+      masterInputs.sickLeavePct,
+    ].reduce((sum, value) => sum + (Number(value) || 0), 0);
+
+    const opsSupportPct = [
+      masterInputs.recruitingHiringPct,
+      masterInputs.trainingCertificationPct,
+      masterInputs.uniformsEquipmentPct,
+      masterInputs.fieldSupervisionPct,
+      masterInputs.contractManagementPct,
+      masterInputs.qualityAssurancePct,
+      masterInputs.vehiclesPatrolPct,
+      masterInputs.technologySystemsPct,
+      masterInputs.generalLiabilityPct,
+      masterInputs.umbrellaInsurancePct,
+    ].reduce((sum, value) => sum + (Number(value) || 0), 0);
+
+    const masterMap = {
+      gc_base: masterInputs.directLaborWage,
+      gc_hw: masterInputs.hwCashPerHour,
+      gc_loc: typeof masterInputs.localityPayPct === 'number' ? masterInputs.localityPayPct * 100 : null,
+      gc_shift: typeof masterInputs.shiftDifferentialPct === 'number' ? masterInputs.shiftDifferentialPct * 100 : null,
+      gc_burden: burdenPct ? burdenPct * 100 : null,
+      gc_ops: opsSupportPct ? opsSupportPct * 100 : null,
+      gc_oh: typeof masterInputs.corporateOverheadPct === 'number' ? masterInputs.corporateOverheadPct * 100 : null,
+      gc_fee: typeof masterInputs.profitFeePct === 'number' ? masterInputs.profitFeePct * 100 : null,
+      gc_hours: masterInputs.governmentWorkforceHoursBasis,
+    };
+
+    Object.entries(masterMap).forEach(([id, value]) => {
+      if(value === undefined || value === null) return;
+      const el = document.getElementById(id);
+      if(!el) return;
+      const hasSavedValue = map[id] !== undefined && map[id] !== null;
+      if(!hasSavedValue) {
+        el.value = value;
+      }
     });
   }
 

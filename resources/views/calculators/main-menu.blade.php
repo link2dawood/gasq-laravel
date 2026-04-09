@@ -417,6 +417,7 @@
 @push('scripts')
 <script>
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
+const masterInputs = window.__gasqMasterInputs || {};
 function fmt(v, dec = 2) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
 }
@@ -630,6 +631,44 @@ function hydrateSavedMainMenu() {
     if (value === undefined || value === null) return;
     const el = document.getElementById(id);
     if (el) el.value = value;
+  });
+
+  const baseLoadedHourly =
+    (Number(masterInputs.directLaborWage) || 0) +
+    (Number(masterInputs.hwCashPerHour) || 0) +
+    (Number(masterInputs.healthWelfarePerHour) || 0);
+
+  const burdenPct = [
+    masterInputs.ficaMedicarePct,
+    masterInputs.futaPct,
+    masterInputs.sutaPct,
+    masterInputs.workersCompPct,
+    masterInputs.vacationPct,
+    masterInputs.paidHolidaysPct,
+    masterInputs.sickLeavePct,
+  ].reduce((sum, value) => sum + (Number(value) || 0), 0);
+
+  const masterMap = {
+    br_basePay: masterInputs.directLaborWage,
+    br_overhead: typeof masterInputs.corporateOverheadPct === 'number' ? masterInputs.corporateOverheadPct * 100 : null,
+    br_profit: typeof masterInputs.profitFeePct === 'number' ? masterInputs.profitFeePct * 100 : null,
+    bc_wages: baseLoadedHourly || null,
+    bc_taxes: baseLoadedHourly && burdenPct ? baseLoadedHourly * burdenPct : null,
+    bc_training: baseLoadedHourly && Number(masterInputs.trainingCertificationPct) ? baseLoadedHourly * Number(masterInputs.trainingCertificationPct) : null,
+    bc_recruiting: baseLoadedHourly && Number(masterInputs.recruitingHiringPct) ? baseLoadedHourly * Number(masterInputs.recruitingHiringPct) : null,
+    bc_uniforms: baseLoadedHourly && Number(masterInputs.uniformsEquipmentPct) ? baseLoadedHourly * Number(masterInputs.uniformsEquipmentPct) : null,
+    bc_overhead: baseLoadedHourly && Number(masterInputs.corporateOverheadPct) ? baseLoadedHourly * Number(masterInputs.corporateOverheadPct) : null,
+    bc_profit: baseLoadedHourly && Number(masterInputs.profitFeePct) ? baseLoadedHourly * Number(masterInputs.profitFeePct) : null,
+  };
+
+  Object.entries(masterMap).forEach(([id, value]) => {
+    if (value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const hasSavedValue = map[id] !== undefined && map[id] !== null;
+    if (!hasSavedValue) {
+      el.value = Number(value).toFixed(id === 'br_profit' ? 2 : 2);
+    }
   });
 }
 

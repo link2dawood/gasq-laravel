@@ -419,6 +419,7 @@
 <style>.x-sm{font-size:0.75rem}</style>
 <script>
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
+const masterInputs = window.__gasqMasterInputs || {};
 let sbDebounce = null;
 window._sbOut = {};
 window._sbState = {};
@@ -661,6 +662,28 @@ function hydrateSavedSecurityBilling(){
     if(value === undefined || value === null) return;
     const el = document.getElementById(id);
     if(el) el.value = value;
+  });
+
+  const masterMap = {
+    sb_basePay: masterInputs.directLaborWage,
+    sb_fica: typeof masterInputs.ficaMedicarePct === 'number' ? masterInputs.ficaMedicarePct * 100 : null,
+    sb_futa: typeof masterInputs.futaPct === 'number' ? masterInputs.futaPct * 100 : null,
+    sb_suta: typeof masterInputs.sutaPct === 'number' ? masterInputs.sutaPct * 100 : null,
+    sb_overhead: typeof masterInputs.corporateOverheadPct === 'number' ? masterInputs.corporateOverheadPct * 100 : null,
+    sb_profitPct: typeof masterInputs.profitFeePct === 'number' ? masterInputs.profitFeePct * 100 : null,
+    cmpB_basePay: masterInputs.directLaborWage,
+    cmpB_overhead: typeof masterInputs.corporateOverheadPct === 'number' ? masterInputs.corporateOverheadPct * 100 : null,
+    cmpB_profit: typeof masterInputs.profitFeePct === 'number' ? masterInputs.profitFeePct * 100 : null,
+  };
+
+  Object.entries(masterMap).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(!el) return;
+    const hasSavedValue = map[id] !== undefined && map[id] !== null;
+    if(!hasSavedValue) {
+      el.value = value;
+    }
   });
 }
 

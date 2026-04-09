@@ -229,6 +229,18 @@
   box-shadow: 0 0 0 3px rgba(6,45,121,0.07), var(--gasq-shadow-card);
 }
 
+.mi-input-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.mi-input-stack > [class*="col-"] {
+  width: 100%;
+  max-width: 100%;
+  flex: 0 0 100%;
+}
+
 .mi-results-panel {
   border: 1px solid rgba(6,45,121,0.08);
   border-radius: 1rem;
@@ -304,7 +316,7 @@
 
   <div class="mi-shell">
     <div class="row g-0">
-      <div class="col-xl-7 border-end mi-sidebar">
+      <div class="col-xl-8 border-end mi-sidebar">
         <div class="p-3 p-md-4 mi-sticky">
           <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
             <div>
@@ -348,7 +360,7 @@
   <div class="mi-panel active" id="panel-core" data-panel-label="Core Controls">
 
     <div class="mi-section-label">Labor</div>
-    <div class="row g-3 mb-2">
+    <div class="row g-3 mi-input-stack mb-2">
       <div class="col-lg-4 col-md-6">
         @include('partials.mi-field', ['id'=>'mi_directLaborWage','label'=>'Direct Labor Wage','help'=>'$ per paid hour','unit'=>'$','unit_pos'=>'prefix','step'=>'0.01','min'=>'0','max_slider'=>'150'])
       </div>
@@ -361,7 +373,7 @@
     </div>
 
     <div class="mi-section-label">Premiums</div>
-    <div class="row g-3 mb-2">
+    <div class="row g-3 mi-input-stack mb-2">
       @php
         $pctFields = [
           ['k'=>'localityPayPct',       'label'=>'Locality Pay',            'max'=>50],
@@ -378,7 +390,7 @@
     </div>
 
     <div class="mi-section-label">Benefits</div>
-    <div class="row g-3">
+    <div class="row g-3 mi-input-stack">
       <div class="col-md-6">
         @include('partials.mi-field', ['id'=>'mi_hwCashPerHour','label'=>'H&W Cash','help'=>'$ per paid hour','unit'=>'$','unit_pos'=>'prefix','step'=>'0.01','min'=>'0','max_slider'=>'50'])
       </div>
@@ -392,7 +404,7 @@
   <div class="mi-panel" id="panel-burden" data-panel-label="Fringe &amp; Burden">
 
     <div class="mi-section-label">Statutory &amp; Insurance</div>
-    <div class="row g-3 mb-2">
+    <div class="row g-3 mi-input-stack mb-2">
       @php
         $burden = [
           ['k'=>'ficaMedicarePct',      'label'=>'FICA / Medicare',             'max'=>20],
@@ -411,7 +423,7 @@
     </div>
 
     <div class="mi-section-label">Paid Leave</div>
-    <div class="row g-3 mb-2">
+    <div class="row g-3 mi-input-stack mb-2">
       @php
         $leave = [
           ['k'=>'vacationPct',     'label'=>'Vacation',      'max'=>20],
@@ -430,7 +442,7 @@
     </div>
 
     <div class="mi-section-label">Corporate Overhead</div>
-    <div class="row g-3">
+    <div class="row g-3 mi-input-stack">
       @php
         $overhead = [
           ['k'=>'corporateOverheadPct', 'label'=>'Corporate Overhead', 'max'=>30],
@@ -450,7 +462,7 @@
   <div class="mi-panel" id="panel-ops" data-panel-label="Operations &amp; Factors">
 
     <div class="mi-section-label">Operations Support</div>
-    <div class="row g-3 mb-2">
+    <div class="row g-3 mi-input-stack mb-2">
       @php
         $ops = [
           ['k'=>'recruitingHiringPct',     'label'=>'Recruiting / Hiring',      'max'=>20],
@@ -471,7 +483,7 @@
     </div>
 
     <div class="mi-section-label">Vendor / Government Factors</div>
-    <div class="row g-3">
+    <div class="row g-3 mi-input-stack">
       @php
         $gov = [
           ['k'=>'vendorTcoFactorVsGovTco',       'label'=>'Vendor TCO Factor vs Gov TCO',      'max'=>120, 'step'=>'0.1'],
@@ -503,7 +515,7 @@
   <div class="mi-panel" id="panel-vehicles" data-panel-label="Vehicles &amp; Escalation">
 
     <div class="mi-section-label">Vehicle Fleet</div>
-    <div class="row g-3 mb-2">
+    <div class="row g-3 mi-input-stack mb-2">
       <div class="col-md-6 col-lg-4">
         @include('partials.mi-field', ['id'=>'mi_vehiclesRequired','label'=>'Vehicles Required','help'=>'count','unit'=>'veh','step'=>'1','min'=>'0','max_slider'=>'50'])
       </div>
@@ -516,7 +528,7 @@
     </div>
 
     <div class="mi-section-label">Annual Escalation Rates</div>
-    <div class="row g-3">
+    <div class="row g-3 mi-input-stack">
       @php
         $esc = [
           ['k'=>'customAnnualEscalationPct','label'=>'Custom Annual Escalation','max'=>25],
@@ -535,7 +547,7 @@
         </div>
       </div>
 
-      <div class="col-xl-5 mi-results">
+      <div class="col-xl-4 mi-results">
         <div class="p-3 p-md-4">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
             <div>
@@ -730,6 +742,22 @@
     });
   }
 
+  function bindDirectInputPersistence() {
+    document.querySelectorAll('.mi-number-input').forEach((inputEl) => {
+      if (inputEl.dataset.persistBound === '1') return;
+      inputEl.dataset.persistBound = '1';
+
+      inputEl.addEventListener('change', () => {
+        updateResultsWorkspace();
+        scheduleSave();
+      });
+      inputEl.addEventListener('blur', () => {
+        updateResultsWorkspace();
+        scheduleSave();
+      });
+    });
+  }
+
   /* ── Percent keys ──────────────────────────────────────────── */
   const PERCENT_KEYS = new Set([
     'localityPayPct','shiftDifferentialPct','otHolidayPremiumPct','laborMarketAdjPct',
@@ -916,6 +944,7 @@
   window.resetInputs = async function() {
     fillFormFromInputs(DEFAULTS);
     initSliderSync();
+    bindDirectInputPersistence();
     updateResultsWorkspace();
     const ok = await saveNow(false);
     if(ok) flashOk('Reset to defaults');
@@ -936,6 +965,7 @@
     if(panel) panel.classList.add('active');
     if(navEl) navEl.classList.add('active');
     initSliderSync();
+    bindDirectInputPersistence();
     updateResultsWorkspace();
   };
 
@@ -943,6 +973,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
     await loadFromServer();
     initSliderSync();
+    bindDirectInputPersistence();
     Object.entries(DEFAULTS).forEach(([k, v]) => {
       const el = document.getElementById('mi_' + k);
       if(!el || el.value !== '') return;
@@ -950,6 +981,7 @@
       else el.value = v;
     });
     initSliderSync();
+    bindDirectInputPersistence();
     updateResultsWorkspace();
     setSaveState('ready');
   });

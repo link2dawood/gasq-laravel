@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Events\CreditsGranted;
 use App\Listeners\SendCreditsGrantedNotification;
 use App\Services\CalculatorViewStateResolver;
+use App\Services\MasterInputsService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
@@ -29,12 +30,14 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('layouts.app', function ($view) {
             $walletBalance = null;
+            $masterInputs = null;
             $savedCalculatorType = null;
             $savedCalculatorState = null;
             $savedCalculatorScenario = null;
             $savedCalculatorResult = null;
             if (auth()->check()) {
                 $walletBalance = app(WalletService::class)->getBalance(auth()->user());
+                $masterInputs = app(MasterInputsService::class)->forUser(auth()->user());
 
                 $resolved = app(CalculatorViewStateResolver::class)->resolve(
                     auth()->user(),
@@ -48,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
             }
             $view->with([
                 'walletBalance' => $walletBalance,
+                'masterInputs' => $masterInputs,
                 'savedCalculatorType' => $savedCalculatorType,
                 'savedCalculatorState' => $savedCalculatorState,
                 'savedCalculatorScenario' => $savedCalculatorScenario,

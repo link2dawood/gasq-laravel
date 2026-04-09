@@ -273,6 +273,7 @@
 @push('scripts')
 <script>
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
+const masterInputs = window.__gasqMasterInputs || {};
 const COMP_COLORS = ['#3b82f6','#84cc16','#ef4444','#8b5cf6','#06b6d4','#f97316','#a855f7'];
 
 function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(v || 0);}
@@ -327,6 +328,33 @@ function hydrateSavedBillRate(){
     if(value === undefined || value === null) return;
     const el = document.getElementById(id);
     if(el) el.value = value;
+  });
+
+  const burdenPct = [
+    masterInputs.ficaMedicarePct,
+    masterInputs.futaPct,
+    masterInputs.sutaPct,
+    masterInputs.workersCompPct,
+    masterInputs.vacationPct,
+    masterInputs.paidHolidaysPct,
+    masterInputs.sickLeavePct,
+  ].reduce((sum, value) => sum + (Number(value) || 0), 0);
+
+  const masterMap = {
+    qbr_base: masterInputs.directLaborWage,
+    qbr_benefits: burdenPct ? burdenPct * 100 : null,
+    qbr_overhead: typeof masterInputs.corporateOverheadPct === 'number' ? masterInputs.corporateOverheadPct * 100 : null,
+    qbr_profit: typeof masterInputs.profitFeePct === 'number' ? masterInputs.profitFeePct * 100 : null,
+  };
+
+  Object.entries(masterMap).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(!el) return;
+    const hasSavedValue = map[id] !== undefined && map[id] !== null;
+    if(!hasSavedValue) {
+      el.value = value;
+    }
   });
 }
 
