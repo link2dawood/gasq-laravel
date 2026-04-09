@@ -15,6 +15,8 @@ class MobilePatrolViewTest extends TestCase
         $this->assertStringContainsString('Mobile Patrol Outputs', $html);
         $this->assertStringContainsString('The cost stack and billing summary below update from the shared patrol inputs on the left.', $html);
         $this->assertStringContainsString('Contact Information', $html);
+        $this->assertStringContainsString('mp-route-map-error', $html);
+        $this->assertStringContainsString('gm_authFailure', $html);
         $this->assertStringContainsString('Cost Summary', $html);
     }
 }

@@ -181,6 +181,9 @@
                 </div>
               </div>
               <p class="small text-gasq-muted mb-2 mt-2" id="mp-route-summary"></p>
+              <div id="mp-route-map-error" class="alert alert-warning border py-2 small mb-2 d-none">
+                Google Maps could not load for this site. Check that the deployed API key belongs to an active Google Cloud project with billing enabled and that Maps JavaScript API, Places API, and Directions API are enabled for that same project.
+              </div>
               <div id="mp-route-map" class="rounded border mt-2" style="height: 260px; min-height: 200px; border-color: var(--gasq-border);"></div>
             </div>
             @else
@@ -609,11 +612,38 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 @if(!empty($mpMapsKey))
 <script>
+window._mpGoogleMapsLoaded = false;
+
+window.handleMpGoogleMapsLoadError = function (message) {
+  var errorEl = document.getElementById('mp-route-map-error');
+  var mapEl = document.getElementById('mp-route-map');
+  var summaryEl = document.getElementById('mp-route-summary');
+  if (errorEl) {
+    errorEl.classList.remove('d-none');
+    if (message) {
+      errorEl.textContent = message;
+    }
+  }
+  if (mapEl) {
+    mapEl.style.display = 'none';
+  }
+  if (summaryEl && message) {
+    summaryEl.textContent = message;
+  }
+};
+
+window.gm_authFailure = function () {
+  window.handleMpGoogleMapsLoadError(
+    'Google Maps rejected the API key for this deployed site. Verify the key is in the correct Google Cloud project, billing is active, and the project is allowed to use Maps JavaScript API, Places API, and Directions API.'
+  );
+};
+
 window.initMobilePatrolMap = function () {
   var mapEl = document.getElementById('mp-route-map');
   if (!mapEl || !window.google || !google.maps) {
     return;
   }
+  window._mpGoogleMapsLoaded = true;
   var map = new google.maps.Map(mapEl, {
     center: { lat: 39.8283, lng: -98.5795 },
     zoom: 4,
@@ -695,6 +725,17 @@ window.applyMpRouteMiles = function () {
   );
 };
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ $mpMapsKey }}&libraries=places&callback=initMobilePatrolMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ $mpMapsKey }}&libraries=places&callback=initMobilePatrolMap" async defer onerror="window.handleMpGoogleMapsLoadError && window.handleMpGoogleMapsLoadError('Google Maps failed to load. Check the deployed browser API key and referrer restrictions for this domain.')"></script>
+<script>
+window.addEventListener('load', function () {
+  window.setTimeout(function () {
+    if (!window._mpGoogleMapsLoaded) {
+      window.handleMpGoogleMapsLoadError(
+        'Google Maps did not initialize. If you see ProjectDeniedMapError in the console, the browser key is present but the Google Cloud project, billing, or API enablement is denying this site.'
+      );
+    }
+  }, 4000);
+});
+</script>
 @endif
 @endpush
