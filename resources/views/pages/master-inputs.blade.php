@@ -151,10 +151,10 @@
   border-radius: var(--gasq-radius) !important;
   padding: 10px 14px !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
-  -moz-appearance: textfield !important;
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  -moz-appearance: auto !important;
 }
-.mi-number-input::-webkit-inner-spin-button,
-.mi-number-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 .mi-number-input:focus {
   outline: none !important;
   border-color: var(--gasq-primary) !important;
