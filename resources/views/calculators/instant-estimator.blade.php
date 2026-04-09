@@ -50,9 +50,7 @@
             <label class="form-label fw-medium">Hours per Week</label>
             <div class="d-flex align-items-center gap-3">
               <input type="range" id="hoursSlider" class="form-range flex-grow-1" min="4" max="168" step="4" value="40" oninput="syncSlider('hoursSlider','hours');calculate()">
-              <div class="input-group" style="max-width:100px">
-                <input type="number" id="hours" class="form-control text-center" value="40" min="4" max="168" oninput="syncInput('hoursSlider','hours');calculate()">
-              </div>
+              <input type="number" id="hours" class="form-control text-center" style="max-width:100px" value="40" min="4" max="168" oninput="syncInput('hoursSlider','hours');calculate()">
             </div>
           </div>
 
@@ -60,9 +58,7 @@
             <label class="form-label fw-medium">Number of Guards</label>
             <div class="d-flex align-items-center gap-3">
               <input type="range" id="guardsSlider" class="form-range flex-grow-1" min="1" max="50" step="1" value="1" oninput="syncSlider('guardsSlider','guards');calculate()">
-              <div class="input-group" style="max-width:80px">
-                <input type="number" id="guards" class="form-control text-center" value="1" min="1" max="50" oninput="syncInput('guardsSlider','guards');calculate()">
-              </div>
+              <input type="number" id="guards" class="form-control text-center" style="max-width:80px" value="1" min="1" max="50" oninput="syncInput('guardsSlider','guards');calculate()">
             </div>
           </div>
 

@@ -154,10 +154,7 @@
               <div class="d-flex flex-column gap-3">
                 <div>
                   <label class="form-label fw-medium">Employee True Hourly Cost ($/hr)</label>
-                  <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    <input type="number" id="ej_empCost" class="form-control" value="133.00" step="0.01" oninput="scheduleEJ()">
-                  </div>
+                  <input type="number" id="ej_empCost" class="form-control" value="133.00" step="0.01" oninput="scheduleEJ()">
                   <div class="form-text">Includes wages, payroll taxes, benefits, HR overhead.</div>
                 </div>
                 <div>

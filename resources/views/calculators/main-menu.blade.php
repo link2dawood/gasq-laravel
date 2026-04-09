@@ -203,11 +203,8 @@
                 <input type="text" id="ej_preparedBy" class="form-control" placeholder="Your name" oninput="calcEJ()">
               </div>
               <div class="col-md-6">
-                <label class="form-label fw-medium">Employee True Hourly Cost</label>
-                <div class="input-group">
-                  <span class="input-group-text">$</span>
-                  <input type="number" id="ej_employeeCost" class="form-control" value="133.00" step="0.01" oninput="calcEJ()">
-                </div>
+                <label class="form-label fw-medium">Employee True Hourly Cost ($/hr)</label>
+                <input type="number" id="ej_employeeCost" class="form-control" value="133.00" step="0.01" oninput="calcEJ()">
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-medium">Weekly Hours Performed</label>
@@ -283,10 +280,7 @@
             <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2"><i class="fa fa-dollar-sign text-primary"></i> Bill Rate Calculator</h5>
             <div class="mb-3">
               <label class="form-label fw-medium">Base Pay Rate ($/hr)</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" id="br_basePay" class="form-control" value="" placeholder="e.g. 18.00" step="0.01" oninput="calcBillRate()">
-              </div>
+              <input type="number" id="br_basePay" class="form-control" value="" placeholder="e.g. 18.00" step="0.01" oninput="calcBillRate()">
             </div>
             <div class="mb-3">
               <label class="form-label fw-medium">Overhead (%)</label>

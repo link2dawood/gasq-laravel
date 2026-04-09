@@ -142,10 +142,7 @@
               <div class="d-flex flex-column gap-3">
                 <div>
                   <label class="form-label fw-medium">Base Pay Rate ($/hr)</label>
-                  <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    <input type="number" id="sb_basePay" class="form-control" value="18.00" step="0.01" oninput="scheduleSB()">
-                  </div>
+                  <input type="number" id="sb_basePay" class="form-control" value="18.00" step="0.01" oninput="scheduleSB()">
                 </div>
 
                 <div class="row g-3">

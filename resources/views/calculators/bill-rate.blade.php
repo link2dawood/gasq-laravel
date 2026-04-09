@@ -115,10 +115,7 @@
               <div class="d-flex flex-column gap-3">
                 <div>
                   <label class="form-label fw-medium">Base Pay Rate ($/hr)</label>
-                  <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    <input type="number" id="qbr_base" class="form-control" value="18.00" step="0.01" oninput="scheduleCompute()">
-                  </div>
+                  <input type="number" id="qbr_base" class="form-control" value="18.00" step="0.01" oninput="scheduleCompute()">
                 </div>
                 <div>
                   <label class="form-label fw-medium">Payroll Tax &amp; Benefits (%)</label>
@@ -159,10 +156,7 @@
                 <div class="d-flex align-items-center gap-3 p-2 rounded" style="background:rgba(6,45,121,0.04)">
                   <span class="rounded-circle flex-shrink-0" style="width:12px;height:12px;background:{{ $c['color'] }}"></span>
                   <span class="small text-gasq-muted flex-grow-1">{{ $c['label'] }}</span>
-                  <div class="input-group" style="max-width:130px">
-                    <span class="input-group-text py-1 px-2">$</span>
-                    <input type="number" id="{{ $c['id'] }}" class="form-control form-control-sm text-end py-1" value="{{ $c['default'] }}" step="0.01" oninput="scheduleCompute()">
-                  </div>
+                  <input type="number" id="{{ $c['id'] }}" class="form-control form-control-sm text-end py-1" style="max-width:130px" value="{{ $c['default'] }}" step="0.01" oninput="scheduleCompute()">
                 </div>
                 @endforeach
               </div>

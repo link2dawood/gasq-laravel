@@ -36,10 +36,7 @@
 
           <div>
             <label class="form-label fw-medium">Total Annual Budget ($)</label>
-            <div class="input-group">
-              <span class="input-group-text">$</span>
-              <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="250000" step="1000" oninput="calcBudget()">
-            </div>
+            <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="250000" step="1000" oninput="calcBudget()">
           </div>
 
           <hr class="my-1">
@@ -67,10 +64,7 @@
               </label>
               <div class="d-flex align-items-center gap-2">
                 <span class="small fw-medium" id="{{ $cat['id'] }}_amt">$0.00</span>
-                <div class="input-group" style="width:80px">
-                  <input type="number" id="{{ $cat['id'] }}" class="form-control form-control-sm text-center" value="{{ $cat['default'] }}" min="0" max="100" step="1" oninput="calcBudget()">
-                  <span class="input-group-text px-1">%</span>
-                </div>
+                <input type="number" id="{{ $cat['id'] }}" class="form-control form-control-sm text-center" style="width:80px" value="{{ $cat['default'] }}" min="0" max="100" step="1" oninput="calcBudget()">
               </div>
             </div>
             <input type="range" id="{{ $cat['id'] }}_range" class="form-range mb-1" min="0" max="100" step="1" value="{{ $cat['default'] }}" data-sync="{{ $cat['id'] }}">

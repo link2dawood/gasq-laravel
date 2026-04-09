@@ -16,6 +16,56 @@
   margin-bottom: 1.5rem;
 }
 
+.mi-shell {
+  background:
+    radial-gradient(circle at top right, rgba(6, 45, 121, 0.08), transparent 26%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--gasq-border);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: var(--gasq-shadow-card);
+}
+
+.mi-sidebar {
+  background: linear-gradient(180deg, #fbfcff 0%, #f2f5fb 100%);
+}
+
+.mi-results {
+  background: #fff;
+}
+
+.mi-sticky {
+  position: sticky;
+  top: 1.25rem;
+}
+
+.mi-kicker {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gasq-muted);
+}
+
+.mi-stat {
+  border: 1px solid rgba(6,45,121,0.08);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fff;
+}
+
+.mi-stat-label {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gasq-muted);
+}
+
+.mi-stat-value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--gasq-primary);
+}
+
 /* Save status badge */
 .mi-status-badge {
   display: inline-flex;
@@ -111,38 +161,11 @@
   background: #fff !important;
 }
 
-/* Unit badge attached to input */
-.mi-input-group {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-.mi-unit {
-  font-size: 0.75rem;
+.mi-unit-note {
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--gasq-muted);
-  background: var(--gasq-muted-bg);
-  border: 1px solid var(--gasq-border);
-  padding: 0 9px;
-  height: 34px;
-  display: flex; align-items: center;
-  white-space: nowrap;
-}
-.mi-unit-prefix {
-  border-right: none;
-  border-radius: var(--gasq-radius) 0 0 var(--gasq-radius);
-}
-.mi-unit-suffix {
-  border-left: none;
-  border-radius: 0 var(--gasq-radius) var(--gasq-radius) 0;
-}
-.mi-number-input.has-prefix {
-  border-radius: 0 var(--gasq-radius) var(--gasq-radius) 0 !important;
-  border-left: none !important;
-}
-.mi-number-input.has-suffix {
-  border-radius: var(--gasq-radius) 0 0 var(--gasq-radius) !important;
-  border-right: none !important;
+  margin-top: 0.45rem;
 }
 
 /* Slider */
@@ -206,6 +229,27 @@
   box-shadow: 0 0 0 3px rgba(6,45,121,0.07), var(--gasq-shadow-card);
 }
 
+.mi-results-panel {
+  border: 1px solid rgba(6,45,121,0.08);
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.mi-results-head {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid rgba(6,45,121,0.08);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #1e3a5f;
+}
+
+.mi-results-table td,
+.mi-results-table th {
+  vertical-align: middle;
+}
+
 /* Panels (tab content) */
 .mi-panel { display: none; }
 .mi-panel.active {
@@ -218,6 +262,10 @@
 }
 
 /* Responsive */
+@media (max-width: 1199.98px) {
+  .mi-sticky { position: static; }
+}
+
 @media (max-width: 575.98px) {
   .mi-field-row { flex-wrap: wrap; }
   .mi-number-input { width: 80px !important; }
@@ -237,10 +285,6 @@
       <p class="gasq-page-subtitle mb-0">Shared settings used across all calculators. Percent fields are entered as % and saved as decimals automatically.</p>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
-      <div class="mi-status-badge">
-        <div class="mi-status-dot ready" id="mi_save_dot"></div>
-        <span id="mi_save_label">Ready</span>
-      </div>
       <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetInputs()">
         <i class="fa fa-rotate me-1"></i>Reset
       </button>
@@ -258,34 +302,50 @@
     <i class="fa fa-circle-check"></i><span id="mi_ok_text"></span>
   </div>
 
-  {{-- ── Pill Tabs ────────────────────────────────────────────────── --}}
-  <div class="gasq-tabs-scroll mb-4">
-    <ul class="nav gasq-tabs-pill" id="miTabs">
-      <li class="nav-item">
-        <button class="nav-link active" onclick="switchPanel('panel-core', this)">
-          <i class="fa fa-gauge-high me-1"></i>Core Controls
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="switchPanel('panel-burden', this)">
-          <i class="fa fa-layer-group me-1"></i>Fringe &amp; Burden
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="switchPanel('panel-ops', this)">
-          <i class="fa fa-building-shield me-1"></i>Operations &amp; Factors
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" onclick="switchPanel('panel-vehicles', this)">
-          <i class="fa fa-car me-1"></i>Vehicles &amp; Escalation
-        </button>
-      </li>
-    </ul>
-  </div>
+  <div class="mi-shell">
+    <div class="row g-0">
+      <div class="col-xl-7 border-end mi-sidebar">
+        <div class="p-3 p-md-4 mi-sticky">
+          <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+            <div>
+              <div class="mi-kicker mb-2">Shared Inputs</div>
+              <h2 class="h4 fw-bold mb-2">Master Input Controls</h2>
+              <p class="small text-gasq-muted mb-0">Every field on this page is a numeric control. Adjust values on the left and the live summary on the right updates immediately.</p>
+            </div>
+            <div class="mi-status-badge">
+              <div class="mi-status-dot ready" id="mi_save_dot"></div>
+              <span id="mi_save_label">Ready</span>
+            </div>
+          </div>
+
+          {{-- ── Pill Tabs ────────────────────────────────────────────────── --}}
+          <div class="gasq-tabs-scroll mb-4">
+            <ul class="nav gasq-tabs-pill" id="miTabs">
+              <li class="nav-item">
+                <button class="nav-link active" onclick="switchPanel('panel-core', this)">
+                  <i class="fa fa-gauge-high me-1"></i>Core Controls
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" onclick="switchPanel('panel-burden', this)">
+                  <i class="fa fa-layer-group me-1"></i>Fringe &amp; Burden
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" onclick="switchPanel('panel-ops', this)">
+                  <i class="fa fa-building-shield me-1"></i>Operations &amp; Factors
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" onclick="switchPanel('panel-vehicles', this)">
+                  <i class="fa fa-car me-1"></i>Vehicles &amp; Escalation
+                </button>
+              </li>
+            </ul>
+          </div>
 
   {{-- ════ PANEL 1: Core Controls ════ --}}
-  <div class="mi-panel active" id="panel-core">
+  <div class="mi-panel active" id="panel-core" data-panel-label="Core Controls">
 
     <div class="mi-section-label">Labor</div>
     <div class="row g-3 mb-2">
@@ -329,7 +389,7 @@
   </div>
 
   {{-- ════ PANEL 2: Fringe & Burden ════ --}}
-  <div class="mi-panel" id="panel-burden">
+  <div class="mi-panel" id="panel-burden" data-panel-label="Fringe &amp; Burden">
 
     <div class="mi-section-label">Statutory &amp; Insurance</div>
     <div class="row g-3 mb-2">
@@ -387,7 +447,7 @@
   </div>
 
   {{-- ════ PANEL 3: Operations & Factors ════ --}}
-  <div class="mi-panel" id="panel-ops">
+  <div class="mi-panel" id="panel-ops" data-panel-label="Operations &amp; Factors">
 
     <div class="mi-section-label">Operations Support</div>
     <div class="row g-3 mb-2">
@@ -440,7 +500,7 @@
   </div>
 
   {{-- ════ PANEL 4: Vehicles & Escalation ════ --}}
-  <div class="mi-panel" id="panel-vehicles">
+  <div class="mi-panel" id="panel-vehicles" data-panel-label="Vehicles &amp; Escalation">
 
     <div class="mi-section-label">Vehicle Fleet</div>
     <div class="row g-3 mb-2">
@@ -470,6 +530,89 @@
           @include('partials.mi-field', ['id'=>'mi_'.$f['k'],'label'=>$f['label'],'help'=>'percentage','unit'=>'%','step'=>'0.1','min'=>'0','max_slider'=>$f['max'],'data_unit'=>'pct'])
         </div>
       @endforeach
+    </div>
+  </div>
+        </div>
+      </div>
+
+      <div class="col-xl-5 mi-results">
+        <div class="p-3 p-md-4">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+            <div>
+              <div class="mi-kicker mb-1">Results Workspace</div>
+              <h3 class="h5 fw-bold mb-0">Live Master Input Summary</h3>
+            </div>
+            <div class="small text-gasq-muted">The summary below reflects the values from the active tab on the left.</div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="mi-stat">
+                <div class="mi-stat-label mb-2">Loaded Hourly Base</div>
+                <div class="mi-stat-value" id="mi_stat_loadedHourly">$0.00</div>
+                <div class="small text-gasq-muted">Direct labor plus hourly benefits</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mi-stat">
+                <div class="mi-stat-label mb-2">Burden & Leave</div>
+                <div class="mi-stat-value" id="mi_stat_burdenPct">0.00%</div>
+                <div class="small text-gasq-muted">Fringe, insurance, and paid leave total</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mi-stat">
+                <div class="mi-stat-label mb-2">Support & Markup</div>
+                <div class="mi-stat-value" id="mi_stat_supportPct">0.00%</div>
+                <div class="small text-gasq-muted">Operations, overhead, G&amp;A, and fee</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mi-stat">
+                <div class="mi-stat-label mb-2">Fleet Miles / Day</div>
+                <div class="mi-stat-value" id="mi_stat_fleetMiles">0</div>
+                <div class="small text-gasq-muted">Vehicles required × average daily miles</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mi-results-panel mb-3">
+            <div class="mi-results-head d-flex justify-content-between align-items-center gap-3">
+              <span>Active Panel Snapshot</span>
+              <span class="small text-gasq-muted text-uppercase" id="mi_active_panel_name">Core Controls</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm mb-0 mi-results-table">
+                <thead class="table-light">
+                  <tr>
+                    <th>Field</th>
+                    <th class="text-end">Current Value</th>
+                  </tr>
+                </thead>
+                <tbody id="mi_results_tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="mi-results-panel">
+            <div class="mi-results-head">Escalation & Fleet Snapshot</div>
+            <div class="p-3 small">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-gasq-muted">Low / Medium / High escalation</span>
+                <span class="fw-semibold" id="mi_escalation_band">0.00% / 0.00% / 0.00%</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-gasq-muted">Fuel cost per gallon</span>
+                <span class="fw-semibold" id="mi_fuel_snapshot">$0.00</span>
+              </div>
+              <div class="d-flex justify-content-between mb-0">
+                <span class="text-gasq-muted">Saved field count</span>
+                <span class="fw-semibold" id="mi_field_count">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -533,6 +676,25 @@
 
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
+  const currency = (n) => new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n || 0);
+
+  const number = (n, decimals = 2) => new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(n || 0);
+
+  const integer = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n || 0);
+
+  const fieldValue = (key) => {
+    const el = document.getElementById('mi_' + key);
+    return el ? (parseFloat(el.value) || 0) : 0;
+  };
+
   /* ── Slider ↔ number sync ──────────────────────────────────── */
   function initSliderSync() {
     document.querySelectorAll('input[type="range"][data-sync]').forEach((rangeEl) => {
@@ -552,8 +714,19 @@
       };
 
       syncFromNumber();
-      rangeEl.addEventListener('input', () => { syncFromRange(); scheduleSave(); });
-      numEl.addEventListener('input',   () => { syncFromNumber(); scheduleSave(); });
+      if(rangeEl.dataset.bound === '1') return;
+      rangeEl.dataset.bound = '1';
+
+      rangeEl.addEventListener('input', () => {
+        syncFromRange();
+        updateResultsWorkspace();
+        scheduleSave();
+      });
+      numEl.addEventListener('input', () => {
+        syncFromNumber();
+        updateResultsWorkspace();
+        scheduleSave();
+      });
     });
   }
 
@@ -588,6 +761,103 @@
       if(PERCENT_KEYS.has(k) && typeof v === 'number') el.value = (v * 100.0);
       else el.value = v;
     });
+  }
+
+  function formatFieldValue(inputEl) {
+    const raw = parseFloat(inputEl.value || '0') || 0;
+    const unit = inputEl.dataset.unit || '';
+    const isPct = inputEl.dataset.isPct === '1';
+
+    if (isPct) {
+      return number(raw, 2) + '%';
+    }
+
+    if (unit === '$') {
+      return currency(raw);
+    }
+
+    if (unit === 'hrs') {
+      return integer(raw) + ' hrs';
+    }
+
+    if (unit === 'veh') {
+      return integer(raw) + ' vehicles';
+    }
+
+    if (unit === 'mi') {
+      return integer(raw) + ' mi';
+    }
+
+    if (unit === 'min') {
+      return integer(raw) + ' min';
+    }
+
+    if (unit === '×') {
+      return number(raw, 2) + 'x';
+    }
+
+    return number(raw, 2);
+  }
+
+  function updateResultsWorkspace() {
+    const loadedHourly =
+      fieldValue('directLaborWage') +
+      fieldValue('hwCashPerHour') +
+      fieldValue('healthWelfarePerHour');
+
+    const burdenPct = [
+      'ficaMedicarePct','futaPct','sutaPct','workersCompPct',
+      'generalLiabilityPct','umbrellaInsurancePct','vacationPct',
+      'paidHolidaysPct','sickLeavePct'
+    ].reduce((sum, key) => sum + fieldValue(key), 0);
+
+    const supportPct = [
+      'recruitingHiringPct','trainingCertificationPct','uniformsEquipmentPct',
+      'fieldSupervisionPct','contractManagementPct','qualityAssurancePct',
+      'vehiclesPatrolPct','technologySystemsPct','adminHrPayrollPct',
+      'accountingLegalPct','corporateOverheadPct','gaPct','profitFeePct'
+    ].reduce((sum, key) => sum + fieldValue(key), 0);
+
+    const fleetMiles = fieldValue('vehiclesRequired') * fieldValue('avgMilesPerVehiclePerDay');
+
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+
+    setText('mi_stat_loadedHourly', currency(loadedHourly));
+    setText('mi_stat_burdenPct', number(burdenPct, 2) + '%');
+    setText('mi_stat_supportPct', number(supportPct, 2) + '%');
+    setText('mi_stat_fleetMiles', integer(fleetMiles));
+    setText(
+      'mi_escalation_band',
+      [fieldValue('lowEscalationPct'), fieldValue('mediumEscalationPct'), fieldValue('highEscalationPct')]
+        .map((value) => number(value, 2) + '%')
+        .join(' / ')
+    );
+    setText('mi_fuel_snapshot', currency(fieldValue('fuelCostPerGallon')));
+    setText('mi_field_count', integer(document.querySelectorAll('[id^="mi_"][type="number"]').length));
+
+    const activePanel = document.querySelector('.mi-panel.active');
+    const activePanelName = activePanel?.dataset.panelLabel || 'Core Controls';
+    setText('mi_active_panel_name', activePanelName);
+
+    const tbody = document.getElementById('mi_results_tbody');
+    if (!tbody) return;
+
+    const rows = Array.from(activePanel?.querySelectorAll('input[type="number"]') || []).map((inputEl) => {
+      const label = inputEl.dataset.label || inputEl.id;
+      const help = inputEl.dataset.help || '';
+      return `<tr>
+        <td>
+          <div class="fw-medium">${label}</div>
+          <div class="small text-gasq-muted">${help}</div>
+        </td>
+        <td class="text-end fw-semibold">${formatFieldValue(inputEl)}</td>
+      </tr>`;
+    });
+
+    tbody.innerHTML = rows.join('');
   }
 
   async function saveNow(isComplete = null) {
@@ -637,6 +907,7 @@
       const data = await res.json().catch(() => null);
       if(!res.ok || !data || !data.ok) return;
       fillFormFromInputs(data.inputs || {});
+      updateResultsWorkspace();
       setSaveState('ready');
     } catch(e) { return; }
   }
@@ -645,6 +916,7 @@
   window.resetInputs = async function() {
     fillFormFromInputs(DEFAULTS);
     initSliderSync();
+    updateResultsWorkspace();
     const ok = await saveNow(false);
     if(ok) flashOk('Reset to defaults');
   };
@@ -664,6 +936,7 @@
     if(panel) panel.classList.add('active');
     if(navEl) navEl.classList.add('active');
     initSliderSync();
+    updateResultsWorkspace();
   };
 
   /* ── Boot ──────────────────────────────────────────────────── */
@@ -677,6 +950,7 @@
       else el.value = v;
     });
     initSliderSync();
+    updateResultsWorkspace();
     setSaveState('ready');
   });
 })();

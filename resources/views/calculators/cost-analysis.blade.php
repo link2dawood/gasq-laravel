@@ -27,7 +27,7 @@
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Cost Inputs</h5></div>
         <div class="card-body d-flex flex-column gap-3">
           <div><label class="form-label fw-medium">Annual Security Budget ($)</label>
-            <div class="input-group"><span class="input-group-text">$</span><input type="number" id="ca_budget" class="form-control" value="180000" oninput="calcCA()"></div></div>
+            <input type="number" id="ca_budget" class="form-control" value="180000" oninput="calcCA()"></div>
           <div><label class="form-label fw-medium">Number of Guards</label>
             <input type="number" id="ca_guards" class="form-control" value="3" min="1" oninput="calcCA()"></div>
           <div><label class="form-label fw-medium">Hours Coverage per Day</label>
@@ -35,11 +35,11 @@
           <hr>
           <h6 class="fw-semibold">Cost of NOT Having Security</h6>
           <div><label class="form-label small fw-medium">Annual Theft/Shrinkage Losses ($)</label>
-            <div class="input-group"><span class="input-group-text">$</span><input type="number" id="ca_theft" class="form-control" value="50000" oninput="calcCA()"></div></div>
+            <input type="number" id="ca_theft" class="form-control" value="50000" oninput="calcCA()"></div>
           <div><label class="form-label small fw-medium">Annual Insurance Premium ($)</label>
-            <div class="input-group"><span class="input-group-text">$</span><input type="number" id="ca_insurance" class="form-control" value="25000" oninput="calcCA()"></div></div>
+            <input type="number" id="ca_insurance" class="form-control" value="25000" oninput="calcCA()"></div>
           <div><label class="form-label small fw-medium">Annual Liability Exposure ($)</label>
-            <div class="input-group"><span class="input-group-text">$</span><input type="number" id="ca_liability" class="form-control" value="30000" oninput="calcCA()"></div></div>
+            <input type="number" id="ca_liability" class="form-control" value="30000" oninput="calcCA()"></div>
           <div><label class="form-label small fw-medium">Security Reduces Risk By (%)</label>
             <input type="number" id="ca_reduction" class="form-control" value="70" step="5" oninput="calcCA()"></div>
         </div>

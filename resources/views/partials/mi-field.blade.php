@@ -26,30 +26,22 @@
       <div class="mi-help">{{ $help }}</div>
     </div>
 
-    <div class="mi-input-group">
-      @if($unitPos === 'prefix')
-        <span class="mi-unit mi-unit-prefix">{{ $unit }}</span>
-        <input
-          type="number"
-          id="{{ $id }}"
-          class="mi-number-input has-prefix"
-          step="{{ $step ?? '0.01' }}"
-          min="{{ $min ?? '0' }}"
-          @if($isPct) data-unit="pct" max="200" @endif
-        >
-      @else
-        <input
-          type="number"
-          id="{{ $id }}"
-          class="mi-number-input has-suffix"
-          step="{{ $step ?? '0.01' }}"
-          min="{{ $min ?? '0' }}"
-          @if($isPct) data-unit="pct" max="200" @endif
-        >
-        <span class="mi-unit mi-unit-suffix">{{ $unit }}</span>
-      @endif
-    </div>
+    <input
+      type="number"
+      id="{{ $id }}"
+      class="mi-number-input"
+      step="{{ $step ?? '0.01' }}"
+      min="{{ $min ?? '0' }}"
+      data-label="{{ trim(strip_tags($label)) }}"
+      data-help="{{ $help }}"
+      data-unit="{{ $unit }}"
+      data-unit-pos="{{ $unitPos }}"
+      data-is-pct="{{ $isPct ? '1' : '0' }}"
+      @if($isPct) max="200" @endif
+    >
   </div>
+
+  <div class="mi-unit-note">{{ $unitPos === 'prefix' ? $unit . ' value' : 'Value in ' . $unit }}</div>
 
   <input
     type="range"

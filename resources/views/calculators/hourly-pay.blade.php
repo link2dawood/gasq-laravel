@@ -29,12 +29,8 @@
         <div class="card-body d-flex flex-column gap-4">
 
           <div>
-            <label class="form-label fw-medium">Hourly Pay Rate ($)</label>
-            <div class="input-group">
-              <span class="input-group-text">$</span>
-              <input type="number" id="hp_rate" class="form-control" value="18.00" step="0.01" oninput="calcHP()">
-              <span class="input-group-text">/hr</span>
-            </div>
+            <label class="form-label fw-medium">Hourly Pay Rate ($/hr)</label>
+            <input type="number" id="hp_rate" class="form-control" value="18.00" step="0.01" oninput="calcHP()">
           </div>
 
           <div>
