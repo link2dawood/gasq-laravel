@@ -241,6 +241,7 @@
 @push('scripts')
 <script>
 (() => {
+  const savedScenario = window.__gasqCalculatorState?.scenario || null;
   const url = @json(route('backend.standalone.v24.compute', ['type' => 'gasq-tco-calculator']));
   const DEFAULTS = {
     tco_hours: 21322,
@@ -268,6 +269,21 @@
       gasqBillRateHourly: parseFloat(tco_gasq.value)||0,
       includeReport: false
     } } };
+  }
+
+  function hydrateSavedState(){
+    const meta = savedScenario?.meta || {};
+    const map = {
+      tco_hours: meta.annualBillableHours,
+      tco_vendor: meta.vendorTcoHourly,
+      tco_gasq: meta.gasqBillRateHourly,
+    };
+
+    Object.entries(map).forEach(([id, value]) => {
+      if(value === undefined || value === null) return;
+      const el = document.getElementById(id);
+      if(el) el.value = value;
+    });
   }
 
   function updateSignal(summary) {
@@ -335,6 +351,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', () => {
+    hydrateSavedState();
     document.querySelectorAll('input').forEach(el => el.addEventListener('input', schedule));
     compute();
   });

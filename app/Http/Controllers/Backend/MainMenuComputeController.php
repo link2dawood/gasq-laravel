@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Services\CalculatorRunBillingService;
+use App\Services\CalculatorStateStore;
 use App\Services\ScenarioMasterInputsMerger;
 use App\Services\V24\MainMenu\MainMenuComputeService;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ class MainMenuComputeController extends Controller
         private MainMenuComputeService $compute,
         private CalculatorRunBillingService $calculatorBilling,
         private ScenarioMasterInputsMerger $masterInputsMerger,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -48,6 +50,8 @@ class MainMenuComputeController extends Controller
                 'result' => $out,
             ],
         ]);
+
+        $this->calculatorStateStore->store($request->user(), 'main-menu', $scenario, $out);
 
         return response()->json([
             'ok' => true,

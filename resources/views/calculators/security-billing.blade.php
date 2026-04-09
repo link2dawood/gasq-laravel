@@ -421,6 +421,7 @@
 @push('scripts')
 <style>.x-sm{font-size:0.75rem}</style>
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 let sbDebounce = null;
 window._sbOut = {};
 window._sbState = {};
@@ -541,7 +542,19 @@ async function calcSB(){
         profitPct: state.profitPct,
         uniformCostPerUniform: state.uniformCost,
         uniformsPerEmployee: state.uniformQty,
-        trainingCostPerHire: state.trainingCost
+        trainingCostPerHire: state.trainingCost,
+        profile: {
+          customerName: state.customerName,
+          companyName: state.companyName,
+          email: state.email,
+          phone: state.phone,
+        },
+        comparison: {
+          basePayRate: g('cmpB_basePay'),
+          hoursPerWeek: g('cmpB_hours'),
+          overheadPct: g('cmpB_overhead'),
+          profitPct: g('cmpB_profit'),
+        }
       }
     }
   };
@@ -621,7 +634,41 @@ function resetAll(){
   calcSB();
 }
 
+function hydrateSavedSecurityBilling(){
+  const meta = savedScenario?.meta || {};
+  const profile = meta.profile || {};
+  const comparison = meta.comparison || {};
+  const map = {
+    sb_custName: profile.customerName,
+    sb_compName: profile.companyName,
+    sb_email: profile.email,
+    sb_phone: profile.phone,
+    sb_basePay: meta.basePayRate,
+    sb_hours: meta.hoursPerWeek,
+    sb_weeks: meta.weeksPerYear,
+    sb_fica: meta.ficaPct,
+    sb_futa: meta.futaPct,
+    sb_suta: meta.sutaPct,
+    sb_overhead: meta.overheadPct,
+    sb_profitPct: meta.profitPct,
+    sb_uniformCost: meta.uniformCostPerUniform,
+    sb_uniformQty: meta.uniformsPerEmployee,
+    sb_trainingCost: meta.trainingCostPerHire,
+    cmpB_basePay: comparison.basePayRate,
+    cmpB_hours: comparison.hoursPerWeek,
+    cmpB_overhead: comparison.overheadPct,
+    cmpB_profit: comparison.profitPct,
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(el) el.value = value;
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  hydrateSavedSecurityBilling();
   calcSB();
 });
 </script>

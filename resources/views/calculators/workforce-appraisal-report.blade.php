@@ -10,6 +10,52 @@
 
 @push('styles')
 <style>
+  .gasq-wa-shell {
+    background:
+      radial-gradient(circle at top right, rgba(6, 45, 121, 0.08), transparent 28%),
+      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  }
+  .gasq-wa-sidebar {
+    background: linear-gradient(180deg, #fbfcff 0%, #f2f5fb 100%);
+  }
+  .gasq-wa-sticky {
+    position: sticky;
+    top: 1.25rem;
+  }
+  .gasq-wa-kicker {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gasq-muted);
+  }
+  .gasq-wa-stat {
+    border: 1px solid rgba(6,45,121,0.08);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: #fff;
+  }
+  .gasq-wa-stat-label {
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gasq-muted);
+  }
+  .gasq-wa-stat-value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--gasq-primary);
+  }
+  .gasq-wa-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(6,45,121,0.08);
+    color: var(--gasq-primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
   .gasq-wa-hero { background: #6b0f1a; color: #fff; border-radius: 0.5rem 0.5rem 0 0; }
   .gasq-wa-section { background: #6b0f1a; color: #fff; font-weight: 600; letter-spacing: 0.02em; }
   .gasq-wa-subbanner { background: #3d4f6b; color: #fff; }
@@ -18,6 +64,9 @@
   .gasq-wa-table-head { background: #1e3a5f; color: #fff; }
   .gasq-wa-total-row { background: rgba(6,45,121,0.12); font-weight: 600; }
   .gasq-wa-mono { font-variant-numeric: tabular-nums; }
+  @media (max-width: 1199.98px) {
+    .gasq-wa-sticky { position: static; }
+  }
   @media print {
     .gasq-wa-no-print { display: none !important; }
   }
@@ -57,18 +106,23 @@
       </div>
     </div>
 
-    <ul class="nav nav-pills flex-nowrap gap-1 mb-3 overflow-auto gasq-wa-no-print" id="wa_tablist" role="tablist">
-      <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'cfo' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-cfo" id="tab-cfo"><i class="fa fa-table me-1"></i> CFO Bill Rate</button></li>
-      <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'posts' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-posts" id="tab-posts"><i class="fa fa-users me-1"></i> Scope of Work</button></li>
-      <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'appraisal' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-appraisal" id="tab-appraisal"><i class="fa fa-balance-scale me-1"></i> Appraisal Comparison</button></li>
-      <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'price' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-price" id="tab-price"><i class="fa fa-chart-line me-1"></i> Price Realism</button></li>
-    </ul>
+    <div class="card gasq-card gasq-wa-shell overflow-hidden">
+      <div class="card-body p-0">
+        <div class="row g-0">
+          <div class="col-xl-4 border-end gasq-wa-sidebar gasq-wa-no-print" id="wa-left-col">
+            <div class="p-3 p-md-4 gasq-wa-sticky">
+              <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+                <div>
+                  <div class="gasq-wa-kicker mb-2">Shared Inputs</div>
+                  <h2 class="h4 fw-bold mb-2">Workforce Appraisal Controls</h2>
+                  <p class="small text-gasq-muted mb-0">Every tab on the right reads from this shared appraisal input rail, including CFO Bill Rate, Scope of Work, Appraisal Comparison, and Price Realism.</p>
+                </div>
+                <span class="gasq-wa-chip"><i class="fa fa-bolt"></i> Live</span>
+              </div>
 
-    <div class="row g-3">
-      <div class="col-lg-4 gasq-wa-no-print" id="wa-left-col">
-        <div class="card gasq-card h-100">
-          <div class="card-header gasq-wa-section small text-uppercase">Appraisal drivers</div>
-          <div class="card-body small">
+              <div class="card gasq-card h-100 mb-0">
+                <div class="card-header gasq-wa-section small text-uppercase">Appraisal drivers</div>
+                <div class="card-body small">
             <div class="mb-2">
               <label class="form-label mb-0">Baseline labor ($/hr)</label>
               <div class="d-flex align-items-center gap-2">
@@ -254,11 +308,52 @@
                 </div>
               </div>
             </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-8" id="wa-right-col">
+            <div class="p-3 p-md-4">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6 col-xl-3">
+            <div class="gasq-wa-stat">
+              <div class="gasq-wa-stat-label mb-2">Annual Billable Hours</div>
+              <div class="gasq-wa-stat-value gasq-wa-mono" id="wa_stat_hours">0</div>
+              <div class="small text-gasq-muted">Derived from the shared Scope of Work inputs</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="gasq-wa-stat">
+              <div class="gasq-wa-stat-label mb-2">FTEs Required</div>
+              <div class="gasq-wa-stat-value gasq-wa-mono" id="wa_stat_ftes">0</div>
+              <div class="small text-gasq-muted">Updated from hours per professional annual</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="gasq-wa-stat">
+              <div class="gasq-wa-stat-label mb-2">Government Should-Cost</div>
+              <div class="gasq-wa-stat-value gasq-wa-mono" id="wa_stat_gov">$0.00</div>
+              <div class="small text-gasq-muted">Current internal benchmark per hour</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="gasq-wa-stat">
+              <div class="gasq-wa-stat-label mb-2">Vendor TCO</div>
+              <div class="gasq-wa-stat-value gasq-wa-mono" id="wa_stat_vendor">$0.00</div>
+              <div class="small text-gasq-muted">Current outsourced benchmark per hour</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-lg-8" id="wa-right-col">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+          <div>
+            <div class="gasq-wa-kicker mb-1">Results Workspace</div>
+            <h3 class="h5 fw-bold mb-0">Live Workforce Appraisal Outputs</h3>
+          </div>
+          <div class="small text-gasq-muted">All tabs below stay connected to the shared input rail on the left.</div>
+        </div>
+
         <div class="card gasq-card mb-3">
           <div class="card-header gasq-wa-subbanner d-flex justify-content-between align-items-center">
             <span>Direct Labor Build-Up</span>
@@ -270,7 +365,14 @@
           </div>
         </div>
 
-        <div class="tab-content">
+        <ul class="nav nav-pills flex-nowrap gap-1 mb-3 overflow-auto gasq-wa-no-print" id="wa_tablist" role="tablist">
+          <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'cfo' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-cfo" id="tab-cfo"><i class="fa fa-table me-1"></i> CFO Bill Rate</button></li>
+          <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'posts' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-posts" id="tab-posts"><i class="fa fa-users me-1"></i> Scope of Work</button></li>
+          <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'appraisal' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-appraisal" id="tab-appraisal"><i class="fa fa-balance-scale me-1"></i> Appraisal Comparison</button></li>
+          <li class="nav-item"><button type="button" class="nav-link {{ $initialTab === 'price' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-price" id="tab-price"><i class="fa fa-chart-line me-1"></i> Price Realism</button></li>
+        </ul>
+
+        <div class="tab-content" id="wa_results_workspace">
           <div class="tab-pane fade {{ $initialTab === 'cfo' ? 'show active' : '' }}" id="wa-pane-cfo" role="tabpanel">
             <div class="card gasq-card">
               <div class="card-header gasq-wa-section">CFO Bill Rate Breakdown</div>
@@ -429,6 +531,9 @@
             </div>
           </div>
         </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -441,6 +546,7 @@
 @push('scripts')
 <script>
 (function(){
+  const savedScenario = window.__gasqCalculatorState?.scenario || null;
   const POST_ROWS = 10;
   const computeUrl = @json(route('backend.standalone.v24.compute', ['type' => 'workforce-appraisal-report']));
   let debounce = null;
@@ -459,13 +565,13 @@
     return Math.round((Number(n) || 0) * 100) / 100;
   }
 
-  function buildPostBody(){
+  function buildPostBody(seedRows = null){
     const tb = document.getElementById('wa_post_body');
     if(!tb) return;
 
     tb.innerHTML = '';
     for(let i=0;i<POST_ROWS;i++){
-      const d = defaultPosts[i] || { positionTitle:'', blendedPayRate:0, annualHours:0 };
+      const d = seedRows?.[i] || defaultPosts[i] || { positionTitle:'', blendedPayRate:0, annualHours:0 };
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><input type="text" class="form-control form-control-sm gasq-wa-input wa-p-title" data-i="${i}" value="${d.positionTitle || ''}" placeholder="Post position"></td>
@@ -480,6 +586,67 @@
     }
 
     tb.querySelectorAll('input').forEach((el) => el.addEventListener('input', scheduleCompute));
+  }
+
+  function hydrateSavedState(){
+    const meta = savedScenario?.meta || {};
+    const inputs = meta.inputs || {};
+    const scope = meta.scope || {};
+    const appraisal = meta.appraisal || {};
+    const priceRealism = meta.priceRealism || {};
+    const posts = Array.isArray(meta.posts) ? meta.posts : [];
+
+    const map = {
+      wa_prep: appraisal.preparedFor,
+      wa_date: appraisal.reportDate,
+      wa_baseL: appraisal.baselineLaborRate,
+      wa_govH: appraisal.governmentShouldCostHourly,
+      wa_vendH: appraisal.vendorTcoHourly,
+      wa_hrProf: appraisal.hoursPerProfessionalAnnual ?? inputs.annualPaidHoursPerFte ?? inputs.annualPaidHoursPerFTE,
+      wa_pr_train: priceRealism.trainingProgramPerHour,
+      wa_pr_res: priceRealism.reservedGovernmentRateHourly,
+      wa_scope_hours_day: scope.hoursOfCoveragePerDay,
+      wa_scope_days_week: scope.daysOfCoveragePerWeek,
+      wa_scope_weeks: scope.weeksOfCoverage,
+      wa_scope_staff: scope.staffPerShift,
+      in_wage: inputs.directLaborWage,
+      in_hwCash: inputs.hwCashPerHour,
+      in_hw: inputs.healthWelfarePerHour,
+      in_donDoffMin: inputs.donDoffMinutesPerShift,
+      in_locality: inputs.localityPayPct,
+      in_lma: inputs.laborMarketAdjPct,
+      in_shiftDiff: inputs.shiftDifferentialPct,
+      in_ot: inputs.otHolidayPremiumPct,
+      in_fica: inputs.ficaMedicarePct,
+      in_futa: inputs.futaPct,
+      in_suta: inputs.sutaPct,
+      in_wc: inputs.workersCompPct,
+      in_vac: inputs.vacationPct,
+      in_hol: inputs.paidHolidaysPct,
+      in_sick: inputs.sickLeavePct,
+      in_profit: inputs.profitFeePct,
+    };
+
+    Object.entries(map).forEach(([id, value]) => {
+      if(value === undefined || value === null) return;
+      const el = document.getElementById(id);
+      if(el) el.value = value;
+    });
+
+    const seededPosts = Array.from({ length: POST_ROWS }, (_, index) => {
+      const savedRow = posts.find((row) => Number(row.index || 0) === index);
+      if (!savedRow) {
+        return null;
+      }
+
+      return {
+        positionTitle: savedRow.positionTitle || '',
+        blendedPayRate: savedRow.blendedPayRate || 0,
+        annualHours: savedRow.annualHours || 0,
+      };
+    });
+
+    return seededPosts.some(Boolean) ? seededPosts : null;
   }
 
   function collectPosts(){
@@ -556,6 +723,10 @@
     setText('wa_scope_weekly_billable', num(scope.weeklyBillableHours));
     setText('wa_scope_monthly_billable', num(scope.monthlyBillableHours));
     setText('wa_scope_hours_professional', num(scope.hoursPerProfessionalAnnual));
+    setText('wa_stat_hours', num(scope.annualBillableHours));
+    setText('wa_stat_ftes', scope.ftesRequired.toFixed(2));
+    setText('wa_stat_gov', money(parseFloat(document.getElementById('wa_govH')?.value || '0') || 0));
+    setText('wa_stat_vendor', money(parseFloat(document.getElementById('wa_vendH')?.value || '0') || 0));
   }
 
   function buildPayload(){
@@ -767,18 +938,6 @@
     debounce = setTimeout(runCompute, 260);
   };
 
-  function syncTabLayout(){
-    const postsActive = document.getElementById('tab-posts')?.classList.contains('active');
-    const leftCol = document.getElementById('wa-left-col');
-    const rightCol = document.getElementById('wa-right-col');
-
-    if(!leftCol || !rightCol) return;
-
-    leftCol.classList.toggle('d-none', !!postsActive);
-    rightCol.classList.toggle('col-lg-8', !postsActive);
-    rightCol.classList.toggle('col-12', !!postsActive);
-  }
-
   function initSliderSync(){
     document.querySelectorAll('input[type="range"][data-sync]').forEach((rangeEl)=>{
       const id = rangeEl.getAttribute('data-sync');
@@ -810,7 +969,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', ()=>{
-    buildPostBody();
+    const seededPosts = hydrateSavedState();
+    buildPostBody(seededPosts);
     initSliderSync();
     const tab = @json($initialTab);
     const map = { cfo:'tab-cfo', posts:'tab-posts', appraisal:'tab-appraisal', price:'tab-price' };
@@ -818,12 +978,7 @@
     const btn = document.getElementById(id);
     if(btn && window.bootstrap){ new bootstrap.Tab(btn).show(); }
 
-    document.querySelectorAll('#wa_tablist .nav-link').forEach((tabBtn)=>{
-      tabBtn.addEventListener('shown.bs.tab', syncTabLayout);
-    });
-
     syncDerivedScopeFields(deriveScopeMetrics());
-    syncTabLayout();
     runCompute();
   });
 })();

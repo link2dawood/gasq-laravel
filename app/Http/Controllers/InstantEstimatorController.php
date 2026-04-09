@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CalculatorStateStore;
 use App\Services\GasqEstimatorService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -9,7 +10,8 @@ use Illuminate\View\View;
 class InstantEstimatorController extends Controller
 {
     public function __construct(
-        private GasqEstimatorService $estimator
+        private GasqEstimatorService $estimator,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function index(Request $request): View
@@ -23,6 +25,12 @@ class InstantEstimatorController extends Controller
             );
             if ($result !== null) {
                 session(['report_payload' => ['type' => 'instant-estimator', 'result' => $result]]);
+                $this->calculatorStateStore->store(
+                    $request->user(),
+                    'instant-estimator',
+                    $request->except('_token'),
+                    $result,
+                );
             }
         }
 

@@ -278,6 +278,7 @@
 
 @push('scripts')
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 const COMP_COLORS = ['#3b82f6','#84cc16','#ef4444','#8b5cf6','#06b6d4','#f97316','#a855f7'];
 
 function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(v || 0);}
@@ -307,6 +308,32 @@ function buildPayload(){
       }
     } }
   };
+}
+
+function hydrateSavedBillRate(){
+  const meta = savedScenario?.meta || {};
+  const quick = meta.quick || {};
+  const components = meta.components || {};
+
+  const map = {
+    qbr_base: quick.basePayRate,
+    qbr_benefits: quick.benefitsPct,
+    qbr_overhead: quick.overheadPct,
+    qbr_profit: quick.profitPct,
+    bc_wages: components.wages,
+    bc_taxes: components.taxes,
+    bc_training: components.training,
+    bc_recruiting: components.recruiting,
+    bc_uniforms: components.uniforms,
+    bc_overhead: components.overhead,
+    bc_profit: components.profit,
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(el) el.value = value;
+  });
 }
 
 async function runCompute(){
@@ -385,6 +412,9 @@ async function runCompute(){
   }
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{ runCompute(); });
+document.addEventListener('DOMContentLoaded', ()=>{
+  hydrateSavedBillRate();
+  runCompute();
+});
 </script>
 @endpush

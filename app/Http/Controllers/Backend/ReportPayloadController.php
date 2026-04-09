@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Services\CalculatorStateStore;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ReportPayloadController extends Controller
 {
+    public function __construct(
+        private CalculatorStateStore $calculatorStateStore
+    ) {}
+
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -24,7 +29,13 @@ class ReportPayloadController extends Controller
             ],
         ]);
 
+        $this->calculatorStateStore->store(
+            $request->user(),
+            $validated['type'],
+            $validated['scenario'] ?? [],
+            $validated['result'],
+        );
+
         return response()->json(['ok' => true]);
     }
 }
-

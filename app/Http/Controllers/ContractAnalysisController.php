@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CalculatorStateStore;
 use App\Services\ContractAnalysisService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -9,7 +10,8 @@ use Illuminate\View\View;
 class ContractAnalysisController extends Controller
 {
     public function __construct(
-        private ContractAnalysisService $service
+        private ContractAnalysisService $service,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function index(Request $request): View
@@ -20,6 +22,12 @@ class ContractAnalysisController extends Controller
             $result = $this->service->analyze($categories);
             if ($result !== null) {
                 session(['report_payload' => ['type' => 'contract-analysis', 'result' => $result]]);
+                $this->calculatorStateStore->store(
+                    $request->user(),
+                    'contract-analysis',
+                    ['categories' => $categories],
+                    $result,
+                );
             }
         }
 

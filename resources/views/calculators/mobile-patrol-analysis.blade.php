@@ -260,6 +260,7 @@
 @push('scripts')
 <script>
 (function(){
+  const savedScenario = window.__gasqCalculatorState?.scenario || null;
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const COLORS = ['#8884d8','#82ca9d','#ffc658','#ff7300','#00ff7f','#ff1493'];
 
@@ -379,6 +380,49 @@
     const host = document.getElementById('mpa_vehicleEditors');
     host.innerHTML = '';
     vehicles.forEach((v, i) => host.appendChild(renderVehicleEditor(v, i)));
+  }
+
+  function hydrateSavedState() {
+    const scenario = savedScenario || {};
+    if (scenario.fiscalYear !== undefined) {
+      const fiscalYear = document.getElementById('mpa_fiscalYear');
+      if (fiscalYear) fiscalYear.value = scenario.fiscalYear;
+    }
+
+    const companyName = scenario.companyInfo?.name;
+    if (companyName !== undefined) {
+      const companyEl = document.getElementById('mpa_co_name');
+      if (companyEl) companyEl.value = companyName;
+    }
+
+    const currency = scenario.projectSettings?.currency;
+    if (currency !== undefined) {
+      const currencyEl = document.getElementById('mpa_currency');
+      if (currencyEl) currencyEl.value = currency;
+    }
+
+    if (scenario.notes !== undefined) {
+      const notesEl = document.getElementById('mpa_notes');
+      if (notesEl) notesEl.value = scenario.notes;
+    }
+
+    const vehicles = Array.isArray(scenario.vehicles) ? scenario.vehicles : null;
+    if (!vehicles || !vehicles.length) {
+      return [defaultVehicle(), defaultVehicle()];
+    }
+
+    vehicleSeq = vehicles.length;
+
+    return vehicles.map((vehicle, idx) => ({
+      id: vehicle.id || ('vehicle-' + (idx + 1)),
+      name: vehicle.name || ('Vehicle ' + (idx + 1)),
+      color: COLORS[idx % COLORS.length],
+      active: vehicle.active !== false,
+      monthlyData: Array.from({ length: 12 }, (_, monthIndex) => ({
+        ...defaultMonthCell(),
+        ...(vehicle.monthlyData?.[monthIndex] || {}),
+      })),
+    }));
   }
 
   function updateSummaryCards(k) {
@@ -523,7 +567,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     vehicleSeq = 0;
-    renderAllEditors([defaultVehicle(), defaultVehicle()]);
+    renderAllEditors(hydrateSavedState());
     runCompute();
   });
 })();

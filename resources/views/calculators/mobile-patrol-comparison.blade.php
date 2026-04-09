@@ -326,6 +326,7 @@
 
 @push('scripts')
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 const COMPARISON_DEFAULTS = {
   a_name: 'Scenario A - Current',
   a_hoursPerDay: 24,
@@ -383,6 +384,7 @@ function calcScenario(p){
 
 function readScenario(prefix){
   return {
+    name: document.getElementById(prefix + '_name').value || (prefix === 'a' ? 'Scenario A' : 'Scenario B'),
     hoursPerDay: gv(prefix + '_hoursPerDay'),
     daysPerYear: gv(prefix + '_daysPerYear'),
     wage: gv(prefix + '_wage'),
@@ -398,6 +400,33 @@ function readScenario(prefix){
     insurance: gv(prefix + '_insurance'),
     markup: gv(prefix + '_markup'),
   };
+}
+
+function hydrateSavedScenario(prefix, values){
+  if(!values) return;
+  const map = {
+    [prefix + '_name']: values.name,
+    [prefix + '_hoursPerDay']: values.hoursPerDay,
+    [prefix + '_daysPerYear']: values.daysPerYear,
+    [prefix + '_wage']: values.wage,
+    [prefix + '_burden']: values.burden,
+    [prefix + '_vehFin']: values.vehFin,
+    [prefix + '_miles']: values.miles,
+    [prefix + '_mpg']: values.mpg,
+    [prefix + '_fuel']: values.fuel,
+    [prefix + '_repairs']: values.repairs,
+    [prefix + '_tires']: values.tires,
+    [prefix + '_oilCost']: values.oilCost,
+    [prefix + '_oilMiles']: values.oilMiles,
+    [prefix + '_insurance']: values.insurance,
+    [prefix + '_markup']: values.markup,
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(el) el.value = value;
+  });
 }
 
 function updateLabel(prefix){
@@ -509,6 +538,8 @@ function calculate(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  hydrateSavedScenario('a', savedScenario?.a);
+  hydrateSavedScenario('b', savedScenario?.b);
   document.querySelectorAll('input').forEach((el) => el.addEventListener('input', calculate));
   updateLabel('a');
   updateLabel('b');

@@ -147,6 +147,7 @@
 @push('scripts')
 <style>.x-sm{font-size:0.75rem;line-height:1.2}</style>
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 const CATS = [
   {id:'bg_labor',label:'Labor (Wages & Benefits)',color:'#3b82f6'},
   {id:'bg_training',label:'Training & Development',color:'#22c55e'},
@@ -244,10 +245,50 @@ async function calcBudget(){
       'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
       'Accept':'application/json'
     },
-    body: JSON.stringify({ version:'v24', scenario:{ meta:{ annualBudget: total } } })
+    body: JSON.stringify({
+      version:'v24',
+      scenario:{ meta:{
+        annualBudget: total,
+        allocations: {
+          labor: g('bg_labor'),
+          training: g('bg_training'),
+          equipment: g('bg_equipment'),
+          vehicles: g('bg_vehicles'),
+          overhead: g('bg_overhead'),
+          insurance: g('bg_insurance'),
+          misc: g('bg_misc'),
+        }
+      } }
+    })
   });
   const data = await res.json();
   if(!res.ok || !data || !data.ok){ console.error(data); }
+}
+
+function hydrateSavedBudget(){
+  const meta = savedScenario?.meta || {};
+  const allocations = meta.allocations || {};
+
+  if(meta.annualBudget !== undefined){
+    const totalEl = document.getElementById('bg_total');
+    if(totalEl) totalEl.value = meta.annualBudget;
+  }
+
+  const map = {
+    bg_labor: allocations.labor,
+    bg_training: allocations.training,
+    bg_equipment: allocations.equipment,
+    bg_vehicles: allocations.vehicles,
+    bg_overhead: allocations.overhead,
+    bg_insurance: allocations.insurance,
+    bg_misc: allocations.misc,
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(el) el.value = value;
+  });
 }
 
 function resetBudget(){
@@ -258,6 +299,10 @@ function resetBudget(){
   calcBudget();
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{ initSliderSync(); calcBudget(); });
+document.addEventListener('DOMContentLoaded', ()=>{
+  hydrateSavedBudget();
+  initSliderSync();
+  calcBudget();
+});
 </script>
 @endpush

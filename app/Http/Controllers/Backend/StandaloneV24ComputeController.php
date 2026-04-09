@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Services\CalculatorRunBillingService;
+use App\Services\CalculatorStateStore;
 use App\Services\ScenarioMasterInputsMerger;
 use App\Services\V24\Standalone\StandaloneV24ComputeService;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ class StandaloneV24ComputeController extends Controller
         private StandaloneV24ComputeService $compute,
         private CalculatorRunBillingService $calculatorBilling,
         private ScenarioMasterInputsMerger $masterInputsMerger,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function __invoke(Request $request, string $type): JsonResponse
@@ -43,6 +45,8 @@ class StandaloneV24ComputeController extends Controller
             ],
         ]);
 
+        $this->calculatorStateStore->store($request->user(), $type, $scenario, $out);
+
         return response()->json([
             'ok' => true,
             'version' => 'v24',
@@ -53,4 +57,3 @@ class StandaloneV24ComputeController extends Controller
         ]);
     }
 }
-

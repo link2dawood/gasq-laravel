@@ -97,6 +97,7 @@
 @push('scripts')
 <script>
 (() => {
+  const savedScenario = window.__gasqCalculatorState?.scenario || null;
   const url = @json(route('backend.standalone.v24.compute', ['type' => 'buyer-fit-index']));
   let t = null;
   let inflight = null;
@@ -119,6 +120,22 @@
       }
     }
   });
+
+  function hydrateSavedState(){
+    const meta = savedScenario?.meta || {};
+    const map = {
+      bfi_complexity: meta.complexity,
+      bfi_risk: meta.risk,
+      bfi_budget: meta.budget,
+      bfi_mode: meta.mode,
+    };
+
+    Object.entries(map).forEach(([id, value]) => {
+      if(value === undefined || value === null) return;
+      const el = document.getElementById(id);
+      if(el) el.value = value;
+    });
+  }
 
   function scheduleCompute(){
     document.getElementById('bfi_complexity_v').textContent = document.getElementById('bfi_complexity').value;
@@ -174,8 +191,10 @@
   }
 
   window.resetAll = resetAll;
-  document.addEventListener('DOMContentLoaded', scheduleCompute);
+  document.addEventListener('DOMContentLoaded', () => {
+    hydrateSavedState();
+    scheduleCompute();
+  });
 })();
 </script>
 @endpush
-

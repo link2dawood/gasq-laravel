@@ -445,6 +445,7 @@
 
 @push('scripts')
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 const DEFAULTS = {
   hoursPerDay: 24, daysPerYear: 365, patrolmanHourlyWage: 30.00, payrollBurdenPercent: 24,
   vehicleAnnualFinanceCost: 7980.00, milesDrivenPerDay: 360, milesPerGallon: 20,
@@ -475,6 +476,7 @@ async function calculate(){
     version: 'v24',
     scenario: {
       meta: {
+        scenarioName: document.getElementById('scenarioName')?.value || '24-hour|24',
         hoursPerDay: g('hoursPerDay'),
         daysPerYear: g('daysPerYear'),
         patrolmanHourlyWage: g('patrolmanHourlyWage'),
@@ -544,6 +546,33 @@ async function calculate(){
   }
 }
 
+function hydrateSavedState(){
+  const meta = savedScenario?.meta || {};
+  const map = {
+    scenarioName: meta.scenarioName,
+    hoursPerDay: meta.hoursPerDay,
+    daysPerYear: meta.daysPerYear,
+    patrolmanHourlyWage: meta.patrolmanHourlyWage,
+    payrollBurdenPercent: meta.payrollBurdenPercent,
+    vehicleAnnualFinanceCost: meta.vehicleAnnualFinanceCost,
+    milesDrivenPerDay: meta.milesDrivenPerDay,
+    milesPerGallon: meta.milesPerGallon,
+    fuelPricePerGallon: meta.fuelPricePerGallon,
+    annualRepairs: meta.annualRepairs,
+    tiresAnnualCost: meta.tiresAnnualCost,
+    oilChangeCostPerService: meta.oilChangeCostPerService,
+    milesBetweenOilChanges: meta.milesBetweenOilChanges,
+    autoInsuranceAnnualCost: meta.autoInsuranceAnnualCost,
+    markupPercent: meta.markupPercent,
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(el) el.value = value;
+  });
+}
+
 function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
 
 function onPatrolTypeChange(){
@@ -573,6 +602,7 @@ let mpTimer = null;
 function scheduleCalculate(){ clearTimeout(mpTimer); mpTimer = setTimeout(calculate, 350); }
 
 document.addEventListener('DOMContentLoaded', () => {
+  hydrateSavedState();
   document.querySelectorAll('input,select,textarea').forEach(el => el.addEventListener('input', scheduleCalculate));
   calculate();
 });

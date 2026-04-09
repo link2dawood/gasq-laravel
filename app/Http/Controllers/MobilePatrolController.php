@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CalculatorStateStore;
 use App\Services\MobilePatrolService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -9,7 +10,8 @@ use Illuminate\View\View;
 class MobilePatrolController extends Controller
 {
     public function __construct(
-        private MobilePatrolService $service
+        private MobilePatrolService $service,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function calculator(Request $request): View
@@ -23,6 +25,12 @@ class MobilePatrolController extends Controller
             );
             if ($result !== null) {
                 session(['report_payload' => ['type' => 'mobile-patrol', 'result' => $result]]);
+                $this->calculatorStateStore->store(
+                    $request->user(),
+                    'mobile-patrol',
+                    $request->except('_token'),
+                    $result,
+                );
             }
         }
 
@@ -49,6 +57,12 @@ class MobilePatrolController extends Controller
             $result['scenario_a'] = $scenarioA;
             $result['scenario_b'] = $scenarioB;
             session(['report_payload' => ['type' => 'mobile-patrol-comparison', 'result' => $result]]);
+            $this->calculatorStateStore->store(
+                $request->user(),
+                'mobile-patrol-comparison',
+                ['a' => $a, 'b' => $b],
+                $result,
+            );
         }
 
         return view('calculators.mobile-patrol-comparison', ['result' => $result]);

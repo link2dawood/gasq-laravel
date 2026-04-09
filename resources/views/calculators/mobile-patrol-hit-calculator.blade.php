@@ -286,6 +286,7 @@
 @push('scripts')
 <script>
 (() => {
+  const savedScenario = window.__gasqCalculatorState?.scenario || null;
   const url = @json(route('backend.standalone.v24.compute', ['type' => 'mobile-patrol-hit-calculator']));
   const DEFAULTS = {
     i_days: 365,
@@ -333,6 +334,29 @@
         overtimeHourlyUsd: parseFloat(i_otR.value)||0,
       } }
     };
+  }
+
+  function hydrateSavedState(){
+    const meta = savedScenario?.meta || {};
+    const map = {
+      i_days: meta.daysPerYear,
+      i_hours: meta.hoursPerDay,
+      i_hits: meta.hitsPerDay,
+      i_markup: meta.markupPct,
+      i_miles: meta.milesPerDay,
+      i_cpm: meta.costPerMile,
+      i_equip: meta.equipmentPerDay,
+      i_regH: meta.regularHoursPerDay,
+      i_otH: meta.overtimeHoursPerDay,
+      i_regR: meta.regularHourlyUsd,
+      i_otR: meta.overtimeHourlyUsd,
+    };
+
+    Object.entries(map).forEach(([id, value]) => {
+      if(value === undefined || value === null) return;
+      const el = document.getElementById(id);
+      if(el) el.value = value;
+    });
   }
 
   async function compute(){
@@ -397,6 +421,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', () => {
+    hydrateSavedState();
     document.querySelectorAll('input').forEach(el => el.addEventListener('input', schedule));
     compute();
   });

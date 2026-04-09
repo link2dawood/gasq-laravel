@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CalculatorStateStore;
 use App\Services\MainMenuCalculatorService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -9,7 +10,8 @@ use Illuminate\View\View;
 class MainMenuCalculatorController extends Controller
 {
     public function __construct(
-        private MainMenuCalculatorService $calculator
+        private MainMenuCalculatorService $calculator,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function index(Request $request): View
@@ -47,6 +49,12 @@ class MainMenuCalculatorController extends Controller
             }
             if ($result !== null) {
                 session(['report_payload' => ['type' => 'main-menu', 'result' => $result]]);
+                $this->calculatorStateStore->store(
+                    $request->user(),
+                    'main-menu',
+                    $request->except('_token'),
+                    $result,
+                );
             }
         }
 

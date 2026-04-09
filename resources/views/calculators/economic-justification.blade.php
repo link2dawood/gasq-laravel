@@ -316,6 +316,7 @@
 
 @push('scripts')
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(v || 0);}
 function fmtN(v,dec=0){return new Intl.NumberFormat('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v || 0);}
 function g(id){return parseFloat(document.getElementById(id)?.value)||0;}
@@ -344,7 +345,14 @@ async function calcEJ(){
   const monthsInYear = g('ej_monthsInYear');
   const companyName = t('ej_company') || 'ABC COMPANY';
 
-  const payload = { version:'v24', scenario:{ meta:{ employeeTrueHourlyCost: empCost, weeklyHours: weeklyHours, weeksInYear: weeksInYear, monthsInYear: monthsInYear } } };
+  const payload = { version:'v24', scenario:{ meta:{
+    employeeTrueHourlyCost: empCost,
+    weeklyHours: weeklyHours,
+    weeksInYear: weeksInYear,
+    monthsInYear: monthsInYear,
+    companyName: companyName,
+    email: t('ej_email'),
+  } } };
   try{
     ejSetError('');
     if(ejInflight){ ejInflight.abort(); }
@@ -433,6 +441,24 @@ async function calcEJ(){
   }
 }
 
+function hydrateSavedEconomicJustification(){
+  const meta = savedScenario?.meta || {};
+  const map = {
+    ej_company: meta.companyName,
+    ej_email: meta.email,
+    ej_empCost: meta.employeeTrueHourlyCost,
+    ej_weeklyHours: meta.weeklyHours,
+    ej_weeksInYear: meta.weeksInYear,
+    ej_monthsInYear: meta.monthsInYear,
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(el) el.value = value;
+  });
+}
+
 function downloadPDF(){ window.print(); }
 function emailReport(){
   const email = t('ej_email');
@@ -441,6 +467,7 @@ function emailReport(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  hydrateSavedEconomicJustification();
   calcEJ();
 });
 </script>

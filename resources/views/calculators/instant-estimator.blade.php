@@ -182,6 +182,7 @@
 @push('scripts')
 <style>.x-sm{font-size:0.75rem;line-height:1.2} .cursor-pointer{cursor:pointer}</style>
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(v);}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 function syncSlider(sid,iid){document.getElementById(sid).value=document.getElementById(iid).value;}
@@ -265,6 +266,34 @@ function emailEstimate(){
   alert('Estimate report would be emailed to: ' + email);
 }
 
-document.addEventListener('DOMContentLoaded', calculate);
+function hydrateSavedInstantEstimator(){
+  const meta = savedScenario?.meta || {};
+  const map = {
+    loc: meta.locationState,
+    hours: meta.hoursPerWeek,
+    guards: meta.guards,
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    if(value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if(el) el.value = value;
+  });
+
+  const serviceType = meta.serviceType;
+  if(serviceType){
+    const radio = document.querySelector(`[name="serviceType"][value="${serviceType}"]`);
+    if(radio){
+      radio.checked = true;
+      document.querySelectorAll('.form-check').forEach(c=>{c.classList.remove('border-primary');c.classList.add('border');});
+      radio.closest('.form-check')?.classList.add('border-primary');
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  hydrateSavedInstantEstimator();
+  calculate();
+});
 </script>
 @endpush

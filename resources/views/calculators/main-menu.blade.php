@@ -422,6 +422,7 @@
 
 @push('scripts')
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 function fmt(v, dec = 2) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
 }
@@ -598,10 +599,51 @@ function scheduleCompute() {
   }, 150);
 }
 
+function hydrateSavedMainMenu() {
+  const meta = savedScenario?.meta || {};
+  const scope = savedScenario?.scope || {};
+  const posts = Array.isArray(savedScenario?.posts) ? savedScenario.posts : [];
+  const post = posts[0] || {};
+  const components = meta.components || {};
+
+  const map = {
+    sc_location: meta.locationState,
+    sc_serviceType: meta.serviceType ?? post.positionTitle,
+    sc_hours: meta.hoursPerWeek ?? post.weeklyHours,
+    sc_guards: meta.guards ?? post.qtyRequired,
+    mp_coverage: meta.siteCoverageHoursPerDay ?? scope.hoursOfCoveragePerDay,
+    mp_shift: meta.shiftPattern,
+    mp_factor: meta.schedulingFactor,
+    ej_employeeCost: meta.employeeTrueHourlyCost,
+    ej_weeklyHours: meta.weeklyHoursPerformed,
+    ej_weeksInYear: meta.weeksInYear,
+    ej_monthsInYear: meta.monthsInYear,
+    br_basePay: meta.basePayRate,
+    br_profit: meta.profitMarginPct,
+    bc_wages: components.wages,
+    bc_taxes: components.taxes,
+    bc_training: components.training,
+    bc_recruiting: components.recruiting,
+    bc_uniforms: components.uniforms,
+    bc_overhead: components.overhead,
+    bc_profit: components.profit,
+    cs_vehPassthrough: meta.vehiclePassthroughBillingsAnnual,
+    cs_vehCosts: meta.vehiclePassthroughCostsAnnual,
+    cs_workingCapital: meta.workingCapitalRequirement,
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    if (value === undefined || value === null) return;
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  });
+}
+
 function downloadReport(){ window.print(); }
 function emailReport(){ alert('Email functionality: connect to POST /api/spa/mail/calculator-pdf'); }
 
 document.addEventListener('DOMContentLoaded', function () {
+  hydrateSavedMainMenu();
   // Recompute on any input change on this page.
   document.querySelectorAll('input,select,textarea').forEach(el => {
     el.addEventListener('input', scheduleCompute);

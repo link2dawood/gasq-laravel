@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Services\CalculatorRunBillingService;
+use App\Services\CalculatorStateStore;
 use App\Services\SecurityBillingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ class SecurityBillingComputeController extends Controller
     public function __construct(
         private SecurityBillingService $service,
         private CalculatorRunBillingService $calculatorBilling,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -42,6 +44,13 @@ class SecurityBillingComputeController extends Controller
             ],
         ]);
 
+        $this->calculatorStateStore->store(
+            $request->user(),
+            'security-billing',
+            ['meta' => $validated],
+            ['kpis' => $result],
+        );
+
         return response()->json([
             'ok' => true,
             'kpis' => $result,
@@ -50,4 +59,3 @@ class SecurityBillingComputeController extends Controller
         ]);
     }
 }
-

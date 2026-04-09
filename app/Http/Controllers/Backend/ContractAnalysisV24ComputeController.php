@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Services\CalculatorRunBillingService;
+use App\Services\CalculatorStateStore;
 use App\Services\ScenarioMasterInputsMerger;
 use App\Services\V24\ContractAnalysis\ContractAnalysisV24ComputeService;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ class ContractAnalysisV24ComputeController extends Controller
         private ContractAnalysisV24ComputeService $compute,
         private CalculatorRunBillingService $calculatorBilling,
         private ScenarioMasterInputsMerger $masterInputsMerger,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -42,6 +44,8 @@ class ContractAnalysisV24ComputeController extends Controller
                 'result' => $out,
             ],
         ]);
+
+        $this->calculatorStateStore->store($request->user(), 'contract-analysis', $scenario, $out);
 
         return response()->json([
             'ok' => true,

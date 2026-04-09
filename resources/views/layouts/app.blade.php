@@ -133,6 +133,13 @@
         @endif
     </div>
     <script src="{{ mix('js/app.js') }}"></script>
+    <script>
+        window.__gasqCalculatorState = @json([
+            'type' => $savedCalculatorType ?? null,
+            'scenario' => $savedCalculatorScenario ?? null,
+            'result' => $savedCalculatorResult ?? null,
+        ]);
+    </script>
     @stack('scripts')
 </body>
 </html>

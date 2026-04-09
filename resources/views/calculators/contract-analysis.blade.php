@@ -155,6 +155,7 @@
 
 @push('scripts')
 <script>
+const savedScenario = window.__gasqCalculatorState?.scenario || null;
 let rows = [];
 let rowId = 0;
 
@@ -285,8 +286,22 @@ async function runAnalysis(){
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
-  addRow({cat:'Access Control Officer',hrs:54,pay:18,bill:26.5,ot:0});
-  addRow({cat:'Unarmed Security Officer',hrs:40,pay:16,bill:24,ot:4});
+  const categories = Array.isArray(savedScenario?.categories) ? savedScenario.categories : null;
+  if(categories && categories.length){
+    categories.forEach((row) => {
+      addRow({
+        cat: row.category,
+        armed: row.armed,
+        hrs: row.weeklyHours,
+        pay: row.payRate,
+        bill: row.billRate,
+        ot: row.otHours,
+      });
+    });
+  } else {
+    addRow({cat:'Access Control Officer',hrs:54,pay:18,bill:26.5,ot:0});
+    addRow({cat:'Unarmed Security Officer',hrs:40,pay:16,bill:24,ot:4});
+  }
 });
 </script>
 @endpush

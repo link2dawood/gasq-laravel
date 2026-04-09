@@ -262,6 +262,7 @@
 @push('scripts')
 <script>
 (() => {
+  const savedScenario = window.__gasqCalculatorState?.scenario || null;
   const url = @json(route('backend.standalone.v24.compute', ['type' => 'government-contract-calculator']));
   const DEFAULTS = {
     gc_base: 20.76,
@@ -300,6 +301,27 @@
       profitPct: parseFloat(gc_fee.value)||0,
       annualHours: parseFloat(gc_hours.value)||0,
     } } };
+  }
+
+  function hydrateSavedState(){
+    const meta = savedScenario?.meta || {};
+    const map = {
+      gc_base: meta.baseWage,
+      gc_hw: meta.healthWelfareCashPerHour,
+      gc_loc: meta.localityPayPct,
+      gc_shift: meta.shiftDifferentialPct,
+      gc_burden: meta.employerBurdenPct,
+      gc_ops: meta.opsSupportPct,
+      gc_oh: meta.overheadPct,
+      gc_fee: meta.profitPct,
+      gc_hours: meta.annualHours,
+    };
+
+    Object.entries(map).forEach(([id, value]) => {
+      if(value === undefined || value === null) return;
+      const el = document.getElementById(id);
+      if(el) el.value = value;
+    });
   }
 
   async function compute(){
@@ -356,6 +378,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', () => {
+    hydrateSavedState();
     document.querySelectorAll('input').forEach(el=> el.addEventListener('input', schedule));
     compute();
   });

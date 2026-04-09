@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ReportPdfMail;
+use App\Models\CalculatorState;
 use App\Models\Transaction;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
@@ -37,8 +38,8 @@ class ReportController extends Controller
     public function downloadReport(Request $request): Response|\Illuminate\Http\RedirectResponse
     {
         $type = $request->input('type');
-        $payload = session('report_payload');
-        if (! $type || ! $payload || ($payload['type'] ?? null) !== $type) {
+        $payload = $this->payloadForType($request, $type);
+        if (! $type || ! $payload) {
             return back()->with('error', 'No report data available. Run the calculator again and use Download PDF.');
         }
 
@@ -57,8 +58,8 @@ class ReportController extends Controller
         ]);
 
         $type = $request->input('type');
-        $payload = session('report_payload');
-        if (! $payload || ($payload['type'] ?? null) !== $type) {
+        $payload = $this->payloadForType($request, $type);
+        if (! $payload) {
             return back()->with('error', 'No report data available. Run the calculator again and use Email report.');
         }
 
@@ -72,5 +73,38 @@ class ReportController extends Controller
         ));
 
         return back()->with('success', 'Report sent to ' . $request->input('email'));
+    }
+
+    private function payloadForType(Request $request, ?string $type): ?array
+    {
+        if (! $type) {
+            return null;
+        }
+
+        $payload = session('report_payload');
+        if ($payload && ($payload['type'] ?? null) === $type) {
+            return $payload;
+        }
+
+        $user = $request->user();
+        if (! $user) {
+            return null;
+        }
+
+        /** @var CalculatorState|null $state */
+        $state = $user->calculatorStates()
+            ->where('calculator_type', $type)
+            ->latest('last_ran_at')
+            ->first();
+
+        if (! $state) {
+            return null;
+        }
+
+        return [
+            'type' => $state->calculator_type,
+            'scenario' => $state->scenario ?? [],
+            'result' => $state->result ?? [],
+        ];
     }
 }

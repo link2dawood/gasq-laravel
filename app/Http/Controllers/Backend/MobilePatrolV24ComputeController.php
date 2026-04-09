@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Services\CalculatorRunBillingService;
+use App\Services\CalculatorStateStore;
 use App\Services\ScenarioMasterInputsMerger;
 use App\Services\V24\MobilePatrol\MobilePatrolV24ComputeService;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ class MobilePatrolV24ComputeController extends Controller
         private MobilePatrolV24ComputeService $compute,
         private CalculatorRunBillingService $calculatorBilling,
         private ScenarioMasterInputsMerger $masterInputsMerger,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -43,6 +45,8 @@ class MobilePatrolV24ComputeController extends Controller
             ],
         ]);
 
+        $this->calculatorStateStore->store($request->user(), 'mobile-patrol', $scenario, $out);
+
         return response()->json([
             'ok' => true,
             'version' => 'v24',
@@ -52,4 +56,3 @@ class MobilePatrolV24ComputeController extends Controller
         ]);
     }
 }
-

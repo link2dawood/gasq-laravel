@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CalculatorStateStore;
 use App\Services\SecurityBillingService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -9,7 +10,8 @@ use Illuminate\View\View;
 class SecurityBillingController extends Controller
 {
     public function __construct(
-        private SecurityBillingService $service
+        private SecurityBillingService $service,
+        private CalculatorStateStore $calculatorStateStore,
     ) {}
 
     public function index(Request $request): View
@@ -23,6 +25,12 @@ class SecurityBillingController extends Controller
             );
             if ($result !== null) {
                 session(['report_payload' => ['type' => 'security-billing', 'result' => $result]]);
+                $this->calculatorStateStore->store(
+                    $request->user(),
+                    'security-billing',
+                    $request->except('_token'),
+                    $result,
+                );
             }
         }
 
