@@ -172,7 +172,6 @@
                       <thead class="table-light">
                         <tr>
                           <th style="min-width: 340px;">Line Item</th>
-                          <th style="width: 190px;">Source</th>
                           <th class="text-end" style="width: 160px;">Hourly Amount</th>
                           <th class="text-end" style="width: 190px;">Annual Amount</th>
                         </tr>
@@ -326,27 +325,26 @@
     body.innerHTML = '';
     const sections = (stack && stack.sections) ? stack.sections : [];
     for(const sec of sections){
-      body.innerHTML += `<tr><td colspan="4" class="dlb-sub fw-semibold">${sec.title}</td></tr>`;
+      body.innerHTML += `<tr><td colspan="3" class="dlb-sub fw-semibold">${sec.title}</td></tr>`;
       for(const r of (sec.rows||[])){
         const label = LABELS[r.key] || r.label;
         body.innerHTML += `
           <tr>
             <td>${label}</td>
-            <td class="small text-gasq-muted">Shared input rail</td>
             <td class="text-end">${money(r.hourly)}</td>
             <td class="text-end text-success">${money(r.annual)}</td>
           </tr>`;
       }
       const st = sec.subtotal||{};
-      body.innerHTML += `<tr class="table-warning fw-semibold"><td>${st.label}</td><td></td><td class="text-end">${money(st.hourly)}</td><td class="text-end text-success">${money(st.annual)}</td></tr>`;
+      body.innerHTML += `<tr class="table-warning fw-semibold"><td>${st.label}</td><td class="text-end">${money(st.hourly)}</td><td class="text-end text-success">${money(st.annual)}</td></tr>`;
       if(sec.laborPlusFringe){
         const l = sec.laborPlusFringe;
-        body.innerHTML += `<tr class="table-warning fw-bold"><td>${l.label}</td><td></td><td class="text-end">${money(l.hourly)}</td><td class="text-end text-success">${money(l.annual)}</td></tr>`;
+        body.innerHTML += `<tr class="table-warning fw-bold"><td>${l.label}</td><td class="text-end">${money(l.hourly)}</td><td class="text-end text-success">${money(l.annual)}</td></tr>`;
       }
     }
     const g = (stack && stack.grandTotal) ? stack.grandTotal : null;
     if(g){
-      body.innerHTML += `<tr class="table-primary fw-bold"><td>${g.label}</td><td></td><td class="text-end">${money(g.hourly)}</td><td class="text-end text-success">${money(g.annual)}</td></tr>`;
+      body.innerHTML += `<tr class="table-primary fw-bold"><td>${g.label}</td><td class="text-end">${money(g.hourly)}</td><td class="text-end text-success">${money(g.annual)}</td></tr>`;
     }
   }
 

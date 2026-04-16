@@ -1,2 +1,9 @@
-{ "version":"v24", "scenario": { "meta": { "annualBudget": 250000 } } }
-
+{
+  "version": "v24",
+  "scenario": {
+    "meta": {
+      "governmentShouldCostHourly": 86.75,
+      "annualBillableHours": 8736
+    }
+  }
+}

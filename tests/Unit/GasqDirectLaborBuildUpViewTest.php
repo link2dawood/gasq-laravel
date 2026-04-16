@@ -20,5 +20,6 @@ class GasqDirectLaborBuildUpViewTest extends TestCase
         $this->assertStringContainsString('id="dlb_stat_burdened"', $html);
         $this->assertStringContainsString('id="dlb_stat_total"', $html);
         $this->assertStringContainsString('id="dlb_body"', $html);
+        $this->assertStringNotContainsString('>Source<', $html);
     }
 }
