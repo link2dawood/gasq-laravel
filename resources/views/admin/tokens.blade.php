@@ -5,8 +5,13 @@
 @section('content')
 <div class="container py-4">
     <div class="mb-4">
-        <h1 class="h2 fw-bold mb-1">Tokens & Wallets</h1>
-        <p class="text-gasq-muted mb-0">View and manage user wallets and feature token costs.</p>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h1 class="h2 fw-bold mb-1">Tokens & Wallets</h1>
+                <p class="text-gasq-muted mb-0">View and manage user wallets and feature token costs.</p>
+            </div>
+            <a href="{{ route('admin.coupons.index') }}" class="btn btn-outline-primary">Manage Coupons</a>
+        </div>
     </div>
 
     @if (session('success'))

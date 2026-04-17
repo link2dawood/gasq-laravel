@@ -119,6 +119,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(CalculatorState::class);
     }
 
+    public function couponRedemptions(): HasMany
+    {
+        return $this->hasMany(CouponRedemption::class);
+    }
+
     public function masterInputProfile(): HasOne
     {
         return $this->hasOne(MasterInputProfile::class);

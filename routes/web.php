@@ -138,6 +138,7 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/account-balance', [App\Http\Controllers\AccountBalanceController::class, 'index'])->name('account-balance');
     Route::get('/credits', [App\Http\Controllers\CreditsController::class, 'index'])->name('credits');
     Route::get('/credits/success', [App\Http\Controllers\CreditsController::class, 'success'])->name('credits.success');
+    Route::post('/credits/redeem', [App\Http\Controllers\CreditsController::class, 'redeem'])->name('credits.redeem');
     Route::post('/credits/checkout/{plan}', [StripeCreditsController::class, 'checkout'])->name('credits.checkout');
 
     // Discovery call
@@ -228,6 +229,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/tokens', [App\Http\Controllers\AdminTokensController::class, 'index'])->name('admin.tokens');
     Route::post('/admin/tokens/adjust', [App\Http\Controllers\AdminTokensController::class, 'adjust'])->name('admin.tokens.adjust');
     Route::post('/admin/tokens/features/{rule}', [App\Http\Controllers\AdminTokensController::class, 'updateFeature'])->name('admin.tokens.features.update');
+    Route::resource('admin/coupons', App\Http\Controllers\AdminCouponController::class)->except(['show'])->names([
+        'index' => 'admin.coupons.index',
+        'create' => 'admin.coupons.create',
+        'store' => 'admin.coupons.store',
+        'edit' => 'admin.coupons.edit',
+        'update' => 'admin.coupons.update',
+        'destroy' => 'admin.coupons.destroy',
+    ]);
     Route::resource('admin/faqs', App\Http\Controllers\AdminFaqController::class)->except(['show'])->names([
         'index' => 'admin.faqs.index',
         'create' => 'admin.faqs.create',

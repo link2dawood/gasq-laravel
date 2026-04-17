@@ -21,7 +21,8 @@
             <h3 class="card-title mb-0">Content</h3>
         </div>
         <div class="card-body">
-            <p class="text-gasq-muted small mb-2">Manage FAQs and page content (Pay Scale, Payment Policy, Post Coverage Schedule).</p>
+            <p class="text-gasq-muted small mb-2">Manage FAQs, coupons, and page content (Pay Scale, Payment Policy, Post Coverage Schedule).</p>
+            <a href="{{ route('admin.coupons.index') }}" class="btn btn-sm btn-outline-primary me-2">Coupons</a>
             <a href="{{ route('admin.faqs.index') }}" class="btn btn-sm btn-outline-primary me-2">FAQs</a>
             <a href="{{ route('admin.content-sections.index') }}" class="btn btn-sm btn-outline-primary">Page Content</a>
         </div>
