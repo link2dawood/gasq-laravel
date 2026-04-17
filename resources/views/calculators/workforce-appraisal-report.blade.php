@@ -65,19 +65,20 @@
   .gasq-wa-total-row { background: rgba(6,45,121,0.12); font-weight: 600; }
   .gasq-wa-mono { font-variant-numeric: tabular-nums; }
   .gasq-wa-tabs {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
     padding-left: 0;
     list-style: none;
   }
   .gasq-wa-tabs .nav-item {
-    min-width: 0;
+    flex: 1 1 170px;
+    min-width: 170px;
   }
   .gasq-wa-tabs .nav-link {
     width: 100%;
     height: 100%;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
@@ -89,6 +90,15 @@
     font-weight: 600;
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .gasq-wa-tabs .nav-link i {
+    width: 1rem;
+    text-align: center;
+    flex: 0 0 auto;
+  }
+  .gasq-wa-tabs .nav-link span {
+    line-height: 1.2;
+    text-align: center;
   }
   .gasq-wa-tabs .nav-link:hover,
   .gasq-wa-tabs .nav-link:focus {
@@ -104,8 +114,9 @@
   }
   @media (max-width: 575.98px) {
     .gasq-wa-tabs {
-      grid-template-columns: 1fr;
+      flex-direction: column;
     }
+    .gasq-wa-tabs .nav-item { min-width: 0; }
   }
   @media (max-width: 1199.98px) {
     .gasq-wa-sticky { position: static; }
@@ -409,10 +420,10 @@
         </div>
 
         <ul class="nav nav-pills gasq-wa-tabs mb-3 gasq-wa-no-print" id="wa_tablist" role="tablist">
-          <li class="nav-item" role="presentation"><button type="button" class="nav-link {{ $initialTab === 'cfo' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-cfo" id="tab-cfo" role="tab" aria-controls="wa-pane-cfo" aria-selected="{{ $initialTab === 'cfo' ? 'true' : 'false' }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></button></li>
-          <li class="nav-item" role="presentation"><button type="button" class="nav-link {{ $initialTab === 'posts' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-posts" id="tab-posts" role="tab" aria-controls="wa-pane-posts" aria-selected="{{ $initialTab === 'posts' ? 'true' : 'false' }}"><i class="fa fa-users"></i><span>Scope of Work</span></button></li>
-          <li class="nav-item" role="presentation"><button type="button" class="nav-link {{ $initialTab === 'appraisal' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-appraisal" id="tab-appraisal" role="tab" aria-controls="wa-pane-appraisal" aria-selected="{{ $initialTab === 'appraisal' ? 'true' : 'false' }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></button></li>
-          <li class="nav-item" role="presentation"><button type="button" class="nav-link {{ $initialTab === 'price' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#wa-pane-price" id="tab-price" role="tab" aria-controls="wa-pane-price" aria-selected="{{ $initialTab === 'price' ? 'true' : 'false' }}"><i class="fa fa-chart-line"></i><span>Price Realism</span></button></li>
+          <li class="nav-item" role="presentation"><a class="nav-link {{ $initialTab === 'cfo' ? 'active' : '' }}" data-bs-toggle="tab" href="#wa-pane-cfo" id="tab-cfo" role="tab" aria-controls="wa-pane-cfo" aria-selected="{{ $initialTab === 'cfo' ? 'true' : 'false' }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
+          <li class="nav-item" role="presentation"><a class="nav-link {{ $initialTab === 'posts' ? 'active' : '' }}" data-bs-toggle="tab" href="#wa-pane-posts" id="tab-posts" role="tab" aria-controls="wa-pane-posts" aria-selected="{{ $initialTab === 'posts' ? 'true' : 'false' }}"><i class="fa fa-users"></i><span>Scope of Work</span></a></li>
+          <li class="nav-item" role="presentation"><a class="nav-link {{ $initialTab === 'appraisal' ? 'active' : '' }}" data-bs-toggle="tab" href="#wa-pane-appraisal" id="tab-appraisal" role="tab" aria-controls="wa-pane-appraisal" aria-selected="{{ $initialTab === 'appraisal' ? 'true' : 'false' }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></a></li>
+          <li class="nav-item" role="presentation"><a class="nav-link {{ $initialTab === 'price' ? 'active' : '' }}" data-bs-toggle="tab" href="#wa-pane-price" id="tab-price" role="tab" aria-controls="wa-pane-price" aria-selected="{{ $initialTab === 'price' ? 'true' : 'false' }}"><i class="fa fa-chart-line"></i><span>Price Realism</span></a></li>
         </ul>
 
         <div class="tab-content" id="wa_results_workspace">
@@ -1020,7 +1031,9 @@
     const map = { cfo:'tab-cfo', posts:'tab-posts', appraisal:'tab-appraisal', price:'tab-price' };
     const id = map[tab] || 'tab-cfo';
     const btn = document.getElementById(id);
-    if(btn && window.bootstrap){ new bootstrap.Tab(btn).show(); }
+    if(btn && window.bootstrap){
+      bootstrap.Tab.getOrCreateInstance(btn).show();
+    }
 
     syncDerivedScopeFields(deriveScopeMetrics());
     runCompute();
