@@ -6,6 +6,12 @@
     "monthlyBudget": 63154,
     "weeklyBudget": 14574,
     "dailyBudget": 2076.3,
+    "hours": {
+      "yearly": 8736,
+      "monthly": 728,
+      "weekly": 168,
+      "daily": 23.93
+    },
     "totalAllocatedPct": 1,
     "laborAllocationPct": 0.6969,
     "laborAllocationAmount": 528144.27,

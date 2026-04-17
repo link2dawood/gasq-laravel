@@ -30,6 +30,12 @@ class StandalonePdfViewTest extends TestCase
                     'monthlyBudget' => 20250,
                     'weeklyBudget' => 4673.08,
                     'dailyBudget' => 665.75,
+                    'hours' => [
+                        'yearly' => 8736,
+                        'monthly' => 728,
+                        'weekly' => 168,
+                        'daily' => 23.93,
+                    ],
                     'totalAllocatedPct' => 1.03,
                     'laborAllocationPct' => 0.62,
                     'laborAllocationAmount' => 150660,
@@ -60,6 +66,10 @@ class StandalonePdfViewTest extends TestCase
         $this->assertStringContainsString('Monthly Budget', $html);
         $this->assertStringContainsString('Weekly Budget', $html);
         $this->assertStringContainsString('Daily Budget', $html);
+        $this->assertStringContainsString('Hours / Yearly', $html);
+        $this->assertStringContainsString('Hours / Monthly', $html);
+        $this->assertStringContainsString('Hours / Weekly', $html);
+        $this->assertStringContainsString('Hours / Daily', $html);
         $this->assertStringContainsString('Total Allocated Percent', $html);
         $this->assertStringContainsString('Labor Allocation Amount', $html);
         $this->assertStringContainsString('Labor Status', $html);
@@ -72,6 +82,9 @@ class StandalonePdfViewTest extends TestCase
         $this->assertStringContainsString('243,000', $html);
         $this->assertStringContainsString('86.75', $html);
         $this->assertStringContainsString('8,736', $html);
+        $this->assertStringContainsString('728', $html);
+        $this->assertStringContainsString('168', $html);
+        $this->assertStringContainsString('23.93', $html);
         $this->assertStringContainsString('4,673.08', $html);
         $this->assertStringContainsString('665.75', $html);
         $this->assertStringContainsString('103%', $html);

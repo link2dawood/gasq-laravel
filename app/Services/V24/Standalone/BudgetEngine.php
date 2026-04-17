@@ -66,6 +66,9 @@ class BudgetEngine
         $monthly = $annual / 12;
         $weekly = $annual / 52;
         $daily = $annual / 365;
+        $monthlyHours = $annualBillableHours / 12;
+        $weeklyHours = $annualBillableHours / 52;
+        $dailyHours = $annualBillableHours / 365;
         $totalAllocatedPct = array_sum($groupPercents);
         $laborStatus = $laborPct < 55
             ? 'Below benchmark'
@@ -78,6 +81,12 @@ class BudgetEngine
             'monthlyBudget' => round($monthly, 2),
             'weeklyBudget' => round($weekly, 2),
             'dailyBudget' => round($daily, 2),
+            'hours' => [
+                'yearly' => round($annualBillableHours, 2),
+                'monthly' => round($monthlyHours, 2),
+                'weekly' => round($weeklyHours, 2),
+                'daily' => round($dailyHours, 2),
+            ],
             'totalAllocatedPct' => round($totalAllocatedPct, 4),
             'laborAllocationPct' => round($laborPct / 100, 4),
             'laborAllocationAmount' => $this->allocationAmount($annual, $laborPct),
