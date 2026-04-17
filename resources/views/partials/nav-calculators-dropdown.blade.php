@@ -17,7 +17,6 @@
 
         <li><hr class="dropdown-divider my-0"></li>
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Rates &amp; labor</h6></li>
-        <li><a class="dropdown-item" href="{{ route('bill-rate-analysis.index') }}"><i class="fa fa-dollar-sign me-2"></i>Bill Rate Analysis</a></li>
         <li><a class="dropdown-item" href="{{ route('economic-justification.index') }}"><i class="fa fa-chart-line me-2"></i>Economic Justification</a></li>
         <li><a class="dropdown-item" href="{{ route('budget-calculator.index') }}"><i class="fa fa-piggy-bank me-2"></i>Budget Calculator</a></li>
 
