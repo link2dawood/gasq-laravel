@@ -214,6 +214,34 @@
             </div>
           </div>
 
+          <h6 class="fw-semibold mb-3">Hours Summary</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Yearly Hours</div>
+                <div class="metric-value text-primary" id="r_hours_yearly">0</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Monthly Hours</div>
+                <div class="metric-value" id="r_hours_monthly">0</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Weekly Hours</div>
+                <div class="metric-value" id="r_hours_weekly">0</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Daily Hours</div>
+                <div class="metric-value" id="r_hours_daily">0</div>
+              </div>
+            </div>
+          </div>
+
           <h6 class="fw-semibold mb-3">Allocation Group Totals</h6>
           <div id="bg_group_summary" class="d-flex flex-column gap-2 mb-4"></div>
 
@@ -295,6 +323,13 @@ function fmtPct(v) {
   return `${trimNumber(v, 2)}%`;
 }
 
+function fmtHours(v) {
+  return Number(v || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
+}
+
 function g(id) {
   return parseFloat(document.getElementById(id)?.value || '0') || 0;
 }
@@ -374,6 +409,9 @@ async function syncBudget(total, allocations, governmentShouldCost, annualHours)
 function calcBudget() {
   const governmentShouldCost = g('bg_govShouldCost');
   const annualHours = g('bg_annualHours');
+  const monthlyHours = annualHours / 12;
+  const weeklyHours = annualHours / 52;
+  const dailyHours = annualHours / 365;
   const total = governmentShouldCost * annualHours;
   const itemStates = ALL_ITEMS.map((item) => ({ ...item, pct: g(item.id) }));
   const allocationsPayload = Object.fromEntries(itemStates.map((item) => [item.key, item.pct]));
@@ -415,6 +453,10 @@ function calcBudget() {
   setText('r_monthly', fmt(total / 12));
   setText('r_weekly', fmt(total / 52));
   setText('r_daily', fmt(total / 365));
+  setText('r_hours_yearly', fmtHours(annualHours));
+  setText('r_hours_monthly', fmtHours(monthlyHours));
+  setText('r_hours_weekly', fmtHours(weeklyHours));
+  setText('r_hours_daily', fmtHours(dailyHours));
 
   const groupSummary = document.getElementById('bg_group_summary');
   groupSummary.innerHTML = groupStates.map((group) => `
