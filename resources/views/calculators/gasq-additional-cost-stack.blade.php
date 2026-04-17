@@ -23,23 +23,6 @@
     letter-spacing: 0.12em;
     color: var(--gasq-muted);
   }
-  .acs-stat {
-    border: 1px solid rgba(6,45,121,0.08);
-    border-radius: 1rem;
-    padding: 1rem;
-    background: #fff;
-  }
-  .acs-stat-label {
-    font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--gasq-muted);
-  }
-  .acs-stat-value {
-    font-size: 1.45rem;
-    font-weight: 700;
-    color: var(--gasq-primary);
-  }
   .acs-chip {
     display: inline-flex;
     align-items: center;
@@ -56,9 +39,21 @@
     border-radius: 1rem;
     background: #fff;
   }
-  .acs-banner { background:#1e3a5f; color:#fff; }
   .acs-input { background:#fff9c4 !important; }
   .acs-mono { font-variant-numeric: tabular-nums; }
+  .acs-summary-card {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 1rem;
+    background: #fff;
+  }
+  .acs-benchmark-card {
+    border: 1px solid rgba(6, 45, 121, 0.12);
+    border-radius: 1rem;
+    padding: 1rem 1.05rem;
+    background:
+      radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 35%),
+      linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  }
   @media (max-width: 1199.98px) {
     .acs-sticky { position: static; }
   }
@@ -68,19 +63,22 @@
 @section('content')
 <div class="min-vh-100 py-4 px-3 px-md-4" style="background:var(--gasq-background)">
   <div class="container-xl">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
-      <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
         <a href="{{ route('workforce-appraisal-report.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
-        <span class="text-gasq-muted small">V24 compute · <code>gasq-additional-cost-stack</code></span>
+        <div>
+          <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="fa fa-list-ul text-primary"></i> GASQ Additional Cost Stack
+          </h1>
+          <div class="text-gasq-muted small">Manage the merged annual additional-cost stack with the same structured summary and workspace rhythm used in the Budget calculator.</div>
+        </div>
       </div>
-      <button class="btn btn-outline-secondary btn-sm d-print-none" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
+      <div class="d-flex flex-wrap gap-2 d-print-none">
+        <button class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
+      </div>
     </div>
 
     <div class="card gasq-card acs-shell overflow-hidden">
-      <div class="card-header acs-banner py-3">
-        <div class="fw-bold">GASQ Additional Cost Stack</div>
-        <div class="small opacity-75">Merged view of Vehicle, Uniform &amp; Equipment, and Workforce Maintenance costs</div>
-      </div>
       <div class="card-body p-0">
         <div class="row g-0">
           <div class="col-xl-4 border-end acs-sidebar">
@@ -111,33 +109,38 @@
 
           <div class="col-xl-8">
             <div class="p-3 p-md-4">
-              <div class="row g-3 mb-3">
-                <div class="col-md-6 col-xl-3">
-                  <div class="acs-stat">
-                    <div class="acs-stat-label mb-2">Annual Billable Hours</div>
-                    <div class="acs-stat-value acs-mono" id="acs_stat_hours">0</div>
-                    <div class="small text-gasq-muted">Shared annual hours driver</div>
+              <div class="acs-summary-card p-3 p-md-4 mb-4">
+                <div class="acs-benchmark-card mb-4">
+                  <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Additional Cost Workspace</div>
+                  <div class="h3 fw-bold text-primary mb-1" id="acs_stat_total_a">$0.00</div>
+                  <div class="small text-gasq-muted mb-2">Merged annual additional-cost stack across vehicles, uniforms, equipment, and workforce maintenance.</div>
+                  <div class="d-flex justify-content-between align-items-center small gap-3">
+                    <span class="text-gasq-muted">Annual billable hours</span>
+                    <span class="fw-semibold" id="acs_stat_hours">0</span>
+                  </div>
+                  <div class="mt-2">
+                    <a href="{{ route('workforce-appraisal-report.index') }}" class="small fw-semibold text-decoration-none">Open Workforce Appraisal Report</a>
                   </div>
                 </div>
-                <div class="col-md-6 col-xl-3">
-                  <div class="acs-stat">
-                    <div class="acs-stat-label mb-2">Modules Included</div>
-                    <div class="acs-stat-value acs-mono" id="acs_stat_modules">0</div>
-                    <div class="small text-gasq-muted">Active cost modules in the stack</div>
+
+                <div class="row g-3 mb-0">
+                  <div class="col-6 col-xl-4">
+                    <div class="gasq-metric-card text-center">
+                      <div class="metric-desc">Modules Included</div>
+                      <div class="metric-value text-primary acs-mono" id="acs_stat_modules">0</div>
+                    </div>
                   </div>
-                </div>
-                <div class="col-md-6 col-xl-3">
-                  <div class="acs-stat">
-                    <div class="acs-stat-label mb-2">Total Hourly Cost</div>
-                    <div class="acs-stat-value acs-mono" id="acs_stat_total_h">$0.00</div>
-                    <div class="small text-gasq-muted">Combined hourly cost from all modules</div>
+                  <div class="col-6 col-xl-4">
+                    <div class="gasq-metric-card text-center">
+                      <div class="metric-desc">Total Hourly Cost</div>
+                      <div class="metric-value acs-mono" id="acs_stat_total_h">$0.00</div>
+                    </div>
                   </div>
-                </div>
-                <div class="col-md-6 col-xl-3">
-                  <div class="acs-stat">
-                    <div class="acs-stat-label mb-2">Total Annual Cost</div>
-                    <div class="acs-stat-value acs-mono" id="acs_stat_total_a">$0.00</div>
-                    <div class="small text-gasq-muted">Annualized stack total</div>
+                  <div class="col-12 col-xl-4">
+                    <div class="gasq-metric-card text-center">
+                      <div class="metric-desc">Total Annual Cost</div>
+                      <div class="metric-value text-primary acs-mono" id="acs_stat_total_a_card">$0.00</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -248,6 +251,7 @@
     document.getElementById('acs_stat_modules').textContent = num((k.rows || []).length);
     document.getElementById('acs_stat_total_h').textContent = money((k.totals || {}).hourly);
     document.getElementById('acs_stat_total_a').textContent = money((k.totals || {}).annual);
+    document.getElementById('acs_stat_total_a_card').textContent = money((k.totals || {}).annual);
   }
 
   function hydrateSavedState(){

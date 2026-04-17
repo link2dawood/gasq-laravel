@@ -2,11 +2,39 @@
 
 @php
   $initialTab = $initialTab ?? 'cfo';
+  $routeName = request()->route()?->getName();
+  $pageMeta = match ($routeName) {
+    'workforce-appraisal-report.index' => [
+      'icon' => 'fa-briefcase',
+      'title' => 'Workforce Appraisal Report',
+      'subtitle' => 'Review the full workforce capital recovery workspace with the same structured summary, input rhythm, and clean right-side analysis pattern used in the Budget calculator.',
+    ],
+    'post-position-summary.index' => [
+      'icon' => 'fa-users',
+      'title' => 'Post Position Summary',
+      'subtitle' => 'Review scope-driven post rows, weekly and monthly billable hours, and annual labor totals in the same structured workspace style as the Budget calculator.',
+    ],
+    'appraisal-comparison-summary.index' => [
+      'icon' => 'fa-balance-scale',
+      'title' => 'Appraisal Comparison Summary',
+      'subtitle' => 'Compare internal should-cost against vendor TCO with the same clean summary hierarchy and workspace rhythm used across the Budget calculator.',
+    ],
+    'price-realism-review.index' => [
+      'icon' => 'fa-chart-line',
+      'title' => 'Price Realism Review',
+      'subtitle' => 'Inspect benchmark rates, module feeds, and realism checks in a calmer summary-driven layout aligned with the Budget calculator UI.',
+    ],
+    'cfo-bill-rate-breakdown.index', default => [
+      'icon' => 'fa-file-invoice',
+      'title' => 'CFO Bill Rate Breakdown',
+      'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Budget calculator.',
+    ],
+  };
 @endphp
 
 @section('header_variant', 'dashboard')
 
-@section('title', 'Workforce Capital Recovery Appraisal')
+@section('title', $pageMeta['title'])
 
 @push('styles')
 <style>
@@ -28,23 +56,6 @@
     letter-spacing: 0.12em;
     color: var(--gasq-muted);
   }
-  .gasq-wa-stat {
-    border: 1px solid rgba(6,45,121,0.08);
-    border-radius: 1rem;
-    padding: 1rem;
-    background: #fff;
-  }
-  .gasq-wa-stat-label {
-    font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--gasq-muted);
-  }
-  .gasq-wa-stat-value {
-    font-size: 1.45rem;
-    font-weight: 700;
-    color: var(--gasq-primary);
-  }
   .gasq-wa-chip {
     display: inline-flex;
     align-items: center;
@@ -56,7 +67,6 @@
     font-size: 0.78rem;
     font-weight: 600;
   }
-  .gasq-wa-hero { background: #6b0f1a; color: #fff; border-radius: 0.5rem 0.5rem 0 0; }
   .gasq-wa-section { background: #6b0f1a; color: #fff; font-weight: 600; letter-spacing: 0.02em; }
   .gasq-wa-subbanner { background: #3d4f6b; color: #fff; }
   .gasq-wa-input { background: #fff9c4 !important; }
@@ -64,6 +74,19 @@
   .gasq-wa-table-head { background: #1e3a5f; color: #fff; }
   .gasq-wa-total-row { background: rgba(6,45,121,0.12); font-weight: 600; }
   .gasq-wa-mono { font-variant-numeric: tabular-nums; }
+  .gasq-wa-summary-card {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 1rem;
+    background: #fff;
+  }
+  .gasq-wa-benchmark-card {
+    border: 1px solid rgba(6, 45, 121, 0.12);
+    border-radius: 1rem;
+    padding: 1rem 1.05rem;
+    background:
+      radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 35%),
+      linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  }
   .gasq-wa-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -136,14 +159,21 @@
         <a href="{{ route('main-menu-calculator.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
         <span class="text-gasq-muted small">V24 compute · <code>workforce-appraisal-report</code></span>
       </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
     </div>
 
-    <div class="gasq-wa-hero p-3 p-md-4 mb-0">
-      <h1 class="h4 fw-bold mb-1">GASQ Workforce-to-Post™ Capital Recovery Appraisal — Full Scope Report</h1>
-      <div class="small" style="opacity:.9">Workforce Total Cost of Ownership (TCO) — vs — Vendor Outsourced Security Services</div>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+      <div>
+        <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
+          <i class="fa {{ $pageMeta['icon'] }} text-primary"></i> {{ $pageMeta['title'] }}
+        </h1>
+        <div class="text-gasq-muted small">{{ $pageMeta['subtitle'] }}</div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 gasq-wa-no-print">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
+      </div>
     </div>
-    <div class="bg-white border border-top-0 rounded-bottom shadow-sm p-3 mb-3">
+
+    <div class="bg-white border rounded shadow-sm p-3 mb-3">
       <div class="row g-2 small">
         <div class="col-md-4">
           <label class="form-label fw-medium mb-0">Prepared for</label>
@@ -369,33 +399,38 @@
 
           <div class="col-xl-8" id="wa-right-col">
             <div class="p-3 p-md-4">
-        <div class="row g-3 mb-3">
-          <div class="col-md-6 col-xl-3">
-            <div class="gasq-wa-stat">
-              <div class="gasq-wa-stat-label mb-2">Annual Billable Hours</div>
-              <div class="gasq-wa-stat-value gasq-wa-mono" id="wa_stat_hours">0</div>
-              <div class="small text-gasq-muted">Derived from the shared Scope of Work inputs</div>
+        <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
+          <div class="gasq-wa-benchmark-card mb-4">
+            <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Workforce Appraisal Summary</div>
+            <div class="h3 fw-bold text-primary mb-1" id="wa_stat_gov">$0.00</div>
+            <div class="small text-gasq-muted mb-2">Current government should-cost benchmark from the shared appraisal controls.</div>
+            <div class="d-flex justify-content-between align-items-center small gap-3">
+              <span class="text-gasq-muted">Annual billable hours</span>
+              <span class="fw-semibold" id="wa_stat_hours">0</span>
+            </div>
+            <div class="mt-2">
+              <a href="{{ route('workforce-appraisal-report.index') }}" class="small fw-semibold text-decoration-none">Open Full Workforce Appraisal</a>
             </div>
           </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="gasq-wa-stat">
-              <div class="gasq-wa-stat-label mb-2">FTEs Required</div>
-              <div class="gasq-wa-stat-value gasq-wa-mono" id="wa_stat_ftes">0</div>
-              <div class="small text-gasq-muted">Updated from hours per professional annual</div>
+
+          <div class="row g-3 mb-0">
+            <div class="col-6 col-xl-4">
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">FTEs Required</div>
+                <div class="metric-value text-primary gasq-wa-mono" id="wa_stat_ftes">0</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="gasq-wa-stat">
-              <div class="gasq-wa-stat-label mb-2">Government Should-Cost</div>
-              <div class="gasq-wa-stat-value gasq-wa-mono" id="wa_stat_gov">$0.00</div>
-              <div class="small text-gasq-muted">Current internal benchmark per hour</div>
+            <div class="col-6 col-xl-4">
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Vendor TCO</div>
+                <div class="metric-value gasq-wa-mono" id="wa_stat_vendor">$0.00</div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-3">
-            <div class="gasq-wa-stat">
-              <div class="gasq-wa-stat-label mb-2">Vendor TCO</div>
-              <div class="gasq-wa-stat-value gasq-wa-mono" id="wa_stat_vendor">$0.00</div>
-              <div class="small text-gasq-muted">Current outsourced benchmark per hour</div>
+            <div class="col-12 col-xl-4">
+              <div class="gasq-metric-card text-center">
+                <div class="metric-desc">Report Date</div>
+                <div class="metric-value gasq-wa-mono" id="wa_stat_date">{{ date('n/j/Y') }}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -782,6 +817,7 @@
     setText('wa_stat_ftes', scope.ftesRequired.toFixed(2));
     setText('wa_stat_gov', money(parseFloat(document.getElementById('wa_govH')?.value || '0') || 0));
     setText('wa_stat_vendor', money(parseFloat(document.getElementById('wa_vendH')?.value || '0') || 0));
+    setText('wa_stat_date', document.getElementById('wa_date')?.value || '');
   }
 
   function buildPayload(){
