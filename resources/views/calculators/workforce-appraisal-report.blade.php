@@ -179,6 +179,7 @@
         <div class="text-gasq-muted small">{{ $pageMeta['subtitle'] }}</div>
       </div>
       <div class="d-flex flex-wrap gap-2 gasq-wa-no-print">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetWorkforcePage()"><i class="fa fa-rotate me-1"></i> Reset</button>
         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
       </div>
     </div>
@@ -447,6 +448,126 @@
           </div>
         @endif
 
+        @if ($showCfo)
+          <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
+            <div class="gasq-wa-benchmark-card mb-4">
+              <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">CFO Bill Rate Summary</div>
+              <div class="h3 fw-bold text-primary mb-1" id="wa_cfo_stat_total">$0.00</div>
+              <div class="small text-gasq-muted mb-2">Fully loaded hourly bill rate derived from the workforce capital recovery stack.</div>
+              <div class="d-flex justify-content-between align-items-center small gap-3">
+                <span class="text-gasq-muted">Annual billable hours</span>
+                <span class="fw-semibold" id="wa_cfo_stat_hours">0</span>
+              </div>
+              <div class="mt-2">
+                <a href="{{ route('workforce-appraisal-report.index') }}" class="small fw-semibold text-decoration-none">Open Workforce Appraisal Report</a>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-0">
+              <div class="col-6 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Direct Labor</div>
+                  <div class="metric-value text-primary gasq-wa-mono" id="wa_cfo_stat_direct">$0.00</div>
+                </div>
+              </div>
+              <div class="col-6 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Labor Plus Fringe</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_cfo_stat_burdened">$0.00</div>
+                </div>
+              </div>
+              <div class="col-12 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Annual Total</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_cfo_stat_annual">$0.00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        @endif
+
+        @if ($showPosts)
+          <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
+            <div class="gasq-wa-benchmark-card mb-4">
+              <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Post Position Summary</div>
+              <div class="h3 fw-bold text-primary mb-1" id="wa_posts_stat_annual_cost">$0.00</div>
+              <div class="small text-gasq-muted mb-2">Total annual direct labor cost across the active post positions.</div>
+              <div class="d-flex justify-content-between align-items-center small gap-3">
+                <span class="text-gasq-muted">Annual billable hours</span>
+                <span class="fw-semibold" id="wa_posts_stat_hours">0</span>
+              </div>
+              <div class="mt-2">
+                <a href="{{ route('workforce-appraisal-report.index') }}" class="small fw-semibold text-decoration-none">Open Workforce Appraisal Report</a>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-0">
+              <div class="col-6 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Weekly Hours</div>
+                  <div class="metric-value text-primary gasq-wa-mono" id="wa_posts_stat_weekly">0</div>
+                </div>
+              </div>
+              <div class="col-6 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Monthly Hours</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_posts_stat_monthly">0</div>
+                </div>
+              </div>
+              <div class="col-12 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">FTEs Required</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_posts_stat_ftes">0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        @endif
+
+        @if ($showAppraisal)
+          <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
+            <div class="gasq-wa-benchmark-card mb-4">
+              <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Appraisal Summary</div>
+              <div class="h3 fw-bold text-primary mb-1" id="wa_appraisal_stat_recovered">$0.00</div>
+              <div class="small text-gasq-muted mb-2">Operational capital recovered from the appraisal comparison results.</div>
+              <div class="d-flex justify-content-between align-items-center small gap-3">
+                <span class="text-gasq-muted">Annual coverage hours</span>
+                <span class="fw-semibold" id="wa_appraisal_stat_hours">0</span>
+              </div>
+              <div class="mt-2">
+                <a href="{{ route('workforce-appraisal-report.index') }}" class="small fw-semibold text-decoration-none">Open Workforce Appraisal Report</a>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-0">
+              <div class="col-6 col-xl-3">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Gov Should-Cost</div>
+                  <div class="metric-value text-primary gasq-wa-mono" id="wa_appraisal_stat_gov">$0.00</div>
+                </div>
+              </div>
+              <div class="col-6 col-xl-3">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Vendor TCO</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_appraisal_stat_vendor">$0.00</div>
+                </div>
+              </div>
+              <div class="col-6 col-xl-3">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Recovery %</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_appraisal_stat_pct">0%</div>
+                </div>
+              </div>
+              <div class="col-6 col-xl-3">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Payback</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_appraisal_stat_payback">0 months</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        @endif
+
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
           <div>
             <div class="gasq-wa-kicker mb-1">Results Workspace</div>
@@ -664,6 +785,10 @@
     return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
   }
   function num(n){ return (n===null||n===undefined||Number.isNaN(n))?'—':Number(n).toLocaleString('en-US'); }
+  function setNodeText(id, value){
+    const el = document.getElementById(id);
+    if(el){ el.textContent = value; }
+  }
 
   function round2(n){
     return Math.round((Number(n) || 0) * 100) / 100;
@@ -832,6 +957,10 @@
     setText('wa_stat_gov', money(parseFloat(document.getElementById('wa_govH')?.value || '0') || 0));
     setText('wa_stat_vendor', money(parseFloat(document.getElementById('wa_vendH')?.value || '0') || 0));
     setText('wa_stat_date', document.getElementById('wa_date')?.value || '');
+    setText('wa_posts_stat_hours', num(scope.annualBillableHours));
+    setText('wa_posts_stat_weekly', num(scope.weeklyBillableHours));
+    setText('wa_posts_stat_monthly', num(scope.monthlyBillableHours));
+    setText('wa_posts_stat_ftes', scope.ftesRequired.toFixed(2));
   }
 
   function buildPayload(){
@@ -921,6 +1050,19 @@
   function renderCfo(cfo){
     const el = document.getElementById('wa_cfo_root');
     if(el){ el.innerHTML = buildCfoMarkup(cfo); }
+
+    const sections = cfo?.sections || [];
+    const directLabor = sections[0]?.subtotal?.hourly || 0;
+    const laborPlusFringe = sections[1]?.laborPlusFringe?.hourly || 0;
+    const annualTotal = cfo?.grandTotal?.annual || 0;
+    const hourlyTotal = cfo?.grandTotal?.hourly || 0;
+    const annualHours = cfo?.annualBillableHours || 0;
+
+    setNodeText('wa_cfo_stat_total', money(hourlyTotal));
+    setNodeText('wa_cfo_stat_hours', num(annualHours));
+    setNodeText('wa_cfo_stat_direct', money(directLabor));
+    setNodeText('wa_cfo_stat_burdened', money(laborPlusFringe));
+    setNodeText('wa_cfo_stat_annual', money(annualTotal));
   }
 
   function renderDirectLaborBuildUp(cfo){
@@ -931,6 +1073,7 @@
   function fillPostOut(rows, totals){
     const postBody = document.getElementById('wa_post_body');
     if(!postBody){
+      setNodeText('wa_posts_stat_annual_cost', money(totals?.annualDirectLaborCost || 0));
       return;
     }
 
@@ -971,6 +1114,7 @@
     setText('pf_mh', num(t.monthlyHours));
     setText('pf_mc', money(t.monthlyCost));
     setText('pf_ac', money(t.annualDirectLaborCost));
+    setText('wa_posts_stat_annual_cost', money(t.annualDirectLaborCost));
   }
 
   function renderAppraisal(a){
@@ -1000,6 +1144,22 @@
       f.innerHTML += `<tr class="gasq-wa-peach fw-semibold"><td>${r.description}</td><td class="text-end gasq-wa-mono">—</td><td class="text-end gasq-wa-mono">${vVen}</td></tr>`;
     }
     coverage.textContent = a.coverageStatement||'';
+
+    const getRow = (label) => (a.rows || []).find((row) => row.description === label) || null;
+    const getFooter = (label) => (a.footerRows || []).find((row) => row.description === label) || null;
+
+    const hourlyRow = getRow('Workforce Hourly Cost Per Security Professional');
+    const annualHoursRow = getRow('Total Annual Hours of Coverage');
+    const recoveredRow = getFooter('Operational Capital Recovered');
+    const pctRow = getFooter('Operational Capital Recovered (%)');
+    const paybackRow = getFooter('Payback & Recovery Period');
+
+    setNodeText('wa_appraisal_stat_recovered', money(recoveredRow?.vendor || 0));
+    setNodeText('wa_appraisal_stat_hours', num(annualHoursRow?.vendor || 0));
+    setNodeText('wa_appraisal_stat_gov', money(hourlyRow?.internal || 0));
+    setNodeText('wa_appraisal_stat_vendor', money(hourlyRow?.vendor || 0));
+    setNodeText('wa_appraisal_stat_pct', `${Number(pctRow?.vendor || 0).toFixed(0)}%`);
+    setNodeText('wa_appraisal_stat_payback', `${paybackRow?.vendor || 0} months`);
   }
 
   function renderPriceRealism(p){
@@ -1097,6 +1257,10 @@
     syncDerivedScopeFields(deriveScopeMetrics());
     runCompute();
   });
+
+  window.resetWorkforcePage = function(){
+    window.location.reload();
+  };
 })();
 </script>
 @endpush
