@@ -408,67 +408,73 @@
 
           <div class="col-xl-8" id="wa-right-col">
             <div class="p-3 p-md-4">
-        <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
-          <div class="gasq-wa-benchmark-card mb-4">
-            <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Workforce Appraisal Summary</div>
-            <div class="h3 fw-bold text-primary mb-1" id="wa_stat_gov">$0.00</div>
-            <div class="small text-gasq-muted mb-2">Current government should-cost benchmark from the shared appraisal controls.</div>
-            <div class="d-flex justify-content-between align-items-center small gap-3">
-              <span class="text-gasq-muted">Annual billable hours</span>
-              <span class="fw-semibold" id="wa_stat_hours">0</span>
+        @if ($showFullReport)
+          <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
+            <div class="gasq-wa-benchmark-card mb-4">
+              <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Workforce Appraisal Summary</div>
+              <div class="h3 fw-bold text-primary mb-1" id="wa_stat_gov">$0.00</div>
+              <div class="small text-gasq-muted mb-2">Current government should-cost benchmark from the shared appraisal controls.</div>
+              <div class="d-flex justify-content-between align-items-center small gap-3">
+                <span class="text-gasq-muted">Annual billable hours</span>
+                <span class="fw-semibold" id="wa_stat_hours">0</span>
+              </div>
+              <div class="mt-2">
+                <a href="{{ route('workforce-appraisal-report.index') }}" class="small fw-semibold text-decoration-none">Open Full Workforce Appraisal</a>
+              </div>
             </div>
-            <div class="mt-2">
-              <a href="{{ route('workforce-appraisal-report.index') }}" class="small fw-semibold text-decoration-none">Open Full Workforce Appraisal</a>
-            </div>
-          </div>
 
-          <div class="row g-3 mb-0">
-            <div class="col-6 col-xl-4">
-              <div class="gasq-metric-card text-center">
-                <div class="metric-desc">FTEs Required</div>
-                <div class="metric-value text-primary gasq-wa-mono" id="wa_stat_ftes">0</div>
+            <div class="row g-3 mb-0">
+              <div class="col-6 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">FTEs Required</div>
+                  <div class="metric-value text-primary gasq-wa-mono" id="wa_stat_ftes">0</div>
+                </div>
               </div>
-            </div>
-            <div class="col-6 col-xl-4">
-              <div class="gasq-metric-card text-center">
-                <div class="metric-desc">Vendor TCO</div>
-                <div class="metric-value gasq-wa-mono" id="wa_stat_vendor">$0.00</div>
+              <div class="col-6 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Vendor TCO</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_stat_vendor">$0.00</div>
+                </div>
               </div>
-            </div>
-            <div class="col-12 col-xl-4">
-              <div class="gasq-metric-card text-center">
-                <div class="metric-desc">Report Date</div>
-                <div class="metric-value gasq-wa-mono" id="wa_stat_date">{{ date('n/j/Y') }}</div>
+              <div class="col-12 col-xl-4">
+                <div class="gasq-metric-card text-center">
+                  <div class="metric-desc">Report Date</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_stat_date">{{ date('n/j/Y') }}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        @endif
 
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
           <div>
             <div class="gasq-wa-kicker mb-1">Results Workspace</div>
-            <h3 class="h5 fw-bold mb-0">{{ $showFullReport ? 'Full Workforce Appraisal Outputs' : 'Focused Workforce Appraisal Output' }}</h3>
+            <h3 class="h5 fw-bold mb-0">{{ $showFullReport ? 'Full Workforce Appraisal Outputs' : $pageMeta['title'] }}</h3>
           </div>
-          <div class="small text-gasq-muted">Use the related pages below to move between dedicated workforce report views.</div>
+          <div class="small text-gasq-muted">{{ $showFullReport ? 'Use the related pages below to move between dedicated workforce report views.' : 'This page only shows its own workforce report section.' }}</div>
         </div>
 
-        <div class="card gasq-card mb-3">
-          <div class="card-header gasq-wa-subbanner d-flex justify-content-between align-items-center">
-            <span>Direct Labor Build-Up</span>
-            <span class="small fw-normal opacity-75">Shared across all Workforce Appraisal pages</span>
+        @if ($showFullReport)
+          <div class="card gasq-card mb-3">
+            <div class="card-header gasq-wa-subbanner d-flex justify-content-between align-items-center">
+              <span>Direct Labor Build-Up</span>
+              <span class="small fw-normal opacity-75">Shared across all Workforce Appraisal pages</span>
+            </div>
+            <div class="card-body p-0">
+              <p class="small text-gasq-muted px-3 pt-3 mb-2">Driven by Spreadsheet Inputs (V28) and current annual billable hours from Scope of Work.</p>
+              <div id="wa_dlb_root" class="table-responsive px-3 pb-3"></div>
+            </div>
           </div>
-          <div class="card-body p-0">
-            <p class="small text-gasq-muted px-3 pt-3 mb-2">Driven by Spreadsheet Inputs (V28) and current annual billable hours from Scope of Work.</p>
-            <div id="wa_dlb_root" class="table-responsive px-3 pb-3"></div>
-          </div>
-        </div>
+        @endif
 
-        <ul class="nav gasq-wa-page-links mb-3 gasq-wa-no-print">
-          <li class="nav-item"><a class="nav-link {{ $pageKey === 'full-report' ? 'active' : '' }}" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-briefcase"></i><span>Full Report</span></a></li>
-          <li class="nav-item"><a class="nav-link {{ $pageKey === 'cfo' ? 'active' : '' }}" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
-          <li class="nav-item"><a class="nav-link {{ $pageKey === 'posts' ? 'active' : '' }}" href="{{ route('post-position-summary.index') }}"><i class="fa fa-users"></i><span>Scope of Work</span></a></li>
-          <li class="nav-item"><a class="nav-link {{ $pageKey === 'appraisal' ? 'active' : '' }}" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></a></li>
-        </ul>
+        @unless ($showFullReport)
+          <ul class="nav gasq-wa-page-links mb-3 gasq-wa-no-print">
+            <li class="nav-item"><a class="nav-link {{ $pageKey === 'full-report' ? 'active' : '' }}" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-briefcase"></i><span>Full Report</span></a></li>
+            <li class="nav-item"><a class="nav-link {{ $pageKey === 'cfo' ? 'active' : '' }}" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
+            <li class="nav-item"><a class="nav-link {{ $pageKey === 'posts' ? 'active' : '' }}" href="{{ route('post-position-summary.index') }}"><i class="fa fa-users"></i><span>Scope of Work</span></a></li>
+            <li class="nav-item"><a class="nav-link {{ $pageKey === 'appraisal' ? 'active' : '' }}" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></a></li>
+          </ul>
+        @endunless
 
         <div id="wa_results_workspace">
           @if ($showCfo)
@@ -479,6 +485,15 @@
                 <div id="wa_cfo_root" class="table-responsive px-3 pb-3"></div>
               </div>
             </div>
+          @endif
+
+          @if ($showFullReport)
+            <ul class="nav gasq-wa-page-links mb-3 gasq-wa-no-print">
+              <li class="nav-item"><a class="nav-link {{ $pageKey === 'full-report' ? 'active' : '' }}" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-briefcase"></i><span>Full Report</span></a></li>
+              <li class="nav-item"><a class="nav-link {{ $pageKey === 'cfo' ? 'active' : '' }}" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
+              <li class="nav-item"><a class="nav-link {{ $pageKey === 'posts' ? 'active' : '' }}" href="{{ route('post-position-summary.index') }}"><i class="fa fa-users"></i><span>Scope of Work</span></a></li>
+              <li class="nav-item"><a class="nav-link {{ $pageKey === 'appraisal' ? 'active' : '' }}" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></a></li>
+            </ul>
           @endif
 
           @if ($showPosts)
