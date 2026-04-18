@@ -3,7 +3,7 @@
 @php
   $initialTab = $initialTab ?? 'cfo';
   $routeName = request()->route()?->getName();
-  $pageMeta = match ($routeName) {
+  $pageMetaByRoute = [
     'workforce-appraisal-report.index' => [
       'icon' => 'fa-briefcase',
       'title' => 'Workforce Appraisal Report',
@@ -24,12 +24,17 @@
       'title' => 'Price Realism Review',
       'subtitle' => 'Inspect benchmark rates, module feeds, and realism checks in a calmer summary-driven layout aligned with the Budget calculator UI.',
     ],
-    'cfo-bill-rate-breakdown.index', default => [
+    'cfo-bill-rate-breakdown.index' => [
       'icon' => 'fa-file-invoice',
       'title' => 'CFO Bill Rate Breakdown',
       'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Budget calculator.',
     ],
-  };
+  ];
+  $pageMeta = $pageMetaByRoute[$routeName] ?? [
+    'icon' => 'fa-file-invoice',
+    'title' => 'CFO Bill Rate Breakdown',
+    'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Budget calculator.',
+  ];
 @endphp
 
 @section('header_variant', 'dashboard')
