@@ -1,40 +1,44 @@
 @extends('layouts.app')
 
 @php
-  $initialTab = $initialTab ?? 'cfo';
-  $routeName = request()->route()?->getName();
-  $pageMetaByRoute = [
-    'workforce-appraisal-report.index' => [
+  $pageKey = $pageKey ?? 'full-report';
+  $pageMetaByKey = [
+    'full-report' => [
       'icon' => 'fa-briefcase',
       'title' => 'Workforce Appraisal Report',
       'subtitle' => 'Review the full workforce capital recovery workspace with the same structured summary, input rhythm, and clean right-side analysis pattern used in the Budget calculator.',
     ],
-    'post-position-summary.index' => [
+    'posts' => [
       'icon' => 'fa-users',
       'title' => 'Post Position Summary',
       'subtitle' => 'Review scope-driven post rows, weekly and monthly billable hours, and annual labor totals in the same structured workspace style as the Budget calculator.',
     ],
-    'appraisal-comparison-summary.index' => [
+    'appraisal' => [
       'icon' => 'fa-balance-scale',
       'title' => 'Appraisal Comparison Summary',
       'subtitle' => 'Compare internal should-cost against vendor TCO with the same clean summary hierarchy and workspace rhythm used across the Budget calculator.',
     ],
-    'price-realism-review.index' => [
+    'price' => [
       'icon' => 'fa-chart-line',
       'title' => 'Price Realism Review',
       'subtitle' => 'Inspect benchmark rates, module feeds, and realism checks in a calmer summary-driven layout aligned with the Budget calculator UI.',
     ],
-    'cfo-bill-rate-breakdown.index' => [
+    'cfo' => [
       'icon' => 'fa-file-invoice',
       'title' => 'CFO Bill Rate Breakdown',
       'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Budget calculator.',
     ],
   ];
-  $pageMeta = $pageMetaByRoute[$routeName] ?? [
+  $pageMeta = $pageMetaByKey[$pageKey] ?? [
     'icon' => 'fa-file-invoice',
     'title' => 'CFO Bill Rate Breakdown',
     'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Budget calculator.',
   ];
+  $showFullReport = $pageKey === 'full-report';
+  $showCfo = $showFullReport || $pageKey === 'cfo';
+  $showPosts = $showFullReport || $pageKey === 'posts';
+  $showAppraisal = $showFullReport || $pageKey === 'appraisal';
+  $showPrice = $showFullReport || $pageKey === 'price';
 @endphp
 
 @section('header_variant', 'dashboard')
@@ -92,18 +96,18 @@
       radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 35%),
       linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   }
-  .gasq-wa-tabs {
+  .gasq-wa-page-links {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     padding-left: 0;
     list-style: none;
   }
-  .gasq-wa-tabs .nav-item {
+  .gasq-wa-page-links .nav-item {
     flex: 1 1 170px;
     min-width: 170px;
   }
-  .gasq-wa-tabs .nav-link {
+  .gasq-wa-page-links .nav-link {
     width: 100%;
     height: 100%;
     display: flex;
@@ -119,32 +123,32 @@
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   }
-  .gasq-wa-tabs .nav-link i {
+  .gasq-wa-page-links .nav-link i {
     width: 1rem;
     text-align: center;
     flex: 0 0 auto;
   }
-  .gasq-wa-tabs .nav-link span {
+  .gasq-wa-page-links .nav-link span {
     line-height: 1.2;
     text-align: center;
   }
-  .gasq-wa-tabs .nav-link:hover,
-  .gasq-wa-tabs .nav-link:focus {
+  .gasq-wa-page-links .nav-link:hover,
+  .gasq-wa-page-links .nav-link:focus {
     border-color: rgba(6,45,121,0.3);
     color: var(--gasq-primary);
     background: #f8fbff;
   }
-  .gasq-wa-tabs .nav-link.active {
+  .gasq-wa-page-links .nav-link.active {
     background: var(--gasq-primary);
     border-color: var(--gasq-primary);
     color: #fff;
     box-shadow: 0 14px 28px rgba(6,45,121,0.18);
   }
   @media (max-width: 575.98px) {
-    .gasq-wa-tabs {
+    .gasq-wa-page-links {
       flex-direction: column;
     }
-    .gasq-wa-tabs .nav-item { min-width: 0; }
+    .gasq-wa-page-links .nav-item { min-width: 0; }
   }
   @media (max-width: 1199.98px) {
     .gasq-wa-sticky { position: static; }
@@ -204,7 +208,7 @@
                 <div>
                   <div class="gasq-wa-kicker mb-2">Shared Inputs</div>
                   <h2 class="h4 fw-bold mb-2">Workforce Appraisal Controls</h2>
-                  <p class="small text-gasq-muted mb-0">Every tab on the right reads from this shared appraisal input rail, including CFO Bill Rate, Scope of Work, Appraisal Comparison, and Price Realism.</p>
+                  <p class="small text-gasq-muted mb-0">Every workforce appraisal page reads from this same input rail, so CFO Bill Rate, Scope of Work, Appraisal Comparison, and the full report stay in sync.</p>
                 </div>
                 <span class="gasq-wa-chip"><i class="fa fa-bolt"></i> Live</span>
               </div>
@@ -443,15 +447,15 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
           <div>
             <div class="gasq-wa-kicker mb-1">Results Workspace</div>
-            <h3 class="h5 fw-bold mb-0">Live Workforce Appraisal Outputs</h3>
+            <h3 class="h5 fw-bold mb-0">{{ $showFullReport ? 'Full Workforce Appraisal Outputs' : 'Focused Workforce Appraisal Output' }}</h3>
           </div>
-          <div class="small text-gasq-muted">All tabs below stay connected to the shared input rail on the left.</div>
+          <div class="small text-gasq-muted">Use the related pages below to move between dedicated workforce report views.</div>
         </div>
 
         <div class="card gasq-card mb-3">
           <div class="card-header gasq-wa-subbanner d-flex justify-content-between align-items-center">
             <span>Direct Labor Build-Up</span>
-            <span class="small fw-normal opacity-75">Shared across all Workforce Appraisal tabs</span>
+            <span class="small fw-normal opacity-75">Shared across all Workforce Appraisal pages</span>
           </div>
           <div class="card-body p-0">
             <p class="small text-gasq-muted px-3 pt-3 mb-2">Driven by Spreadsheet Inputs (V28) and current annual billable hours from Scope of Work.</p>
@@ -459,26 +463,26 @@
           </div>
         </div>
 
-        <ul class="nav nav-pills gasq-wa-tabs mb-3 gasq-wa-no-print" id="wa_tablist" role="tablist">
-          <li class="nav-item" role="presentation"><a class="nav-link {{ $initialTab === 'cfo' ? 'active' : '' }}" data-bs-toggle="tab" href="#wa-pane-cfo" id="tab-cfo" role="tab" aria-controls="wa-pane-cfo" aria-selected="{{ $initialTab === 'cfo' ? 'true' : 'false' }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
-          <li class="nav-item" role="presentation"><a class="nav-link {{ $initialTab === 'posts' ? 'active' : '' }}" data-bs-toggle="tab" href="#wa-pane-posts" id="tab-posts" role="tab" aria-controls="wa-pane-posts" aria-selected="{{ $initialTab === 'posts' ? 'true' : 'false' }}"><i class="fa fa-users"></i><span>Scope of Work</span></a></li>
-          <li class="nav-item" role="presentation"><a class="nav-link {{ $initialTab === 'appraisal' ? 'active' : '' }}" data-bs-toggle="tab" href="#wa-pane-appraisal" id="tab-appraisal" role="tab" aria-controls="wa-pane-appraisal" aria-selected="{{ $initialTab === 'appraisal' ? 'true' : 'false' }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></a></li>
-          <li class="nav-item" role="presentation"><a class="nav-link {{ $initialTab === 'price' ? 'active' : '' }}" data-bs-toggle="tab" href="#wa-pane-price" id="tab-price" role="tab" aria-controls="wa-pane-price" aria-selected="{{ $initialTab === 'price' ? 'true' : 'false' }}"><i class="fa fa-chart-line"></i><span>Price Realism</span></a></li>
+        <ul class="nav gasq-wa-page-links mb-3 gasq-wa-no-print">
+          <li class="nav-item"><a class="nav-link {{ $pageKey === 'full-report' ? 'active' : '' }}" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-briefcase"></i><span>Full Report</span></a></li>
+          <li class="nav-item"><a class="nav-link {{ $pageKey === 'cfo' ? 'active' : '' }}" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
+          <li class="nav-item"><a class="nav-link {{ $pageKey === 'posts' ? 'active' : '' }}" href="{{ route('post-position-summary.index') }}"><i class="fa fa-users"></i><span>Scope of Work</span></a></li>
+          <li class="nav-item"><a class="nav-link {{ $pageKey === 'appraisal' ? 'active' : '' }}" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></a></li>
         </ul>
 
-        <div class="tab-content" id="wa_results_workspace">
-          <div class="tab-pane fade {{ $initialTab === 'cfo' ? 'show active' : '' }}" id="wa-pane-cfo" role="tabpanel">
-            <div class="card gasq-card">
+        <div id="wa_results_workspace">
+          @if ($showCfo)
+            <div class="card gasq-card mb-3">
               <div class="card-header gasq-wa-section">CFO Bill Rate Breakdown</div>
               <div class="card-body p-0">
                 <p class="small text-gasq-muted px-3 pt-3 mb-2">Consolidated line-by-line build — hourly × annual billable hours = annual column.</p>
                 <div id="wa_cfo_root" class="table-responsive px-3 pb-3"></div>
               </div>
             </div>
-          </div>
+          @endif
 
-          <div class="tab-pane fade {{ $initialTab === 'posts' ? 'show active' : '' }}" id="wa-pane-posts" role="tabpanel">
-            <div class="card gasq-card">
+          @if ($showPosts)
+            <div class="card gasq-card mb-3">
               <div class="card-header gasq-wa-table-head d-flex justify-content-between align-items-center">
                 <span>SCOPE OF WORK</span>
                 <span class="small fw-normal opacity-75">Spreadsheet-aligned inputs drive derived hours</span>
@@ -580,9 +584,9 @@
                 </div>
               </div>
             </div>
-          </div>
+          @endif
 
-          <div class="tab-pane fade {{ $initialTab === 'appraisal' ? 'show active' : '' }}" id="wa-pane-appraisal" role="tabpanel">
+          @if ($showAppraisal)
             <div class="card gasq-card mb-3">
               <div class="card-header gasq-wa-section">Appraisal Comparison Summary</div>
               <div class="card-body p-0">
@@ -606,9 +610,9 @@
               <div class="card-body small text-gasq-muted" id="wa_coverage_text"></div>
             </div>
             <div class="text-center small text-gasq-muted mt-3 mb-2">CFO Tested · CFO Approved · (470) 633-2816 · info@getasecurityquote.com · getasecurityquotenow.com</div>
-          </div>
+          @endif
 
-          <div class="tab-pane fade {{ $initialTab === 'price' ? 'show active' : '' }}" id="wa-pane-price" role="tabpanel">
+          @if ($showPrice)
             <div class="row g-3">
               <div class="col-md-6">
                 <div class="card gasq-card h-100">
@@ -623,7 +627,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          @endif
         </div>
             </div>
           </div>
@@ -920,8 +924,13 @@
   }
 
   function fillPostOut(rows, totals){
+    const postBody = document.getElementById('wa_post_body');
+    if(!postBody){
+      return;
+    }
+
     const rowMap = new Map((rows || []).map((row) => [Number(row.index || 0), row]));
-    document.querySelectorAll('#wa_post_body tr').forEach((tr, i) => {
+    postBody.querySelectorAll('tr').forEach((tr, i) => {
       const r = rowMap.get(i);
       const wh = tr.querySelector('.wh');
       const wc = tr.querySelector('.wc');
@@ -946,18 +955,26 @@
     });
 
     const t = totals || {};
-    document.getElementById('pf_avg').textContent = money(t.blendedPayRateAvg);
-    document.getElementById('pf_ah').textContent = num(t.annualHours);
-    document.getElementById('pf_wh').textContent = num(t.weeklyHours);
-    document.getElementById('pf_wc').textContent = money(t.weeklyCost);
-    document.getElementById('pf_mh').textContent = num(t.monthlyHours);
-    document.getElementById('pf_mc').textContent = money(t.monthlyCost);
-    document.getElementById('pf_ac').textContent = money(t.annualDirectLaborCost);
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if(el){ el.textContent = value; }
+    };
+    setText('pf_avg', money(t.blendedPayRateAvg));
+    setText('pf_ah', num(t.annualHours));
+    setText('pf_wh', num(t.weeklyHours));
+    setText('pf_wc', money(t.weeklyCost));
+    setText('pf_mh', num(t.monthlyHours));
+    setText('pf_mc', money(t.monthlyCost));
+    setText('pf_ac', money(t.annualDirectLaborCost));
   }
 
   function renderAppraisal(a){
     const b = document.getElementById('wa_ap_body');
     const f = document.getElementById('wa_ap_foot');
+    const coverage = document.getElementById('wa_coverage_text');
+    if(!b || !f || !coverage){
+      return;
+    }
     b.innerHTML = '';
     f.innerHTML = '';
     if(!a||!a.rows) return;
@@ -977,12 +994,15 @@
       }
       f.innerHTML += `<tr class="gasq-wa-peach fw-semibold"><td>${r.description}</td><td class="text-end gasq-wa-mono">—</td><td class="text-end gasq-wa-mono">${vVen}</td></tr>`;
     }
-    document.getElementById('wa_coverage_text').textContent = a.coverageStatement||'';
+    coverage.textContent = a.coverageStatement||'';
   }
 
   function renderPriceRealism(p){
     const L = document.getElementById('wa_pr_left');
     const R = document.getElementById('wa_pr_right');
+    if(!L || !R){
+      return;
+    }
     if(!p){ L.innerHTML=R.innerHTML=''; return; }
     let l = '<table class="table table-sm mb-0">';
     for(const r of (p.moduleFeeds||[])){
@@ -1068,13 +1088,6 @@
     const seededPosts = hydrateSavedState();
     buildPostBody(seededPosts);
     initSliderSync();
-    const tab = @json($initialTab);
-    const map = { cfo:'tab-cfo', posts:'tab-posts', appraisal:'tab-appraisal', price:'tab-price' };
-    const id = map[tab] || 'tab-cfo';
-    const btn = document.getElementById(id);
-    if(btn && window.bootstrap){
-      bootstrap.Tab.getOrCreateInstance(btn).show();
-    }
 
     syncDerivedScopeFields(deriveScopeMetrics());
     runCompute();

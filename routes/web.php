@@ -92,16 +92,16 @@ Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job', 'ma
         return view('calculators.gasq-additional-cost-stack');
     })->name('gasq-additional-cost-stack.index');
     Route::get('/workforce-appraisal-report', function () {
-        return view('calculators.workforce-appraisal-report', ['initialTab' => 'cfo']);
+        return view('calculators.workforce-appraisal-report', ['pageKey' => 'full-report']);
     })->name('workforce-appraisal-report.index');
     Route::get('/cfo-bill-rate-breakdown', function () {
-        return view('calculators.workforce-appraisal-report', ['initialTab' => 'cfo']);
+        return view('calculators.workforce-appraisal-report', ['pageKey' => 'cfo']);
     })->name('cfo-bill-rate-breakdown.index');
     Route::get('/post-position-summary', function () {
-        return view('calculators.workforce-appraisal-report', ['initialTab' => 'posts']);
+        return view('calculators.workforce-appraisal-report', ['pageKey' => 'posts']);
     })->name('post-position-summary.index');
     Route::get('/appraisal-comparison-summary', function () {
-        return view('calculators.workforce-appraisal-report', ['initialTab' => 'appraisal']);
+        return view('calculators.workforce-appraisal-report', ['pageKey' => 'appraisal']);
     })->name('appraisal-comparison-summary.index');
 });
 
