@@ -35,10 +35,11 @@
     'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Budget calculator.',
   ];
   $showFullReport = $pageKey === 'full-report';
-  $showCfo = $showFullReport || $pageKey === 'cfo';
-  $showPosts = $showFullReport || $pageKey === 'posts';
-  $showAppraisal = $showFullReport || $pageKey === 'appraisal';
-  $showPrice = $showFullReport || $pageKey === 'price';
+  $showDirectLabor = $pageKey === 'full-report';
+  $showCfo = $pageKey === 'cfo';
+  $showPosts = $pageKey === 'posts';
+  $showAppraisal = $pageKey === 'appraisal';
+  $showPrice = $pageKey === 'price';
 @endphp
 
 @section('header_variant', 'dashboard')
@@ -451,14 +452,14 @@
             <div class="gasq-wa-kicker mb-1">Results Workspace</div>
             <h3 class="h5 fw-bold mb-0">{{ $showFullReport ? 'Full Workforce Appraisal Outputs' : $pageMeta['title'] }}</h3>
           </div>
-          <div class="small text-gasq-muted">{{ $showFullReport ? 'Use the related pages below to move between dedicated workforce report views.' : 'This page only shows its own workforce report section.' }}</div>
+          <div class="small text-gasq-muted">{{ $showFullReport ? 'This page stays focused on the Workforce Appraisal Report overview only.' : 'This page only shows its own workforce report section.' }}</div>
         </div>
 
-        @if ($showFullReport)
+        @if ($showDirectLabor)
           <div class="card gasq-card mb-3">
             <div class="card-header gasq-wa-subbanner d-flex justify-content-between align-items-center">
               <span>Direct Labor Build-Up</span>
-              <span class="small fw-normal opacity-75">Shared across all Workforce Appraisal pages</span>
+              <span class="small fw-normal opacity-75">Workforce Appraisal Report overview</span>
             </div>
             <div class="card-body p-0">
               <p class="small text-gasq-muted px-3 pt-3 mb-2">Driven by Spreadsheet Inputs (V28) and current annual billable hours from Scope of Work.</p>
@@ -467,14 +468,12 @@
           </div>
         @endif
 
-        @unless ($showFullReport)
-          <ul class="nav gasq-wa-page-links mb-3 gasq-wa-no-print">
-            <li class="nav-item"><a class="nav-link {{ $pageKey === 'full-report' ? 'active' : '' }}" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-briefcase"></i><span>Full Report</span></a></li>
-            <li class="nav-item"><a class="nav-link {{ $pageKey === 'cfo' ? 'active' : '' }}" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
-            <li class="nav-item"><a class="nav-link {{ $pageKey === 'posts' ? 'active' : '' }}" href="{{ route('post-position-summary.index') }}"><i class="fa fa-users"></i><span>Scope of Work</span></a></li>
-            <li class="nav-item"><a class="nav-link {{ $pageKey === 'appraisal' ? 'active' : '' }}" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></a></li>
-          </ul>
-        @endunless
+        <ul class="nav gasq-wa-page-links mb-3 gasq-wa-no-print">
+          <li class="nav-item"><a class="nav-link {{ $pageKey === 'full-report' ? 'active' : '' }}" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-briefcase"></i><span>Workforce Report</span></a></li>
+          <li class="nav-item"><a class="nav-link {{ $pageKey === 'cfo' ? 'active' : '' }}" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
+          <li class="nav-item"><a class="nav-link {{ $pageKey === 'posts' ? 'active' : '' }}" href="{{ route('post-position-summary.index') }}"><i class="fa fa-users"></i><span>Post Position</span></a></li>
+          <li class="nav-item"><a class="nav-link {{ $pageKey === 'appraisal' ? 'active' : '' }}" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale"></i><span>Appraisal Summary</span></a></li>
+        </ul>
 
         <div id="wa_results_workspace">
           @if ($showCfo)
@@ -485,15 +484,6 @@
                 <div id="wa_cfo_root" class="table-responsive px-3 pb-3"></div>
               </div>
             </div>
-          @endif
-
-          @if ($showFullReport)
-            <ul class="nav gasq-wa-page-links mb-3 gasq-wa-no-print">
-              <li class="nav-item"><a class="nav-link {{ $pageKey === 'full-report' ? 'active' : '' }}" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-briefcase"></i><span>Full Report</span></a></li>
-              <li class="nav-item"><a class="nav-link {{ $pageKey === 'cfo' ? 'active' : '' }}" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
-              <li class="nav-item"><a class="nav-link {{ $pageKey === 'posts' ? 'active' : '' }}" href="{{ route('post-position-summary.index') }}"><i class="fa fa-users"></i><span>Scope of Work</span></a></li>
-              <li class="nav-item"><a class="nav-link {{ $pageKey === 'appraisal' ? 'active' : '' }}" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale"></i><span>Appraisal Comparison</span></a></li>
-            </ul>
           @endif
 
           @if ($showPosts)
