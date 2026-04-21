@@ -13,6 +13,7 @@ class Transaction extends Model
         'type',
         'reference_type',
         'reference_id',
+        'idempotency_key',
         'description',
         'balance_after',
     ];

@@ -5,11 +5,19 @@ namespace Tests\Feature;
 use App\Models\Coupon;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Tests\TestCase;
 
 class AdminCouponManagementTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(ValidateCsrfToken::class);
+    }
 
     public function test_admin_can_create_update_and_delete_coupon_codes(): void
     {

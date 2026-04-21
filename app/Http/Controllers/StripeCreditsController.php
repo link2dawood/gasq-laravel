@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\PricingPlan;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Services\WalletService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -95,10 +97,25 @@ class StripeCreditsController extends Controller
             /** @var \Stripe\Checkout\Session $session */
             $session = $event->data->object;
             $metadata = $session->metadata ?? null;
+            $sessionId = $session->id ?? null;
 
-            if ($metadata && isset($metadata->user_id, $metadata->tokens_included)) {
+            if ($metadata && $sessionId && isset($metadata->user_id, $metadata->tokens_included)) {
                 $userId = (int) $metadata->user_id;
                 $tokens = (int) $metadata->tokens_included;
+                $idempotencyKey = 'stripe_checkout:' . $sessionId;
+
+                $alreadyProcessed = Transaction::query()
+                    ->where('idempotency_key', $idempotencyKey)
+                    ->exists();
+
+                if ($alreadyProcessed) {
+                    Log::info('Stripe checkout webhook already processed; skipping duplicate grant.', [
+                        'session_id' => $sessionId,
+                        'user_id' => $userId,
+                    ]);
+
+                    return response('OK', 200);
+                }
 
                 /** @var User|null $user */
                 $user = User::find($userId);
@@ -106,22 +123,43 @@ class StripeCreditsController extends Controller
                     $description = sprintf(
                         'Purchased %d credits via Stripe (%s)',
                         $tokens,
-                        $session->id ?? 'checkout'
+                        $sessionId
                     );
 
-                    $this->walletService->addTokens(
-                        $user,
-                        $tokens,
-                        type: 'purchase',
-                        description: $description,
-                        referenceType: 'stripe_checkout',
-                        referenceId: $session->id ?? null
-                    );
+                    try {
+                        $this->walletService->addTokens(
+                            $user,
+                            $tokens,
+                            type: 'purchase',
+                            description: $description,
+                            referenceType: 'stripe_checkout',
+                            referenceId: $sessionId,
+                            idempotencyKey: $idempotencyKey,
+                        );
+                    } catch (QueryException $e) {
+                        if ($this->isDuplicateTransactionKey($e)) {
+                            Log::warning('Stripe checkout duplicate credit grant prevented by transaction idempotency key.', [
+                                'session_id' => $sessionId,
+                                'user_id' => $userId,
+                            ]);
+
+                            return response('OK', 200);
+                        }
+
+                        throw $e;
+                    }
                 }
             }
         }
 
         return response('OK', 200);
     }
-}
 
+    private function isDuplicateTransactionKey(QueryException $e): bool
+    {
+        $sqlState = $e->errorInfo[0] ?? null;
+        $driverCode = $e->errorInfo[1] ?? null;
+
+        return $sqlState === '23000' || $driverCode === 1062 || $driverCode === 19;
+    }
+}

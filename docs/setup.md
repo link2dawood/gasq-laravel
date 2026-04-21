@@ -106,6 +106,9 @@ Docker is for **local development only**, not production.
 # Run migrations
 docker compose exec app php artisan migrate
 
+# Run the queue worker for queued notifications and mail
+docker compose exec app php artisan queue:work
+
 # Run seeders
 docker compose exec app php artisan db:seed
 
@@ -126,3 +129,7 @@ docker compose logs -f app
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | For Google OAuth (optional) |
 
 See `.env.example` and `.env.docker.example` for full lists.
+
+## Queue note
+
+The app defaults to Laravel's `database` queue connection. A queue worker is required for queued bid notifications and credits-added emails to be delivered.

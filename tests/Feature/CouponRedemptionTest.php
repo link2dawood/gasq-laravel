@@ -8,11 +8,19 @@ use App\Models\PricingPlan;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Tests\TestCase;
 
 class CouponRedemptionTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(ValidateCsrfToken::class);
+    }
 
     public function test_credits_page_renders_coupon_form_and_purchase_plans(): void
     {

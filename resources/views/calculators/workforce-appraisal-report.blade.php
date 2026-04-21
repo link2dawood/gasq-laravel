@@ -97,6 +97,36 @@
       radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 35%),
       linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   }
+  .gasq-wa-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .gasq-wa-slider-input {
+    width: 110px;
+    text-align: center;
+    font-weight: 600;
+    flex: 0 0 auto;
+  }
+  .gasq-wa-slider-stack {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .gasq-wa-slider-stack .form-range {
+    margin-bottom: 0;
+  }
+  .gasq-wa-slider-stack .progress {
+    height: 6px;
+    background: rgba(6,45,121,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .gasq-wa-slider-stack .progress-bar {
+    background: var(--gasq-primary);
+    transition: width 0.2s ease;
+  }
   .gasq-wa-page-links {
     display: flex;
     flex-wrap: wrap;
@@ -789,6 +819,17 @@
     const el = document.getElementById(id);
     if(el){ el.textContent = value; }
   }
+  function updateRangeProgress(rangeEl){
+    if(!rangeEl) return;
+    const min = parseFloat(rangeEl.min || '0');
+    const max = parseFloat(rangeEl.max || '100');
+    const value = parseFloat(rangeEl.value || '0');
+    const pct = max > min ? ((value - min) / (max - min)) * 100 : 0;
+    const bar = document.getElementById(`${rangeEl.id}_progress`);
+    if(bar){
+      bar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+    }
+  }
 
   function round2(n){
     return Math.round((Number(n) || 0) * 100) / 100;
@@ -1225,6 +1266,25 @@
       const numEl = document.getElementById(id);
       if(!numEl) return;
 
+      if(rangeEl.dataset.enhanced !== '1'){
+        const row = rangeEl.parentElement;
+        if(row){
+          row.classList.add('gasq-wa-slider-row');
+          numEl.classList.add('gasq-wa-slider-input');
+
+          const stack = document.createElement('div');
+          stack.className = 'gasq-wa-slider-stack';
+          row.insertBefore(stack, rangeEl);
+          stack.appendChild(rangeEl);
+
+          const progress = document.createElement('div');
+          progress.className = 'progress';
+          progress.innerHTML = `<div class="progress-bar" id="${rangeEl.id}_progress"></div>`;
+          stack.appendChild(progress);
+        }
+        rangeEl.dataset.enhanced = '1';
+      }
+
       // Initialize slider from number, then keep them in sync both ways.
       const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
       const syncRangeFromNumber = () => {
@@ -1232,6 +1292,7 @@
         const max = parseFloat(rangeEl.max || '100');
         const v = parseFloat(numEl.value || rangeEl.value || '0');
         rangeEl.value = String(clamp(v, min, max));
+        updateRangeProgress(rangeEl);
       };
       const syncNumberFromRange = () => {
         numEl.value = rangeEl.value;
@@ -1241,6 +1302,7 @@
 
       rangeEl.addEventListener('input', () => {
         syncNumberFromRange();
+        updateRangeProgress(rangeEl);
         scheduleCompute();
       });
       numEl.addEventListener('input', () => {

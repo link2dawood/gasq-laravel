@@ -19,6 +19,8 @@
 /storage/*.key
 /storage/pail
 /vendor
+/graphy
+/graphify-out
 /my-video
 Homestead.json
 Homestead.yaml

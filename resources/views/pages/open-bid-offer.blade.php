@@ -1,108 +1,179 @@
 @extends('layouts.app')
 
-@section('title', 'Open Bid Offer')
+@section('title', 'Email Summary Notification to Security Vendor')
 
 @section('content')
-<div class="py-5" style="background: linear-gradient(135deg, rgba(13,110,253,0.10) 0%, rgba(255,255,255,1) 60%);">
-    <div class="container">
-        <div class="text-center mb-5">
-            <div class="d-inline-block px-4 py-2 rounded-pill bg-secondary text-white mb-4">
-                UI Preview
-            </div>
-            <h1 class="display-4 fw-bold mb-3">A Smarter Way to Secure Security Services</h1>
-            <p class="lead text-gasq-muted mx-auto" style="max-width: 900px;">
-                Open Bid Offer Process eliminates endless back-and-forth negotiations and helps buyers and vendors
-                align on fairness, transparency, and true market value.
-            </p>
+@php
+    $fmtMoney = fn ($value) => $value !== null ? '$' . number_format((float) $value, 2) : 'Not provided';
+    $fmtInt = fn ($value) => $value !== null ? number_format((int) $value) : 'Not provided';
+    $yesNo = fn ($value) => $value ? 'Yes' : 'No';
+@endphp
 
-            <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
-                <a class="btn btn-primary btn-lg" href="{{ route('jobs.create') }}">Post Your Job Today</a>
-                <a class="btn btn-outline-primary btn-lg" href="{{ url('/main-menu-calculator') }}">Try Our Calculator</a>
+<div class="py-5" style="background: linear-gradient(135deg, rgba(13,110,253,0.12) 0%, rgba(255,255,255,1) 60%);">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h1 class="display-6 fw-bold mb-2">Email Summary Notification to Security Vendor</h1>
+            <p class="lead text-dark mb-3">
+                ALERT! GASQNOW New Security Project in {{ $city ?? 'N/A' }}@if(!empty($state)), {{ $state }}@endif
+            </p>
+            <div class="row g-3 justify-content-center text-start mx-auto" style="max-width: 960px;">
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Type of Service Requested:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $serviceTypeSummary ?? 'Not provided' }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Email Address:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $maskedBuyerEmail }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Phone Number:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $maskedBuyerPhone }}</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="container py-5">
-    <div class="text-center mb-5">
-        <h2 class="fw-bold mb-3">How It Works</h2>
-        <p class="text-gasq-muted mb-0">Five steps to better security procurement</p>
-    </div>
+    @if(! $pageHasData)
+        <div class="alert alert-info">
+            No bid summary is available yet for your account. Open a job with bids first, or pass a bid id like
+            <code>?bid=123</code>.
+        </div>
+    @endif
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-6 col-lg-4">
-            <x-card title="1) Buyer Posts Job" subtitle="Scope, budget, hours, and requirements">
-                <p class="mb-0 text-gasq-muted">
-                    Enter your scope and receive a True Cost Appraisal Report to make sure the numbers are accurate.
-                </p>
-            </x-card>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <x-card title="2) Vendors Respond" subtitle="Accept, Decline, or Counter Offer">
-                <div class="mb-2 text-gasq-muted">Responses:</div>
-                <ul class="mb-0 ps-3 text-gasq-muted">
-                    <li>Accept: agree to your terms</li>
-                    <li>Decline: opt out (tracked for budget realism)</li>
-                    <li>Counter: propose higher rate with justification</li>
-                </ul>
-            </x-card>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <x-card title="3) Mandatory Interviews" subtitle="Value, professionalism, and fit">
-                <p class="mb-0 text-gasq-muted">
-                    Vendors who accept or counter must be interviewed so you choose based on value—not just price.
-                </p>
-            </x-card>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <x-card title="4) Mandatory Risk Assessment" subtitle="Validate threats and proper staffing">
-                <p class="mb-0 text-gasq-muted">
-                    Before award, selected vendor completes a risk assessment to protect your site or event.
-                </p>
-            </x-card>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <x-card title="5) Contract Award & Vendor Replacement" subtitle="Confidence + backup plan">
-                <p class="mb-0 text-gasq-muted">
-                    Award once risk assessment is complete. Non-selected vendors remain on the replacement list.
-                </p>
-            </x-card>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <h2 class="h4 fw-bold mb-4">Project Overview</h2>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <p class="mb-2"><strong>Type of Service Requested:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $serviceTypeSummary ?? 'Not provided' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-2"><strong>Total Bid Offer Value:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtMoney($bidOfferValue) }}</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
-        <div class="col-lg-6">
-            <x-card title="Why this is different" subtitle="Fair & transparent by design">
-                <ul class="mb-0 ps-3 text-gasq-muted">
-                    <li>Fair & Transparent: no hidden games</li>
-                    <li>Value over low price</li>
-                    <li>Guaranteed interviews for accepting/countering vendors</li>
-                    <li>Risk-proof contracts with required assessment</li>
-                    <li>Built-in backup: vendor replacement guarantee list</li>
-                </ul>
-            </x-card>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <h2 class="h4 fw-bold mb-4">Buyer Contact & Validation</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Email Address:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $maskedBuyerEmail }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Phone Number:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $maskedBuyerPhone }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Phone Number Verified:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $yesNo($phoneVerified) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Decision Maker Verified/Validated:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $yesNo($decisionMakerValidated) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Budget Verified/Validated:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $yesNo($budgetValidated) }}</p>
+                </div>
+            </div>
         </div>
-        <div class="col-lg-6">
-            <x-card title="Safeguards" subtitle="Decision support">
-                <ul class="mb-0 ps-3 text-gasq-muted">
-                    <li>Price Lock Guarantee</li>
-                    <li>Vendor Replacement Guarantee</li>
-                    <li>ROI Appraisal Report</li>
-                </ul>
-            </x-card>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <h2 class="h4 fw-bold mb-4">Validation and Offer Summary</h2>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>City:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $city ?? 'Not provided' }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>State:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $state ?? 'Not provided' }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Zip Code:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $zipCode ?? 'Not provided' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Total Credits to Respond:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($creditsToRespond) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Responses:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $acceptedBidsCount }}/{{ $responseDenominator }} Professionals have accepted bid offer</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <h2 class="h4 fw-bold mb-4">Project Details</h2>
+            <div class="vstack gap-3">
+                @foreach($projectDetails as $detail)
+                    <div>
+                        <p class="mb-1"><strong>{{ $detail['label'] }}</strong></p>
+                        <p class="text-gasq-muted mb-0">{{ $detail['value'] }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <h2 class="h4 fw-bold mb-4">Coverage Summary</h2>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Hours per Day of Coverage:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($hoursPerDay) }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Days per Week of Coverage:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($daysPerWeek) }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Weekly Hours Hired to Work:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($weeklyHours) }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Monthly Hours Hired to Work:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($monthlyHours) }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Number of Weeks:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($totalWeeks) }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Total Months of Coverage:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($totalMonths) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Total Staff Required:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($staffRequired) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Total Term/Annual Hours:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $fmtInt($annualHours) }}</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="text-center">
-        <h2 class="fw-bold mb-3">Ready to Experience Procurement 2.0?</h2>
-        <p class="text-gasq-muted mx-auto mb-4" style="max-width: 850px;">
-            Every security contract begins with clarity, fairness, and confidence.
-        </p>
-        <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <a class="btn btn-primary" href="{{ route('jobs.create') }}">Post Your Job Today</a>
-            <a class="btn btn-outline-primary" href="{{ route('faq') }}">Learn How GASQ Protects Buyers & Vendors</a>
-        </div>
+        @if($job)
+            <a class="btn btn-primary btn-lg px-5" href="{{ route('jobs.show', $job) }}">I ACCEPT BID OFFER</a>
+        @else
+            <a class="btn btn-primary btn-lg px-5" href="{{ route('jobs.index') }}">View Available Jobs</a>
+        @endif
     </div>
 </div>
 @endsection
-

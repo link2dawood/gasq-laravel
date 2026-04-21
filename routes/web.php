@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\OpenBidOfferController;
 use App\Http\Controllers\StripeCreditsController;
 
 Route::get('/', [PageController::class, 'landing'])->name('landing');
@@ -24,9 +25,9 @@ Route::get('/government-contract-calculator', function () {
     return view('calculators.government-contract-calculator');
 })->name('government-contract-calculator.index');
 
-Route::get('/open-bid-offer', function () {
-    return view('calculators.open-bid-offer');
-})->name('open-bid-offer.index');
+Route::get('/open-bid-offer', OpenBidOfferController::class)
+    ->middleware('auth')
+    ->name('open-bid-offer.index');
 
 Route::get('/post-job', function () {
     return view('calculators.post-job');

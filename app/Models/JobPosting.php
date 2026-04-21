@@ -13,6 +13,7 @@ class JobPosting extends Model
         'title',
         'category',
         'location',
+        'zip_code',
         'latitude',
         'longitude',
         'google_place_id',
@@ -24,6 +25,7 @@ class JobPosting extends Model
         'description',
         'property_type',
         'special_requirements',
+        'questionnaire_data',
         'expires_at',
     ];
 
@@ -36,7 +38,13 @@ class JobPosting extends Model
         'latitude' => 'float',
         'longitude' => 'float',
         'special_requirements' => 'array',
+        'questionnaire_data' => 'array',
     ];
+
+    public function questionnaire(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->questionnaire_data ?? [], $key, $default);
+    }
 
     public function hasGeoPoint(): bool
     {
