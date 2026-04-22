@@ -60,6 +60,16 @@
         </div>
     </div>
 
+    <div class="card gasq-card mb-4">
+        <div class="card-header">
+            <h3 class="card-title mb-0">Twilio</h3>
+        </div>
+        <div class="card-body">
+            <p class="text-gasq-muted small mb-3">Current OTP delivery mode: <strong>{{ $twilioDebug['delivery_mode'] ?? 'unknown' }}</strong></p>
+            <a href="{{ route('admin.twilio.show') }}" class="btn btn-sm btn-outline-primary">Open Twilio health check</a>
+        </div>
+    </div>
+
     <form action="{{ route('admin.settings.update') }}" method="POST">
         @csrf
         <div class="row g-4">

@@ -10,6 +10,59 @@ use Throwable;
 
 class TwilioSmsService
 {
+    /**
+     * @return array{ok: bool, status: int, summary: string, details: array<string, mixed>}
+     */
+    public function healthCheck(): array
+    {
+        $sid = $this->cleanConfigValue(config('services.twilio.account_sid'));
+        $token = $this->cleanConfigValue(config('services.twilio.auth_token'));
+
+        if ($sid === '' || $token === '') {
+            return [
+                'ok' => false,
+                'status' => 0,
+                'summary' => 'Twilio credentials are missing.',
+                'details' => $this->debugContext(),
+            ];
+        }
+
+        $url = sprintf('https://api.twilio.com/2010-04-01/Accounts/%s.json', $sid);
+        $res = Http::withBasicAuth($sid, $token)->get($url);
+
+        $bodyData = $res->json();
+        $twilioCode = is_array($bodyData) ? Arr::get($bodyData, 'code') : null;
+        $twilioMessage = is_array($bodyData)
+            ? (string) Arr::get($bodyData, 'message', '')
+            : Str::limit($res->body(), 500);
+
+        $details = $this->debugContext();
+        $details['http_status'] = $res->status();
+        $details['twilio_code'] = $twilioCode;
+        $details['twilio_message'] = $twilioMessage;
+
+        if ($res->successful()) {
+            $details['friendly_name'] = is_array($bodyData) ? Arr::get($bodyData, 'friendly_name') : null;
+            $details['account_status'] = is_array($bodyData) ? Arr::get($bodyData, 'status') : null;
+
+            return [
+                'ok' => true,
+                'status' => $res->status(),
+                'summary' => 'Twilio account authentication succeeded.',
+                'details' => $details,
+            ];
+        }
+
+        return [
+            'ok' => false,
+            'status' => $res->status(),
+            'summary' => $twilioCode === 20003
+                ? 'Twilio rejected the current SID/token pair.'
+                : 'Twilio health check failed.',
+            'details' => $details,
+        ];
+    }
+
     public function send(string $toE164, string $body): void
     {
         $sid = $this->cleanConfigValue(config('services.twilio.account_sid'));

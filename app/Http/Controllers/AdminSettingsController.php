@@ -25,6 +25,7 @@ class AdminSettingsController extends Controller
         return view('admin.settings', [
             'settingsByGroup' => $settings,
             'siteLogoPath' => $logoPath,
+            'twilioDebug' => app(\App\Services\TwilioSmsService::class)->debugContext(),
         ]);
     }
 
@@ -82,4 +83,3 @@ class AdminSettingsController extends Controller
         return redirect()->route('admin.settings')->with('success', 'Logo removed. Default logo will show.');
     }
 }
-

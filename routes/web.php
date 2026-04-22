@@ -239,6 +239,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/settings', [App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
     Route::post('/admin/settings/logo', [App\Http\Controllers\AdminSettingsController::class, 'uploadLogo'])->name('admin.settings.logo');
     Route::post('/admin/settings/logo/remove', [App\Http\Controllers\AdminSettingsController::class, 'removeLogo'])->name('admin.settings.logo.remove');
+    Route::get('/admin/twilio', [App\Http\Controllers\AdminTwilioController::class, 'show'])->name('admin.twilio.show');
+    Route::post('/admin/twilio/send-test', [App\Http\Controllers\AdminTwilioController::class, 'sendTest'])->name('admin.twilio.send-test');
     Route::get('/admin/tokens', [App\Http\Controllers\AdminTokensController::class, 'index'])->name('admin.tokens');
     Route::post('/admin/tokens/adjust', [App\Http\Controllers\AdminTokensController::class, 'adjust'])->name('admin.tokens.adjust');
     Route::post('/admin/tokens/features/{rule}', [App\Http\Controllers\AdminTokensController::class, 'updateFeature'])->name('admin.tokens.features.update');

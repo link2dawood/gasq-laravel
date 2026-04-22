@@ -100,6 +100,7 @@
                                         @if(auth()->user()->isAdmin())
                                             <li><a class="dropdown-item" href="{{ route('admin.settings') }}"><i class="fa fa-cog me-2"></i>Settings</a></li>
                                             <li><a class="dropdown-item" href="{{ route('admin.tokens') }}"><i class="fa fa-shield me-2"></i>Token Admin</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('admin.twilio.show') }}"><i class="fa fa-comment-sms me-2"></i>Twilio Health</a></li>
                                             <li><a class="dropdown-item" href="{{ route('admin.coupons.index') }}"><i class="fa fa-ticket-alt me-2"></i>Coupons</a></li>
                                             <li><a class="dropdown-item" href="{{ route('admin.faqs.index') }}"><i class="fa fa-question-circle me-2"></i>FAQs</a></li>
                                             <li><a class="dropdown-item" href="{{ route('admin.content-sections.index') }}"><i class="fa fa-file-alt me-2"></i>Page Content</a></li>
