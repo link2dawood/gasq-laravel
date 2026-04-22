@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
 {
+    private const PHONE_VERIFICATION_SESSION_KEY = 'auth_phone_verification';
+
     /*
     |--------------------------------------------------------------------------
     | Register Controller
@@ -52,14 +54,23 @@ class RegisterController extends Controller
             return redirect()->route('home');
         }
 
-        $phone = trim($user->phone);
+        $phone = $this->normalizePhoneToE164((string) $user->phone);
 
         // Require E.164 format for Twilio.
-        if (! str_starts_with($phone, '+') || ! preg_match('/^\\+[1-9]\\d{7,14}$/', $phone)) {
+        if ($phone === null) {
             return redirect()
                 ->route('phone.verify.show')
+                ->with(self::PHONE_VERIFICATION_SESSION_KEY, [
+                    'phone' => (string) $user->phone,
+                    'verified' => false,
+                ])
                 ->withErrors(['phone' => 'Phone number must be in E.164 format, e.g. +12345678900.']);
         }
+
+        $request->session()->put(self::PHONE_VERIFICATION_SESSION_KEY, [
+            'phone' => $phone,
+            'verified' => false,
+        ]);
 
         $code = (string) random_int(100000, 999999);
 
@@ -87,9 +98,13 @@ class RegisterController extends Controller
             $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
         } catch (\Throwable $e) {
             Log::error('Twilio OTP send failed', ['error' => $e->getMessage()]);
+
+            return redirect()
+                ->route('phone.verify.show')
+                ->withErrors(['phone' => 'We could not send a verification code right now. Please try again in a moment.']);
         }
 
-        return redirect()->route('phone.verify.show');
+        return redirect()->route('phone.verify.show')->with('status', 'Verification code sent.');
     }
 
     /**
@@ -126,5 +141,21 @@ class RegisterController extends Controller
             'company' => $data['company'] ?? null,
             'phone' => $data['phone'] ?? null,
         ]);
+    }
+
+    private function normalizePhoneToE164(string $phone): ?string
+    {
+        $p = preg_replace('/[\s\-\(\)]+/', '', trim($phone)) ?? '';
+        if ($p === '') {
+            return null;
+        }
+        if (! str_starts_with($p, '+')) {
+            return null;
+        }
+        if (! preg_match('/^\+[1-9]\d{7,14}$/', $p)) {
+            return null;
+        }
+
+        return $p;
     }
 }

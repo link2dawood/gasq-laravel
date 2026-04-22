@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
@@ -84,6 +85,12 @@ class PhoneVerificationController extends Controller
         try {
             $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
         } catch (\Throwable $e) {
+            Log::error('Auth phone verification OTP send failed', [
+                'user_id' => $user?->id,
+                'phone' => $phone,
+                'error' => $e->getMessage(),
+            ]);
+
             return back()
                 ->withErrors(['phone' => 'We could not send a verification code right now. Please try again in a moment.'])
                 ->withInput();
