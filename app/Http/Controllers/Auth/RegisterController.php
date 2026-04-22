@@ -97,11 +97,16 @@ class RegisterController extends Controller
         try {
             $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
         } catch (\Throwable $e) {
-            Log::error('Twilio OTP send failed', ['error' => $e->getMessage()]);
+            Log::error('Twilio OTP send failed', [
+                'user_id' => $user?->id,
+                'phone' => $phone,
+                'error' => $e->getMessage(),
+                'twilio' => $this->sms->debugContext(),
+            ]);
 
             return redirect()
                 ->route('phone.verify.show')
-                ->withErrors(['phone' => 'We could not send a verification code right now. Please try again in a moment.']);
+                ->withErrors(['phone' => $this->sms->userFacingError($e)]);
         }
 
         return redirect()->route('phone.verify.show')->with('status', 'Verification code sent.');

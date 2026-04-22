@@ -183,10 +183,11 @@ class ProfileController extends Controller
                 'user_id' => $user?->id,
                 'phone' => $phone,
                 'error' => $e->getMessage(),
+                'twilio' => $this->sms->debugContext(),
             ]);
 
             return back()->withErrors([
-                'phone' => 'We could not send a verification code right now. Please try again in a moment.',
+                'phone' => $this->sms->userFacingError($e),
             ])->withInput();
         }
 

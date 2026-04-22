@@ -127,7 +127,9 @@
                     >
                     <label class="form-check-label small" for="terms">
                         I agree to the
-                        <a href="{{ url('/#how-it-works') }}" class="text-primary text-decoration-none">terms and policy</a>.
+                        <a href="{{ route('terms') }}" class="text-primary text-decoration-none">Terms &amp; Conditions</a>
+                        and
+                        <a href="{{ route('privacy-policy') }}" class="text-primary text-decoration-none">Privacy Policy</a>.
                     </label>
                 </div>
             </div>
@@ -144,4 +146,3 @@
     <a href="{{ route('login') }}" class="text-primary fw-medium text-decoration-none">Sign in</a>
 </p>
 @endsection
-

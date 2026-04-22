@@ -45,6 +45,16 @@ class PageController extends Controller
         return view('pages.payment-policy', compact('sections'));
     }
 
+    public function terms(): View
+    {
+        return view('pages.terms-conditions');
+    }
+
+    public function privacy(): View
+    {
+        return view('pages.privacy-policy');
+    }
+
     public function postCoverageSchedule(): View
     {
         $sections = ContentSection::forPage(ContentSection::PAGE_POST_COVERAGE_SCHEDULE)->activeOrdered()->get();

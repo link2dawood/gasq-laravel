@@ -12,6 +12,8 @@ Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/payscale', [PageController::class, 'payScale'])->name('payscale');
 Route::get('/payment-model', [PageController::class, 'paymentPolicy'])->name('payment-policy');
+Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('terms');
+Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy-policy');
 // Marketing / preview calculator pages — native Blade (no React shell)
 Route::get('/post-coverage-schedule', function () {
     return view('calculators.post-coverage-schedule');
