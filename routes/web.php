@@ -111,7 +111,6 @@ Route::get('/job-board', function () {
     return redirect()->route('jobs.index');
 })->name('job-board');
 Route::get('/jobs', [App\Http\Controllers\JobPostingController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/{job}', [App\Http\Controllers\JobPostingController::class, 'show'])->name('jobs.show');
 Route::get('/vendor-profile/{user}', [App\Http\Controllers\VendorProfileController::class, 'show'])->name('vendor-profile.show');
 
 Auth::routes();
@@ -147,6 +146,11 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::post('/discovery-call', [App\Http\Controllers\DiscoveryCallController::class, 'store'])->name('discovery-call.store');
 
     // Jobs (create, edit, delete) and bids
+    Route::post('/jobs/create/start', [App\Http\Controllers\JobPostingController::class, 'start'])->name('jobs.create.start');
+    Route::post('/jobs/preview', [App\Http\Controllers\JobPostingController::class, 'preview'])->name('jobs.preview');
+    Route::get('/jobs/review', [App\Http\Controllers\JobPostingController::class, 'review'])->name('jobs.review');
+    Route::post('/jobs/review/edit', [App\Http\Controllers\JobPostingController::class, 'editReview'])->name('jobs.review.edit');
+    Route::post('/jobs/publish', [App\Http\Controllers\JobPostingController::class, 'publish'])->name('jobs.publish');
     Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
     Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
     Route::put('/bids/{bid}', [App\Http\Controllers\BidController::class, 'update'])->name('bids.update');
@@ -216,6 +220,10 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/reports/download', [App\Http\Controllers\ReportController::class, 'downloadReport'])->name('reports.download');
     Route::post('/reports/email', [App\Http\Controllers\ReportController::class, 'emailReport'])->name('reports.email');
 });
+
+// Keep the public show route after auth-only job routes so /jobs/create is not
+// captured as a {job} parameter and turned into a 404.
+Route::get('/jobs/{job}', [App\Http\Controllers\JobPostingController::class, 'show'])->name('jobs.show');
 
 // Stripe webhook (no auth)
 Route::post('/stripe/webhook', [StripeCreditsController::class, 'webhook'])->name('stripe.webhook');

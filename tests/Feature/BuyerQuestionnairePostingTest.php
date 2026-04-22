@@ -14,6 +14,119 @@ class BuyerQuestionnairePostingTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_buyer_can_open_job_create_page(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'phone' => '4045557890',
+            'phone_verified' => true,
+        ]);
+
+        $response = $this->actingAs($buyer)->get(route('jobs.create'));
+
+        $response->assertOk();
+        $response->assertSeeText('Post Your Security Service Request');
+        $response->assertSeeText('Step 1: Service and Job Site');
+    }
+
+    public function test_buyer_quick_start_redirects_to_questionnaire_step_with_starter_data(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'phone' => '4045557890',
+            'phone_verified' => true,
+        ]);
+
+        $response = $this->actingAs($buyer)->post(route('jobs.create.start'), [
+            'starter_service_type' => 'Mobile Patrol',
+            'location' => '200 Main St, Atlanta, GA',
+            'zip_code' => '30303',
+        ]);
+
+        $response->assertRedirect(route('jobs.create', ['step' => 'details']));
+        $response->assertSessionHas('job_posting_starter', function (array $starter): bool {
+            return $starter['service_label'] === 'Mobile Patrol'
+                && $starter['category'] === 'Mobile Patrol'
+                && $starter['location'] === '200 Main St, Atlanta, GA'
+                && $starter['zip_code'] === '30303';
+        });
+    }
+
+    public function test_buyer_questionnaire_step_shows_quick_start_summary(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'phone' => '4045557890',
+            'phone_verified' => true,
+        ]);
+
+        $response = $this->actingAs($buyer)
+            ->withSession([
+                'job_posting_starter' => [
+                    'starter_service_type' => 'Unarmed Security Guard',
+                    'service_label' => 'Unarmed Security Guard',
+                    'service_types' => ['Unarmed Security Guard'],
+                    'category' => 'Unarmed Security Guard',
+                    'title' => 'Unarmed Security Guard request for 123 Peachtree St, Atlanta, GA',
+                    'location' => '123 Peachtree St, Atlanta, GA',
+                    'zip_code' => '30303',
+                ],
+            ])
+            ->get(route('jobs.create', ['step' => 'details']));
+
+        $response->assertOk();
+        $response->assertSeeText('Step 2: Buyer Questionnaire');
+        $response->assertSeeText('Requested Service');
+        $response->assertSeeText('Unarmed Security Guard');
+        $response->assertSeeText('123 Peachtree St, Atlanta, GA');
+    }
+
+    public function test_buyer_can_generate_announcement_preview_from_questionnaire(): void
+    {
+        Storage::fake('public');
+
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '4045557890',
+            'phone_verified' => true,
+        ]);
+
+        $response = $this->actingAs($buyer)->post(route('jobs.preview'), $this->validPostingPayload());
+
+        $response->assertRedirect(route('jobs.review'));
+        $response->assertSessionHas('job_posting_preview', function (array $preview): bool {
+            return ($preview['payload']['title'] ?? null) === 'Downtown Office Security'
+                && ($preview['payload']['status'] ?? null) === 'open'
+                && ($preview['payload']['questionnaire_data']['property_site_name'] ?? null) === 'Buckhead Tower';
+        });
+    }
+
+    public function test_buyer_can_publish_generated_announcement_from_review(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '4045557890',
+            'phone_verified' => true,
+        ]);
+
+        $this->actingAs($buyer)->post(route('jobs.preview'), $this->validPostingPayload())
+            ->assertRedirect(route('jobs.review'));
+
+        $publishResponse = $this->actingAs($buyer)->post(route('jobs.publish'));
+
+        $job = JobPosting::query()->latest('id')->first();
+
+        $this->assertNotNull($job);
+        $this->assertSame('open', $job?->status);
+        $this->assertSame('Buckhead Tower', $job?->questionnaire('property_site_name'));
+
+        $publishResponse->assertRedirect(route('jobs.show', $job));
+        $publishResponse->assertSessionHas('success', 'Job announcement published successfully.');
+        $this->assertNull(session('job_posting_preview'));
+    }
+
     public function test_buyer_posting_request_persists_questionnaire_snapshot_on_job_posting(): void
     {
         $buyer = User::factory()->create([

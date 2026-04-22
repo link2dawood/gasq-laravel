@@ -1,13 +1,13 @@
 <claude-mem-context>
 # Memory Context
 
-# [gasq-laravel] recent context, 2026-04-22 2:49am GMT+5
+# [gasq-laravel] recent context, 2026-04-22 6:00pm GMT+5
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 12 obs (6,000t read) | 145,942t work | 96% savings
+Stats: 13 obs (6,511t read) | 171,421t work | 96% savings
 
 ### Apr 22, 2026
 1 12:57a 🔵 gasq-laravel Billing Schema: Coupons, Wallets, and Transactions Migration Layout
@@ -22,6 +22,7 @@ Stats: 12 obs (6,000t read) | 145,942t work | 96% savings
 10 " 🔴 SendCreditsGrantedNotification Gets afterCommit = true to Prevent Premature Queue Dispatch
 11 " ✅ docs/setup.md Updated with Queue Worker Requirement
 12 2:48a 🔴 BillingHardeningTest Corrected: Stripe Header Key, Dynamic Plan ID, Queue::fake() Added
+13 2:50a 🔴 Feature Tests Fixed: CSRF 419 Responses Required withoutMiddleware in setUp()
 
-Access 146k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 171k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

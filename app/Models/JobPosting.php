@@ -23,6 +23,7 @@ class JobPosting extends Model
         'budget_min',
         'budget_max',
         'description',
+        'status',
         'property_type',
         'special_requirements',
         'questionnaire_data',

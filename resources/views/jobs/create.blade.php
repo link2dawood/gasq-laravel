@@ -4,6 +4,8 @@
 
 @section('content')
 @php
+    $starter = $starter ?? [];
+    $showDetailsStep = $showDetailsStep ?? false;
     $progressSections = [
         'Contact Information',
         'Decision Authority',
@@ -16,7 +18,7 @@
         'Posting Terms and Submission',
     ];
     $selectedReadinessReasons = old('project_readiness_reasons', []);
-    $selectedServices = old('service_types', []);
+    $selectedServices = old('service_types', $starter['service_types'] ?? []);
     $selectedShifts = old('shifts_needed', []);
     $selectedPatrolTypes = old('patrol_types', []);
     $selectedDuties = old('duties_required', []);
@@ -27,26 +29,104 @@
 <div class="container py-4">
     <h1 class="h2 mb-2">Post Your Security Service Request</h1>
     <p class="text-gasq-muted mb-4">
-        Complete the form below to build your security job offer announcement, establish your scope, and invite qualified vendors to accept, decline, or request a scope adjustment.
+        Start with your service and site details, then complete the buyer questionnaire so GASQ can build your security job offer announcement and invite qualified vendors to respond.
     </p>
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <div class="small text-uppercase text-gasq-muted fw-semibold mb-3">Progress Sections</div>
-            <div class="d-flex flex-wrap gap-2">
-                @foreach($progressSections as $index => $section)
-                    <span class="badge rounded-pill text-bg-light border px-3 py-2">{{ $index + 1 }}. {{ $section }}</span>
-                @endforeach
+    @if(! $showDetailsStep)
+        <x-card title="Step 1: Service and Job Site">
+            <p class="text-gasq-muted mb-4">
+                Tell us what type of security service you need and where the work will happen. After this quick step, we will ask the full buyer questionnaire.
+            </p>
+
+            <form action="{{ route('jobs.create.start') }}" method="POST">
+                @csrf
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">What type of security service are you requesting? <span class="text-danger">*</span></label>
+                        <select name="starter_service_type" id="starter_service_type" class="form-select @error('starter_service_type') is-invalid @enderror" required>
+                            <option value="">Choose...</option>
+                            @foreach($starterServiceOptions as $serviceOption)
+                                <option value="{{ $serviceOption }}" @selected(old('starter_service_type', $starter['starter_service_type'] ?? '') === $serviceOption)>{{ $serviceOption }}</option>
+                            @endforeach
+                        </select>
+                        @error('starter_service_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-6 mb-3" id="starter_service_type_other_wrap">
+                        <label class="form-label">If Other, please specify</label>
+                        <input type="text" name="starter_service_type_other" class="form-control @error('starter_service_type_other') is-invalid @enderror" value="{{ old('starter_service_type_other', $starter['starter_service_type_other'] ?? '') }}">
+                        @error('starter_service_type_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Postal Code</label>
+                        <input type="text" name="zip_code" class="form-control @error('zip_code') is-invalid @enderror" value="{{ old('zip_code', $starter['zip_code'] ?? '') }}">
+                        @error('zip_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        @include('jobs.partials.location-fields', [
+                            'suffix' => 'starter',
+                            'location' => old('location', $starter['location'] ?? ''),
+                            'latitude' => old('latitude', $starter['latitude'] ?? null),
+                            'longitude' => old('longitude', $starter['longitude'] ?? null),
+                            'googlePlaceId' => old('google_place_id', $starter['google_place_id'] ?? ''),
+                        ])
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Continue to Buyer Questionnaire</button>
+                    <a href="{{ route('job-board') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </x-card>
+    @else
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="small text-uppercase text-gasq-muted fw-semibold mb-3">Step 2: Buyer Questionnaire</div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    @foreach($progressSections as $index => $section)
+                        <span class="badge rounded-pill text-bg-light border px-3 py-2">{{ $index + 1 }}. {{ $section }}</span>
+                    @endforeach
+                </div>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold">Requested Service</div>
+                        <div>{{ $starter['service_label'] ?? 'Not set' }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold">Postal Code</div>
+                        <div>{{ ($starter['zip_code'] ?? '') !== '' ? $starter['zip_code'] : 'Not provided' }}</div>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a href="{{ route('jobs.create') }}" class="btn btn-outline-secondary btn-sm">Edit Service and Job Site</a>
+                    </div>
+                    <div class="col-12">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold">Service Address</div>
+                        <div>{{ $starter['location'] ?? 'Not set' }}</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <x-card title="Buyer Online Posting Form">
-        <form action="{{ route('jobs.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
+        <x-card title="Buyer Online Posting Form">
+            <form action="{{ route('jobs.preview') }}" method="POST" enctype="multipart/form-data">
+                @csrf
 
-            <h5 class="mb-3">Section 1: Contact Information</h5>
-            <div class="row">
+                <input type="hidden" name="category" value="{{ old('category', $starter['category'] ?? '') }}">
+                @foreach($selectedServices as $selectedService)
+                    <input type="hidden" name="service_types[]" value="{{ $selectedService }}">
+                @endforeach
+                @if(in_array('Other', $selectedServices, true))
+                    <input type="hidden" name="service_type_other" value="{{ old('service_type_other', $starter['service_type_other'] ?? '') }}">
+                @endif
+                <input type="hidden" name="location" value="{{ old('location', $starter['location'] ?? '') }}">
+                <input type="hidden" name="zip_code" value="{{ old('zip_code', $starter['zip_code'] ?? '') }}">
+                <input type="hidden" name="latitude" value="{{ old('latitude', $starter['latitude'] ?? '') }}">
+                <input type="hidden" name="longitude" value="{{ old('longitude', $starter['longitude'] ?? '') }}">
+                <input type="hidden" name="google_place_id" value="{{ old('google_place_id', $starter['google_place_id'] ?? '') }}">
+
+                <h5 class="mb-3">Section 1: Contact Information</h5>
+                <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
                     <input type="text" name="contact_name" class="form-control @error('contact_name') is-invalid @enderror" value="{{ old('contact_name', auth()->user()->name) }}" required>
@@ -218,20 +298,19 @@
 
             <h5 class="mb-3">Section 3: Service Location</h5>
             <div class="row">
-                <div class="col-md-8 mb-3">
-                    <label class="form-label">Service Address <span class="text-danger">*</span></label>
-                    @include('jobs.partials.location-fields', [
-                        'suffix' => 'create',
-                        'location' => old('location'),
-                        'latitude' => old('latitude'),
-                        'longitude' => old('longitude'),
-                        'googlePlaceId' => old('google_place_id'),
-                    ])
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Zip Code</label>
-                    <input type="text" name="zip_code" class="form-control @error('zip_code') is-invalid @enderror" value="{{ old('zip_code') }}">
-                    @error('zip_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="col-12 mb-3">
+                    <div class="rounded border bg-light px-3 py-3">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold mb-2">Quick-Start Job Site Details</div>
+                        <div><strong>Service address:</strong> {{ old('location', $starter['location'] ?? '') }}</div>
+                        <div><strong>Postal code:</strong> {{ old('zip_code', $starter['zip_code'] ?? '') !== '' ? old('zip_code', $starter['zip_code'] ?? '') : 'Not provided' }}</div>
+                        @error('location')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
+                        @error('zip_code')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        @error('latitude')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        @error('longitude')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        <div class="mt-2">
+                            <a href="{{ route('jobs.create') }}" class="btn btn-outline-secondary btn-sm">Edit Service and Job Site</a>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Is service needed at more than one location? <span class="text-danger">*</span></label>
@@ -289,30 +368,23 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Posting Title <span class="text-danger">*</span></label>
-                    <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title') }}" required>
+                    <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $starter['title'] ?? '') }}" required>
                     @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Primary Summary Service Label <span class="text-danger">*</span></label>
-                    <input type="text" name="category" class="form-control @error('category') is-invalid @enderror" value="{{ old('category') }}" placeholder="e.g. Unarmed Security Officer" required>
-                    @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-12 mb-3">
-                    <label class="form-label">What type of security service are you requesting? <span class="text-danger">*</span></label>
-                    <div class="d-flex flex-wrap gap-3">
-                        @foreach(['Unarmed Security Guard','Armed Security Guard','Mobile Patrol','Foot Patrol','Roving Patrol','Concierge / Front Desk Security','Access Control','Fire Watch','Loss Prevention','Event Security','Parking Enforcement','Other'] as $service)
-                            <div class="form-check">
-                                <input class="form-check-input service-type-checkbox" type="checkbox" name="service_types[]" value="{{ $service }}" id="svc_{{ \Illuminate\Support\Str::slug($service) }}" @checked(in_array($service, $selectedServices, true))>
-                                <label class="form-check-label" for="svc_{{ \Illuminate\Support\Str::slug($service) }}">{{ $service }}</label>
-                            </div>
-                        @endforeach
-                    </div>
+                    <label class="form-label">Requested Service</label>
+                    <div class="form-control bg-light">{{ $starter['service_label'] ?? old('category', '') }}</div>
+                    @error('category')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     @error('service_types')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                    @if(in_array('Other', $selectedServices, true))
+                        <div class="small text-gasq-muted mt-2">Other service detail: {{ old('service_type_other', $starter['service_type_other'] ?? '') }}</div>
+                        @error('service_type_other')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                    @endif
                 </div>
-                <div class="col-md-6 mb-3" id="service_type_other_wrap">
-                    <label class="form-label">If Other, please specify</label>
-                    <input type="text" name="service_type_other" class="form-control @error('service_type_other') is-invalid @enderror" value="{{ old('service_type_other') }}">
-                    @error('service_type_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="col-12 mb-3">
+                    <div class="alert alert-light border mb-0">
+                        Your requested service was collected in Step 1. Use the "Edit Service and Job Site" button above if you need to change it before submitting the full questionnaire.
+                    </div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Is this request for a new contract, replacement service, or additional coverage? <span class="text-danger">*</span></label>
@@ -677,11 +749,12 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Submit My Security Posting Request</button>
+                <button type="submit" class="btn btn-primary">Generate Job Announcement Preview</button>
                 <a href="{{ route('job-board') }}" class="btn btn-outline-secondary">Cancel</a>
             </div>
         </form>
     </x-card>
+    @endif
 </div>
 
 <script>
@@ -702,12 +775,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function syncVisibility() {
+        const starterServiceType = document.getElementById('starter_service_type');
         const finalDecisionMaker = document.getElementById('final_decision_maker');
         const multipleLocations = document.getElementById('multiple_locations');
         const propertyType = document.getElementById('property_type');
         const assignmentType = document.getElementById('assignment_type');
         const budgetFormat = document.getElementById('budget_format');
 
+        showWhen(starterServiceType && starterServiceType.value === 'Other', 'starter_service_type_other_wrap');
         showWhen(finalDecisionMaker && ['no', 'authorized_representative'].includes(finalDecisionMaker.value), 'final_approver_wrap');
         showWhen(multipleLocations && multipleLocations.value === 'yes', 'locations_count_wrap');
         showWhen(propertyType && propertyType.value === 'Other', 'property_type_other_wrap');
@@ -720,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showWhen(budgetFormat && budgetFormat.value === 'annual_budget', 'annual_budget_wrap');
     }
 
-    ['final_decision_maker', 'multiple_locations', 'property_type', 'assignment_type', 'budget_format'].forEach(function (id) {
+    ['starter_service_type', 'final_decision_maker', 'multiple_locations', 'property_type', 'assignment_type', 'budget_format'].forEach(function (id) {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener('change', syncVisibility);
