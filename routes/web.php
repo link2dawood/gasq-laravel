@@ -131,6 +131,8 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile/phone/send', [ProfileController::class, 'sendPhoneVerification'])->name('profile.phone.send');
+    Route::post('/profile/phone/verify', [ProfileController::class, 'verifyPhoneCode'])->name('profile.phone.verify');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
