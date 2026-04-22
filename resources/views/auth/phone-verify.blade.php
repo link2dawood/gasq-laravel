@@ -91,6 +91,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const verifyPhoneHidden = document.getElementById('auth_phone_verify_value');
     const verifyCodeVisible = document.getElementById('auth_phone_otp');
     const verifyCodeHidden = document.getElementById('auth_phone_verify_code');
+    const sendForm = document.getElementById('authPhoneSendForm');
+    const verifyForm = document.getElementById('authPhoneVerifyForm');
 
     const verifiedCandidatePhone = @json($verifiedCandidatePhone);
     const verifiedCandidate = @json($isVerifiedCandidate);
@@ -135,6 +137,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (phoneInput) {
         phoneInput.addEventListener('input', syncPhoneUi);
+        phoneInput.addEventListener('change', syncPhoneUi);
+        phoneInput.addEventListener('blur', syncPhoneUi);
     }
 
     if (verifyCodeVisible) {
@@ -144,6 +148,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    if (verifyButton) {
+        verifyButton.addEventListener('click', syncHiddenTargets);
+    }
+
+    if (sendForm) {
+        sendForm.addEventListener('submit', syncHiddenTargets);
+    }
+
+    if (verifyForm) {
+        verifyForm.addEventListener('submit', syncHiddenTargets);
+    }
+
+    window.addEventListener('pageshow', syncPhoneUi);
+    window.setTimeout(syncPhoneUi, 50);
 
     syncPhoneUi();
 });
