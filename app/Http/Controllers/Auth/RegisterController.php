@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\VerificationCode;
-use App\Services\TwilioSmsService;
+use App\Services\PhoneOtpService;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +29,7 @@ class RegisterController extends Controller
     use RegistersUsers;
 
     public function __construct(
-        private TwilioSmsService $sms
+        private PhoneOtpService $phoneOtp
     ) {
         $this->middleware('guest');
     }
@@ -54,7 +53,7 @@ class RegisterController extends Controller
             return redirect()->route('home');
         }
 
-        $phone = $this->normalizePhoneToE164((string) $user->phone);
+        $phone = $this->phoneOtp->normalizePhoneToE164((string) $user->phone);
 
         // Require E.164 format for Twilio.
         if ($phone === null) {
@@ -72,41 +71,18 @@ class RegisterController extends Controller
             'verified' => false,
         ]);
 
-        $code = (string) random_int(100000, 999999);
+        $result = $this->phoneOtp->sendOtp($user, 'sms', $phone);
 
-        // Invalidate previous pending codes.
-        VerificationCode::query()
-            ->where('user_id', $user->id)
-            ->where('type', 'sms')
-            ->where('status', 'pending')
-            ->update(['status' => 'failed']);
-
-        VerificationCode::query()->create([
-            'user_id' => $user->id,
-            'code' => '',
-            'code_hash' => Hash::make($code),
-            'type' => 'sms',
-            'phone_number' => $phone,
-            'email' => null,
-            'status' => 'pending',
-            'attempts' => 0,
-            'expires_at' => now()->addMinutes(10),
-            'last_sent_at' => now(),
-        ]);
-
-        try {
-            $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
-        } catch (\Throwable $e) {
+        if (! $result['ok']) {
             Log::error('Twilio OTP send failed', [
                 'user_id' => $user?->id,
                 'phone' => $phone,
-                'error' => $e->getMessage(),
-                'twilio' => $this->sms->debugContext(),
+                'error' => $result['message'] ?? 'OTP send failed',
             ]);
 
             return redirect()
                 ->route('phone.verify.show')
-                ->withErrors(['phone' => $this->sms->userFacingError($e)]);
+                ->withErrors(['phone' => $result['message'] ?? 'We could not send a verification code right now. Please try again in a moment.']);
         }
 
         return redirect()->route('phone.verify.show')->with('status', 'Verification code sent.');
@@ -146,21 +122,5 @@ class RegisterController extends Controller
             'company' => $data['company'] ?? null,
             'phone' => $data['phone'] ?? null,
         ]);
-    }
-
-    private function normalizePhoneToE164(string $phone): ?string
-    {
-        $p = preg_replace('/[\s\-\(\)]+/', '', trim($phone)) ?? '';
-        if ($p === '') {
-            return null;
-        }
-        if (! str_starts_with($p, '+')) {
-            return null;
-        }
-        if (! preg_match('/^\+[1-9]\d{7,14}$/', $p)) {
-            return null;
-        }
-
-        return $p;
     }
 }

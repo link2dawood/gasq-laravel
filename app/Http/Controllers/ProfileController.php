@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\VerificationCode;
-use App\Services\TwilioSmsService;
+use App\Services\PhoneOtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +21,7 @@ class ProfileController extends Controller
      * Create a new controller instance.
      */
     public function __construct(
-        private TwilioSmsService $sms
+        private PhoneOtpService $phoneOtp
     )
     {
         $this->middleware('auth');
@@ -72,8 +70,8 @@ class ProfileController extends Controller
 
         $submittedPhone = trim((string) $request->input('phone', ''));
         $currentPhone = trim((string) ($user->phone ?? ''));
-        $normalizedSubmittedPhone = $this->normalizePhoneToE164($submittedPhone);
-        $normalizedCurrentPhone = $this->normalizePhoneToE164($currentPhone);
+        $normalizedSubmittedPhone = $this->phoneOtp->normalizePhoneToE164($submittedPhone);
+        $normalizedCurrentPhone = $this->phoneOtp->normalizePhoneToE164($currentPhone);
 
         if ($submittedPhone !== '') {
             if ($normalizedSubmittedPhone === null) {
@@ -127,7 +125,7 @@ class ProfileController extends Controller
             'phone' => ['required', 'string', 'max:50'],
         ]);
 
-        $phone = $this->normalizePhoneToE164((string) $request->input('phone'));
+        $phone = $this->phoneOtp->normalizePhoneToE164((string) $request->input('phone'));
         if ($phone === null) {
             return back()->withErrors([
                 'phone' => 'Phone number must be in E.164 format, e.g. +12345678900.',
@@ -140,54 +138,18 @@ class ProfileController extends Controller
             return back()->with('phone_status', 'This phone number is already verified.')->withInput();
         }
 
-        $latest = VerificationCode::query()
-            ->where('user_id', $user->id)
-            ->where('type', self::PROFILE_PHONE_VERIFICATION_TYPE)
-            ->where('phone_number', $phone)
-            ->orderByDesc('id')
-            ->first();
-
-        if ($latest && $latest->last_sent_at && $latest->last_sent_at->gt(now()->subSeconds(60))) {
+        $result = $this->phoneOtp->sendOtp($user, self::PROFILE_PHONE_VERIFICATION_TYPE, $phone);
+        if (! $result['ok']) {
             $this->storeProfilePhoneVerificationState($request, $phone, false);
 
-            return back()->withErrors([
-                'phone_otp' => 'Please wait a moment before requesting another code.',
-            ])->withInput();
-        }
-
-        VerificationCode::query()
-            ->where('user_id', $user->id)
-            ->where('type', self::PROFILE_PHONE_VERIFICATION_TYPE)
-            ->where('status', 'pending')
-            ->update(['status' => 'failed']);
-
-        $code = (string) random_int(100000, 999999);
-
-        VerificationCode::query()->create([
-            'user_id' => $user->id,
-            'code' => '',
-            'code_hash' => Hash::make($code),
-            'type' => self::PROFILE_PHONE_VERIFICATION_TYPE,
-            'phone_number' => $phone,
-            'email' => null,
-            'status' => 'pending',
-            'attempts' => 0,
-            'expires_at' => now()->addMinutes(10),
-            'last_sent_at' => now(),
-        ]);
-
-        try {
-            $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
-        } catch (\Throwable $e) {
             Log::error('Profile phone verification OTP send failed', [
                 'user_id' => $user?->id,
-                'phone' => $phone,
-                'error' => $e->getMessage(),
-                'twilio' => $this->sms->debugContext(),
+                'phone' => $result['phone'] ?? $phone,
+                'error' => $result['message'] ?? 'OTP send failed',
             ]);
 
             return back()->withErrors([
-                'phone' => $this->sms->userFacingError($e),
+                ($result['field'] ?? 'phone') === 'otp' ? 'phone_otp' : 'phone' => $result['message'] ?? 'We could not send a verification code right now. Please try again in a moment.',
             ])->withInput();
         }
 
@@ -205,64 +167,21 @@ class ProfileController extends Controller
             'code' => ['required', 'string', 'min:4', 'max:10'],
         ]);
 
-        $phone = $this->normalizePhoneToE164((string) $request->input('phone'));
+        $phone = $this->phoneOtp->normalizePhoneToE164((string) $request->input('phone'));
         if ($phone === null) {
             return back()->withErrors([
                 'phone' => 'Phone number must be in E.164 format, e.g. +12345678900.',
             ])->withInput();
         }
 
-        $row = VerificationCode::query()
-            ->where('user_id', $user->id)
-            ->where('type', self::PROFILE_PHONE_VERIFICATION_TYPE)
-            ->where('phone_number', $phone)
-            ->where('status', 'pending')
-            ->orderByDesc('id')
-            ->first();
-
-        if (! $row) {
+        $result = $this->phoneOtp->verifyOtp($user, self::PROFILE_PHONE_VERIFICATION_TYPE, $phone, (string) $request->input('code'));
+        if (! $result['ok']) {
             $this->storeProfilePhoneVerificationState($request, $phone, false);
 
             return back()->withErrors([
-                'phone_otp' => 'No active code found for this phone number. Please request a new code.',
+                ($result['field'] ?? 'otp') === 'phone' ? 'phone' : 'phone_otp' => $result['message'] ?? 'Invalid verification code.',
             ])->withInput();
         }
-
-        if (Carbon::parse($row->expires_at)->isPast()) {
-            $row->status = 'failed';
-            $row->save();
-            $this->storeProfilePhoneVerificationState($request, $phone, false);
-
-            return back()->withErrors([
-                'phone_otp' => 'Code expired. Please request a new code.',
-            ])->withInput();
-        }
-
-        if (($row->attempts ?? 0) >= 5) {
-            $row->status = 'failed';
-            $row->save();
-            $this->storeProfilePhoneVerificationState($request, $phone, false);
-
-            return back()->withErrors([
-                'phone_otp' => 'Too many attempts. Please request a new code.',
-            ])->withInput();
-        }
-
-        $code = (string) $request->input('code');
-        $ok = is_string($row->code_hash) && $row->code_hash !== '' && Hash::check($code, $row->code_hash);
-        if (! $ok) {
-            $row->attempts = (int) ($row->attempts ?? 0) + 1;
-            $row->save();
-            $this->storeProfilePhoneVerificationState($request, $phone, false);
-
-            return back()->withErrors([
-                'phone_otp' => 'Invalid code. Please try again.',
-            ])->withInput();
-        }
-
-        $row->status = 'verified';
-        $row->verified_at = now();
-        $row->save();
 
         $this->storeProfilePhoneVerificationState($request, $phone, true);
 
@@ -495,17 +414,6 @@ class ProfileController extends Controller
 
     private function normalizePhoneToE164(string $phone): ?string
     {
-        $p = preg_replace('/[\s\-\(\)]+/', '', trim($phone)) ?? '';
-        if ($p === '') {
-            return null;
-        }
-        if (! str_starts_with($p, '+')) {
-            return null;
-        }
-        if (! preg_match('/^\+[1-9]\d{7,14}$/', $p)) {
-            return null;
-        }
-
-        return $p;
+        return $this->phoneOtp->normalizePhoneToE164($phone);
     }
 }

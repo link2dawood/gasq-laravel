@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\VerificationCode;
-use App\Services\TwilioSmsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Hash;
+use App\Services\PhoneOtpService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
@@ -18,7 +15,7 @@ class PhoneVerificationController extends Controller
     private const PHONE_VERIFICATION_SESSION_KEY = 'auth_phone_verification';
 
     public function __construct(
-        private TwilioSmsService $sms
+        private PhoneOtpService $phoneOtp
     ) {
         $this->middleware('auth');
     }
@@ -45,57 +42,22 @@ class PhoneVerificationController extends Controller
             return redirect()->route('register')->withErrors(['phone' => 'Phone number is required.']);
         }
 
-        $phone = $this->normalizePhoneToE164((string) $request->input('phone'));
-        if ($phone === null) {
-            return back()->withErrors(['phone' => 'Phone number must be in E.164 format, e.g. +12345678900.']);
-        }
+        $result = $this->phoneOtp->sendOtp($user, 'sms', (string) $request->input('phone'));
+        if (! $result['ok']) {
+            $field = $result['field'] ?? 'phone';
 
-        $latest = VerificationCode::query()
-            ->where('user_id', $user->id)
-            ->where('type', 'sms')
-            ->where('phone_number', $phone)
-            ->orderByDesc('id')
-            ->first();
-
-        if ($latest && $latest->last_sent_at && $latest->last_sent_at->gt(now()->subSeconds(60))) {
-            return back()->withErrors(['otp' => 'Please wait a moment before requesting another code.']);
-        }
-
-        VerificationCode::query()
-            ->where('user_id', $user->id)
-            ->where('type', 'sms')
-            ->where('status', 'pending')
-            ->update(['status' => 'failed']);
-
-        $code = (string) random_int(100000, 999999);
-
-        VerificationCode::query()->create([
-            'user_id' => $user->id,
-            'code' => '',
-            'code_hash' => Hash::make($code),
-            'type' => 'sms',
-            'phone_number' => $phone,
-            'email' => null,
-            'status' => 'pending',
-            'attempts' => 0,
-            'expires_at' => now()->addMinutes(10),
-            'last_sent_at' => now(),
-        ]);
-
-        try {
-            $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
-        } catch (\Throwable $e) {
             Log::error('Auth phone verification OTP send failed', [
                 'user_id' => $user?->id,
-                'phone' => $phone,
-                'error' => $e->getMessage(),
-                'twilio' => $this->sms->debugContext(),
+                'phone' => $result['phone'] ?? (string) $request->input('phone'),
+                'error' => $result['message'] ?? 'OTP send failed',
             ]);
 
             return back()
-                ->withErrors(['phone' => $this->sms->userFacingError($e)])
+                ->withErrors([$field => $result['message'] ?? 'We could not send a verification code right now. Please try again in a moment.'])
                 ->withInput();
         }
+
+        $phone = (string) ($result['phone'] ?? '');
 
         $this->storePhoneVerificationState($request, $phone, false);
 
@@ -117,46 +79,14 @@ class PhoneVerificationController extends Controller
             return back()->withErrors($v)->withInput();
         }
 
-        $phone = $this->normalizePhoneToE164((string) $request->input('phone'));
-        if ($phone === null) {
-            return back()->withErrors(['phone' => 'Invalid phone number format.']);
+        $result = $this->phoneOtp->verifyOtp($user, 'sms', (string) $request->input('phone'), (string) $request->input('code'));
+        if (! $result['ok']) {
+            return back()->withErrors([
+                $result['field'] ?? 'otp' => $result['message'] ?? 'Invalid verification code.',
+            ])->withInput();
         }
 
-        $row = VerificationCode::query()
-            ->where('user_id', $user->id)
-            ->where('type', 'sms')
-            ->where('phone_number', $phone)
-            ->where('status', 'pending')
-            ->orderByDesc('id')
-            ->first();
-
-        if (! $row) {
-            return back()->withErrors(['otp' => 'No active code found. Please request a new code.']);
-        }
-
-        if (Carbon::parse($row->expires_at)->isPast()) {
-            $row->status = 'failed';
-            $row->save();
-            return back()->withErrors(['otp' => 'Code expired. Please request a new code.']);
-        }
-
-        if (($row->attempts ?? 0) >= 5) {
-            $row->status = 'failed';
-            $row->save();
-            return back()->withErrors(['otp' => 'Too many attempts. Please request a new code.']);
-        }
-
-        $code = (string) $request->input('code');
-        $ok = is_string($row->code_hash) && $row->code_hash !== '' && Hash::check($code, $row->code_hash);
-        if (! $ok) {
-            $row->attempts = (int) ($row->attempts ?? 0) + 1;
-            $row->save();
-            return back()->withErrors(['otp' => 'Invalid code. Please try again.']);
-        }
-
-        $row->status = 'verified';
-        $row->verified_at = now();
-        $row->save();
+        $phone = (string) ($result['phone'] ?? '');
 
         $user->phone = $phone;
         $user->phone_verified = true;
@@ -189,20 +119,5 @@ class PhoneVerificationController extends Controller
             'phone' => $phone,
             'verified' => $verified,
         ]);
-    }
-
-    private function normalizePhoneToE164(string $phone): ?string
-    {
-        $p = preg_replace('/[\s\-\(\)]+/', '', trim($phone)) ?? '';
-        if ($p === '') {
-            return null;
-        }
-        if (! str_starts_with($p, '+')) {
-            return null;
-        }
-        if (! preg_match('/^\\+[1-9]\\d{7,14}$/', $p)) {
-            return null;
-        }
-        return $p;
     }
 }
