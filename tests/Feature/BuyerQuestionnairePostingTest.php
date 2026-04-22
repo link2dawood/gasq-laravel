@@ -246,6 +246,53 @@ class BuyerQuestionnairePostingTest extends TestCase
             ]);
     }
 
+    public function test_unverified_buyer_is_redirected_to_phone_verification_before_details_step(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '+14045557890',
+            'phone_verified' => false,
+        ]);
+
+        $starterPayload = [
+            'starter_service_type' => 'Unarmed Security Guard',
+            'location' => '123 Main Street, Atlanta, GA',
+            'zip_code' => '30303',
+            'latitude' => '33.7488',
+            'longitude' => '-84.3877',
+            'google_place_id' => 'place_123',
+        ];
+
+        $this->actingAs($buyer)
+            ->post(route('jobs.create.start'), $starterPayload)
+            ->assertRedirect(route('phone.verify.show'))
+            ->assertSessionHas('error', 'Verify your phone number by SMS before completing your security job request.')
+            ->assertSessionHas('url.intended', route('jobs.create', ['step' => 'details']));
+
+        $this->actingAs($buyer)
+            ->withSession([
+                'job_posting_starter' => [
+                    'starter_service_type' => 'Unarmed Security Guard',
+                    'starter_service_type_other' => null,
+                    'service_types' => ['Unarmed Security Guard'],
+                    'service_type_other' => null,
+                    'service_label' => 'Unarmed Security Guard',
+                    'category' => 'Unarmed Security Guard',
+                    'title' => 'Unarmed Security Guard - 123 Main Street, Atlanta, GA',
+                    'location' => '123 Main Street, Atlanta, GA',
+                    'zip_code' => '30303',
+                    'latitude' => '33.7488',
+                    'longitude' => '-84.3877',
+                    'google_place_id' => 'place_123',
+                ],
+            ])
+            ->get(route('jobs.create', ['step' => 'details']))
+            ->assertRedirect(route('phone.verify.show'))
+            ->assertSessionHas('error', 'Verify your phone number by SMS before completing your security job request.')
+            ->assertSessionHas('url.intended', route('jobs.create', ['step' => 'details']));
+    }
+
     public function test_open_bid_offer_uses_questionnaire_snapshot_for_summary_fields(): void
     {
         $buyer = User::factory()->create([

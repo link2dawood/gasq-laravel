@@ -139,6 +139,14 @@ class JobPostingController extends Controller
         $starter = $this->starterSessionData();
         $showDetailsStep = request()->query('step') === 'details' && $starter !== [];
 
+        if ($showDetailsStep && ! (bool) auth()->user()?->phone_verified) {
+            request()->session()->put('url.intended', route('jobs.create', ['step' => 'details']));
+
+            return redirect()
+                ->route('phone.verify.show')
+                ->with('error', 'Verify your phone number by SMS before completing your security job request.');
+        }
+
         return view('jobs.create', [
             'starter' => $starter,
             'showDetailsStep' => $showDetailsStep,
@@ -163,6 +171,14 @@ class JobPostingController extends Controller
         ]);
 
         $request->session()->put(self::STARTER_SESSION_KEY, $this->buildStarterSessionData($data));
+
+        if (! (bool) $request->user()?->phone_verified) {
+            $request->session()->put('url.intended', route('jobs.create', ['step' => 'details']));
+
+            return redirect()
+                ->route('phone.verify.show')
+                ->with('error', 'Verify your phone number by SMS before completing your security job request.');
+        }
 
         return redirect()->route('jobs.create', ['step' => 'details']);
     }
