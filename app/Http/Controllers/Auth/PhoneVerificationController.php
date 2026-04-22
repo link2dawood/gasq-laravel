@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\PhoneOtpService;
 use Illuminate\Support\Facades\Log;
@@ -30,7 +31,7 @@ class PhoneVerificationController extends Controller
         ]);
     }
 
-    public function send(Request $request): RedirectResponse
+    public function send(Request $request): RedirectResponse|JsonResponse
     {
         $user = $request->user();
 
@@ -39,6 +40,10 @@ class PhoneVerificationController extends Controller
         ]);
 
         if (! $user) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Phone number is required.'], 422);
+            }
+
             return redirect()->route('register')->withErrors(['phone' => 'Phone number is required.']);
         }
 
@@ -52,6 +57,14 @@ class PhoneVerificationController extends Controller
                 'error' => $result['message'] ?? 'OTP send failed',
             ]);
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $result['message'] ?? 'We could not send a verification code right now. Please try again in a moment.',
+                    'field' => $field,
+                    'phone' => $result['phone'] ?? (string) $request->input('phone'),
+                ], 422);
+            }
+
             return back()
                 ->withErrors([$field => $result['message'] ?? 'We could not send a verification code right now. Please try again in a moment.'])
                 ->withInput();
@@ -61,13 +74,25 @@ class PhoneVerificationController extends Controller
 
         $this->storePhoneVerificationState($request, $phone, false);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Verification code sent.',
+                'phone' => $phone,
+                'verified' => false,
+            ]);
+        }
+
         return back()->with('status', 'Verification code sent.');
     }
 
-    public function check(Request $request): RedirectResponse
+    public function check(Request $request): RedirectResponse|JsonResponse
     {
         $user = $request->user();
         if (! $user) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
             return redirect()->route('login');
         }
 
@@ -76,11 +101,25 @@ class PhoneVerificationController extends Controller
             'code' => ['required', 'string', 'min:4', 'max:10'],
         ]);
         if ($v->fails()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Invalid verification request.',
+                    'errors' => $v->errors(),
+                ], 422);
+            }
+
             return back()->withErrors($v)->withInput();
         }
 
         $result = $this->phoneOtp->verifyOtp($user, 'sms', (string) $request->input('phone'), (string) $request->input('code'));
         if (! $result['ok']) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $result['message'] ?? 'Invalid verification code.',
+                    'field' => $result['field'] ?? 'otp',
+                ], 422);
+            }
+
             return back()->withErrors([
                 $result['field'] ?? 'otp' => $result['message'] ?? 'Invalid verification code.',
             ])->withInput();
@@ -92,6 +131,14 @@ class PhoneVerificationController extends Controller
         $user->phone_verified = true;
         $user->save();
         $this->storePhoneVerificationState($request, $phone, true);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Phone verified.',
+                'phone' => $phone,
+                'verified' => true,
+            ]);
+        }
 
         return redirect()->intended('/home')->with('status', 'Phone verified.');
     }

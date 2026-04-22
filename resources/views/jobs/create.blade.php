@@ -6,6 +6,9 @@
 @php
     $starter = $starter ?? [];
     $showDetailsStep = $showDetailsStep ?? false;
+    $jobPhoneVerification = session('auth_phone_verification', ['phone' => '', 'verified' => false]);
+    $verifiedAccountPhone = (string) (auth()->user()->phone ?? '');
+    $isVerifiedAccountPhone = (bool) auth()->user()->phone_verified;
     $progressSections = [
         'Contact Information',
         'Decision Authority',
@@ -151,21 +154,30 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Mobile Phone Number <span class="text-danger">*</span></label>
-                    <input type="text" name="contact_phone" class="form-control @error('contact_phone') is-invalid @enderror" value="{{ old('contact_phone', auth()->user()->phone) }}" required>
+                    <input type="text" id="job_contact_phone" name="contact_phone" class="form-control @error('contact_phone') is-invalid @enderror" value="{{ old('contact_phone', auth()->user()->phone) }}" required>
                     @error('contact_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Verify Mobile Number by SMS <span class="text-danger">*</span></label>
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        @if(auth()->user()->phone_verified)
-                            <span class="badge text-bg-success">SMS Verified</span>
-                            <button type="button" class="btn btn-outline-success btn-sm" disabled>Verified on your account</button>
-                        @else
-                            <span class="badge text-bg-warning">Verification Required</span>
-                            <a href="{{ route('phone.verify.show') }}" class="btn btn-outline-primary btn-sm">Verify Mobile Number by SMS</a>
-                        @endif
+                    <div class="border rounded bg-light p-3">
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                            <span class="badge text-bg-success d-none" id="job_phone_verified_badge">SMS Verified</span>
+                            <span class="badge text-bg-warning" id="job_phone_required_badge">Verification Required</span>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="job_phone_send_button">Send Verification Code</button>
+                        </div>
+                        <div class="small text-gasq-muted mb-2">Verify the same mobile number you want attached to this job request. You can do it here without leaving the page.</div>
+                        <div class="small text-danger mb-2 d-none" id="job_phone_error_text"></div>
+                        <div class="small text-success mb-2 d-none" id="job_phone_status_text"></div>
+                        <div class="row g-2 d-none" id="job_phone_otp_wrap">
+                            <div class="col-sm-7">
+                                <input type="text" id="job_phone_otp" class="form-control" placeholder="Enter 6-digit verification code" inputmode="numeric" autocomplete="one-time-code">
+                            </div>
+                            <div class="col-sm-5">
+                                <button type="button" class="btn btn-primary w-100" id="job_phone_confirm_button">Confirm Code</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-text">This posting uses your existing account phone verification status.</div>
+                    <div class="form-text">Formats like <code>+1 (234) 567-8900</code> and <code>+12345678900</code> both work.</div>
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
@@ -746,7 +758,7 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Generate Job Announcement Preview</button>
+                <button type="submit" class="btn btn-primary" id="job_preview_submit">Generate Job Announcement Preview</button>
                 <a href="{{ route('job-board') }}" class="btn btn-outline-secondary">Cancel</a>
             </div>
         </form>
@@ -756,6 +768,177 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const jobContactPhone = document.getElementById('job_contact_phone');
+    const jobPhoneSendButton = document.getElementById('job_phone_send_button');
+    const jobPhoneConfirmButton = document.getElementById('job_phone_confirm_button');
+    const jobPhoneOtpWrap = document.getElementById('job_phone_otp_wrap');
+    const jobPhoneOtp = document.getElementById('job_phone_otp');
+    const jobPhoneVerifiedBadge = document.getElementById('job_phone_verified_badge');
+    const jobPhoneRequiredBadge = document.getElementById('job_phone_required_badge');
+    const jobPhoneErrorText = document.getElementById('job_phone_error_text');
+    const jobPhoneStatusText = document.getElementById('job_phone_status_text');
+    const jobPreviewSubmit = document.getElementById('job_preview_submit');
+    let verifiedAccountPhoneState = @json($verifiedAccountPhone);
+    let isVerifiedAccountPhoneState = @json($isVerifiedAccountPhone);
+    const sessionVerifiedPhone = @json((string) ($jobPhoneVerification['phone'] ?? ''));
+    const sessionPhoneVerified = @json((bool) ($jobPhoneVerification['verified'] ?? false));
+
+    function normalizePhone(value) {
+        const cleaned = (value || '')
+            .replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '')
+            .trim();
+
+        if (!cleaned) {
+            return '';
+        }
+
+        const hasPlus = cleaned.startsWith('+');
+        const digits = cleaned.replace(/\D+/g, '');
+
+        return hasPlus && digits ? `+${digits}` : cleaned.replace(/[\s\-()]+/g, '');
+    }
+
+    function setJobPhoneMessage(kind, message) {
+        if (!jobPhoneErrorText || !jobPhoneStatusText) {
+            return;
+        }
+
+        jobPhoneErrorText.classList.add('d-none');
+        jobPhoneStatusText.classList.add('d-none');
+        jobPhoneErrorText.textContent = '';
+        jobPhoneStatusText.textContent = '';
+
+        if (!message) {
+            return;
+        }
+
+        if (kind === 'error') {
+            jobPhoneErrorText.textContent = message;
+            jobPhoneErrorText.classList.remove('d-none');
+        } else {
+            jobPhoneStatusText.textContent = message;
+            jobPhoneStatusText.classList.remove('d-none');
+        }
+    }
+
+    function currentPhoneVerified() {
+        if (!jobContactPhone) {
+            return false;
+        }
+
+        const current = normalizePhone(jobContactPhone.value);
+        const accountPhone = normalizePhone(verifiedAccountPhoneState);
+        const pendingPhone = normalizePhone(sessionVerifiedPhone);
+
+        return (
+            (isVerifiedAccountPhoneState && current !== '' && current === accountPhone)
+            || (sessionPhoneVerified && current !== '' && current === pendingPhone)
+        );
+    }
+
+    function syncJobPhoneUi() {
+        if (!jobContactPhone) {
+            return;
+        }
+
+        const verified = currentPhoneVerified();
+        const hasPhone = normalizePhone(jobContactPhone.value) !== '';
+
+        if (jobPhoneVerifiedBadge) {
+            jobPhoneVerifiedBadge.classList.toggle('d-none', !verified);
+        }
+
+        if (jobPhoneRequiredBadge) {
+            jobPhoneRequiredBadge.classList.toggle('d-none', verified);
+        }
+
+        if (jobPhoneSendButton) {
+            jobPhoneSendButton.disabled = !hasPhone || verified;
+        }
+
+        if (jobPreviewSubmit) {
+            jobPreviewSubmit.disabled = !verified;
+        }
+
+        if (jobPhoneOtpWrap && verified) {
+            jobPhoneOtpWrap.classList.add('d-none');
+        }
+    }
+
+    async function postJobPhoneVerification(url, payload) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify(payload),
+            credentials: 'same-origin',
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw data;
+        }
+
+        return data;
+    }
+
+    async function sendJobPhoneCode() {
+        if (!jobContactPhone) {
+            return;
+        }
+
+        setJobPhoneMessage(null, '');
+
+        try {
+            const data = await postJobPhoneVerification(@json(route('phone.verify.send')), {
+                phone: jobContactPhone.value,
+            });
+
+            jobContactPhone.value = data.phone || jobContactPhone.value;
+            if (jobPhoneOtpWrap) {
+                jobPhoneOtpWrap.classList.remove('d-none');
+            }
+            setJobPhoneMessage('status', data.message || 'Verification code sent.');
+            syncJobPhoneUi();
+        } catch (error) {
+            setJobPhoneMessage('error', error.message || 'We could not send a verification code right now. Please try again in a moment.');
+            syncJobPhoneUi();
+        }
+    }
+
+    async function confirmJobPhoneCode() {
+        if (!jobContactPhone || !jobPhoneOtp) {
+            return;
+        }
+
+        setJobPhoneMessage(null, '');
+
+        try {
+            const data = await postJobPhoneVerification(@json(route('phone.verify.check')), {
+                phone: jobContactPhone.value,
+                code: jobPhoneOtp.value,
+            });
+
+            jobContactPhone.value = data.phone || jobContactPhone.value;
+            if (jobPhoneOtpWrap) {
+                jobPhoneOtpWrap.classList.add('d-none');
+            }
+            jobPhoneOtp.value = '';
+            verifiedAccountPhoneState = data.phone || jobContactPhone.value;
+            isVerifiedAccountPhoneState = true;
+            setJobPhoneMessage('status', data.message || 'Phone verified.');
+            syncJobPhoneUi();
+        } catch (error) {
+            setJobPhoneMessage('error', error.message || 'Invalid verification code.');
+        }
+    }
+
     function showWhen(condition, elementId) {
         const element = document.getElementById(elementId);
         if (!element) {
@@ -803,7 +986,24 @@ document.addEventListener('DOMContentLoaded', function () {
         element.addEventListener('change', syncVisibility);
     });
 
+    if (jobContactPhone) {
+        jobContactPhone.addEventListener('input', function () {
+            setJobPhoneMessage(null, '');
+            syncJobPhoneUi();
+        });
+        jobContactPhone.addEventListener('change', syncJobPhoneUi);
+    }
+
+    if (jobPhoneSendButton) {
+        jobPhoneSendButton.addEventListener('click', sendJobPhoneCode);
+    }
+
+    if (jobPhoneConfirmButton) {
+        jobPhoneConfirmButton.addEventListener('click', confirmJobPhoneCode);
+    }
+
     syncVisibility();
+    syncJobPhoneUi();
 });
 </script>
 @endsection

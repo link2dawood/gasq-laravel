@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\PhoneOtpService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -159,8 +160,17 @@ class StoreJobPostingRequest extends FormRequest
         }
 
         $validator->after(function (Validator $validator): void {
-            if (! (bool) $this->user()?->phone_verified) {
-                $validator->errors()->add('contact_phone', 'Verify your mobile number by SMS before posting.');
+            $phoneOtp = app(PhoneOtpService::class);
+            $normalizedContactPhone = $phoneOtp->normalizePhoneToE164((string) $this->input('contact_phone'));
+            $normalizedAccountPhone = $phoneOtp->normalizePhoneToE164((string) ($this->user()?->phone ?? ''));
+
+            if (
+                ! (bool) $this->user()?->phone_verified
+                || $normalizedContactPhone === null
+                || $normalizedAccountPhone === null
+                || $normalizedContactPhone !== $normalizedAccountPhone
+            ) {
+                $validator->errors()->add('contact_phone', 'Verify this mobile number by SMS on this page before posting.');
             }
 
             if (in_array($this->input('final_decision_maker'), ['no', 'authorized_representative'], true)

@@ -33,7 +33,7 @@ class BuyerQuestionnairePostingTest extends TestCase
     {
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
-            'phone' => '4045557890',
+            'phone' => '+14045551234',
             'phone_verified' => true,
         ]);
 
@@ -56,7 +56,7 @@ class BuyerQuestionnairePostingTest extends TestCase
     {
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
-            'phone' => '4045557890',
+            'phone' => '+14045551234',
             'phone_verified' => true,
         ]);
 
@@ -88,7 +88,7 @@ class BuyerQuestionnairePostingTest extends TestCase
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
             'company' => 'Acme Properties',
-            'phone' => '4045557890',
+            'phone' => '+14045551234',
             'phone_verified' => true,
         ]);
 
@@ -107,7 +107,7 @@ class BuyerQuestionnairePostingTest extends TestCase
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
             'company' => 'Acme Properties',
-            'phone' => '4045557890',
+            'phone' => '+14045551234',
             'phone_verified' => true,
         ]);
 
@@ -132,7 +132,7 @@ class BuyerQuestionnairePostingTest extends TestCase
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
             'company' => 'Acme Properties',
-            'phone' => '4045557890',
+            'phone' => '+14045551234',
             'phone_verified' => true,
         ]);
 
@@ -162,7 +162,7 @@ class BuyerQuestionnairePostingTest extends TestCase
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
             'company' => 'Acme Properties',
-            'phone' => '4045557890',
+            'phone' => '+14045551234',
             'phone_verified' => true,
         ]);
 
@@ -246,7 +246,7 @@ class BuyerQuestionnairePostingTest extends TestCase
             ]);
     }
 
-    public function test_unverified_buyer_is_redirected_to_phone_verification_before_details_step(): void
+    public function test_unverified_buyer_can_open_details_step_and_is_prompted_to_verify_inline(): void
     {
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
@@ -266,11 +266,10 @@ class BuyerQuestionnairePostingTest extends TestCase
 
         $this->actingAs($buyer)
             ->post(route('jobs.create.start'), $starterPayload)
-            ->assertRedirect(route('phone.verify.show'))
-            ->assertSessionHas('error', 'Verify your phone number by SMS before completing your security job request.')
-            ->assertSessionHas('url.intended', route('jobs.create', ['step' => 'details']));
+            ->assertRedirect(route('jobs.create', ['step' => 'details']))
+            ->assertSessionHas('job_posting_starter');
 
-        $this->actingAs($buyer)
+        $response = $this->actingAs($buyer)
             ->withSession([
                 'job_posting_starter' => [
                     'starter_service_type' => 'Unarmed Security Guard',
@@ -287,10 +286,34 @@ class BuyerQuestionnairePostingTest extends TestCase
                     'google_place_id' => 'place_123',
                 ],
             ])
-            ->get(route('jobs.create', ['step' => 'details']))
-            ->assertRedirect(route('phone.verify.show'))
-            ->assertSessionHas('error', 'Verify your phone number by SMS before completing your security job request.')
-            ->assertSessionHas('url.intended', route('jobs.create', ['step' => 'details']));
+            ->get(route('jobs.create', ['step' => 'details']));
+
+        $response->assertOk();
+        $response->assertSeeText('Verify Mobile Number by SMS');
+        $response->assertSeeText('Send Verification Code');
+        $response->assertSeeText('Verification Required');
+    }
+
+    public function test_verified_buyer_cannot_post_when_request_phone_does_not_match_verified_account_phone(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '+14045551234',
+            'phone_verified' => true,
+        ]);
+
+        $payload = array_merge($this->validPostingPayload(), [
+            'contact_phone' => '+14706332816',
+        ]);
+
+        $response = $this->actingAs($buyer)->from(route('jobs.create'))->post(route('jobs.store'), $payload);
+
+        $response
+            ->assertRedirect(route('jobs.create'))
+            ->assertSessionHasErrors([
+                'contact_phone',
+            ]);
     }
 
     public function test_open_bid_offer_uses_questionnaire_snapshot_for_summary_fields(): void
@@ -506,7 +529,7 @@ class BuyerQuestionnairePostingTest extends TestCase
             'organization_name' => 'Acme Properties',
             'property_site_name' => 'Buckhead Tower',
             'contact_email' => 'jordan@example.com',
-            'contact_phone' => '4045551234',
+            'contact_phone' => '+1 (404) 555-1234',
             'business_address' => '123 Peachtree St, Atlanta, GA 30303',
             'preferred_contact_method' => 'email',
             'best_time_to_contact' => 'morning',

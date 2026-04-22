@@ -96,7 +96,7 @@
                                     </button>
                                     <span class="badge text-bg-success align-self-center d-none" id="phone_verified_badge">Verified</span>
                                 </div>
-                                <div class="small text-gasq-muted" id="phone_help_text">Include the country code. Formats like <code>+1 (470) 633-2816</code> and <code>+14706332816</code> both work. Save stays disabled until the current phone number is verified.</div>
+                                <div class="small text-gasq-muted" id="phone_help_text">Include the country code. Formats like <code>+1 (234) 567-8900</code> and <code>+12345678900</code> both work. Save stays disabled until the current phone number is verified.</div>
                             </div>
                             @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             <div class="mt-2 d-none" id="phone_otp_wrap">
