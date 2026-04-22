@@ -2,7 +2,9 @@
     $mapsKey = config('services.google.maps_api_key');
     $callback = 'initJobPlaces_' . $suffix;
     $inputId = 'job-location-' . $suffix;
+    $zipInputId = $zipInputId ?? ($inputId . '-zip');
     $locVal = $location ?? '';
+    $zipVal = $zipCode ?? '';
     $latVal = $latitude !== null && $latitude !== '' ? (string) $latitude : '';
     $lngVal = $longitude !== null && $longitude !== '' ? (string) $longitude : '';
     $pidVal = $googlePlaceId ?? '';
@@ -21,6 +23,7 @@
     @error('location')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
+    <input type="hidden" name="zip_code" id="{{ $zipInputId }}" value="{{ $zipVal }}">
     <input type="hidden" name="latitude" id="{{ $inputId }}-lat" value="{{ $latVal }}">
     <input type="hidden" name="longitude" id="{{ $inputId }}-lng" value="{{ $lngVal }}">
     <input type="hidden" name="google_place_id" id="{{ $inputId }}-pid" value="{{ $pidVal }}">
@@ -76,7 +79,7 @@ window['{{ $callback }}'] = function () {
         }
     }
     const ac = new google.maps.places.Autocomplete(input, {
-        fields: ['place_id', 'geometry', 'formatted_address'],
+        fields: ['address_components', 'place_id', 'geometry', 'formatted_address'],
         types: ['address'],
     });
     ac.addListener('place_changed', function () {
@@ -90,10 +93,23 @@ window['{{ $callback }}'] = function () {
         if (place.formatted_address) {
             input.value = place.formatted_address;
         }
+        const zipField = document.getElementById('{{ $zipInputId }}');
+        if (zipField && Array.isArray(place.address_components)) {
+            const postalComponent = place.address_components.find(function (component) {
+                return Array.isArray(component.types) && component.types.includes('postal_code');
+            });
+            if (postalComponent && postalComponent.long_name) {
+                zipField.value = postalComponent.long_name;
+            }
+        }
         updatePreviewMap();
     });
     input.addEventListener('change', function () {
         if (!input.value.trim()) {
+            const zipField = document.getElementById('{{ $zipInputId }}');
+            if (zipField) {
+                zipField.value = '';
+            }
             document.getElementById('{{ $inputId }}-lat').value = '';
             document.getElementById('{{ $inputId }}-lng').value = '';
             document.getElementById('{{ $inputId }}-pid').value = '';

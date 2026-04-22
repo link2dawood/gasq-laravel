@@ -57,19 +57,16 @@
                         <input type="text" name="starter_service_type_other" class="form-control @error('starter_service_type_other') is-invalid @enderror" value="{{ old('starter_service_type_other', $starter['starter_service_type_other'] ?? '') }}">
                         @error('starter_service_type_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Postal Code</label>
-                        <input type="text" name="zip_code" class="form-control @error('zip_code') is-invalid @enderror" value="{{ old('zip_code', $starter['zip_code'] ?? '') }}">
-                        @error('zip_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-8 mb-3">
+                    <div class="col-12 mb-3">
                         @include('jobs.partials.location-fields', [
                             'suffix' => 'starter',
                             'location' => old('location', $starter['location'] ?? ''),
+                            'zipCode' => old('zip_code', $starter['zip_code'] ?? ''),
                             'latitude' => old('latitude', $starter['latitude'] ?? null),
                             'longitude' => old('longitude', $starter['longitude'] ?? null),
                             'googlePlaceId' => old('google_place_id', $starter['google_place_id'] ?? ''),
                         ])
+                        @error('zip_code')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
                 </div>
 

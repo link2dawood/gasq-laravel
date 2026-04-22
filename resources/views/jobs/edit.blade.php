@@ -23,10 +23,12 @@
                     @include('jobs.partials.location-fields', [
                         'suffix' => 'edit',
                         'location' => old('location', $job->location),
+                        'zipCode' => old('zip_code', $job->zip_code),
                         'latitude' => old('latitude', $job->latitude),
                         'longitude' => old('longitude', $job->longitude),
                         'googlePlaceId' => old('google_place_id', $job->google_place_id),
                     ])
+                    @error('zip_code')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
             </div>
             <div class="row">
