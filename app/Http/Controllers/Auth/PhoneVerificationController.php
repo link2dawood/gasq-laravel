@@ -14,6 +14,8 @@ use Illuminate\View\View;
 
 class PhoneVerificationController extends Controller
 {
+    private const PHONE_VERIFICATION_SESSION_KEY = 'auth_phone_verification';
+
     public function __construct(
         private TwilioSmsService $sms
     ) {
@@ -22,8 +24,11 @@ class PhoneVerificationController extends Controller
 
     public function show(Request $request): View
     {
+        $phoneVerification = $this->phoneVerificationState($request);
+
         return view('auth.phone-verify', [
-            'phone' => (string) ($request->user()->phone ?? ''),
+            'phone' => (string) old('phone', $phoneVerification['phone'] !== '' ? $phoneVerification['phone'] : ((string) ($request->user()->phone ?? ''))),
+            'phoneVerification' => $phoneVerification,
         ]);
     }
 
@@ -31,11 +36,15 @@ class PhoneVerificationController extends Controller
     {
         $user = $request->user();
 
-        if (! $user || ! is_string($user->phone) || trim($user->phone) === '') {
+        $request->validate([
+            'phone' => ['required', 'string', 'max:50'],
+        ]);
+
+        if (! $user) {
             return redirect()->route('register')->withErrors(['phone' => 'Phone number is required.']);
         }
 
-        $phone = $this->normalizePhoneToE164($user->phone);
+        $phone = $this->normalizePhoneToE164((string) $request->input('phone'));
         if ($phone === null) {
             return back()->withErrors(['phone' => 'Phone number must be in E.164 format, e.g. +12345678900.']);
         }
@@ -72,7 +81,15 @@ class PhoneVerificationController extends Controller
             'last_sent_at' => now(),
         ]);
 
-        $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
+        try {
+            $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
+        } catch (\Throwable $e) {
+            return back()
+                ->withErrors(['phone' => 'We could not send a verification code right now. Please try again in a moment.'])
+                ->withInput();
+        }
+
+        $this->storePhoneVerificationState($request, $phone, false);
 
         return back()->with('status', 'Verification code sent.');
     }
@@ -85,13 +102,14 @@ class PhoneVerificationController extends Controller
         }
 
         $v = Validator::make($request->all(), [
+            'phone' => ['required', 'string', 'max:50'],
             'code' => ['required', 'string', 'min:4', 'max:10'],
         ]);
         if ($v->fails()) {
             return back()->withErrors($v)->withInput();
         }
 
-        $phone = $this->normalizePhoneToE164((string) ($user->phone ?? ''));
+        $phone = $this->normalizePhoneToE164((string) $request->input('phone'));
         if ($phone === null) {
             return back()->withErrors(['phone' => 'Invalid phone number format.']);
         }
@@ -132,15 +150,42 @@ class PhoneVerificationController extends Controller
         $row->verified_at = now();
         $row->save();
 
+        $user->phone = $phone;
         $user->phone_verified = true;
         $user->save();
+        $this->storePhoneVerificationState($request, $phone, true);
 
         return redirect()->intended('/home')->with('status', 'Phone verified.');
     }
 
+    /**
+     * @return array{phone: string, verified: bool}
+     */
+    private function phoneVerificationState(Request $request): array
+    {
+        $state = $request->session()->get(self::PHONE_VERIFICATION_SESSION_KEY, []);
+
+        if (! is_array($state)) {
+            return ['phone' => '', 'verified' => false];
+        }
+
+        return [
+            'phone' => (string) ($state['phone'] ?? ''),
+            'verified' => (bool) ($state['verified'] ?? false),
+        ];
+    }
+
+    private function storePhoneVerificationState(Request $request, string $phone, bool $verified): void
+    {
+        $request->session()->put(self::PHONE_VERIFICATION_SESSION_KEY, [
+            'phone' => $phone,
+            'verified' => $verified,
+        ]);
+    }
+
     private function normalizePhoneToE164(string $phone): ?string
     {
-        $p = trim($phone);
+        $p = preg_replace('/[\s\-\(\)]+/', '', trim($phone)) ?? '';
         if ($p === '') {
             return null;
         }
@@ -153,4 +198,3 @@ class PhoneVerificationController extends Controller
         return $p;
     }
 }
-
