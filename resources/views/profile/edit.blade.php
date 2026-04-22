@@ -88,7 +88,7 @@
                                         id="profile_phone"
                                         name="phone"
                                         value="{{ $formPhone }}"
-                                        placeholder="+14043089398"
+                                        placeholder="+10000000000"
                                         autocomplete="tel"
                                     >
                                     <button type="submit" class="btn btn-outline-primary flex-shrink-0" id="phone_verify_trigger" form="profilePhoneSendForm">
@@ -96,7 +96,7 @@
                                     </button>
                                     <span class="badge text-bg-success align-self-center d-none" id="phone_verified_badge">Verified</span>
                                 </div>
-                                <div class="small text-gasq-muted" id="phone_help_text">You can enter <code>4043089398</code>, <code>14043089398</code>, or <code>+14043089398</code>. We will format it automatically. Save stays disabled until the current phone number is verified.</div>
+                                <div class="small text-gasq-muted" id="phone_help_text">You can enter <code>0000000000</code>, <code>10000000000</code>, or <code>+10000000000</code>. We will format it automatically. Save stays disabled until the current phone number is verified.</div>
                             </div>
                             @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             <div class="mt-2 d-none" id="phone_otp_wrap">

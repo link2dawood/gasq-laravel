@@ -129,12 +129,12 @@
                         name="phone"
                         value="{{ old('phone') }}"
                         class="form-control @error('phone') is-invalid @enderror"
-                        placeholder="+14043089398"
+                        placeholder="+10000000000"
                     >
                     @error('phone')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    <div class="form-text">You can enter <code>4043089398</code>, <code>14043089398</code>, or <code>+14043089398</code>. We will format it automatically.</div>
+                    <div class="form-text">You can enter <code>0000000000</code>, <code>10000000000</code>, or <code>+10000000000</code>. We will format it automatically.</div>
                 </div>
 
                 <div class="mb-3">

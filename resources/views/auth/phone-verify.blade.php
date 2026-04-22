@@ -30,7 +30,7 @@
                     id="auth_phone"
                     class="form-control form-control-lg @error('phone') is-invalid @enderror"
                     value="{{ $phone }}"
-                    placeholder="+14043089398"
+                    placeholder="+10000000000"
                     autocomplete="tel"
                     autofocus
                 >
@@ -42,7 +42,7 @@
             @error('phone')
                 <div class="invalid-feedback d-block">{{ $message }}</div>
             @enderror
-            <div class="form-text">You can enter <code>4043089398</code>, <code>14043089398</code>, or <code>+14043089398</code>. We will format it automatically.</div>
+            <div class="form-text">You can enter <code>0000000000</code>, <code>10000000000</code>, or <code>+10000000000</code>. We will format it automatically.</div>
         </div>
 
         <div class="mb-4 d-none" id="auth_phone_otp_wrap">
