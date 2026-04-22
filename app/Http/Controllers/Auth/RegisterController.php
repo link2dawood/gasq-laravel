@@ -55,7 +55,6 @@ class RegisterController extends Controller
 
         $phone = $this->phoneOtp->normalizePhoneToE164((string) $user->phone);
 
-        // Require E.164 format for Twilio.
         if ($phone === null) {
             return redirect()
                 ->route('phone.verify.show')
@@ -63,7 +62,7 @@ class RegisterController extends Controller
                     'phone' => (string) $user->phone,
                     'verified' => false,
                 ])
-                ->withErrors(['phone' => 'Phone number must be in E.164 format, e.g. +12345678900.']);
+                ->withErrors(['phone' => 'Enter a valid phone number.']);
         }
 
         $request->session()->put(self::PHONE_VERIFICATION_SESSION_KEY, [

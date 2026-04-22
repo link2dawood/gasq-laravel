@@ -80,6 +80,30 @@ class AuthPhoneVerificationTest extends TestCase
         ]);
     }
 
+    public function test_user_can_send_phone_verification_code_with_plain_ten_digit_us_number(): void
+    {
+        Http::fake([
+            'https://api.twilio.com/*' => Http::response(['sid' => 'SM123'], 201),
+        ]);
+
+        $user = User::factory()->create([
+            'phone' => '+14045550100',
+            'phone_verified' => false,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('phone.verify.send'), [
+            'phone' => '4043089398',
+        ]);
+
+        $response->assertSessionHas('status', 'Verification code sent.');
+        $this->assertDatabaseHas('verification_codes', [
+            'user_id' => $user->id,
+            'type' => 'sms',
+            'phone_number' => '+14043089398',
+            'status' => 'pending',
+        ]);
+    }
+
     public function test_user_can_verify_updated_phone_from_verify_page(): void
     {
         $user = User::factory()->create([

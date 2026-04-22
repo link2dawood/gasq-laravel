@@ -36,7 +36,7 @@ class AdminTwilioController extends Controller
         $phone = $this->normalizePhoneToE164((string) $data['phone']);
         if ($phone === null) {
             return back()->withErrors([
-                'phone' => 'Phone number must be in E.164 format, e.g. +12345678900.',
+                'phone' => 'Enter a valid phone number.',
             ])->withInput();
         }
 

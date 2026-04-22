@@ -76,7 +76,7 @@ class ProfileController extends Controller
         if ($submittedPhone !== '') {
             if ($normalizedSubmittedPhone === null) {
                 return back()->withErrors([
-                    'phone' => 'Phone number must be in E.164 format, e.g. +12345678900.',
+                    'phone' => 'Enter a valid phone number.',
                 ])->withInput();
             }
 
@@ -128,7 +128,7 @@ class ProfileController extends Controller
         $phone = $this->phoneOtp->normalizePhoneToE164((string) $request->input('phone'));
         if ($phone === null) {
             return back()->withErrors([
-                'phone' => 'Phone number must be in E.164 format, e.g. +12345678900.',
+                'phone' => 'Enter a valid phone number.',
             ])->withInput();
         }
 
@@ -170,7 +170,7 @@ class ProfileController extends Controller
         $phone = $this->phoneOtp->normalizePhoneToE164((string) $request->input('phone'));
         if ($phone === null) {
             return back()->withErrors([
-                'phone' => 'Phone number must be in E.164 format, e.g. +12345678900.',
+                'phone' => 'Enter a valid phone number.',
             ])->withInput();
         }
 

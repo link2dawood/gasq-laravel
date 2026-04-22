@@ -177,7 +177,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-text">Formats like <code>+1 (234) 567-8900</code> and <code>+12345678900</code> both work.</div>
+                    <div class="form-text">You can enter <code>4043089398</code>, <code>14043089398</code>, or <code>+14043089398</code>. We will format it automatically.</div>
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>

@@ -27,7 +27,7 @@ class PhoneOtpService
             return [
                 'ok' => false,
                 'field' => 'phone',
-                'message' => 'Phone number must be in E.164 format, e.g. +12345678900.',
+                'message' => 'Enter a valid phone number.',
             ];
         }
 
@@ -99,7 +99,7 @@ class PhoneOtpService
             return [
                 'ok' => false,
                 'field' => 'phone',
-                'message' => 'Invalid phone number format.',
+                'message' => 'Enter a valid phone number.',
             ];
         }
 
@@ -186,8 +186,13 @@ class PhoneOtpService
             return null;
         }
 
-        $normalized = ($hasPlusPrefix ? '+' : '') . $digitsOnly;
-        if (! str_starts_with($normalized, '+')) {
+        if ($hasPlusPrefix) {
+            $normalized = '+' . $digitsOnly;
+        } elseif (strlen($digitsOnly) === 10) {
+            $normalized = '+1' . $digitsOnly;
+        } elseif (strlen($digitsOnly) >= 11 && strlen($digitsOnly) <= 15) {
+            $normalized = '+' . $digitsOnly;
+        } else {
             return null;
         }
 
