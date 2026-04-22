@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\TwilioSmsService;
+use App\Services\PhoneOtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -11,7 +12,8 @@ use Illuminate\View\View;
 class AdminTwilioController extends Controller
 {
     public function __construct(
-        private TwilioSmsService $sms
+        private TwilioSmsService $sms,
+        private PhoneOtpService $phoneOtp
     ) {
         $this->middleware(['auth', 'admin']);
     }
@@ -70,12 +72,7 @@ class AdminTwilioController extends Controller
 
     private function normalizePhoneToE164(string $phone): ?string
     {
-        $p = preg_replace('/[\s\-\(\)]+/', '', trim($phone)) ?? '';
-        if ($p === '' || ! str_starts_with($p, '+')) {
-            return null;
-        }
-
-        return preg_match('/^\+[1-9]\d{7,14}$/', $p) ? $p : null;
+        return $this->phoneOtp->normalizePhoneToE164($phone);
     }
 
     private function maskPhone(string $value): string

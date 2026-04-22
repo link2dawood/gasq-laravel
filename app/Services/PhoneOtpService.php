@@ -172,8 +172,22 @@ class PhoneOtpService
 
     public function normalizePhoneToE164(string $phone): ?string
     {
-        $normalized = preg_replace('/[\s\-\(\)]+/', '', trim($phone)) ?? '';
-        if ($normalized === '' || ! str_starts_with($normalized, '+')) {
+        $normalized = trim($phone);
+        $normalized = preg_replace('/[\p{Cf}\p{Cc}]+/u', '', $normalized) ?? '';
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        $hasPlusPrefix = str_starts_with($normalized, '+');
+        $digitsOnly = preg_replace('/\D+/', '', $normalized) ?? '';
+
+        if ($digitsOnly === '') {
+            return null;
+        }
+
+        $normalized = ($hasPlusPrefix ? '+' : '') . $digitsOnly;
+        if (! str_starts_with($normalized, '+')) {
             return null;
         }
 

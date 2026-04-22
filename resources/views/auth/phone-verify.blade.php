@@ -42,7 +42,7 @@
             @error('phone')
                 <div class="invalid-feedback d-block">{{ $message }}</div>
             @enderror
-            <div class="form-text">Use E.164 format, for example `+12345678900`.</div>
+            <div class="form-text">Include the country code. Formats like <code>+1 (470) 633-2816</code> and <code>+14706332816</code> both work.</div>
         </div>
 
         <div class="mb-4 d-none" id="auth_phone_otp_wrap">
