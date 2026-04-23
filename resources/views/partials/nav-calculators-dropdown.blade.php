@@ -7,7 +7,7 @@
         Calculators
     </a>
     <ul class="dropdown-menu dropdown-menu-end py-0 gasq-calculators-nav" aria-labelledby="{{ $toggleId }}" style="max-height: min(70vh, 28rem); overflow-y: auto; min-width: 16.5rem;">
-        <li><a class="dropdown-item fw-semibold" href="{{ route('calculator.index') }}"><i class="fa fa-bolt me-2"></i>Instant Estimator</a></li>
+        <li><a class="dropdown-item fw-semibold" href="{{ route('instant-estimator.index') }}"><i class="fa fa-bolt me-2"></i>Instant Estimator</a></li>
         <li><hr class="dropdown-divider my-0"></li>
         <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Core (V24 tools)</h6></li>
         <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Main Menu Calculator</a></li>

@@ -36,8 +36,12 @@ Route::get('/post-job', function () {
 })->name('post-job.index');
 
 Route::get('/calculator', function () {
-    return view('calculators.instant-estimator');
+    return view('calculators.index');
 })->name('calculator.index');
+
+Route::get('/instant-estimator', function () {
+    return view('calculators.instant-estimator');
+})->name('instant-estimator.index');
 
 Route::get('/vendor-form', function () {
     return view('pages.vendor-form');

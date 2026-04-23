@@ -5,271 +5,420 @@
 @section('content')
 <div class="gasq-estimator-shell">
     <div class="container-xl py-4 py-lg-5">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 d-print-none">
-            <div class="d-flex align-items-center gap-3">
-                <a href="{{ route('main-menu-calculator.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="fa fa-arrow-left"></i>
-                </a>
-                <div>
-                    <div class="text-uppercase small fw-semibold text-gasq-muted tracking-wide">Instant Calculator</div>
-                    <h1 class="h2 fw-bold mb-1">GASQ Instant Estimator</h1>
-                    <div class="text-gasq-muted">Immediate outsourced vs in-house pricing, buyer readiness, and share-ready estimate summaries.</div>
-                </div>
-            </div>
-            <div class="est-top-badge">
-                <div class="small text-uppercase opacity-75">Use Case</div>
-                <div class="fw-semibold">Fast pricing conversations before a full calculator run</div>
+
+        {{-- Page header --}}
+        <div class="d-flex align-items-center gap-3 mb-4 d-print-none">
+            <a href="{{ route('calculator.index') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa fa-arrow-left"></i>
+            </a>
+            <div>
+                <div class="text-uppercase small fw-semibold text-gasq-muted tracking-wide">Instant Calculator</div>
+                <h1 class="h2 fw-bold mb-0">GASQ Instant Estimator</h1>
             </div>
         </div>
 
-        <section class="est-hero mb-4 mb-xl-5">
-            <div>
-                <div class="est-kicker">Visual thesis: calm procurement workspace, not a demo card wall</div>
-                <h2>Price the opportunity, qualify the buyer, and package the estimate from one screen.</h2>
-                <p>
-                    This estimator now uses the richer GASQ formula chain you provided, keeps results instant in the browser,
-                    and presents the output like something a buyer or internal stakeholder can actually review.
-                </p>
+        <div id="instantEstimatorStatus" class="alert d-none mb-4" role="alert"></div>
+
+        {{-- Hero header row --}}
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="est-panel h-100 d-flex align-items-center gap-3">
+                    <div class="est-shield-icon d-none d-md-flex">
+                        <i class="fa fa-shield-halved fa-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1 h4">GASQ Instant Estimator</h2>
+                        <p class="text-gasq-muted mb-0 small">Baseline pay, coverage planning, internal TCO, outsourced bill rate, and report sharing.</p>
+                        <span class="est-chip est-chip-dark mt-2 d-inline-flex">CFO Tested. CFO Approved.</span>
+                    </div>
+                </div>
             </div>
-            <div class="est-hero-panel">
-                <div class="small text-uppercase opacity-75">Fair Pay Benchmark</div>
-                <div class="display-6 fw-bold mb-2" id="heroRecommendedRange">$28.00 - $39.00</div>
-                <div class="small opacity-75 mb-3">Recommended baseline pay range for the selected service.</div>
-                <div class="d-flex flex-wrap gap-2">
-                    <span class="est-chip est-chip-light" id="heroServiceLabel">Unarmed Security Services</span>
+            <div class="col-lg-4">
+                <div class="est-hero-panel h-100">
+                    <div class="small text-uppercase opacity-75">Recommended range</div>
+                    <div class="display-6 fw-bold mb-1 mt-1" id="heroRecommendedRange">$28.00 – $39.00</div>
+                    <div class="small opacity-75 mb-2" id="heroServiceLabel">Unarmed Security Services</div>
                     <span class="est-chip est-chip-accent" id="heroRateBand">Within recommended band</span>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <div id="instantEstimatorStatus" class="alert d-none mb-4" role="alert"></div>
+        {{-- Tab nav --}}
+        <ul class="nav est-tab-nav mb-4 d-print-none" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#tab-estimator" role="tab">
+                    <i class="fa fa-calculator me-1"></i> Estimator
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tab-rates" role="tab">
+                    <i class="fa fa-sliders me-1"></i> Rate Library
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tab-report" role="tab">
+                    <i class="fa fa-file-alt me-1"></i> Report View
+                </a>
+            </li>
+        </ul>
 
-        <div class="row g-4 align-items-start">
-            <div class="col-xl-7 est-inputs">
-                <div class="est-panel mb-4">
-                    <div class="est-panel-header">
-                        <div>
-                            <div class="est-section-label">Step 1</div>
-                            <h3>Contact and estimate context</h3>
-                        </div>
-                        <p>Keep the top of the flow lightweight, then let the calculator carry the pricing logic.</p>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="role">Requester role</label>
-                            <select id="role" class="form-select">
-                                <option value="buyer">Buyer</option>
-                                <option value="vendor">Vendor</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="name">Name</label>
-                            <input id="name" class="form-control" placeholder="Full name">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="company">Company / business</label>
-                            <input id="company" class="form-control" placeholder="Company name">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="email">Primary email recipient</label>
-                            <input id="email" type="email" class="form-control" placeholder="name@company.com">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="phone">Phone</label>
-                            <input id="phone" class="form-control" placeholder="0000000000">
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-semibold" for="location">Project address or service location</label>
-                            <input id="location" class="form-control" list="estimatorLocationOptions" placeholder="Property, city, or state">
-                            <datalist id="estimatorLocationOptions">
-                                @foreach(($locations ?? []) as $location)
-                                    <option value="{{ ucwords(str_replace('-', ' ', $location)) }}"></option>
-                                @endforeach
-                            </datalist>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="companyWebsite">Company website</label>
-                            <input id="companyWebsite" class="form-control" placeholder="https://example.com">
-                        </div>
-                    </div>
-                </div>
+        <div class="tab-content">
 
-                <div class="est-panel mb-4">
-                    <div class="est-panel-header">
-                        <div>
-                            <div class="est-section-label">Step 2</div>
-                            <h3>Service and pricing basis</h3>
-                        </div>
-                        <p>Set the service category, baseline pay, and coverage model before reviewing the cost stack.</p>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-7">
-                            <label class="form-label fw-semibold" for="serviceType">Security service type</label>
-                            <select id="serviceType" class="form-select">
-                                <option value="unarmed">Unarmed Security Services</option>
-                                <option value="armed">Armed Security Services</option>
-                                <option value="supervisor">Security Site Supervisor</option>
-                                <option value="mobile">Mobile Patrol Services</option>
-                                <option value="loss">Loss / Crime Prevention Services</option>
-                                <option value="executive">Executive Protection Agent</option>
-                                <option value="offduty">Off Duty Police Officer</option>
-                            </select>
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label fw-semibold" for="selectedRate">Baseline hourly pay rate</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input id="selectedRate" type="number" min="0" step="0.01" class="form-control">
+            {{-- ====== TAB 1: ESTIMATOR ====== --}}
+            <div class="tab-pane fade show active" id="tab-estimator" role="tabpanel">
+
+                {{-- Row 1: Contact + Calculator inputs --}}
+                <div class="row g-4 mb-4">
+
+                    {{-- Contact & Qualification --}}
+                    <div class="col-xl-6">
+                        <div class="est-panel h-100">
+                            <div class="est-section-label mb-1">Step 1 &amp; 3</div>
+                            <h3 class="mb-3">Contact &amp; Qualification</h3>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="role">Role of requester</label>
+                                    <select id="role" class="form-select">
+                                        <option value="buyer">Buyer</option>
+                                        <option value="vendor">Vendor</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="name">Name</label>
+                                    <input id="name" class="form-control" placeholder="Full name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="company">Company / business</label>
+                                    <input id="company" class="form-control" placeholder="Company name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="email">Primary email recipient</label>
+                                    <input id="email" type="email" class="form-control" placeholder="name@company.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="additionalEmails">Additional "To" recipients</label>
+                                    <input id="additionalEmails" class="form-control" placeholder="ops@company.com, buyer@company.com">
+                                    <div class="form-text">Separate multiple with commas</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="ccEmails">CC recipients</label>
+                                    <input id="ccEmails" class="form-control" placeholder="finance@company.com">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold" for="bccEmails">BCC recipients</label>
+                                    <input id="bccEmails" class="form-control" placeholder="archive@company.com">
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input id="sendToVendorNetwork" class="form-check-input" type="checkbox">
+                                        <label class="form-check-label fw-semibold" for="sendToVendorNetwork">Send to vendor network</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="phone">Phone</label>
+                                    <input id="phone" class="form-control" placeholder="0000000000">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="location">Project location</label>
+                                    <input id="location" class="form-control" list="estimatorLocationOptions" placeholder="Property, city, or state">
+                                    <datalist id="estimatorLocationOptions">
+                                        @foreach(($locations ?? []) as $location)
+                                            <option value="{{ ucwords(str_replace('-', ' ', $location)) }}"></option>
+                                        @endforeach
+                                    </datalist>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="companyWebsite">Company website</label>
+                                    <input id="companyWebsite" class="form-control" placeholder="https://example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="decisionMaker">Are you the decision maker?</label>
+                                    <select id="decisionMaker" class="form-select">
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="approvedBudget">Budget approved?</label>
+                                    <select id="approvedBudget" class="form-select">
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                        <option value="considering">Considering it</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="budgetAmount">Budget amount</label>
+                                    <input id="budgetAmount" class="form-control" placeholder="$0.00">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold" for="notes">Notes and scope comments</label>
+                                    <textarea id="notes" class="form-control" rows="2" placeholder="Post duties, special instructions, or scope context"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input id="wantsComparison" class="form-check-input" type="checkbox" checked>
+                                        <label class="form-check-label fw-semibold" for="wantsComparison">Include in-house vs outsourcing comparison</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold" for="attachments">Reference files</label>
+                                    <input id="attachments" type="file" class="form-control" multiple>
+                                    <div class="form-text">Filenames will appear in the report summary.</div>
+                                    <div id="attachmentList" class="est-file-list mt-2"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="coverageModel">Coverage model</label>
-                            <select id="coverageModel" class="form-select">
-                                <option value="hours">Budget by coverage hours</option>
-                                <option value="checks">Budget by weekly checks</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="weeks">Weeks covered by this budget</label>
-                            <input id="weeks" type="number" min="1" max="52" class="form-control" value="52">
-                        </div>
                     </div>
 
-                    <div id="hoursCoverageGroup" class="row g-3 mt-1">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="hoursPerDay">Hours per day</label>
-                            <input id="hoursPerDay" type="number" min="8" max="24" class="form-control" value="8">
-                            <div class="form-text">Minimum 8 hours.</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="daysPerWeek">Days per week</label>
-                            <input id="daysPerWeek" type="number" min="1" max="7" class="form-control" value="5">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="staffPerShift">Staff per shift / post</label>
-                            <input id="staffPerShift" type="number" min="1" max="1000" class="form-control" value="1">
-                        </div>
-                    </div>
+                    {{-- Start Your Calculation --}}
+                    <div class="col-xl-6">
+                        <div class="est-panel h-100">
+                            <div class="est-section-label mb-1">Step 2</div>
+                            <h3 class="mb-3">Start Your Calculation</h3>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold" for="serviceType">Security service type</label>
+                                    <select id="serviceType" class="form-select">
+                                        <option value="unarmed">Unarmed Security Services</option>
+                                        <option value="armed">Armed Security Services</option>
+                                        <option value="supervisor">Security Site Supervisor</option>
+                                        <option value="mobile">Mobile Patrol Services</option>
+                                        <option value="loss">Loss / Crime Prevention Services</option>
+                                        <option value="executive">Executive Protection Agent</option>
+                                        <option value="offduty">Off Duty Police Officer</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="selectedRate">Baseline hourly pay rate</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input id="selectedRate" type="number" min="0" step="0.01" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="coverageModel">Coverage model</label>
+                                    <select id="coverageModel" class="form-select">
+                                        <option value="hours">Budget by coverage hours</option>
+                                        <option value="checks">Budget by weekly checks</option>
+                                    </select>
+                                </div>
 
-                    <div id="checksCoverageGroup" class="row g-3 mt-1 d-none">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="weeklyChecks">Weekly checks definition</label>
-                            <select id="weeklyChecks" class="form-select">
-                                <option value="21">21 weekly checks</option>
-                                <option value="28">28 weekly checks</option>
-                                <option value="42">42 weekly checks</option>
-                                <option value="56">56 weekly checks</option>
-                                <option value="84">84 weekly checks</option>
-                            </select>
-                            <div class="form-text" id="weeklyChecksDefinition"></div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold" for="minutesPerCheck">Minutes per check</label>
-                            <input id="minutesPerCheck" type="number" min="8" max="60" class="form-control" value="15">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold" for="staffPerCheck">Staff per check</label>
-                            <input id="staffPerCheck" type="number" min="1" max="1000" class="form-control" value="1">
-                        </div>
-                    </div>
+                                {{-- Hours model --}}
+                                <div id="hoursCoverageGroup" class="col-12">
+                                    <div class="row g-3">
+                                        <div class="col-4">
+                                            <label class="form-label fw-semibold" for="hoursPerDay">Hours per day</label>
+                                            <input id="hoursPerDay" type="number" min="8" max="24" class="form-control" value="8">
+                                            <div class="form-text">Min 8 hrs</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label fw-semibold" for="daysPerWeek">Days per week</label>
+                                            <input id="daysPerWeek" type="number" min="1" max="7" class="form-control" value="5">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label fw-semibold" for="staffPerShift">Staff per shift</label>
+                                            <input id="staffPerShift" type="number" min="1" max="1000" class="form-control" value="1">
+                                        </div>
+                                    </div>
+                                </div>
 
-                    <div class="est-method-note mt-3">
-                        Direct labor becomes employer cost, annualizes across 3,744 hours, converts to true internal hourly cost over
-                        1,456 productive hours, then applies a 70% absorption factor to estimate outsourced pricing.
-                    </div>
-                </div>
+                                {{-- Checks model --}}
+                                <div id="checksCoverageGroup" class="col-12 d-none">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold" for="weeklyChecks">Weekly checks</label>
+                                            <select id="weeklyChecks" class="form-select">
+                                                <option value="21">21 weekly checks</option>
+                                                <option value="28">28 weekly checks</option>
+                                                <option value="42">42 weekly checks</option>
+                                                <option value="56">56 weekly checks</option>
+                                                <option value="84">84 weekly checks</option>
+                                            </select>
+                                            <div class="form-text" id="weeklyChecksDefinition"></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label fw-semibold" for="minutesPerCheck">Minutes per check</label>
+                                            <input id="minutesPerCheck" type="number" min="8" max="60" class="form-control" value="15">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label fw-semibold" for="staffPerCheck">Staff per check</label>
+                                            <input id="staffPerCheck" type="number" min="1" max="1000" class="form-control" value="1">
+                                        </div>
+                                    </div>
+                                </div>
 
-                <div class="est-panel mb-4">
-                    <div class="est-panel-header">
-                        <div>
-                            <div class="est-section-label">Step 3</div>
-                            <h3>Buyer readiness and budget signals</h3>
-                        </div>
-                        <p>These fields do not change the math directly, but they make the output much more useful in a real sales or procurement conversation.</p>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="decisionMaker">Are you the decision maker?</label>
-                            <select id="decisionMaker" class="form-select">
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="approvedBudget">Budget approved?</label>
-                            <select id="approvedBudget" class="form-select">
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                                <option value="considering">Considering it</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="budgetAmount">Budget amount</label>
-                            <input id="budgetAmount" class="form-control" placeholder="$0.00">
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check form-switch">
-                                <input id="wantsComparison" class="form-check-input" type="checkbox" checked>
-                                <label class="form-check-label fw-semibold" for="wantsComparison">Include in-house vs outsourcing comparison</label>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold" for="weeks">Weeks covered by this budget</label>
+                                    <input id="weeks" type="number" min="1" max="52" class="form-control" value="52">
+                                </div>
+                            </div>
+
+                            <div class="est-method-note mt-3">
+                                Direct labor → employer cost (÷0.70) → annualized (×3,744 hrs) → internal true hourly (÷1,456 productive hrs) → outsourced rate (×0.70 absorption).
                             </div>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold" for="notes">Notes and scope comments</label>
-                            <textarea id="notes" class="form-control" rows="3" placeholder="Post duties, special instructions, or scope context"></textarea>
+                    </div>
+                </div>
+
+                {{-- Row 2: Stat cards --}}
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-xl-3">
+                        <div class="est-stat">
+                            <div class="est-stat-label"><i class="fa fa-clock me-1"></i>Weekly Coverage Hours</div>
+                            <div class="est-stat-value" id="statWeeklyCoverage">0</div>
+                            <div class="est-stat-sub">hours per week</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="est-stat">
+                            <div class="est-stat-label"><i class="fa fa-clock me-1"></i>Budget Covers</div>
+                            <div class="est-stat-value est-stat-value-sm" id="coverageHeadline">0 weeks · 0 months</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="est-stat">
+                            <div class="est-stat-label"><i class="fa fa-dollar-sign me-1"></i>Outsourced Hourly</div>
+                            <div class="est-stat-value" id="statOutsourcedHourly">$0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <div class="est-stat">
+                            <div class="est-stat-label"><i class="fa fa-dollar-sign me-1"></i>Internal True Hourly</div>
+                            <div class="est-stat-value" id="statInternalHourly">$0.00</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="est-panel mb-4">
-                    <div class="est-panel-header">
-                        <div>
-                            <div class="est-section-label">Step 4</div>
-                            <h3>Share and handoff settings</h3>
-                        </div>
-                        <p>Prepare the summary for email or internal circulation, without pretending there is a backend lead endpoint when there is not.</p>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="additionalEmails">Additional “To” recipients</label>
-                            <input id="additionalEmails" class="form-control" placeholder="ops@company.com, buyer@company.com">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="ccEmails">CC recipients</label>
-                            <input id="ccEmails" class="form-control" placeholder="finance@company.com, legal@company.com">
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-semibold" for="bccEmails">BCC recipients</label>
-                            <input id="bccEmails" class="form-control" placeholder="archive@company.com, leadership@company.com">
-                        </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <div class="form-check form-switch mb-2">
-                                <input id="sendToVendorNetwork" class="form-check-input" type="checkbox">
-                                <label class="form-check-label fw-semibold" for="sendToVendorNetwork">Send to vendor network</label>
+                {{-- Hidden elements for JS compatibility --}}
+                <span id="statWorkforce" class="d-none"></span>
+                <span id="outsourcedTermHeadline" class="d-none"></span>
+                <span id="summarySubtitle" class="d-none"></span>
+
+                {{-- Row 3: Cost breakdown cards --}}
+                <div class="row g-4 mb-4">
+                    <div class="col-xl-6">
+                        <div class="est-panel">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="fa fa-dollar-sign text-primary"></i>
+                                <h4 class="mb-0 fw-bold">Contractor Total Outsourced Costs</h4>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="est-metric-tile">
+                                        <div class="est-metric-label">Total Hourly</div>
+                                        <div class="est-metric-value" id="outHourly">$0.00</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="est-metric-tile">
+                                        <div class="est-metric-label">Total Weekly</div>
+                                        <div class="est-metric-value" id="outWeekly">$0.00</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="est-metric-tile">
+                                        <div class="est-metric-label">Total Monthly</div>
+                                        <div class="est-metric-value" id="outMonthly">$0.00</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="est-metric-tile est-metric-tile-accent">
+                                        <div class="est-metric-label">Annual / Term</div>
+                                        <div class="est-metric-value" id="outTerm">$0.00</div>
+                                    </div>
+                                </div>
+                                <span id="outAnnual" class="d-none"></span>
                             </div>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold" for="attachments">Reference files</label>
-                            <input id="attachments" type="file" class="form-control" multiple>
-                            <div class="form-text">Attachments cannot be added directly to a <code>mailto:</code> action, but their filenames will be listed in the summary.</div>
-                            <div id="attachmentList" class="est-file-list mt-2"></div>
+                    </div>
+                    <div class="col-xl-6">
+                        <div class="est-panel">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="fa fa-chart-line text-primary"></i>
+                                <h4 class="mb-0 fw-bold">Internal Total Cost of Ownership</h4>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="est-metric-tile">
+                                        <div class="est-metric-label">Internal True Hourly</div>
+                                        <div class="est-metric-value" id="inHourly">$0.00</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="est-metric-tile">
+                                        <div class="est-metric-label">Weekly TCO</div>
+                                        <div class="est-metric-value" id="inWeekly">$0.00</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="est-metric-tile">
+                                        <div class="est-metric-label">Monthly TCO</div>
+                                        <div class="est-metric-value" id="inMonthly">$0.00</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="est-metric-tile est-metric-tile-accent">
+                                        <div class="est-metric-label">Annual / Term</div>
+                                        <div class="est-metric-value" id="inTerm">$0.00</div>
+                                    </div>
+                                </div>
+                                <span id="inAnnual" class="d-none"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="est-panel est-library d-print-none">
-                    <div class="est-panel-header">
-                        <div>
-                            <div class="est-section-label">Rate Library</div>
-                            <h3>Service rate presets</h3>
+                {{-- Row 4: ROI & Recovery card --}}
+                <div id="roiSection" class="mb-4">
+                    <div class="est-panel">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="fa fa-chart-line text-primary"></i>
+                            <h4 class="mb-0 fw-bold">ROI, Payback &amp; Recovery</h4>
                         </div>
-                        <p>Keep the selected service rate editable, but make the whole library available when someone wants to tune the defaults.</p>
+                        <div class="row g-3">
+                            <div class="col-6 col-xl-3">
+                                <div class="est-metric-tile">
+                                    <div class="est-metric-label">Capital Recovered</div>
+                                    <div class="est-metric-value" id="recoveredCapital">$0.00</div>
+                                    <div class="est-metric-sub">term savings vs in-house</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-xl-3">
+                                <div class="est-metric-tile">
+                                    <div class="est-metric-label">Price Permit Fee</div>
+                                    <div class="est-metric-value" id="appraisalFee">$0.00</div>
+                                    <div class="est-metric-sub">1% of annual recovered capital</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-xl-3">
+                                <div class="est-metric-tile">
+                                    <div class="est-metric-label">Efficiency Gain</div>
+                                    <div class="est-metric-value" id="efficiencyGain">0 : 1</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-xl-3">
+                                <div class="est-metric-tile">
+                                    <div class="est-metric-label">Payback Period</div>
+                                    <div class="est-metric-value" id="paybackMonths">0 months</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+            </div>{{-- /tab-estimator --}}
+
+            {{-- ====== TAB 2: RATE LIBRARY ====== --}}
+            <div class="tab-pane fade" id="tab-rates" role="tabpanel">
+                <div class="est-panel">
+                    <h3 class="fw-bold mb-1">Rate Library</h3>
+                    <p class="text-gasq-muted mb-4">Editable baseline pay ranges for each service category. Changes apply immediately to the Estimator tab.</p>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="est-library-item">
                                 <div>
                                     <div class="fw-semibold">Unarmed Security Services</div>
-                                    <div class="small text-gasq-muted">$28.00 - $39.00</div>
+                                    <div class="small text-gasq-muted">$28.00 – $39.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">$</span>
@@ -281,7 +430,7 @@
                             <div class="est-library-item">
                                 <div>
                                     <div class="fw-semibold">Armed Security Services</div>
-                                    <div class="small text-gasq-muted">$40.00 - $52.00</div>
+                                    <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">$</span>
@@ -293,7 +442,7 @@
                             <div class="est-library-item">
                                 <div>
                                     <div class="fw-semibold">Security Site Supervisor</div>
-                                    <div class="small text-gasq-muted">$40.00 - $52.00</div>
+                                    <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">$</span>
@@ -305,7 +454,7 @@
                             <div class="est-library-item">
                                 <div>
                                     <div class="fw-semibold">Mobile Patrol Services</div>
-                                    <div class="small text-gasq-muted">$40.00 - $52.00</div>
+                                    <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">$</span>
@@ -317,7 +466,7 @@
                             <div class="est-library-item">
                                 <div>
                                     <div class="fw-semibold">Loss / Crime Prevention Services</div>
-                                    <div class="small text-gasq-muted">$40.00 - $52.00</div>
+                                    <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">$</span>
@@ -329,7 +478,7 @@
                             <div class="est-library-item">
                                 <div>
                                     <div class="fw-semibold">Executive Protection Agent</div>
-                                    <div class="small text-gasq-muted">$53.00 - $68.00</div>
+                                    <div class="small text-gasq-muted">$53.00 – $68.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">$</span>
@@ -341,7 +490,7 @@
                             <div class="est-library-item">
                                 <div>
                                     <div class="fw-semibold">Off Duty Police Officer</div>
-                                    <div class="small text-gasq-muted">$53.00 - $68.00</div>
+                                    <div class="small text-gasq-muted">$53.00 – $68.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">$</span>
@@ -351,161 +500,79 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>{{-- /tab-rates --}}
 
-            <div class="col-xl-5">
-                <aside class="est-summary">
-                    <div class="est-summary-top">
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div>
-                                <div class="small text-uppercase opacity-75 mb-2">Live summary</div>
-                                <h3 class="mb-1">Directional estimate</h3>
-                                <div class="small opacity-75" id="summarySubtitle">Outsourced rate, internal true cost, and recovered capital</div>
-                            </div>
-                            <span class="est-chip est-chip-light" id="summaryReadinessBadge">Buyer ready</span>
+            {{-- ====== TAB 3: REPORT VIEW ====== --}}
+            <div class="tab-pane fade" id="tab-report" role="tabpanel">
+                <div class="est-panel">
+                    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4 d-print-none">
+                        <div>
+                            <h3 class="fw-bold mb-1">Estimate Report</h3>
+                            <p class="text-gasq-muted mb-0 small" id="summarySubtitleReport">Summary for email delivery, PDF export, and internal review.</p>
                         </div>
-
-                        <div class="est-summary-hero mt-4">
-                            <div class="small text-uppercase opacity-75">Outsourced term cost</div>
-                            <div class="est-summary-amount" id="outsourcedTermHeadline">$0.00</div>
-                            <div class="small opacity-75" id="coverageHeadline">0 weeks · 0 months · 0 total hours</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="downloadReportButton">
+                                <i class="fa fa-download me-1"></i> Export PDF
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="emailReportButton">
+                                <i class="fa fa-envelope me-1"></i> Email Report
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="printReportButton">
+                                <i class="fa fa-print me-1"></i> Print
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="copySummaryButton">
+                                <i class="fa fa-copy me-1"></i> Copy Summary
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="resetEstimatorButton">
+                                <i class="fa fa-rotate me-1"></i> Reset
+                            </button>
                         </div>
+                    </div>
 
-                        <div class="row g-2 mt-2">
-                            <div class="col-6">
-                                <div class="est-stat">
-                                    <div class="est-stat-label">Outsourced hourly</div>
-                                    <div class="est-stat-value" id="statOutsourcedHourly">$0.00</div>
-                                </div>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="est-report-block-outer">
+                                <div class="text-uppercase small fw-semibold text-gasq-muted mb-3">Requester</div>
+                                <div class="est-report-row"><span>Name</span><strong id="reportRequester">—</strong></div>
+                                <div class="est-report-row"><span>Company</span><strong id="reportCompany">—</strong></div>
+                                <div class="est-report-row"><span>Location</span><strong id="reportLocation">—</strong></div>
                             </div>
-                            <div class="col-6">
-                                <div class="est-stat">
-                                    <div class="est-stat-label">Internal true hourly</div>
-                                    <div class="est-stat-value" id="statInternalHourly">$0.00</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="est-stat">
-                                    <div class="est-stat-label">Weekly coverage hours</div>
-                                    <div class="est-stat-value" id="statWeeklyCoverage">0</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="est-stat">
-                                    <div class="est-stat-label">Annualized workforce</div>
-                                    <div class="est-stat-value" id="statWorkforce">0</div>
-                                </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="est-report-block-outer">
+                                <div class="text-uppercase small fw-semibold text-gasq-muted mb-3">Estimate Summary</div>
+                                <div class="est-report-row"><span>Service</span><strong id="reportService">—</strong></div>
+                                <div class="est-report-row"><span>Baseline pay</span><strong id="reportRate">$0.00/hr</strong></div>
+                                <div class="est-report-row"><span>Budget</span><strong id="reportBudget">—</strong></div>
+                                <div class="est-report-row"><span>Attachments</span><strong id="reportAttachments">—</strong></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="est-summary-section">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4>Readiness signals</h4>
+                    {{-- Readiness signals --}}
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <h5 class="fw-semibold mb-0">Buyer Readiness Signals
+                                <span class="est-chip est-chip-light ms-2" id="summaryReadinessBadge" style="font-size:.75rem">Buyer ready</span>
+                            </h5>
                             <span class="small text-gasq-muted" id="budgetAlignmentText">Budget not entered yet</span>
                         </div>
                         <div class="d-flex flex-wrap gap-2" id="readinessSignals"></div>
                     </div>
 
-                    <div class="est-summary-section">
-                        <h4>Cost comparison</h4>
-                        <div class="est-comparison-grid">
-                            <div class="est-comparison-card">
-                                <div class="small text-uppercase text-gasq-muted mb-2">Outsourced</div>
-                                <div class="est-comparison-row"><span>Hourly</span><strong id="outHourly">$0.00</strong></div>
-                                <div class="est-comparison-row"><span>Weekly</span><strong id="outWeekly">$0.00</strong></div>
-                                <div class="est-comparison-row"><span>Monthly</span><strong id="outMonthly">$0.00</strong></div>
-                                <div class="est-comparison-row"><span>Annual</span><strong id="outAnnual">$0.00</strong></div>
-                                <div class="est-comparison-row est-comparison-row-emphasis"><span>Term</span><strong id="outTerm">$0.00</strong></div>
-                            </div>
-                            <div class="est-comparison-card">
-                                <div class="small text-uppercase text-gasq-muted mb-2">Internal TCO</div>
-                                <div class="est-comparison-row"><span>Hourly</span><strong id="inHourly">$0.00</strong></div>
-                                <div class="est-comparison-row"><span>Weekly</span><strong id="inWeekly">$0.00</strong></div>
-                                <div class="est-comparison-row"><span>Monthly</span><strong id="inMonthly">$0.00</strong></div>
-                                <div class="est-comparison-row"><span>Annual</span><strong id="inAnnual">$0.00</strong></div>
-                                <div class="est-comparison-row est-comparison-row-emphasis"><span>Term</span><strong id="inTerm">$0.00</strong></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="est-summary-section" id="roiSection">
-                        <h4>Recovery and payback</h4>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="est-metric-tile">
-                                    <div class="est-metric-label">Recovered capital</div>
-                                    <div class="est-metric-value" id="recoveredCapital">$0.00</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="est-metric-tile">
-                                    <div class="est-metric-label">Appraisal fee</div>
-                                    <div class="est-metric-value" id="appraisalFee">$0.00</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="est-metric-tile">
-                                    <div class="est-metric-label">Efficiency gain</div>
-                                    <div class="est-metric-value" id="efficiencyGain">0 : 1</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="est-metric-tile">
-                                    <div class="est-metric-label">Payback</div>
-                                    <div class="est-metric-value" id="paybackMonths">0 months</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="est-summary-section">
-                        <h4>Share-ready report</h4>
-                        <div class="est-report-block">
-                            <div class="est-report-row"><span>Requester</span><strong id="reportRequester">-</strong></div>
-                            <div class="est-report-row"><span>Company</span><strong id="reportCompany">-</strong></div>
-                            <div class="est-report-row"><span>Location</span><strong id="reportLocation">-</strong></div>
-                            <div class="est-report-row"><span>Service</span><strong id="reportService">-</strong></div>
-                            <div class="est-report-row"><span>Baseline pay</span><strong id="reportRate">$0.00/hr</strong></div>
-                            <div class="est-report-row"><span>Budget</span><strong id="reportBudget">-</strong></div>
-                            <div class="est-report-row"><span>Attachments</span><strong id="reportAttachments">-</strong></div>
-                        </div>
-                    </div>
-
-                    <div class="est-summary-section est-actions d-print-none">
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-primary" id="copySummaryButton">
-                                <i class="fa fa-copy me-2"></i>Copy estimate summary
-                            </button>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-outline-primary flex-grow-1" id="downloadReportButton">
-                                    <i class="fa fa-download me-2"></i>Download PDF
-                                </button>
-                                <button type="button" class="btn btn-outline-primary flex-grow-1" id="emailReportButton">
-                                    <i class="fa fa-envelope me-2"></i>Email report
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary flex-grow-1" id="printReportButton">
-                                    <i class="fa fa-print me-2"></i>Print
-                                </button>
-                            </div>
-                            <button type="button" class="btn btn-outline-secondary" id="resetEstimatorButton">
-                                <i class="fa fa-rotate me-2"></i>Reset estimator
-                            </button>
-                        </div>
-                    </div>
-
                     <div class="est-summary-footnote">
                         Directional output only. Actual proposal pricing will vary by location conditions, contract structure, overtime exposure, and vendor requirements.
                     </div>
+                </div>
 
-                    <form id="instantEstimatorEmailForm" action="{{ route('reports.email') }}" method="POST" class="d-none">
-                        @csrf
-                        <input type="hidden" name="type" value="instant-estimator">
-                        <input type="hidden" name="email" id="instantEstimatorEmailTarget" value="{{ auth()->user()?->email }}">
-                    </form>
-                </aside>
-            </div>
-        </div>
+                <form id="instantEstimatorEmailForm" action="{{ route('reports.email') }}" method="POST" class="d-none">
+                    @csrf
+                    <input type="hidden" name="type" value="instant-estimator">
+                    <input type="hidden" name="email" id="instantEstimatorEmailTarget" value="{{ auth()->user()?->email }}">
+                </form>
+            </div>{{-- /tab-report --}}
+
+        </div>{{-- /tab-content --}}
     </div>
 </div>
 @endsection
@@ -519,59 +586,55 @@
         min-height: calc(100vh - 5rem);
     }
 
-    .tracking-wide {
-        letter-spacing: 0.08em;
-    }
+    .tracking-wide { letter-spacing: 0.08em; }
 
-    .est-top-badge {
-        padding: 0.9rem 1rem;
-        border: 1px solid rgba(6, 45, 121, 0.12);
+    /* Shield icon in header */
+    .est-shield-icon {
+        width: 3.5rem;
+        height: 3.5rem;
         border-radius: 1rem;
-        background: rgba(255, 255, 255, 0.78);
-        box-shadow: 0 12px 30px -24px rgba(6, 45, 121, 0.45);
+        background: rgba(90,30,36,.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #5a1e24;
+        flex-shrink: 0;
     }
 
-    .est-hero {
-        display: grid;
-        grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
-        gap: 1.25rem;
-        padding: 1.5rem;
-        border: 1px solid rgba(6, 45, 121, 0.1);
-        border-radius: 1.5rem;
-        background: rgba(255, 255, 255, 0.72);
-        box-shadow: 0 22px 40px -30px rgba(6, 45, 121, 0.5);
-        backdrop-filter: blur(10px);
+    /* Tab nav */
+    .est-tab-nav {
+        background: rgba(255,255,255,.75);
+        border: 1px solid rgba(6,45,121,.1);
+        border-radius: 1rem;
+        padding: .35rem;
+        gap: .25rem;
+    }
+    .est-tab-nav .nav-link {
+        border-radius: .75rem;
+        color: var(--gasq-muted, #6b7280);
+        font-weight: 600;
+        font-size: .92rem;
+        padding: .5rem 1.1rem;
+        transition: background .15s, color .15s;
+    }
+    .est-tab-nav .nav-link.active {
+        background: #fff;
+        color: var(--gasq-primary, #062d79);
+        box-shadow: 0 2px 8px -4px rgba(6,45,121,.2);
     }
 
-    .est-hero h2 {
-        font-size: clamp(2rem, 3vw, 3rem);
-        line-height: 1.05;
-        letter-spacing: -0.03em;
-        max-width: 12ch;
-        margin-bottom: 0.85rem;
-    }
-
-    .est-hero p {
-        color: var(--gasq-muted);
-        font-size: 1rem;
-        line-height: 1.6;
-        max-width: 58ch;
-        margin-bottom: 0;
-    }
-
-    .est-kicker {
+    /* Dark/accent chips */
+    .est-chip-dark {
+        background: rgba(90,30,36,.12);
+        color: #5a1e24;
+        border: 1px solid rgba(90,30,36,.15);
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.4rem 0.75rem;
         border-radius: 999px;
-        background: rgba(6, 45, 121, 0.08);
-        color: var(--gasq-primary);
-        font-size: 0.78rem;
+        padding: .3rem .75rem;
+        font-size: .76rem;
         font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 1rem;
+        letter-spacing: .02em;
     }
 
     .est-hero-panel {
@@ -585,17 +648,13 @@
         justify-content: center;
     }
 
-    .est-panel,
-    .est-summary {
+    .est-panel {
+        padding: 1.35rem;
         border: 1px solid rgba(6, 45, 121, 0.1);
         border-radius: 1.4rem;
         background: rgba(255, 255, 255, 0.86);
         box-shadow: 0 22px 45px -34px rgba(6, 45, 121, 0.45);
         backdrop-filter: blur(12px);
-    }
-
-    .est-panel {
-        padding: 1.35rem;
     }
 
     .est-panel-header {
@@ -606,74 +665,93 @@
         margin-bottom: 1.25rem;
     }
 
-    .est-panel-header h3,
-    .est-summary-section h4,
-    .est-summary-top h3 {
-        margin: 0;
-        font-size: 1.1rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-    }
-
-    .est-panel-header p {
-        margin: 0;
-        color: var(--gasq-muted);
-        max-width: 24rem;
-        font-size: 0.93rem;
-        line-height: 1.5;
-    }
-
     .est-section-label {
         text-transform: uppercase;
         letter-spacing: 0.08em;
         font-size: 0.72rem;
         font-weight: 700;
         color: var(--gasq-primary);
-        margin-bottom: 0.35rem;
     }
 
-    .est-method-note,
-    .est-summary-footnote {
+    .est-panel h3, .est-panel h4 {
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    .est-method-note {
         padding: 0.9rem 1rem;
         border-radius: 1rem;
         background: rgba(6, 45, 121, 0.05);
         color: var(--gasq-muted);
-        font-size: 0.9rem;
+        font-size: 0.88rem;
         line-height: 1.55;
     }
 
-    .est-summary {
-        position: sticky;
-        top: 6.75rem;
-        overflow: hidden;
+    /* Stat cards */
+    .est-stat {
+        height: 100%;
+        padding: 1rem;
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(6, 45, 121, 0.1);
+        box-shadow: 0 4px 12px -6px rgba(6,45,121,.15);
     }
-
-    .est-summary-top {
-        padding: 1.35rem;
-        background: linear-gradient(180deg, #102f69 0%, #0f2144 100%);
-        color: #fff;
+    .est-stat-label {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gasq-muted);
+        margin-bottom: 0.4rem;
     }
-
-    .est-summary-hero {
-        padding: 1.15rem 1.2rem;
-        border-radius: 1.1rem;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .est-summary-amount {
-        font-size: clamp(2rem, 4vw, 2.75rem);
-        line-height: 1.04;
+    .est-stat-value {
         font-weight: 800;
-        letter-spacing: -0.05em;
-        margin-top: 0.2rem;
+        letter-spacing: -0.03em;
+        font-size: 1.4rem;
+        color: var(--gasq-primary, #062d79);
+    }
+    .est-stat-value-sm {
+        font-size: 1rem;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+    }
+    .est-stat-sub {
+        font-size: .75rem;
+        color: var(--gasq-muted);
+        margin-top: .2rem;
     }
 
-    .est-summary-section {
-        padding: 1.2rem 1.35rem;
-        border-top: 1px solid rgba(6, 45, 121, 0.08);
+    /* Metric tiles */
+    .est-metric-tile {
+        height: 100%;
+        padding: 0.95rem 1rem;
+        border-radius: 1rem;
+        background: rgba(6, 45, 121, 0.05);
+        border: 1px solid rgba(6, 45, 121, 0.08);
+    }
+    .est-metric-tile-accent {
+        background: rgba(6, 45, 121, 0.1);
+        border-color: rgba(6, 45, 121, 0.18);
+    }
+    .est-metric-label {
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gasq-muted);
+        margin-bottom: 0.35rem;
+    }
+    .est-metric-value {
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        font-size: 1.15rem;
+        color: var(--gasq-primary, #062d79);
+    }
+    .est-metric-sub {
+        font-size: .72rem;
+        color: var(--gasq-muted);
+        margin-top: .2rem;
     }
 
+    /* Chip styles */
     .est-chip {
         display: inline-flex;
         align-items: center;
@@ -684,73 +762,27 @@
         font-weight: 700;
         letter-spacing: 0.02em;
     }
-
     .est-chip-light {
-        background: rgba(255, 255, 255, 0.14);
+        background: rgba(255,255,255,.14);
         color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255,255,255,.16);
     }
-
     .est-chip-accent {
         background: rgba(255, 214, 102, 0.18);
         color: #ffd666;
         border: 1px solid rgba(255, 214, 102, 0.2);
     }
+    .est-chip-good { background: rgba(16,185,129,.12); color: #047857; }
+    .est-chip-warn { background: rgba(245,158,11,.14); color: #b45309; }
+    .est-chip-neutral { background: rgba(6,45,121,.06); color: var(--gasq-primary); }
 
-    .est-chip-good {
-        background: rgba(16, 185, 129, 0.12);
-        color: #047857;
-    }
-
-    .est-chip-warn {
-        background: rgba(245, 158, 11, 0.14);
-        color: #b45309;
-    }
-
-    .est-chip-neutral {
-        background: rgba(6, 45, 121, 0.06);
-        color: var(--gasq-primary);
-    }
-
-    .est-stat,
-    .est-metric-tile {
-        height: 100%;
-        padding: 0.95rem 1rem;
+    /* Report tab blocks */
+    .est-report-block-outer {
+        padding: 1.2rem;
         border-radius: 1rem;
-        background: rgba(6, 45, 121, 0.05);
-        border: 1px solid rgba(6, 45, 121, 0.08);
+        background: rgba(6,45,121,.04);
+        border: 1px solid rgba(6,45,121,.1);
     }
-
-    .est-stat-label,
-    .est-metric-label {
-        font-size: 0.76rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--gasq-muted);
-        margin-bottom: 0.35rem;
-    }
-
-    .est-stat-value,
-    .est-metric-value {
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        font-size: 1.15rem;
-    }
-
-    .est-comparison-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.9rem;
-    }
-
-    .est-comparison-card {
-        padding: 1rem;
-        border-radius: 1rem;
-        background: rgba(6, 45, 121, 0.04);
-        border: 1px solid rgba(6, 45, 121, 0.08);
-    }
-
-    .est-comparison-row,
     .est-report-row {
         display: flex;
         justify-content: space-between;
@@ -760,21 +792,9 @@
         border-bottom: 1px solid rgba(6, 45, 121, 0.06);
         font-size: 0.93rem;
     }
+    .est-report-row:last-child { border-bottom: 0; padding-bottom: 0; }
 
-    .est-comparison-row:last-child,
-    .est-report-row:last-child {
-        border-bottom: 0;
-        padding-bottom: 0;
-    }
-
-    .est-comparison-row-emphasis strong {
-        color: var(--gasq-primary);
-    }
-
-    .est-report-block {
-        padding: 0.2rem 0;
-    }
-
+    /* Library items */
     .est-library-item {
         display: flex;
         justify-content: space-between;
@@ -786,12 +806,8 @@
         border: 1px solid rgba(6, 45, 121, 0.08);
     }
 
-    .est-file-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
+    /* File list */
+    .est-file-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .est-file-tag {
         display: inline-flex;
         align-items: center;
@@ -804,89 +820,36 @@
         font-weight: 600;
     }
 
-    .form-control,
-    .form-select,
-    .input-group-text {
+    /* Summary footnote */
+    .est-summary-footnote {
+        padding: 0.9rem 1rem;
+        border-radius: 1rem;
+        background: rgba(6, 45, 121, 0.05);
+        color: var(--gasq-muted);
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+
+    /* Form controls */
+    .form-control, .form-select, .input-group-text {
         border-radius: 0.9rem;
         border-color: rgba(6, 45, 121, 0.14);
         min-height: 3rem;
     }
-
-    .input-group .form-control,
-    .input-group .input-group-text {
-        border-radius: 0.9rem;
-    }
-
-    .form-control:focus,
-    .form-select:focus {
+    .input-group .form-control, .input-group .input-group-text { border-radius: 0.9rem; }
+    .form-control:focus, .form-select:focus {
         border-color: rgba(6, 45, 121, 0.35);
         box-shadow: 0 0 0 0.2rem rgba(6, 45, 121, 0.12);
     }
 
-    @media (max-width: 1199.98px) {
-        .est-summary {
-            position: static;
-        }
-    }
-
     @media (max-width: 991.98px) {
-        .est-hero {
-            grid-template-columns: 1fr;
-        }
-
-        .est-panel-header {
-            flex-direction: column;
-        }
-    }
-
-    @media (max-width: 767.98px) {
-        .est-comparison-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .est-top-badge {
-            width: 100%;
-        }
+        .est-hero-panel { min-height: auto; }
     }
 
     @media print {
-        .gasq-navbar,
-        .d-print-none,
-        .est-inputs,
-        .est-hero,
-        .est-top-badge,
-        #instantEstimatorStatus {
-            display: none !important;
-        }
-
-        .gasq-estimator-shell {
-            background: #fff !important;
-        }
-
-        .est-summary {
-            position: static !important;
-            top: auto !important;
-            box-shadow: none !important;
-            border: 0 !important;
-        }
-
-        .est-summary-section,
-        .est-summary-top {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-
-        .est-summary-top {
-            color: #111 !important;
-            background: transparent !important;
-            border-bottom: 1px solid #ddd !important;
-        }
-
-        .est-summary-hero {
-            background: #f8f8f8 !important;
-            color: #111 !important;
-            border: 1px solid #ddd !important;
-        }
+        .gasq-navbar, .d-print-none, .est-tab-nav, .est-panel h3 { display: none !important; }
+        .gasq-estimator-shell { background: #fff !important; }
+        .est-panel { box-shadow: none !important; border: 1px solid #ddd !important; }
     }
 </style>
 
@@ -1460,17 +1423,17 @@ function render() {
     byId('roiSection').classList.toggle('d-none', !state.wantsComparison);
     byId('weeklyChecksDefinition').textContent = results.selectedCheckOption.definition;
 
-    byId('heroRecommendedRange').textContent = `${fmtCurrency(results.serviceMeta.min)} - ${fmtCurrency(results.serviceMeta.max)}`;
+    byId('heroRecommendedRange').textContent = `${fmtCurrency(results.serviceMeta.min)} – ${fmtCurrency(results.serviceMeta.max)}`;
     byId('heroServiceLabel').textContent = results.serviceMeta.label;
     byId('heroRateBand').textContent = serviceBand.label;
-    byId('heroRateBand').className = 'est-chip est-chip-accent';
+    byId('heroRateBand').className = `est-chip est-chip-accent`;
 
     byId('summaryReadinessBadge').textContent = readiness.label;
     byId('summarySubtitle').textContent = state.wantsComparison
         ? 'Outsourced rate, internal true cost, and recovered capital'
         : 'Directional outsourced pricing based on your selected pay baseline';
     byId('outsourcedTermHeadline').textContent = fmtCurrency(results.outsourcedTerm);
-    byId('coverageHeadline').textContent = `${results.weeksCoveredRounded} weeks · ${results.monthsOfCoverageRounded} months · ${fmtNumber(results.termCoverageHours, 0)} total hours`;
+    byId('coverageHeadline').textContent = `${results.weeksCoveredRounded} wks · ${results.monthsOfCoverageRounded} mo · ${fmtNumber(results.termCoverageHours, 0)} hrs`;
     byId('statOutsourcedHourly').textContent = fmtCurrency(results.outsourcedHourly);
     byId('statInternalHourly').textContent = fmtCurrency(results.internalTrueHourly);
     byId('statWeeklyCoverage').textContent = fmtNumber(results.weeklyCoverageHours, 0);

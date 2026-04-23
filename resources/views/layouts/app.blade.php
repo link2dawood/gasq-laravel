@@ -31,6 +31,7 @@
                     'government-contract-calculator',
                     'keeps-doors-open-calculator',
                     'calculator',
+                    'instant-estimator',
                     'open-bid-offer',
                     'post-job',
                     'post-coverage-schedule',
