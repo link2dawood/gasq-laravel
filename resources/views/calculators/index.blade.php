@@ -3,6 +3,10 @@
 @section('header_variant', 'dashboard')
 
 @section('content')
+@php
+    $user = auth()->user();
+    $isBuyer = $user?->isBuyer() ?? false;
+@endphp
 <div class="py-4 px-3 px-md-4" style="background:var(--gasq-background);min-height:calc(100vh - 5rem)">
 <div class="container-xl">
 
@@ -14,7 +18,11 @@
             </h1>
         </div>
     </div>
-    <p class="text-gasq-muted mb-5">All workforce planning, cost analysis, and pricing tools in one place.</p>
+    <p class="text-gasq-muted mb-5">
+        {{ $isBuyer
+            ? 'Buyer access is centered on the Instant Estimator. Step 1 captures the questionnaire, Step 2 sets up the estimate, and Step 3 unlocks after you choose to post the job or pay the fee.'
+            : 'All workforce planning, cost analysis, and pricing tools in one place.' }}
+    </p>
 
     {{-- Featured: Instant Estimator --}}
     <div class="calc-featured-card mb-5">
@@ -25,7 +33,11 @@
             <div class="flex-grow-1">
                 <div class="text-uppercase small fw-bold mb-1" style="letter-spacing:.08em;opacity:.7">Featured Tool</div>
                 <h2 class="fw-bold mb-1 h4">GASQ Instant Estimator</h2>
-                <p class="mb-0 opacity-75">Baseline pay, coverage planning, internal TCO vs outsourced bill rate, and share-ready estimate summaries — all from one screen.</p>
+                <p class="mb-0 opacity-75">
+                    {{ $isBuyer
+                        ? 'Questionnaire first, estimate setup second, and locked results in Step 3 until you choose Post Job or Pay 1% Fee.'
+                        : 'Baseline pay, coverage planning, internal TCO vs outsourced bill rate, and share-ready estimate summaries — all from one screen.' }}
+                </p>
             </div>
             <a href="{{ route('instant-estimator.index') }}" class="btn btn-light btn-lg fw-semibold flex-shrink-0">
                 <i class="fa fa-bolt me-2"></i>Open Estimator
@@ -33,52 +45,79 @@
         </div>
     </div>
 
-    {{-- Core V24 Tools --}}
-    <div class="mb-5">
-        <h5 class="calc-group-label">Core V24 Tools</h5>
-        <div class="row g-3">
-            <div class="col-md-6 col-xl-4">
-                <a href="{{ route('main-menu-calculator.index') }}" class="calc-card">
-                    <div class="calc-card-icon"><i class="fa fa-calculator"></i></div>
-                    <div class="calc-card-body">
-                        <div class="calc-card-title">Main Menu Calculator</div>
-                        <div class="calc-card-desc">Security cost, manpower hours, bill rate, and contract summary in one dashboard.</div>
-                    </div>
-                    <i class="fa fa-arrow-right calc-card-arrow"></i>
-                </a>
-            </div>
-            <div class="col-md-6 col-xl-4">
-                <a href="{{ route('master-inputs.index') }}" class="calc-card">
-                    <div class="calc-card-icon"><i class="fa fa-sliders"></i></div>
-                    <div class="calc-card-body">
-                        <div class="calc-card-title">Master Inputs</div>
-                        <div class="calc-card-desc">Configure shared wage, burden, and overhead rates used across all V24 calculators.</div>
-                    </div>
-                    <i class="fa fa-arrow-right calc-card-arrow"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    {{-- Contract & Billing --}}
-    <div class="mb-5">
-        <h5 class="calc-group-label">Contract &amp; Billing</h5>
-        <div class="row g-3">
-            <div class="col-md-6 col-xl-4">
-                <a href="{{ route('security-billing.index') }}" class="calc-card">
-                    <div class="calc-card-icon"><i class="fa fa-file-invoice-dollar"></i></div>
-                    <div class="calc-card-body">
-                        <div class="calc-card-title">Security Billing</div>
-                        <div class="calc-card-desc">Full contract billing breakdown with direct labor, burden, overhead, and profit.</div>
-                    </div>
-                    <i class="fa fa-arrow-right calc-card-arrow"></i>
-                </a>
+    @if($isBuyer)
+        <div class="mb-5">
+            <h5 class="calc-group-label">Buyer Actions</h5>
+            <div class="row g-3">
+                <div class="col-md-6 col-xl-4">
+                    <a href="{{ route('jobs.create') }}" class="calc-card">
+                        <div class="calc-card-icon"><i class="fa fa-briefcase"></i></div>
+                        <div class="calc-card-body">
+                            <div class="calc-card-title">Post a Job</div>
+                            <div class="calc-card-desc">Open the buyer questionnaire directly and publish your service request to qualified vendors.</div>
+                        </div>
+                        <i class="fa fa-arrow-right calc-card-arrow"></i>
+                    </a>
+                </div>
+                <div class="col-md-6 col-xl-4">
+                    <a href="{{ route('credits') }}" class="calc-card">
+                        <div class="calc-card-icon"><i class="fa fa-credit-card"></i></div>
+                        <div class="calc-card-body">
+                            <div class="calc-card-title">Buy Credits</div>
+                            <div class="calc-card-desc">Top up your account when you want to move from a fast estimate into paid platform actions.</div>
+                        </div>
+                        <i class="fa fa-arrow-right calc-card-arrow"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
+    @else
+        {{-- Core V24 Tools --}}
+        <div class="mb-5">
+            <h5 class="calc-group-label">Core V24 Tools</h5>
+            <div class="row g-3">
+                <div class="col-md-6 col-xl-4">
+                    <a href="{{ route('main-menu-calculator.index') }}" class="calc-card">
+                        <div class="calc-card-icon"><i class="fa fa-calculator"></i></div>
+                        <div class="calc-card-body">
+                            <div class="calc-card-title">Main Menu Calculator</div>
+                            <div class="calc-card-desc">Security cost, manpower hours, bill rate, and contract summary in one dashboard.</div>
+                        </div>
+                        <i class="fa fa-arrow-right calc-card-arrow"></i>
+                    </a>
+                </div>
+                <div class="col-md-6 col-xl-4">
+                    <a href="{{ route('master-inputs.index') }}" class="calc-card">
+                        <div class="calc-card-icon"><i class="fa fa-sliders"></i></div>
+                        <div class="calc-card-body">
+                            <div class="calc-card-title">Master Inputs</div>
+                            <div class="calc-card-desc">Configure shared wage, burden, and overhead rates used across all V24 calculators.</div>
+                        </div>
+                        <i class="fa fa-arrow-right calc-card-arrow"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
 
-    {{-- Rates & Labor --}}
-    <div class="mb-5">
+        {{-- Contract & Billing --}}
+        <div class="mb-5">
+            <h5 class="calc-group-label">Contract &amp; Billing</h5>
+            <div class="row g-3">
+                <div class="col-md-6 col-xl-4">
+                    <a href="{{ route('security-billing.index') }}" class="calc-card">
+                        <div class="calc-card-icon"><i class="fa fa-file-invoice-dollar"></i></div>
+                        <div class="calc-card-body">
+                            <div class="calc-card-title">Security Billing</div>
+                            <div class="calc-card-desc">Full contract billing breakdown with direct labor, burden, overhead, and profit.</div>
+                        </div>
+                        <i class="fa fa-arrow-right calc-card-arrow"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Rates & Labor --}}
+        <div class="mb-5">
         <h5 class="calc-group-label">Rates &amp; Labor</h5>
         <div class="row g-3">
             <div class="col-md-6 col-xl-4">
@@ -102,10 +141,10 @@
                 </a>
             </div>
         </div>
-    </div>
+        </div>
 
-    {{-- Patrol --}}
-    <div class="mb-5">
+        {{-- Patrol --}}
+        <div class="mb-5">
         <h5 class="calc-group-label">Patrol</h5>
         <div class="row g-3">
             <div class="col-md-6 col-xl-4">
@@ -149,10 +188,10 @@
                 </a>
             </div>
         </div>
-    </div>
+        </div>
 
-    {{-- Full TCO Suite --}}
-    <div class="mb-5">
+        {{-- Full TCO Suite --}}
+        <div class="mb-5">
         <h5 class="calc-group-label">Full TCO Suite</h5>
         <div class="row g-3">
             <div class="col-md-6 col-xl-4">
@@ -176,10 +215,10 @@
                 </a>
             </div>
         </div>
-    </div>
+        </div>
 
-    {{-- Capital Recovery Report --}}
-    <div class="mb-5">
+        {{-- Capital Recovery Report --}}
+        <div class="mb-5">
         <h5 class="calc-group-label">Capital Recovery Report</h5>
         <div class="row g-3">
             <div class="col-md-6 col-xl-4">
@@ -243,7 +282,8 @@
                 </a>
             </div>
         </div>
-    </div>
+        </div>
+    @endif
 
 </div>
 </div>

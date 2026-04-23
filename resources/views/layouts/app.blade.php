@@ -44,6 +44,12 @@
             }
         @endphp
 
+        @php
+            $dashboardCalculatorRoute = auth()->check() && auth()->user()->isBuyer()
+                ? route('calculator.index')
+                : route('main-menu-calculator.index');
+        @endphp
+
         @if($headerVariant === 'dashboard')
             @include('partials.header-dashboard')
         @else
@@ -94,7 +100,7 @@
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="{{ route('credits') }}"><i class="fa fa-coins me-2"></i>Buy Credits</a></li>
                                         <li><a class="dropdown-item" href="{{ route('profile.show') }}"><i class="fa fa-user me-2"></i>Profile</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Dashboard</a></li>
+                                        <li><a class="dropdown-item" href="{{ $dashboardCalculatorRoute }}"><i class="fa fa-calculator me-2"></i>{{ auth()->user()->isBuyer() ? 'Estimator Hub' : 'Dashboard' }}</a></li>
                                         @if(auth()->user()->isBuyer() || auth()->user()->isVendor())
                                             <li><a class="dropdown-item" href="{{ route('jobs.index') }}">My Jobs</a></li>
                                         @endif

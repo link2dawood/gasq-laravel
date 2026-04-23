@@ -5,6 +5,7 @@
 @section('content')
 @php
     $starter = $starter ?? [];
+    $prefill = $prefill ?? [];
     $showDetailsStep = $showDetailsStep ?? false;
     $jobPhoneVerification = session('auth_phone_verification', ['phone' => '', 'verified' => false]);
     $verifiedAccountPhone = (string) (auth()->user()->phone ?? '');
@@ -129,32 +130,32 @@
                 <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
-                    <input type="text" name="contact_name" class="form-control @error('contact_name') is-invalid @enderror" value="{{ old('contact_name', auth()->user()->name) }}" required>
+                    <input type="text" name="contact_name" class="form-control @error('contact_name') is-invalid @enderror" value="{{ old('contact_name', $prefill['contact_name'] ?? auth()->user()->name) }}" required>
                     @error('contact_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Job Title <span class="text-danger">*</span></label>
-                    <input type="text" name="contact_job_title" class="form-control @error('contact_job_title') is-invalid @enderror" value="{{ old('contact_job_title') }}" required>
+                    <input type="text" name="contact_job_title" class="form-control @error('contact_job_title') is-invalid @enderror" value="{{ old('contact_job_title', $prefill['contact_job_title'] ?? '') }}" required>
                     @error('contact_job_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Company / Property / Organization Name <span class="text-danger">*</span></label>
-                    <input type="text" name="organization_name" class="form-control @error('organization_name') is-invalid @enderror" value="{{ old('organization_name', auth()->user()->company) }}" required>
+                    <input type="text" name="organization_name" class="form-control @error('organization_name') is-invalid @enderror" value="{{ old('organization_name', $prefill['organization_name'] ?? auth()->user()->company) }}" required>
                     @error('organization_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Property / Site Name <span class="text-danger">*</span></label>
-                    <input type="text" name="property_site_name" class="form-control @error('property_site_name') is-invalid @enderror" value="{{ old('property_site_name') }}" required>
+                    <input type="text" name="property_site_name" class="form-control @error('property_site_name') is-invalid @enderror" value="{{ old('property_site_name', $prefill['property_site_name'] ?? '') }}" required>
                     @error('property_site_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Email Address <span class="text-danger">*</span></label>
-                    <input type="email" name="contact_email" class="form-control @error('contact_email') is-invalid @enderror" value="{{ old('contact_email', auth()->user()->email) }}" required>
+                    <input type="email" name="contact_email" class="form-control @error('contact_email') is-invalid @enderror" value="{{ old('contact_email', $prefill['contact_email'] ?? auth()->user()->email) }}" required>
                     @error('contact_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Mobile Phone Number <span class="text-danger">*</span></label>
-                    <input type="text" id="job_contact_phone" name="contact_phone" class="form-control @error('contact_phone') is-invalid @enderror" value="{{ old('contact_phone', auth()->user()->phone) }}" required>
+                    <input type="text" id="job_contact_phone" name="contact_phone" class="form-control @error('contact_phone') is-invalid @enderror" value="{{ old('contact_phone', $prefill['contact_phone'] ?? auth()->user()->phone) }}" required>
                     @error('contact_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
@@ -202,7 +203,7 @@
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Business Address <span class="text-danger">*</span></label>
-                    <textarea name="business_address" class="form-control @error('business_address') is-invalid @enderror" rows="2" required>{{ old('business_address') }}</textarea>
+                    <textarea name="business_address" class="form-control @error('business_address') is-invalid @enderror" rows="2" required>{{ old('business_address', $prefill['business_address'] ?? '') }}</textarea>
                     @error('business_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -215,9 +216,9 @@
                     <label class="form-label">Are you the final decision maker for this security service request? <span class="text-danger">*</span></label>
                     <select name="final_decision_maker" id="final_decision_maker" class="form-select @error('final_decision_maker') is-invalid @enderror" required>
                         <option value="">Choose...</option>
-                        <option value="yes" @selected(old('final_decision_maker') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('final_decision_maker') === 'no')>No</option>
-                        <option value="authorized_representative" @selected(old('final_decision_maker') === 'authorized_representative')>I am an authorized representative</option>
+                        <option value="yes" @selected(old('final_decision_maker', $prefill['final_decision_maker'] ?? '') === 'yes')>Yes</option>
+                        <option value="no" @selected(old('final_decision_maker', $prefill['final_decision_maker'] ?? '') === 'no')>No</option>
+                        <option value="authorized_representative" @selected(old('final_decision_maker', $prefill['final_decision_maker'] ?? '') === 'authorized_representative')>I am an authorized representative</option>
                     </select>
                     @error('final_decision_maker')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -244,9 +245,9 @@
                     <label class="form-label">Is your budget already approved? <span class="text-danger">*</span></label>
                     <select name="funds_approval_status" class="form-select @error('funds_approval_status') is-invalid @enderror" required>
                         <option value="">Choose...</option>
-                        <option value="flexible_budget" @selected(old('funds_approval_status') === 'flexible_budget')>Yes</option>
-                        <option value="no_approved_budget" @selected(old('funds_approval_status') === 'no_approved_budget')>No</option>
-                        <option value="pending" @selected(old('funds_approval_status') === 'pending')>Pending approval</option>
+                        <option value="flexible_budget" @selected(old('funds_approval_status', $prefill['funds_approval_status'] ?? '') === 'flexible_budget')>Yes</option>
+                        <option value="no_approved_budget" @selected(old('funds_approval_status', $prefill['funds_approval_status'] ?? '') === 'no_approved_budget')>No</option>
+                        <option value="pending" @selected(old('funds_approval_status', $prefill['funds_approval_status'] ?? '') === 'pending')>Pending approval</option>
                     </select>
                     @error('funds_approval_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -254,9 +255,9 @@
                     <label class="form-label">Are you prepared to move forward if qualified vendors accept your offer? <span class="text-danger">*</span></label>
                     <select name="move_forward_if_accepted" class="form-select @error('move_forward_if_accepted') is-invalid @enderror" required>
                         <option value="">Choose...</option>
-                        <option value="yes" @selected(old('move_forward_if_accepted') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('move_forward_if_accepted') === 'no')>No</option>
-                        <option value="need_internal_review" @selected(old('move_forward_if_accepted') === 'need_internal_review')>Need internal review first</option>
+                        <option value="yes" @selected(old('move_forward_if_accepted', $prefill['move_forward_if_accepted'] ?? '') === 'yes')>Yes</option>
+                        <option value="no" @selected(old('move_forward_if_accepted', $prefill['move_forward_if_accepted'] ?? '') === 'no')>No</option>
+                        <option value="need_internal_review" @selected(old('move_forward_if_accepted', $prefill['move_forward_if_accepted'] ?? '') === 'need_internal_review')>Need internal review first</option>
                     </select>
                     @error('move_forward_if_accepted')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -293,11 +294,11 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label">When do you want services to begin? <span class="text-danger">*</span></label>
                     <select name="service_start_timeline" class="form-select @error('service_start_timeline') is-invalid @enderror" required>
-                        <option value="immediate" @selected(old('service_start_timeline') === 'immediate')>Immediate</option>
-                        <option value="15_days_or_less" @selected(old('service_start_timeline') === '15_days_or_less')>15 days or less</option>
-                        <option value="30_days_or_less" @selected(old('service_start_timeline') === '30_days_or_less')>30 days or less</option>
-                        <option value="30_60_days" @selected(old('service_start_timeline') === '30_60_days')>30-60 days</option>
-                        <option value="future_planning" @selected(old('service_start_timeline') === 'future_planning')>Future planning</option>
+                        <option value="immediate" @selected(old('service_start_timeline', $prefill['service_start_timeline'] ?? '') === 'immediate')>Immediate</option>
+                        <option value="15_days_or_less" @selected(old('service_start_timeline', $prefill['service_start_timeline'] ?? '') === '15_days_or_less')>15 days or less</option>
+                        <option value="30_days_or_less" @selected(old('service_start_timeline', $prefill['service_start_timeline'] ?? '') === '30_days_or_less')>30 days or less</option>
+                        <option value="30_60_days" @selected(old('service_start_timeline', $prefill['service_start_timeline'] ?? '') === '30_60_days')>30-60 days</option>
+                        <option value="future_planning" @selected(old('service_start_timeline', $prefill['service_start_timeline'] ?? '') === 'future_planning')>Future planning</option>
                     </select>
                     @error('service_start_timeline')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -340,7 +341,7 @@
                     <select name="property_type" id="property_type" class="form-select @error('property_type') is-invalid @enderror" required>
                         <option value="">Choose...</option>
                         @foreach(['Apartment / Multifamily','HOA / Community Association','Commercial Office','Retail Center','Shopping Center / Mall','Warehouse / Industrial','Construction Site','School / Education','Healthcare','Hotel / Hospitality','Government Facility','Event Venue','Religious Facility','Other'] as $propertyType)
-                            <option value="{{ $propertyType }}" @selected(old('property_type') === $propertyType)>{{ $propertyType }}</option>
+                            <option value="{{ $propertyType }}" @selected(old('property_type', $prefill['property_type'] ?? '') === $propertyType)>{{ $propertyType }}</option>
                         @endforeach
                     </select>
                     @error('property_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -354,9 +355,9 @@
                     <label class="form-label">Current security situation <span class="text-danger">*</span></label>
                     <select name="current_security_setup" class="form-select @error('current_security_setup') is-invalid @enderror" required>
                         <option value="">Choose...</option>
-                        <option value="in_house" @selected(old('current_security_setup') === 'in_house')>In-house</option>
-                        <option value="outsourced" @selected(old('current_security_setup') === 'outsourced')>Outsourced</option>
-                        <option value="none" @selected(old('current_security_setup') === 'none')>None</option>
+                        <option value="in_house" @selected(old('current_security_setup', $prefill['current_security_setup'] ?? '') === 'in_house')>In-house</option>
+                        <option value="outsourced" @selected(old('current_security_setup', $prefill['current_security_setup'] ?? '') === 'outsourced')>Outsourced</option>
+                        <option value="none" @selected(old('current_security_setup', $prefill['current_security_setup'] ?? '') === 'none')>None</option>
                     </select>
                     @error('current_security_setup')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -377,7 +378,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Posting Title <span class="text-danger">*</span></label>
-                    <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $starter['title'] ?? '') }}" required>
+                    <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $prefill['title'] ?? ($starter['title'] ?? '')) }}" required>
                     @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
@@ -407,7 +408,7 @@
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Desired Service Start Date <span class="text-danger">*</span></label>
-                    <input type="date" name="service_start_date" class="form-control @error('service_start_date') is-invalid @enderror" value="{{ old('service_start_date') }}" required>
+                    <input type="date" name="service_start_date" class="form-control @error('service_start_date') is-invalid @enderror" value="{{ old('service_start_date', $prefill['service_start_date'] ?? '') }}" required>
                     @error('service_start_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-4 mb-3">
@@ -421,7 +422,7 @@
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Primary reason for service request <span class="text-danger">*</span></label>
-                    <textarea name="primary_reason" class="form-control @error('primary_reason') is-invalid @enderror" rows="3" required>{{ old('primary_reason') }}</textarea>
+                    <textarea name="primary_reason" class="form-control @error('primary_reason') is-invalid @enderror" rows="3" required>{{ old('primary_reason', $prefill['primary_reason'] ?? '') }}</textarea>
                     @error('primary_reason')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
@@ -432,22 +433,22 @@
             <div class="row">
                 <div class="col-md-3 mb-3">
                     <label class="form-label">Hours per day requiring coverage <span class="text-danger">*</span></label>
-                    <input type="number" step="0.1" min="1" max="24" name="hours_per_day" class="form-control @error('hours_per_day') is-invalid @enderror" value="{{ old('hours_per_day') }}" required>
+                    <input type="number" step="0.1" min="1" max="24" name="hours_per_day" class="form-control @error('hours_per_day') is-invalid @enderror" value="{{ old('hours_per_day', $prefill['hours_per_day'] ?? '') }}" required>
                     @error('hours_per_day')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="form-label">Days per week requiring coverage <span class="text-danger">*</span></label>
-                    <input type="number" min="1" max="7" name="days_per_week" class="form-control @error('days_per_week') is-invalid @enderror" value="{{ old('days_per_week') }}" required>
+                    <input type="number" min="1" max="7" name="days_per_week" class="form-control @error('days_per_week') is-invalid @enderror" value="{{ old('days_per_week', $prefill['days_per_week'] ?? '') }}" required>
                     @error('days_per_week')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="form-label">Weeks per year requiring coverage <span class="text-danger">*</span></label>
-                    <input type="number" min="1" max="53" name="weeks_per_year" class="form-control @error('weeks_per_year') is-invalid @enderror" value="{{ old('weeks_per_year') }}" required>
+                    <input type="number" min="1" max="53" name="weeks_per_year" class="form-control @error('weeks_per_year') is-invalid @enderror" value="{{ old('weeks_per_year', $prefill['weeks_per_year'] ?? '') }}" required>
                     @error('weeks_per_year')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="form-label">Number of officers required per 8-hour shift <span class="text-danger">*</span></label>
-                    <input type="number" name="guards_per_shift" class="form-control @error('guards_per_shift') is-invalid @enderror" value="{{ old('guards_per_shift', 1) }}" min="1" required>
+                    <input type="number" name="guards_per_shift" class="form-control @error('guards_per_shift') is-invalid @enderror" value="{{ old('guards_per_shift', $prefill['guards_per_shift'] ?? 1) }}" min="1" required>
                     @error('guards_per_shift')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-12 mb-3">
@@ -600,8 +601,8 @@
                     <label class="form-label">Would you like GASQ to show a side-by-side comparison of in-house versus outsourced cost? <span class="text-danger">*</span></label>
                     <select name="cost_comparison_requested" class="form-select @error('cost_comparison_requested') is-invalid @enderror" required>
                         <option value="">Choose...</option>
-                        <option value="yes" @selected(old('cost_comparison_requested') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('cost_comparison_requested') === 'no')>No</option>
+                        <option value="yes" @selected(old('cost_comparison_requested', $prefill['cost_comparison_requested'] ?? '') === 'yes')>Yes</option>
+                        <option value="no" @selected(old('cost_comparison_requested', $prefill['cost_comparison_requested'] ?? '') === 'no')>No</option>
                     </select>
                     @error('cost_comparison_requested')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -616,7 +617,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Budget amount or range</label>
-                    <input type="text" name="budget_amount_range" class="form-control @error('budget_amount_range') is-invalid @enderror" value="{{ old('budget_amount_range') }}" placeholder="e.g. $12,000-$16,000 monthly">
+                    <input type="text" name="budget_amount_range" class="form-control @error('budget_amount_range') is-invalid @enderror" value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}" placeholder="e.g. $12,000-$16,000 monthly">
                     @error('budget_amount_range')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">

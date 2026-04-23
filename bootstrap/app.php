@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'vendor' => \App\Http\Middleware\EnsureUserIsVendor::class,
             'phone.verified' => \App\Http\Middleware\EnsurePhoneVerified::class,
             'has.credits' => \App\Http\Middleware\EnsureHasCredits::class,
             'buyer.has_job' => \App\Http\Middleware\EnsureBuyerHasPostedJob::class,

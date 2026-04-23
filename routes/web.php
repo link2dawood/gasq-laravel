@@ -14,18 +14,20 @@ Route::get('/payscale', [PageController::class, 'payScale'])->name('payscale');
 Route::get('/payment-model', [PageController::class, 'paymentPolicy'])->name('payment-policy');
 Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('terms');
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy-policy');
-// Marketing / preview calculator pages — native Blade (no React shell)
-Route::get('/post-coverage-schedule', function () {
-    return view('calculators.post-coverage-schedule');
-})->name('post-coverage-schedule');
+// Vendor-only standalone calculators.
+Route::middleware(['auth', 'phone.verified', 'vendor'])->group(function () {
+    Route::get('/post-coverage-schedule', function () {
+        return view('calculators.post-coverage-schedule');
+    })->name('post-coverage-schedule');
 
-Route::get('/gasq-tco-calculator', function () {
-    return view('calculators.gasq-tco-calculator');
-})->name('gasq-tco-calculator.index');
+    Route::get('/gasq-tco-calculator', function () {
+        return view('calculators.gasq-tco-calculator');
+    })->name('gasq-tco-calculator.index');
 
-Route::get('/government-contract-calculator', function () {
-    return view('calculators.government-contract-calculator');
-})->name('government-contract-calculator.index');
+    Route::get('/government-contract-calculator', function () {
+        return view('calculators.government-contract-calculator');
+    })->name('government-contract-calculator.index');
+});
 
 Route::get('/open-bid-offer', OpenBidOfferController::class)
     ->middleware('auth')
@@ -39,9 +41,8 @@ Route::get('/calculator', function () {
     return view('calculators.index');
 })->name('calculator.index');
 
-Route::get('/instant-estimator', function () {
-    return view('calculators.instant-estimator');
-})->name('instant-estimator.index');
+Route::match(['get', 'post'], '/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])
+    ->name('instant-estimator.index');
 
 Route::get('/vendor-form', function () {
     return view('pages.vendor-form');
@@ -68,8 +69,28 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/master-inputs', [App\Http\Controllers\MasterInputsController::class, 'index'])->name('master-inputs.index');
 });
 
-// Calculator Blade routes (pixel-perfect; require auth + phone verification + credits + buyer job posted)
-Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job', 'master.inputs'])->group(function () {
+// Buyer estimator helpers and buyer job flow.
+Route::middleware(['auth'])->group(function () {
+    Route::post('/instant-estimator/prepare-job', [App\Http\Controllers\JobPostingController::class, 'prepareFromEstimator'])
+        ->name('instant-estimator.prepare-job');
+
+    // Jobs (create, edit, delete) and bids.
+    // Buyers can reach the job flow before phone verification because the job form
+    // itself now handles inline SMS verification for the contact phone.
+    Route::post('/jobs/create/start', [App\Http\Controllers\JobPostingController::class, 'start'])->name('jobs.create.start');
+    Route::post('/jobs/preview', [App\Http\Controllers\JobPostingController::class, 'preview'])->name('jobs.preview');
+    Route::get('/jobs/review', [App\Http\Controllers\JobPostingController::class, 'review'])->name('jobs.review');
+    Route::post('/jobs/review/edit', [App\Http\Controllers\JobPostingController::class, 'editReview'])->name('jobs.review.edit');
+    Route::post('/jobs/publish', [App\Http\Controllers\JobPostingController::class, 'publish'])->name('jobs.publish');
+    Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
+    Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
+    Route::put('/bids/{bid}', [App\Http\Controllers\BidController::class, 'update'])->name('bids.update');
+    Route::post('/bids/{bid}/respond', [App\Http\Controllers\BidController::class, 'respond'])->name('bids.respond');
+    Route::post('/bids/{bid}/counter-offer', [App\Http\Controllers\BidController::class, 'counterOffer'])->name('bids.counter-offer');
+});
+
+// Vendor-only calculator suite.
+Route::middleware(['auth', 'phone.verified', 'vendor', 'has.credits', 'buyer.has_job', 'master.inputs'])->group(function () {
     Route::get('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.index');
     Route::post('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.post');
 
@@ -152,18 +173,6 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     // Discovery call
     Route::get('/discovery-call', [App\Http\Controllers\DiscoveryCallController::class, 'index'])->name('discovery-call.index');
     Route::post('/discovery-call', [App\Http\Controllers\DiscoveryCallController::class, 'store'])->name('discovery-call.store');
-
-    // Jobs (create, edit, delete) and bids
-    Route::post('/jobs/create/start', [App\Http\Controllers\JobPostingController::class, 'start'])->name('jobs.create.start');
-    Route::post('/jobs/preview', [App\Http\Controllers\JobPostingController::class, 'preview'])->name('jobs.preview');
-    Route::get('/jobs/review', [App\Http\Controllers\JobPostingController::class, 'review'])->name('jobs.review');
-    Route::post('/jobs/review/edit', [App\Http\Controllers\JobPostingController::class, 'editReview'])->name('jobs.review.edit');
-    Route::post('/jobs/publish', [App\Http\Controllers\JobPostingController::class, 'publish'])->name('jobs.publish');
-    Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
-    Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
-    Route::put('/bids/{bid}', [App\Http\Controllers\BidController::class, 'update'])->name('bids.update');
-    Route::post('/bids/{bid}/respond', [App\Http\Controllers\BidController::class, 'respond'])->name('bids.respond');
-    Route::post('/bids/{bid}/counter-offer', [App\Http\Controllers\BidController::class, 'counterOffer'])->name('bids.counter-offer');
 
     // Calculator backend endpoints (non-conflicting; used later for functionality)
     Route::post('/_backend/security-billing/compute', \App\Http\Controllers\Backend\SecurityBillingComputeController::class)

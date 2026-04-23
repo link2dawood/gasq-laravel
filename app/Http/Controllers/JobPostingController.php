@@ -13,6 +13,7 @@ class JobPostingController extends Controller
 {
     private const STARTER_SESSION_KEY = 'job_posting_starter';
     private const PREVIEW_SESSION_KEY = 'job_posting_preview';
+    private const ESTIMATOR_PREFILL_SESSION_KEY = 'job_posting_estimator_prefill';
 
     /**
      * @var list<string>
@@ -141,8 +142,89 @@ class JobPostingController extends Controller
 
         return view('jobs.create', [
             'starter' => $starter,
+            'prefill' => $this->estimatorPrefillSessionData(),
             'showDetailsStep' => $showDetailsStep,
             'starterServiceOptions' => self::STARTER_SERVICE_OPTIONS,
+        ]);
+    }
+
+    public function prepareFromEstimator(Request $request): \Illuminate\Http\JsonResponse
+    {
+        if (! $request->user()?->isBuyer()) {
+            return response()->json([
+                'message' => 'Only buyers can use the post-job path from the instant estimator.',
+            ], 403);
+        }
+
+        $data = $request->validate([
+            'service_type' => ['required', 'string', 'max:60'],
+            'location' => ['required', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'contact_name' => ['nullable', 'string', 'max:255'],
+            'contact_job_title' => ['nullable', 'string', 'max:255'],
+            'organization_name' => ['nullable', 'string', 'max:255'],
+            'property_site_name' => ['nullable', 'string', 'max:255'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
+            'contact_phone' => ['nullable', 'string', 'max:40'],
+            'business_address' => ['nullable', 'string', 'max:500'],
+            'final_decision_maker' => ['nullable', 'string', 'max:50'],
+            'funds_approval_status' => ['nullable', 'string', 'max:50'],
+            'move_forward_if_accepted' => ['nullable', 'string', 'max:50'],
+            'property_type' => ['nullable', 'string', 'max:100'],
+            'current_security_setup' => ['nullable', 'string', 'max:50'],
+            'service_start_timeline' => ['nullable', 'string', 'max:60'],
+            'primary_reason' => ['nullable', 'string', 'max:4000'],
+            'notes' => ['nullable', 'string', 'max:4000'],
+            'budget_amount_range' => ['nullable', 'string', 'max:255'],
+            'hours_per_day' => ['nullable', 'numeric', 'min:1', 'max:24'],
+            'days_per_week' => ['nullable', 'integer', 'min:1', 'max:7'],
+            'weeks_per_year' => ['nullable', 'integer', 'min:1', 'max:53'],
+            'guards_per_shift' => ['nullable', 'integer', 'min:1', 'max:255'],
+            'cost_comparison_requested' => ['nullable', 'in:yes,no'],
+        ]);
+
+        $starter = $this->buildStarterSessionData([
+            'starter_service_type' => $this->estimatorStarterServiceType((string) $data['service_type']),
+            'starter_service_type_other' => $this->estimatorStarterServiceOther((string) $data['service_type']),
+            'location' => $data['location'],
+        ]);
+
+        $prefill = array_filter([
+            'title' => $data['title'] ?: $starter['title'],
+            'contact_name' => $data['contact_name'] ?? null,
+            'contact_job_title' => $data['contact_job_title'] ?? null,
+            'organization_name' => $data['organization_name'] ?? null,
+            'property_site_name' => $data['property_site_name'] ?? null,
+            'contact_email' => $data['contact_email'] ?? null,
+            'contact_phone' => $data['contact_phone'] ?? null,
+            'business_address' => $data['business_address'] ?? $data['location'],
+            'final_decision_maker' => $data['final_decision_maker'] ?? null,
+            'funds_approval_status' => $data['funds_approval_status'] ?? null,
+            'move_forward_if_accepted' => $data['move_forward_if_accepted'] ?? 'yes',
+            'property_type' => $data['property_type'] ?? null,
+            'current_security_setup' => $data['current_security_setup'] ?? null,
+            'service_start_timeline' => $data['service_start_timeline'] ?? null,
+            'primary_reason' => $data['primary_reason'] ?? $data['notes'] ?? null,
+            'budget_amount_range' => $data['budget_amount_range'] ?? null,
+            'hours_per_day' => $data['hours_per_day'] ?? null,
+            'days_per_week' => $data['days_per_week'] ?? null,
+            'weeks_per_year' => $data['weeks_per_year'] ?? null,
+            'guards_per_shift' => $data['guards_per_shift'] ?? null,
+            'cost_comparison_requested' => $data['cost_comparison_requested'] ?? null,
+            'location' => $starter['location'],
+            'zip_code' => $starter['zip_code'],
+            'latitude' => $starter['latitude'],
+            'longitude' => $starter['longitude'],
+            'google_place_id' => $starter['google_place_id'],
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        $request->session()->put(self::STARTER_SESSION_KEY, $starter);
+        $request->session()->put(self::ESTIMATOR_PREFILL_SESSION_KEY, $prefill);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Job draft prepared. You can continue to the buyer questionnaire with your estimate data prefilled.',
+            'job_create_url' => route('jobs.create', ['step' => 'details']),
         ]);
     }
 
@@ -428,6 +510,16 @@ class JobPostingController extends Controller
     /**
      * @return array<string, mixed>
      */
+    private function estimatorPrefillSessionData(): array
+    {
+        $prefill = session(self::ESTIMATOR_PREFILL_SESSION_KEY, []);
+
+        return is_array($prefill) ? $prefill : [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function previewSessionData(): array
     {
         $preview = session(self::PREVIEW_SESSION_KEY, []);
@@ -440,7 +532,29 @@ class JobPostingController extends Controller
         $request->session()->forget([
             self::STARTER_SESSION_KEY,
             self::PREVIEW_SESSION_KEY,
+            self::ESTIMATOR_PREFILL_SESSION_KEY,
         ]);
+    }
+
+    private function estimatorStarterServiceType(string $serviceType): string
+    {
+        return match ($serviceType) {
+            'unarmed' => 'Unarmed Security Guard',
+            'armed' => 'Armed Security Guard',
+            'mobile' => 'Mobile Patrol',
+            'loss' => 'Loss Prevention',
+            default => 'Other',
+        };
+    }
+
+    private function estimatorStarterServiceOther(string $serviceType): ?string
+    {
+        return match ($serviceType) {
+            'supervisor' => 'Security Site Supervisor',
+            'executive' => 'Executive Protection Agent',
+            'offduty' => 'Off Duty Police Officer',
+            default => null,
+        };
     }
 
     private function suggestPostingTitle(string $serviceLabel, string $location): string

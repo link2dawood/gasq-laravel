@@ -101,7 +101,11 @@ return new class extends Migration
                 ['user_id', 'is_favorite'],
                 'idx_saved_messages_favorite'
             );
-            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            // MySQL/MariaDB do not support a plain secondary index on a JSON column.
+            // That requires either a generated column or a JSON path expression, which
+            // this compatibility migration intentionally avoids. We keep the Supabase-
+            // style tag index only on engines that support it directly.
+            if ($this->supportsDirectJsonIndex()) {
                 $this->addIndex('saved_achievement_messages', ['tags'], 'idx_saved_messages_tags');
             }
         }
@@ -328,5 +332,10 @@ return new class extends Migration
         }
 
         return false;
+    }
+
+    protected function supportsDirectJsonIndex(): bool
+    {
+        return Schema::getConnection()->getDriverName() === 'pgsql';
     }
 };

@@ -14,6 +14,7 @@ class MasterInputsPersistenceTest extends TestCase
     public function test_master_inputs_update_persists_to_database_and_is_available_to_calculator_pages(): void
     {
         $user = User::factory()->create([
+            'user_type' => 'vendor',
             'phone' => null,
             'phone_verified' => true,
         ]);
