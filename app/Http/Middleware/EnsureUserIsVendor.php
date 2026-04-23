@@ -20,8 +20,6 @@ class EnsureUserIsVendor
             return $next($request);
         }
 
-        return redirect()
-            ->route('instant-estimator.index')
-            ->with('error', 'Buyers use the Instant Estimator. The full calculator suite is reserved for vendor access.');
+        return redirect()->route('calculator.index');
     }
 }

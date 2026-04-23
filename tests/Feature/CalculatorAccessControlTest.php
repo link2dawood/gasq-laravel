@@ -19,7 +19,7 @@ class CalculatorAccessControlTest extends TestCase
 
         $this->actingAs($buyer)
             ->get(route('government-contract-calculator.index'))
-            ->assertRedirect(route('instant-estimator.index'));
+            ->assertRedirect(route('calculator.index'));
     }
 
     public function test_vendor_can_open_vendor_only_standalone_calculator(): void

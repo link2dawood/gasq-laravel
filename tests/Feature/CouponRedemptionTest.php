@@ -234,7 +234,7 @@ class CouponRedemptionTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('main-menu-calculator.index'));
 
-        $response->assertRedirect(route('instant-estimator.index'));
+        $response->assertRedirect(route('calculator.index'));
     }
 
     public function test_buyer_with_existing_job_returns_to_credits_after_successful_redemption(): void

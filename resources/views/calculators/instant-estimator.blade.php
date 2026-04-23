@@ -28,7 +28,7 @@
             <div class="col-lg-8">
                 <div class="est-panel h-100 d-flex align-items-center gap-3">
                     <div class="est-shield-icon d-none d-md-flex">
-                        <i class="fa fa-shield-halved fa-xl"></i>
+                        <i class="fa fa-shield fa-xl"></i>
                     </div>
                     <div>
                         <h2 class="fw-bold mb-1 h4">GASQ Instant Estimator</h2>
@@ -790,6 +790,79 @@
         backdrop-filter: blur(12px);
     }
 
+    /* Stepper */
+    .est-stepper {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        padding: 1rem 1.2rem;
+        border: 1px solid rgba(6, 45, 121, 0.1);
+        border-radius: 1.2rem;
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 18px 36px -30px rgba(6, 45, 121, 0.35);
+        overflow-x: auto;
+    }
+
+    .est-step {
+        display: inline-flex;
+        align-items: center;
+        gap: .75rem;
+        min-width: fit-content;
+        color: var(--gasq-muted, #6b7280);
+        transition: color .15s ease, opacity .15s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .est-step.locked {
+        cursor: default;
+        opacity: .7;
+    }
+
+    .est-step-dot {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(6, 45, 121, 0.16);
+        background: rgba(6, 45, 121, 0.04);
+        color: var(--gasq-primary, #062d79);
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .est-step-label {
+        font-size: .92rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .est-step-line {
+        flex: 1 1 3rem;
+        min-width: 2.5rem;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(6, 45, 121, 0.08), rgba(6, 45, 121, 0.18));
+    }
+
+    .est-step.active {
+        color: var(--gasq-primary, #062d79);
+    }
+
+    .est-step.active .est-step-dot {
+        background: linear-gradient(135deg, #0f2c63 0%, #123a86 100%);
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 8px 18px -10px rgba(6, 45, 121, 0.55);
+    }
+
+    .est-step.locked .est-step-dot {
+        background: rgba(107, 114, 128, 0.08);
+        border-color: rgba(107, 114, 128, 0.18);
+        color: #6b7280;
+    }
+
     .est-panel-header {
         display: flex;
         justify-content: space-between;
@@ -977,6 +1050,17 @@
 
     @media (max-width: 991.98px) {
         .est-hero-panel { min-height: auto; }
+        .est-stepper {
+            gap: .65rem;
+            padding: .9rem 1rem;
+        }
+        .est-step-label {
+            font-size: .85rem;
+        }
+        .est-step-dot {
+            width: 2rem;
+            height: 2rem;
+        }
     }
 
     @media print {
