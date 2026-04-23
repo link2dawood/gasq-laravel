@@ -36,7 +36,7 @@ Route::get('/post-job', function () {
 })->name('post-job.index');
 
 Route::get('/calculator', function () {
-    return view('calculators.security-calculator');
+    return view('calculators.instant-estimator');
 })->name('calculator.index');
 
 Route::get('/vendor-form', function () {
