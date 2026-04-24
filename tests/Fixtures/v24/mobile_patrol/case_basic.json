@@ -2,21 +2,20 @@
   "version": "v24",
   "scenario": {
     "meta": {
+      "baselinePayRate": 25,
+      "divisor": 0.7,
+      "annualHours": 8736,
+      "mph": 25,
       "hoursPerDay": 24,
-      "daysPerYear": 365,
-      "patrolmanHourlyWage": 30,
-      "payrollBurdenPercent": 24,
-      "vehicleAnnualFinanceCost": 7980,
-      "milesDrivenPerDay": 360,
-      "milesPerGallon": 20,
-      "fuelPricePerGallon": 2.57,
-      "annualRepairs": 4000,
-      "tiresAnnualCost": 1200,
-      "oilChangeCostPerService": 32,
-      "milesBetweenOilChanges": 6000,
-      "autoInsuranceAnnualCost": 1500,
-      "markupPercent": 27
+      "mpg": 25,
+      "fuelCostPerGallon": 4.11,
+      "annualMaintenance": 5000,
+      "tireSetsPerYear": 4,
+      "tireCostPerSet": 300,
+      "autoInsurance": 1200,
+      "oilChangeIntervalMiles": 7500,
+      "oilChangeCost": 100,
+      "returnOnSalesPct": 0.25
     }
   }
 }
-

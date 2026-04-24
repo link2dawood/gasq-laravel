@@ -203,8 +203,10 @@
               <p><strong>Annual Tire Cost</strong> = Tire Sets Per Year × Tire Cost Per Set</p>
               <p><strong>Annual Oil Cost</strong> = Ceiling(Miles Per Year ÷ Oil Change Interval) × Oil Change Cost</p>
               <p><strong>Total Annual Cost</strong> = Labor + Fuel + Maintenance + Tires + Insurance + Oil</p>
-              <p><strong>Cost Per Hour</strong> = Total Annual Cost ÷ Annual Hours</p>
-              <p><strong>Hourly Bill Rate</strong> = Cost Per Hour ÷ (1 − Return on Sales %)</p>
+              <p><strong>Return on Sales Amount</strong> = Total Annual Cost × Return on Sales %</p>
+              <p><strong>Total Annual Cost + Return on Sales</strong> = Total Annual Cost + Return on Sales Amount</p>
+              <p><strong>Cost Per Hour</strong> = (Total Annual Cost + Return on Sales) ÷ Annual Hours</p>
+              <p><strong>Hourly Bill Rate</strong> = same as Cost Per Hour in this spreadsheet model</p>
             </div>
           </div>
 
@@ -271,7 +273,7 @@ const MP24_DEFAULTS = {
   autoInsurance: 0,
   oilChangeIntervalMiles: 7500,
   oilChangeCost: 100,
-  returnOnSalesPct: 0,
+  returnOnSalesPct: 0.25,
 };
 
 const MP24_FIELDS = [
@@ -288,7 +290,7 @@ const MP24_FIELDS = [
   ['Auto Insurance', 'autoInsurance', 'Annual total'],
   ['Oil Change Interval (Miles)', 'oilChangeIntervalMiles', 'Default: 7500'],
   ['Oil Change Cost', 'oilChangeCost', 'Default: 100'],
-  ['Return on Sales %', 'returnOnSalesPct', 'Example: 10'],
+  ['Return on Sales %', 'returnOnSalesPct', 'Example: 0.25 or 25 for 25%'],
 ];
 
 let mp24Inputs = { ...MP24_DEFAULTS };
@@ -311,6 +313,16 @@ function mp24Number(value, digits = 2) {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(Number.isFinite(value) ? value : 0);
+}
+
+function mp24NormalizeRosRate(value) {
+  const numeric = Number.isFinite(value) ? value : 0;
+
+  if (numeric <= 0) {
+    return 0;
+  }
+
+  return numeric > 1 ? numeric / 100 : numeric;
 }
 
 function mp24ShowStatus(type, message) {
@@ -342,6 +354,7 @@ function mp24ReadInputsFromDom() {
 }
 
 function mp24Calculate() {
+  const returnOnSalesRate = mp24NormalizeRosRate(mp24Inputs.returnOnSalesPct);
   const employerCostHourly = mp24Inputs.divisor > 0
     ? mp24Inputs.baselinePayRate / mp24Inputs.divisor
     : 0;
@@ -362,12 +375,14 @@ function mp24Calculate() {
     + annualTireCost
     + mp24Inputs.autoInsurance
     + annualOilCost;
-  const costPerHour = mp24Inputs.annualHours > 0 ? totalAnnualCost / mp24Inputs.annualHours : 0;
-  const hourlyBillRate = mp24Inputs.returnOnSalesPct >= 100
-    ? 0
-    : costPerHour / (1 - (mp24Inputs.returnOnSalesPct / 100));
+  const returnOnSalesAmount = totalAnnualCost * returnOnSalesRate;
+  const totalAnnualCostWithReturnOnSales = totalAnnualCost + returnOnSalesAmount;
+  const costPerHour = mp24Inputs.annualHours > 0 ? totalAnnualCostWithReturnOnSales / mp24Inputs.annualHours : 0;
+  const hourlyBillRate = costPerHour;
 
   return {
+    returnOnSalesRate,
+    returnOnSalesPercentDisplay: returnOnSalesRate * 100,
     employerCostHourly,
     annualLaborCost,
     milesPerDay,
@@ -378,6 +393,8 @@ function mp24Calculate() {
     annualOilCost,
     annualTireCost,
     totalAnnualCost,
+    returnOnSalesAmount,
+    totalAnnualCostWithReturnOnSales,
     costPerHour,
     hourlyBillRate,
   };
@@ -408,8 +425,10 @@ function mp24RenderResults() {
     mp24ResultRow('9. Auto Insurance', mp24Money(mp24Inputs.autoInsurance)),
     mp24ResultRow('10. Oil Changes / Year', `${mp24Number(results.oilChangesPerYear, 0)} (${mp24Money(results.annualOilCost)})`),
     mp24ResultRow('11. Total Annual Cost', mp24Money(results.totalAnnualCost), 'mp24-row-dark'),
-    mp24ResultRow('12. Cost Per Hour', mp24Money(results.costPerHour)),
-    mp24ResultRow('13. Hourly Bill Rate', mp24Money(results.hourlyBillRate), 'mp24-row-success'),
+    mp24ResultRow(`12. Return on Sales Amount (${mp24Number(results.returnOnSalesPercentDisplay, 2)}%)`, mp24Money(results.returnOnSalesAmount)),
+    mp24ResultRow('13. Total Annual Cost + Return on Sales', mp24Money(results.totalAnnualCostWithReturnOnSales), 'mp24-row-dark'),
+    mp24ResultRow('14. Cost Per Hour', mp24Money(results.costPerHour)),
+    mp24ResultRow('15. Hourly Bill Rate', mp24Money(results.hourlyBillRate), 'mp24-row-success'),
   ].join('');
 
   window.__gasqMobilePatrol = {

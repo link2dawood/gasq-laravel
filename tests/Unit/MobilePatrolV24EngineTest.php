@@ -20,13 +20,13 @@ class MobilePatrolV24EngineTest extends TestCase
                 'hoursPerDay' => 24,
                 'mpg' => 25,
                 'fuelCostPerGallon' => 4.11,
-                'annualMaintenance' => 0,
+                'annualMaintenance' => 5000,
                 'tireSetsPerYear' => 4,
-                'tireCostPerSet' => 0,
-                'autoInsurance' => 0,
+                'tireCostPerSet' => 300,
+                'autoInsurance' => 1200,
                 'oilChangeIntervalMiles' => 7500,
                 'oilChangeCost' => 100,
-                'returnOnSalesPct' => 0,
+                'returnOnSalesPct' => 0.25,
             ],
         ]);
 
@@ -38,8 +38,10 @@ class MobilePatrolV24EngineTest extends TestCase
         $this->assertSame(36003.60, $out['annualFuelCost']);
         $this->assertSame(30.0, $out['oilChangesPerYear']);
         $this->assertSame(3000.00, $out['annualOilCost']);
-        $this->assertSame(351003.60, $out['totalAnnualCost']);
-        $this->assertSame(40.18, $out['costPerHour']);
-        $this->assertSame(40.18, $out['hourlyBillableRate']);
+        $this->assertSame(358403.60, $out['totalAnnualCost']);
+        $this->assertSame(89600.90, $out['returnOnSalesAmount']);
+        $this->assertSame(448004.50, $out['totalAnnualCostWithReturnOnSales']);
+        $this->assertSame(51.28, $out['costPerHour']);
+        $this->assertSame(51.28, $out['hourlyBillableRate']);
     }
 }

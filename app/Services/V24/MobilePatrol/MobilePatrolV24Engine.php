@@ -6,6 +6,15 @@ use Illuminate\Support\Arr;
 
 class MobilePatrolV24Engine
 {
+    protected function normalizeReturnOnSalesRate(float $input): float
+    {
+        if ($input <= 0) {
+            return 0.0;
+        }
+
+        return $input > 1 ? ($input / 100) : $input;
+    }
+
     /**
      * @param  array<string, mixed>  $scenario
      * @return array<string, mixed>
@@ -27,7 +36,8 @@ class MobilePatrolV24Engine
         $autoInsurance = (float) Arr::get($m, 'autoInsurance', 0.0);
         $oilChangeIntervalMiles = (float) Arr::get($m, 'oilChangeIntervalMiles', 7500.0);
         $oilChangeCost = (float) Arr::get($m, 'oilChangeCost', 100.0);
-        $returnOnSalesPct = (float) Arr::get($m, 'returnOnSalesPct', 0.0);
+        $returnOnSalesPct = (float) Arr::get($m, 'returnOnSalesPct', 0.25);
+        $returnOnSalesRate = $this->normalizeReturnOnSalesRate($returnOnSalesPct);
 
         $employerCostHourly = $divisor > 0 ? $baselinePayRate / $divisor : 0.0;
         $annualLaborCost = $employerCostHourly * $annualHours;
@@ -39,10 +49,10 @@ class MobilePatrolV24Engine
         $annualOilCost = $oilChangesPerYear * $oilChangeCost;
         $annualTireCost = $tireSetsPerYear * $tireCostPerSet;
         $totalAnnualCost = $annualLaborCost + $annualFuelCost + $annualMaintenance + $annualTireCost + $autoInsurance + $annualOilCost;
-        $costPerHour = $annualHours > 0 ? $totalAnnualCost / $annualHours : 0.0;
-        $hourlyBillableRate = $returnOnSalesPct >= 100
-            ? 0.0
-            : $costPerHour / (1 - ($returnOnSalesPct / 100));
+        $returnOnSalesAmount = $totalAnnualCost * $returnOnSalesRate;
+        $totalAnnualCostWithReturnOnSales = $totalAnnualCost + $returnOnSalesAmount;
+        $costPerHour = $annualHours > 0 ? $totalAnnualCostWithReturnOnSales / $annualHours : 0.0;
+        $hourlyBillableRate = $costPerHour;
 
         return [
             'baselinePayRate' => round($baselinePayRate, 2),
@@ -58,7 +68,9 @@ class MobilePatrolV24Engine
             'autoInsurance' => round($autoInsurance, 2),
             'oilChangeIntervalMiles' => round($oilChangeIntervalMiles, 0),
             'oilChangeCost' => round($oilChangeCost, 2),
-            'returnOnSalesPct' => round($returnOnSalesPct, 2),
+            'returnOnSalesPct' => round($returnOnSalesPct, 4),
+            'returnOnSalesRate' => round($returnOnSalesRate, 4),
+            'returnOnSalesPercentDisplay' => round($returnOnSalesRate * 100, 2),
             'employerCostHourly' => round($employerCostHourly, 2),
             'annualLaborCost' => round($annualLaborCost, 2),
             'milesPerDay' => round($milesPerDay, 0),
@@ -69,6 +81,8 @@ class MobilePatrolV24Engine
             'annualOilCost' => round($annualOilCost, 2),
             'annualTireCost' => round($annualTireCost, 2),
             'totalAnnualCost' => round($totalAnnualCost, 2),
+            'returnOnSalesAmount' => round($returnOnSalesAmount, 2),
+            'totalAnnualCostWithReturnOnSales' => round($totalAnnualCostWithReturnOnSales, 2),
             'costPerHour' => round($costPerHour, 2),
             'hourlyBillableRate' => round($hourlyBillableRate, 2),
         ];

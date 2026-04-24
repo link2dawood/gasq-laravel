@@ -24,6 +24,9 @@
 
         $money = static fn ($value) => '$' . number_format((float) ($value ?? 0), 2);
         $number = static fn ($value, $digits = 2) => number_format((float) ($value ?? 0), $digits);
+        $returnOnSalesInput = (float) ($scenarioMeta['returnOnSalesPct'] ?? 0);
+        $returnOnSalesRate = $returnOnSalesInput > 1 ? ($returnOnSalesInput / 100) : $returnOnSalesInput;
+        $returnOnSalesPercentDisplay = (float) ($kpis['returnOnSalesPercentDisplay'] ?? ($returnOnSalesRate * 100));
     @endphp
 
     <h1>GASQ Mobile Patrol Calculator</h1>
@@ -50,7 +53,7 @@
             <tr><td>Auto insurance</td><td>{{ $money($scenarioMeta['autoInsurance'] ?? 0) }}</td></tr>
             <tr><td>Oil change interval (miles)</td><td>{{ $number($scenarioMeta['oilChangeIntervalMiles'] ?? 0, 0) }}</td></tr>
             <tr><td>Oil change cost</td><td>{{ $money($scenarioMeta['oilChangeCost'] ?? 0) }}</td></tr>
-            <tr><td>Return on sales %</td><td>{{ $number($scenarioMeta['returnOnSalesPct'] ?? 0, 2) }}%</td></tr>
+            <tr><td>Return on sales %</td><td>{{ $number($returnOnSalesPercentDisplay, 2) }}%</td></tr>
         </table>
     </div>
 
@@ -69,6 +72,8 @@
             <tr><td>Auto insurance</td><td>{{ $money($scenarioMeta['autoInsurance'] ?? 0) }}</td></tr>
             <tr><td>Oil changes per year</td><td>{{ $number($kpis['oilChangesPerYear'] ?? 0, 0) }} ({{ $money($kpis['annualOilCost'] ?? 0) }})</td></tr>
             <tr class="summary-row"><td>Total annual cost</td><td>{{ $money($kpis['totalAnnualCost'] ?? 0) }}</td></tr>
+            <tr><td>Return on sales amount</td><td>{{ $money($kpis['returnOnSalesAmount'] ?? 0) }}</td></tr>
+            <tr class="summary-row"><td>Total annual cost + return on sales</td><td>{{ $money($kpis['totalAnnualCostWithReturnOnSales'] ?? 0) }}</td></tr>
             <tr><td>Cost per hour</td><td>{{ $money($kpis['costPerHour'] ?? 0) }}</td></tr>
             <tr class="summary-row"><td>Hourly bill rate</td><td>{{ $money($kpis['hourlyBillableRate'] ?? 0) }}</td></tr>
         </table>
