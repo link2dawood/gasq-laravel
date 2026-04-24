@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+ <meta charset="UTF-8" />
+
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+ <title>Mobile Patrol Calculator</title>
+
+ <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="min-h-screen bg-gray-100 p-4 md:p-8">
+
+ <div class="mx-auto max-w-7xl">
+
+   <div class="mb-6 rounded-3xl bg-black px-6 py-8 text-white shadow-lg">
+
+     <h1 class="text-3xl font-semibold tracking-tight">Mobile Patrol Calculator</h1>
+
+     <p class="mt-2 max-w-3xl text-sm text-white/80">
+
+       Built from your Mobile Patrolman Formula. Enter your pay rate, patrol assumptions, vehicle cost inputs,
+
+       and target return on sales to generate an estimated hourly bill rate.
+
+     </p>
+
+   </div>
+
+ 
+
+   <div class="grid gap-6 lg:grid-cols-2">
+
+     <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+
+       <h2 class="mb-4 text-xl font-semibold">Inputs</h2>
+
+       <div class="grid gap-4 sm:grid-cols-2" id="inputGrid"></div>
+
+     </div>
+
+ 
+
+     <div class="space-y-6">
+
+       <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+
+         <h2 class="mb-4 text-xl font-semibold">Calculated Results</h2>
+
+         <div class="grid gap-3 text-sm" id="results"></div>
+
+       </div>
+
+ 
+
+       <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+
+         <h3 class="mb-3 text-lg font-semibold">Formula Notes</h3>
+
+         <div class="space-y-2 text-sm text-gray-700">
+
+           <p><strong>Employer Cost Per Hour</strong> = Baseline Hourly Pay Rate ÷ Divisor</p>
+
+           <p><strong>Annual Labor Cost</strong> = Employer Cost Per Hour × Annual Hours</p>
+
+           <p><strong>Miles Per Day</strong> = MPH × Hours Per Day</p>
+
+           <p><strong>Miles Per Year</strong> = Miles Per Day × 365</p>
+
+           <p><strong>Gallons Per Year</strong> = Miles Per Year ÷ MPG</p>
+
+           <p><strong>Annual Fuel Cost</strong> = Gallons Per Year × Fuel Cost Per Gallon</p>
+
+           <p><strong>Annual Tire Cost</strong> = Tire Sets Per Year × Tire Cost Per Set</p>
+
+           <p><strong>Annual Oil Cost</strong> = Ceiling(Miles Per Year ÷ Oil Change Interval) × Oil Change Cost</p>
+
+           <p><strong>Total Annual Cost</strong> = Labor + Fuel + Maintenance + Tires + Insurance + Oil</p>
+
+           <p><strong>Cost Per Hour</strong> = Total Annual Cost ÷ Annual Hours</p>
+
+           <p><strong>Hourly Bill Rate</strong> = Cost Per Hour ÷ (1 − Return on Sales %)</p>
+
+         </div>
+
+       </div>
+
+     </div>
+
+   </div>
+
+ </div>
+
+ 
+
+ <script>
+
+   const inputs = {
+
+     baselinePayRate: 25,
+
+     divisor: 0.70,
+
+     annualHours: 8736,
+
+     mph: 25,
+
+     hoursPerDay: 24,
+
+     mpg: 25,
+
+     fuelCostPerGallon: 4.11,
+
+     annualMaintenance: 0,
+
+     tireSetsPerYear: 4,
+
+     tireCostPerSet: 0,
+
+     autoInsurance: 0,
+
+     oilChangeIntervalMiles: 7500,
+
+     oilChangeCost: 100,
+
+     returnOnSalesPct: 0
+
+   };
+
+ 
+
+   const fields = [
+
+     ['Baseline Hourly Pay Rate', 'baselinePayRate', 'Example: 25.00'],
+
+     ['Divisor', 'divisor', 'Default: 0.70'],
+
+     ['Annual Hours', 'annualHours', 'Default: 8736'],
+
+     ['Driving Speed (MPH)', 'mph', 'Example: 25'],
+
+     ['Hours Per Day', 'hoursPerDay', 'Default: 24'],
+
+     ['Miles Per Gallon', 'mpg', 'Example: 25'],
+
+     ['Fuel Cost Per Gallon', 'fuelCostPerGallon', 'Example: 4.11'],
+
+     ['Projected Annual Maintenance / Repair', 'annualMaintenance', 'Annual total'],
+
+     ['Tire Sets Per Year', 'tireSetsPerYear', 'Default: 4'],
+
+     ['Tire Cost Per Set', 'tireCostPerSet', 'Per set'],
+
+     ['Auto Insurance', 'autoInsurance', 'Annual total'],
+
+     ['Oil Change Interval (Miles)', 'oilChangeIntervalMiles', 'Default: 7500'],
+
+     ['Oil Change Cost', 'oilChangeCost', 'Default: 100'],
+
+     ['Return on Sales %', 'returnOnSalesPct', 'Example: 10']
+
+   ];
+
+ 
+
+   const inputGrid = document.getElementById('inputGrid');
+
+   const resultsEl = document.getElementById('results');
+
+ 
+
+   function money(n) {
+
+     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number.isFinite(n) ? n : 0);
+
+   }
+
+ 
+
+   function num(n, digits = 2) {
+
+     return new Intl.NumberFormat('en-US', {
+
+       minimumFractionDigits: digits,
+
+       maximumFractionDigits: digits
+
+     }).format(Number.isFinite(n) ? n : 0);
+
+   }
+
+ 
+
+   function calc() {
+
+     const employerCostHourly = inputs.divisor > 0 ? inputs.baselinePayRate / inputs.divisor : 0;
+
+     const annualLaborCost = employerCostHourly * inputs.annualHours;
+
+     const milesPerDay = inputs.mph * inputs.hoursPerDay;
+
+     const milesPerYear = milesPerDay * 365;
+
+     const gallonsPerYear = inputs.mpg > 0 ? milesPerYear / inputs.mpg : 0;
+
+     const annualFuelCost = gallonsPerYear * inputs.fuelCostPerGallon;
+
+     const oilChangesPerYear = inputs.oilChangeIntervalMiles > 0 ? Math.ceil(milesPerYear / inputs.oilChangeIntervalMiles) : 0;
+
+     const annualOilCost = oilChangesPerYear * inputs.oilChangeCost;
+
+     const annualTireCost = inputs.tireSetsPerYear * inputs.tireCostPerSet;
+
+     const totalAnnualCost = annualLaborCost + annualFuelCost + inputs.annualMaintenance + annualTireCost + inputs.autoInsurance + annualOilCost;
+
+     const costPerHour = inputs.annualHours > 0 ? totalAnnualCost / inputs.annualHours : 0;
+
+     const hourlyBillRate = inputs.returnOnSalesPct >= 100 ? 0 : costPerHour / (1 - inputs.returnOnSalesPct / 100);
+
+ 
+
+     return {
+
+       employerCostHourly,
+
+       annualLaborCost,
+
+       milesPerDay,
+
+       milesPerYear,
+
+       gallonsPerYear,
+
+       annualFuelCost,
+
+       oilChangesPerYear,
+
+       annualOilCost,
+
+       annualTireCost,
+
+       totalAnnualCost,
+
+       costPerHour,
+
+       hourlyBillRate
+
+     };
+
+   }
+
+ 
+
+   function renderInputs() {
+
+     inputGrid.innerHTML = '';
+
+     fields.forEach(([label, key, placeholder]) => {
+
+       const wrapper = document.createElement('label');
+
+       wrapper.className = 'block';
+
+       wrapper.innerHTML = `
+
+         <span class="mb-2 block text-sm font-medium text-gray-800">${label}</span>
+
+         <input
+
+           type="number"
+
+           step="any"
+
+           class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-black"
+
+           value="${inputs[key]}"
+
+           placeholder="${placeholder}"
+
+           data-key="${key}"
+
+         />
+
+       `;
+
+       inputGrid.appendChild(wrapper);
+
+     });
+
+ 
+
+     inputGrid.querySelectorAll('input').forEach((input) => {
+
+       input.addEventListener('input', (e) => {
+
+         const key = e.target.dataset.key;
+
+         inputs[key] = e.target.value === '' ? 0 : Number(e.target.value);
+
+         renderResults();
+
+       });
+
+     });
+
+   }
+
+ 
+
+   function row(label, value, extraClass = 'bg-gray-50') {
+
+     return `<div class="flex items-center justify-between rounded-xl ${extraClass} px-4 py-3"><span>${label}</span><strong>${value}</strong></div>`;
+
+   }
+
+ 
+
+   function renderResults() {
+
+     const c = calc();
+
+     resultsEl.innerHTML = [
+
+       row('1. Employer Cost Per Hour', money(c.employerCostHourly)),
+
+       row('2. Annual Labor Cost', money(c.annualLaborCost)),
+
+       row('3. Miles Per Day', num(c.milesPerDay, 0)),
+
+       row('4. Miles Per Year', num(c.milesPerYear, 0)),
+
+       row('5. Gallons Per Year', num(c.gallonsPerYear, 0)),
+
+       row('6. Annual Fuel Cost', money(c.annualFuelCost)),
+
+       row('7. Annual Maintenance / Repair', money(inputs.annualMaintenance)),
+
+       row('8. Annual Tire Cost', money(c.annualTireCost)),
+
+       row('9. Auto Insurance', money(inputs.autoInsurance)),
+
+       row('10. Oil Changes / Year', `${num(c.oilChangesPerYear, 0)} (${money(c.annualOilCost)})`),
+
+       row('11. Total Annual Cost', money(c.totalAnnualCost), 'bg-black text-white py-4'),
+
+       row('12. Cost Per Hour', money(c.costPerHour)),
+
+       row('13. Hourly Bill Rate', money(c.hourlyBillRate), 'bg-emerald-50 py-4 text-base')
+
+     ].join('');
+
+   }
+
+ 
+
+   renderInputs();
+
+   renderResults();
+
+ </script>
+
+</body>
+
+</html>

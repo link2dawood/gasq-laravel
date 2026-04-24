@@ -4,735 +4,588 @@
 
 @push('styles')
 <style>
-  .mp-shell {
+  .mp24-page {
+    min-height: calc(100vh - 5rem);
     background:
-      radial-gradient(circle at top right, rgba(6, 45, 121, 0.08), transparent 30%),
-      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      radial-gradient(circle at top left, rgba(6, 45, 121, 0.08), transparent 28rem),
+      linear-gradient(180deg, #f3f5f8 0%, #eef2f7 100%);
   }
-  .mp-sidebar {
-    background: linear-gradient(180deg, #fbfcff 0%, #f2f5fb 100%);
+
+  .mp24-hero {
+    border-radius: 1.75rem;
+    background: #050505;
+    color: #fff;
+    padding: 2rem;
+    box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.45);
   }
-  .mp-sticky {
-    position: sticky;
-    top: 1.25rem;
-  }
-  .mp-kicker {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gasq-muted);
-  }
-  .mp-section + .mp-section {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(15, 23, 42, 0.08);
-  }
-  .mp-stat {
-    border: 1px solid rgba(6, 45, 121, 0.08);
-    border-radius: 1rem;
-    padding: 1rem;
-    background: #fff;
-  }
-  .mp-stat-label {
-    font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--gasq-muted);
-  }
-  .mp-stat-value {
-    font-size: 1.55rem;
-    font-weight: 700;
-    color: var(--gasq-primary);
-  }
-  .mp-panel {
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 1rem;
-    background: #fff;
-  }
-  .mp-panel-muted {
-    background: rgba(6, 45, 121, 0.04);
-  }
-  .mp-chip {
+
+  .mp24-back {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: .9rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 999px;
-    background: rgba(6, 45, 121, 0.08);
-    color: var(--gasq-primary);
-    font-size: 0.78rem;
+    justify-content: center;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--gasq-primary, #062d79);
+    text-decoration: none;
+  }
+
+  .mp24-card {
+    border-radius: 1.5rem;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 18px 36px -28px rgba(15, 23, 42, 0.28);
+  }
+
+  .mp24-section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #111827;
+  }
+
+  .mp24-label {
+    display: block;
+    font-size: .9rem;
     font-weight: 600;
+    color: #1f2937;
+    margin-bottom: .55rem;
   }
-  .mp-mono {
+
+  .mp24-input {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    padding: .9rem 1rem;
+    font-size: .95rem;
+    color: #111827;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .mp24-input:focus {
+    outline: none;
+    border-color: #111827;
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.08);
+  }
+
+  .mp24-hint {
+    margin-top: .45rem;
+    font-size: .78rem;
+    color: #6b7280;
+  }
+
+  .mp24-results {
+    display: grid;
+    gap: .8rem;
+  }
+
+  .mp24-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-radius: 1rem;
+    padding: .95rem 1rem;
+    background: #f7f8fa;
+    color: #111827;
+    font-size: .92rem;
+  }
+
+  .mp24-row strong {
     font-variant-numeric: tabular-nums;
+    font-size: .98rem;
   }
-  @media (max-width: 1199.98px) {
-    .mp-sticky {
-      position: static;
+
+  .mp24-row-dark {
+    background: #050505;
+    color: #fff;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .mp24-row-dark strong {
+    color: #fff;
+  }
+
+  .mp24-row-success {
+    background: #ecfdf3;
+    color: #065f46;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .mp24-row-success strong {
+    color: #065f46;
+    font-size: 1.08rem;
+  }
+
+  .mp24-note-list p {
+    margin-bottom: .55rem;
+    font-size: .92rem;
+    color: #374151;
+  }
+
+  .mp24-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    align-items: center;
+  }
+
+  .mp24-email {
+    min-width: 220px;
+    flex: 1 1 240px;
+  }
+
+  @media (max-width: 991.98px) {
+    .mp24-hero {
+      padding: 1.5rem;
+    }
+
+    .mp24-row {
+      flex-direction: column;
+      align-items: flex-start;
     }
   }
 </style>
 @endpush
 
 @section('content')
-<div class="min-vh-100 py-4 px-3 px-md-4" style="background:var(--gasq-background)">
-<div class="container-xl">
-
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
-    <div class="d-flex align-items-center gap-3">
-      <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
+<div class="mp24-page py-4 py-md-5 px-3 px-md-4">
+  <div class="container-xl">
+    <div class="d-flex align-items-start gap-3 mb-4">
+      <a href="{{ url()->previous() }}" class="mp24-back">
+        <i class="fa fa-arrow-left"></i>
+      </a>
       <div>
-        <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
-          <i class="fa fa-car text-primary"></i> Mobile Patrol Calculator
-        </h1>
-        <div class="text-gasq-muted small">Shared input rail with live patrol cost and bill-rate outputs</div>
+        <div class="text-uppercase small fw-semibold text-gasq-muted" style="letter-spacing:.08em">Patrol Calculator</div>
+        <h1 class="h2 fw-bold mb-0">Mobile Patrol Calculator</h1>
       </div>
     </div>
-    <div class="d-flex flex-wrap gap-2">
-      <button class="btn btn-outline-secondary btn-sm" onclick="resetToDefaults()">
-        <i class="fa fa-rotate me-1"></i> Reset
-      </button>
-      <button class="btn btn-outline-secondary btn-sm d-print-none" onclick="window.print()">
-        <i class="fa fa-print me-1"></i> Print
-      </button>
-      <button class="btn btn-outline-secondary btn-sm d-print-none" onclick="downloadPDF()">
-        <i class="fa fa-download me-1"></i> Download PDF
-      </button>
-      <button class="btn btn-primary btn-sm d-print-none" onclick="sendEmail()">
-        <i class="fa fa-envelope me-1"></i> Send Email
-      </button>
+
+    <div class="mp24-hero mb-4">
+      <h2 class="h3 fw-semibold mb-2">Mobile Patrol Calculator</h2>
+      <p class="mb-0 text-white-50" style="max-width: 56rem;">
+        Built from your Mobile Patrolman Formula. Enter your pay rate, patrol assumptions, vehicle cost inputs,
+        and target return on sales to generate an estimated hourly bill rate.
+      </p>
     </div>
-  </div>
 
-  <div class="card gasq-card mp-shell overflow-hidden">
-    <div class="card-body p-0">
-      <div class="row g-0">
-        <div class="col-xl-4 border-end mp-sidebar">
-          <div class="p-3 p-md-4 mp-sticky">
-            <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-              <div>
-                <div class="mp-kicker mb-2">Shared Inputs</div>
-                <h2 class="h4 fw-bold mb-2">Patrol Model Controls</h2>
-                <p class="small text-gasq-muted mb-0">Contact details, route setup, and patrol assumptions all live here and update the results workspace on the right in real time.</p>
-              </div>
-              <span class="mp-chip"><i class="fa fa-bolt"></i> Live</span>
-            </div>
+    <div id="mobilePatrolStatus" class="alert d-none mb-4" role="alert"></div>
 
-            <div class="mp-section">
-              <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="fa fa-address-card text-primary"></i>
-                <h5 class="mb-0 fw-semibold">Contact Information</h5>
-              </div>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label small fw-medium">Customer Name</label>
-                  <input type="text" id="customerName" class="form-control form-control-sm" placeholder="John Doe">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label small fw-medium">Company Name</label>
-                  <input type="text" id="companyName" class="form-control form-control-sm" placeholder="ABC Security">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label small fw-medium">Email Address</label>
-                  <input type="email" id="emailAddr" class="form-control form-control-sm" placeholder="john@example.com">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label small fw-medium">Phone Number</label>
-                  <input type="tel" id="phoneNum" class="form-control form-control-sm" placeholder="(555) 123-4567">
-                </div>
-                <div class="col-12">
-                  <label class="form-label small fw-medium">CC Email (Second Recipient)</label>
-                  <input type="email" id="ccEmail" class="form-control form-control-sm" placeholder="colleague@example.com">
-                </div>
-                <div class="col-12">
-                  <label class="form-label small fw-medium">Comments</label>
-                  <textarea id="comments" class="form-control form-control-sm" rows="1" placeholder="Additional notes..."></textarea>
-                </div>
-              </div>
-            </div>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="mp24-card p-4 p-md-5 h-100">
+          <h2 class="mp24-section-title mb-4">Inputs</h2>
+          <div class="row g-3" id="mp24InputGrid"></div>
+        </div>
+      </div>
 
-            @php($mpMapsKey = config('services.google.maps_api_key'))
-            @if($mpMapsKey)
-            <div class="mp-section d-print-none">
-              <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="fa fa-route text-primary"></i>
-                <h5 class="mb-0 fw-semibold">Patrol Route</h5>
-              </div>
-              <div class="row g-3 align-items-end">
-                <div class="col-12">
-                  <label class="form-label small fw-medium">Patrol start / base</label>
-                  <input type="text" id="mp-route-origin" class="form-control form-control-sm" placeholder="Start typing an address…" autocomplete="off">
-                </div>
-                <div class="col-12">
-                  <label class="form-label small fw-medium">Patrol end / turnaround</label>
-                  <input type="text" id="mp-route-dest" class="form-control form-control-sm" placeholder="Destination address…" autocomplete="off">
-                </div>
-                <div class="col-12 d-flex flex-wrap gap-3 align-items-center">
-                  <div class="form-check mb-0">
-                    <input class="form-check-input" type="checkbox" id="mp-route-roundtrip" checked>
-                    <label class="form-check-label small" for="mp-route-roundtrip">Round trip (×2)</label>
-                  </div>
-                  <button type="button" class="btn btn-primary btn-sm" onclick="applyMpRouteMiles()">
-                    <i class="fa fa-road me-1"></i> Apply to miles/day
-                  </button>
-                </div>
-              </div>
-              <p class="small text-gasq-muted mb-2 mt-2" id="mp-route-summary"></p>
-              <div id="mp-route-map-error" class="alert alert-warning border py-2 small mb-2 d-none">
-                Google Maps could not load for this site. Check that the deployed API key belongs to an active Google Cloud project with billing enabled and that Maps JavaScript API, Places API, and Directions API are enabled for that same project.
-              </div>
-              <div id="mp-route-map" class="rounded border mt-2" style="height: 260px; min-height: 200px; border-color: var(--gasq-border);"></div>
-            </div>
-            @else
-            <div class="mp-section d-print-none">
-              <div class="alert alert-light border gasq-border py-2 small mb-0">
-                <i class="fa fa-map me-1 text-primary"></i>
-                Set <code>GOOGLE_MAPS_API_KEY</code> in <code>.env</code> (with Maps JavaScript, Places, and Directions APIs) to show the patrol route map and auto-fill miles per day.
-              </div>
-            </div>
-            @endif
+      <div class="col-lg-6">
+        <div class="d-grid gap-4">
+          <div class="mp24-card p-4 p-md-5">
+            <h2 class="mp24-section-title mb-4">Calculated Results</h2>
+            <div class="mp24-results" id="mp24Results"></div>
+          </div>
 
-            <div class="mp-section">
-              <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="fa fa-sliders text-primary"></i>
-                <h5 class="mb-0 fw-semibold">Submission Details</h5>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label small fw-medium">Patrol Type / Scenario</label>
-                <select id="scenarioName" class="form-select form-select-sm" onchange="onPatrolTypeChange()">
-                  <option value="8-hour|8">8-hour Mobile Patrol</option>
-                  <option value="10-hour|10">10-hour Mobile Patrol</option>
-                  <option value="12-hour|12">12-hour Mobile Patrol</option>
-                  <option value="16-hour|16">16-hour Mobile Patrol</option>
-                  <option value="24-hour|24" selected>24-hour Mobile Patrol</option>
-                </select>
-              </div>
-
-              <div class="mp-section">
-                <h6 class="fw-semibold d-flex align-items-center gap-2 mb-3">
-                  <i class="fa fa-clock text-primary"></i> Time Parameters
-                </h6>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Hours per day coverage</label>
-                    <input type="number" id="hoursPerDay" class="form-control form-control-sm" value="24" oninput="calculate()">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Days per year</label>
-                    <input type="number" id="daysPerYear" class="form-control form-control-sm" value="365" oninput="calculate()">
-                  </div>
-                </div>
-              </div>
-
-              <div class="mp-section">
-                <h6 class="fw-semibold d-flex align-items-center gap-2 mb-3">
-                  <i class="fa fa-dollar-sign text-primary"></i> Labor Costs
-                </h6>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Patrolman Gross Wage</label>
-                    <input type="number" id="patrolmanHourlyWage" class="form-control form-control-sm" value="30.00" step="0.01" oninput="calculate()">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Employer Full Burden Cost (%)</label>
-                    <input type="number" id="payrollBurdenPercent" class="form-control form-control-sm" value="24" oninput="calculate()">
-                  </div>
-                </div>
-              </div>
-
-              <div class="mp-section">
-                <h6 class="fw-semibold d-flex align-items-center gap-2 mb-3">
-                  <i class="fa fa-car text-primary"></i> Vehicle Costs
-                </h6>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Vehicle annual finance cost ($)</label>
-                    <input type="number" id="vehicleAnnualFinanceCost" class="form-control form-control-sm" value="7980.00" step="0.01" oninput="calculate()">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Auto insurance annual ($)</label>
-                    <input type="number" id="autoInsuranceAnnualCost" class="form-control form-control-sm" value="1500.00" step="0.01" oninput="calculate()">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Annual repairs ($)</label>
-                    <input type="number" id="annualRepairs" class="form-control form-control-sm" value="4000.00" step="0.01" oninput="calculate()">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Tires annual cost ($)</label>
-                    <input type="number" id="tiresAnnualCost" class="form-control form-control-sm" value="1200.00" step="0.01" oninput="calculate()">
-                  </div>
-                </div>
-              </div>
-
-              <div class="mp-section">
-                <h6 class="fw-semibold d-flex align-items-center gap-2 mb-3">
-                  <i class="fa fa-gas-pump text-primary"></i> Fuel &amp; Mileage
-                </h6>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Miles driven per day</label>
-                    <input type="number" id="milesDrivenPerDay" class="form-control form-control-sm" value="360" oninput="calculate()">
-                    @unless($mpMapsKey ?? null)
-                      <div class="form-text">Use the route map above when a Maps API key is configured.</div>
-                    @endunless
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Miles per gallon (MPG)</label>
-                    <input type="number" id="milesPerGallon" class="form-control form-control-sm" value="20" oninput="calculate()">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Fuel price per gallon ($)</label>
-                    <input type="number" id="fuelPricePerGallon" class="form-control form-control-sm" value="2.57" step="0.01" oninput="calculate()">
-                  </div>
-                </div>
-              </div>
-
-              <div class="mp-section">
-                <h6 class="fw-semibold d-flex align-items-center gap-2 mb-3">
-                  <i class="fa fa-wrench text-primary"></i> Maintenance
-                </h6>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Oil change cost per service ($)</label>
-                    <input type="number" id="oilChangeCostPerService" class="form-control form-control-sm" value="32" step="0.01" oninput="calculate()">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Miles between oil changes</label>
-                    <input type="number" id="milesBetweenOilChanges" class="form-control form-control-sm" value="6000" oninput="calculate()">
-                  </div>
-                </div>
-              </div>
-
-              <div class="mp-section">
-                <label class="form-label small fw-medium">Markup % / Return on Sale</label>
-                <input type="number" id="markupPercent" class="form-control form-control-sm" value="27" oninput="calculate()">
-              </div>
+          <div class="mp24-card p-4 p-md-5">
+            <h3 class="mp24-section-title mb-3">Formula Notes</h3>
+            <div class="mp24-note-list">
+              <p><strong>Employer Cost Per Hour</strong> = Baseline Hourly Pay Rate ÷ Divisor</p>
+              <p><strong>Annual Labor Cost</strong> = Employer Cost Per Hour × Annual Hours</p>
+              <p><strong>Miles Per Day</strong> = MPH × Hours Per Day</p>
+              <p><strong>Miles Per Year</strong> = Miles Per Day × 365</p>
+              <p><strong>Gallons Per Year</strong> = Miles Per Year ÷ MPG</p>
+              <p><strong>Annual Fuel Cost</strong> = Gallons Per Year × Fuel Cost Per Gallon</p>
+              <p><strong>Annual Tire Cost</strong> = Tire Sets Per Year × Tire Cost Per Set</p>
+              <p><strong>Annual Oil Cost</strong> = Ceiling(Miles Per Year ÷ Oil Change Interval) × Oil Change Cost</p>
+              <p><strong>Total Annual Cost</strong> = Labor + Fuel + Maintenance + Tires + Insurance + Oil</p>
+              <p><strong>Cost Per Hour</strong> = Total Annual Cost ÷ Annual Hours</p>
+              <p><strong>Hourly Bill Rate</strong> = Cost Per Hour ÷ (1 − Return on Sales %)</p>
             </div>
           </div>
-        </div>
 
-        <div class="col-xl-8">
-          <div class="p-3 p-md-4">
-            <div class="alert alert-light border gasq-border small d-print-none mb-3" id="mp_error" style="display:none"></div>
-
-            <div class="row g-3 mb-4">
-              <div class="col-md-4">
-                <div class="mp-stat">
-                  <div class="mp-stat-label mb-2">Hourly Billable Rate</div>
-                  <div class="mp-stat-value mp-mono" id="r-hourlyRate-top">$0.00</div>
-                  <div class="small text-gasq-muted">Live patrol billing target</div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mp-stat">
-                  <div class="mp-stat-label mb-2">Annual Cost with Markup</div>
-                  <div class="mp-stat-value mp-mono" id="r-annualCost-top">$0.00</div>
-                  <div class="small text-gasq-muted">Updated from the shared input rail</div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mp-stat">
-                  <div class="mp-stat-label mb-2">Hours per Year</div>
-                  <div class="mp-stat-value mp-mono" id="r-hoursPerYear-top">0</div>
-                  <div class="small text-gasq-muted">Coverage hours implied by current scenario</div>
-                </div>
-              </div>
-            </div>
-
+          <div class="mp24-card p-4 p-md-5">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
               <div>
-                <div class="mp-kicker mb-1">Results Workspace</div>
-                <h3 class="h5 fw-bold mb-0">Mobile Patrol Outputs</h3>
-              </div>
-              <div class="small text-gasq-muted">The cost stack and billing summary below update from the shared patrol inputs on the left.</div>
-            </div>
-
-            <div class="row g-3">
-              <div class="col-lg-6">
-                <div class="mp-panel p-3 h-100">
-                  <h5 class="fw-semibold mb-3">Time and Labor</h5>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span class="text-gasq-muted small">Hours per year</span>
-                    <span class="fw-medium mp-mono" id="r-hoursPerYear">8,760</span>
-                  </div>
-                  <div class="d-flex justify-content-between">
-                    <span class="text-gasq-muted small">Annual wage cost (with burden)</span>
-                    <span class="fw-medium mp-mono" id="r-annualWageCost">$0.00</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-lg-6">
-                <div class="mp-panel mp-panel-muted p-3 h-100">
-                  <h5 class="fw-semibold mb-3">Mileage and Fuel</h5>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span class="text-gasq-muted small">Miles driven per year</span>
-                    <span class="fw-medium mp-mono" id="r-milesDrivenPerYear">131,400</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span class="text-gasq-muted small">Fuel gallons per year</span>
-                    <span class="fw-medium mp-mono" id="r-fuelGallonsPerYear">0</span>
-                  </div>
-                  <div class="d-flex justify-content-between">
-                    <span class="text-gasq-muted small">Annual fuel cost</span>
-                    <span class="fw-medium mp-mono" id="r-annualFuelCost">$0.00</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-lg-6">
-                <div class="mp-panel p-3 h-100">
-                  <h5 class="fw-semibold mb-3">Maintenance</h5>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span class="text-gasq-muted small">Number of oil changes per year</span>
-                    <span class="fw-medium mp-mono" id="r-oilChangesPerYear">0.0</span>
-                  </div>
-                  <div class="d-flex justify-content-between">
-                    <span class="text-gasq-muted small">Annual oil change cost</span>
-                    <span class="fw-medium mp-mono" id="r-annualOilChangeCost">$0.00</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-lg-6">
-                <div class="mp-panel mp-panel-muted p-3 h-100">
-                  <h5 class="fw-semibold mb-3">Cost Summary</h5>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span class="text-gasq-muted small">Total annual pre-markup cost</span>
-                    <span class="fw-medium mp-mono" id="r-preMarkupCost">$0.00</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span class="text-gasq-muted small">Daily cost with markup</span>
-                    <span class="fw-medium mp-mono" id="r-dailyCost">$0.00</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span class="text-gasq-muted small">Weekly cost with markup</span>
-                    <span class="fw-medium mp-mono" id="r-weeklyCost">$0.00</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span class="text-gasq-muted small">Monthly cost with markup</span>
-                    <span class="fw-medium mp-mono" id="r-monthlyCost">$0.00</span>
-                  </div>
-                  <div class="d-flex justify-content-between">
-                    <span class="text-gasq-muted small">Annual cost with markup</span>
-                    <span class="fw-semibold mp-mono" id="r-annualCost">$0.00</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-12">
-                <div class="rounded p-4 text-white text-center" style="background:var(--gasq-primary)">
-                  <div class="small mb-1" style="opacity:.85">Hourly Billable Rate</div>
-                  <div class="display-5 fw-bold mp-mono" id="r-hourlyRate">$0.00</div>
-                  <div class="small mt-1" style="opacity:.7">per hour</div>
-                </div>
+                <h3 class="mp24-section-title mb-1">Report Actions</h3>
+                <p class="text-gasq-muted small mb-0">Persist this calculator state, download the PDF, or email the report.</p>
               </div>
             </div>
-
-            <div class="mt-4">
-              <x-report-actions reportType="mobile-patrol" />
+            <div class="mp24-actions">
+              <button type="button" class="btn btn-outline-secondary" id="mp24ResetButton">
+                <i class="fa fa-rotate me-1"></i> Reset
+              </button>
+              <button type="button" class="btn btn-outline-secondary" id="mp24PrintButton">
+                <i class="fa fa-print me-1"></i> Print
+              </button>
+              <button type="button" class="btn btn-outline-primary" id="mp24DownloadButton">
+                <i class="fa fa-download me-1"></i> Download PDF
+              </button>
+              <input
+                type="email"
+                id="mp24Email"
+                class="form-control mp24-email"
+                placeholder="Email address"
+                value="{{ auth()->user()?->email }}"
+              >
+              <button type="button" class="btn btn-primary" id="mp24EmailButton">
+                <i class="fa fa-envelope me-1"></i> Email Report
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-</div>
+    <form id="mp24EmailForm" action="{{ route('reports.email') }}" method="POST" class="d-none">
+      @csrf
+      <input type="hidden" name="type" value="mobile-patrol">
+      <input type="hidden" name="email" id="mp24EmailTarget" value="{{ auth()->user()?->email }}">
+    </form>
+  </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-const savedScenario = window.__gasqCalculatorState?.scenario || null;
-const DEFAULTS = {
-  hoursPerDay: 24, daysPerYear: 365, patrolmanHourlyWage: 30.00, payrollBurdenPercent: 24,
-  vehicleAnnualFinanceCost: 7980.00, milesDrivenPerDay: 360, milesPerGallon: 20,
-  fuelPricePerGallon: 2.57, annualRepairs: 4000.00, tiresAnnualCost: 1200.00,
-  oilChangeCostPerService: 32, milesBetweenOilChanges: 6000, autoInsuranceAnnualCost: 1500.00,
-  markupPercent: 27
+const MP24_STORAGE_KEY = 'gasq.mobilePatrolFormula.v1';
+const MP24_REPORT_TYPE = 'mobile-patrol';
+const MP24_REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'mobile-patrol']));
+const MP24_REPORT_PAYLOAD_URL = @json(route('backend.report-payload.store'));
+
+const MP24_DEFAULTS = {
+  baselinePayRate: 25,
+  divisor: 0.70,
+  annualHours: 8736,
+  mph: 25,
+  hoursPerDay: 24,
+  mpg: 25,
+  fuelCostPerGallon: 4.11,
+  annualMaintenance: 0,
+  tireSetsPerYear: 4,
+  tireCostPerSet: 0,
+  autoInsurance: 0,
+  oilChangeIntervalMiles: 7500,
+  oilChangeCost: 100,
+  returnOnSalesPct: 0,
 };
 
-function fmt(v, dec=2){
-  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);
-}
-function fmtN(v, dec=1){
-  return new Intl.NumberFormat('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);
-}
-function g(id){ return parseFloat(document.getElementById(id).value)||0; }
+const MP24_FIELDS = [
+  ['Baseline Hourly Pay Rate', 'baselinePayRate', 'Example: 25.00'],
+  ['Divisor', 'divisor', 'Default: 0.70'],
+  ['Annual Hours', 'annualHours', 'Default: 8736'],
+  ['Driving Speed (MPH)', 'mph', 'Example: 25'],
+  ['Hours Per Day', 'hoursPerDay', 'Default: 24'],
+  ['Miles Per Gallon', 'mpg', 'Example: 25'],
+  ['Fuel Cost Per Gallon', 'fuelCostPerGallon', 'Example: 4.11'],
+  ['Projected Annual Maintenance / Repair', 'annualMaintenance', 'Annual total'],
+  ['Tire Sets Per Year', 'tireSetsPerYear', 'Default: 4'],
+  ['Tire Cost Per Set', 'tireCostPerSet', 'Per set'],
+  ['Auto Insurance', 'autoInsurance', 'Annual total'],
+  ['Oil Change Interval (Miles)', 'oilChangeIntervalMiles', 'Default: 7500'],
+  ['Oil Change Cost', 'oilChangeCost', 'Default: 100'],
+  ['Return on Sales %', 'returnOnSalesPct', 'Example: 10'],
+];
 
-function setError(msg){
-  const el = document.getElementById('mp_error');
-  if(!el) return;
-  if(!msg){ el.style.display='none'; el.textContent=''; return; }
-  el.style.display='';
-  el.textContent = msg;
+let mp24Inputs = { ...MP24_DEFAULTS };
+let mp24PersistTimer = null;
+
+function mp24ById(id) {
+  return document.getElementById(id);
 }
 
-let mpInflight = null;
-async function calculate(){
-  const payload = {
-    version: 'v24',
-    scenario: {
-      meta: {
-        scenarioName: document.getElementById('scenarioName')?.value || '24-hour|24',
-        hoursPerDay: g('hoursPerDay'),
-        daysPerYear: g('daysPerYear'),
-        patrolmanHourlyWage: g('patrolmanHourlyWage'),
-        payrollBurdenPercent: g('payrollBurdenPercent'),
-        vehicleAnnualFinanceCost: g('vehicleAnnualFinanceCost'),
-        milesDrivenPerDay: g('milesDrivenPerDay'),
-        milesPerGallon: g('milesPerGallon'),
-        fuelPricePerGallon: g('fuelPricePerGallon'),
-        annualRepairs: g('annualRepairs'),
-        tiresAnnualCost: g('tiresAnnualCost'),
-        oilChangeCostPerService: g('oilChangeCostPerService'),
-        milesBetweenOilChanges: g('milesBetweenOilChanges'),
-        autoInsuranceAnnualCost: g('autoInsuranceAnnualCost'),
-        markupPercent: g('markupPercent')
-      }
-    }
-  };
+function mp24Money(value) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(value) ? value : 0);
+}
 
-  try{
-    setError('');
-    if (mpInflight) { mpInflight.abort(); }
-    mpInflight = new AbortController();
-    const res = await fetch('{{ route('backend.mobile-patrol.v24.compute') }}', {
-      method: 'POST',
-      signal: mpInflight.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-    let data = null;
-    try { data = await res.json(); } catch { data = null; }
-    if(!res.ok || !data || !data.ok){
-      if (data && data.error === 'insufficient_credits') {
-        setError(data.message || 'Not enough credits to run this calculator.');
-      } else {
-        setError('Unable to calculate right now. Please try again.');
-      }
-      console.error(data);
+function mp24Number(value, digits = 2) {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(Number.isFinite(value) ? value : 0);
+}
+
+function mp24ShowStatus(type, message) {
+  const alert = mp24ById('mobilePatrolStatus');
+  if (!alert) {
+    return;
+  }
+
+  if (!message) {
+    alert.className = 'alert d-none mb-4';
+    alert.textContent = '';
+    return;
+  }
+
+  alert.className = `alert alert-${type} mb-4`;
+  alert.textContent = message;
+}
+
+function mp24ReadInputsFromDom() {
+  MP24_FIELDS.forEach(([, key]) => {
+    const input = mp24ById(`mp24-${key}`);
+    if (!input) {
       return;
     }
 
-    const out = data.kpis || {};
-
-    setText('r-hoursPerYear', fmtN(out.hoursPerYear||0, 0));
-    setText('r-hoursPerYear-top', fmtN(out.hoursPerYear||0, 0));
-    setText('r-annualWageCost', fmt(out.annualWageCost||0));
-    setText('r-milesDrivenPerYear', fmtN(out.milesDrivenPerYear||0, 0));
-    setText('r-fuelGallonsPerYear', fmtN(out.fuelGallonsPerYear||0, 0));
-    setText('r-annualFuelCost', fmt(out.annualFuelCost||0));
-    setText('r-oilChangesPerYear', fmtN(out.oilChangesPerYear||0, 1));
-    setText('r-annualOilChangeCost', fmt(out.annualOilChangeCost||0));
-    setText('r-preMarkupCost', fmt(out.preMarkupCost||0));
-    setText('r-dailyCost', fmt(out.dailyCost||0));
-    setText('r-weeklyCost', fmt(out.weeklyCost||0));
-    setText('r-monthlyCost', fmt(out.monthlyCost||0));
-    setText('r-annualCost', fmt(out.annualCost||0));
-    setText('r-annualCost-top', fmt(out.annualCost||0));
-    setText('r-hourlyRate', fmt(out.hourlyBillableRate||0));
-    setText('r-hourlyRate-top', fmt(out.hourlyBillableRate||0));
-  } catch(e){
-    if(e?.name === 'AbortError') return;
-    console.error(e);
-    setError('Unable to calculate right now. Please try again.');
-  }
-}
-
-function hydrateSavedState(){
-  const meta = savedScenario?.meta || {};
-  const map = {
-    scenarioName: meta.scenarioName,
-    hoursPerDay: meta.hoursPerDay,
-    daysPerYear: meta.daysPerYear,
-    patrolmanHourlyWage: meta.patrolmanHourlyWage,
-    payrollBurdenPercent: meta.payrollBurdenPercent,
-    vehicleAnnualFinanceCost: meta.vehicleAnnualFinanceCost,
-    milesDrivenPerDay: meta.milesDrivenPerDay,
-    milesPerGallon: meta.milesPerGallon,
-    fuelPricePerGallon: meta.fuelPricePerGallon,
-    annualRepairs: meta.annualRepairs,
-    tiresAnnualCost: meta.tiresAnnualCost,
-    oilChangeCostPerService: meta.oilChangeCostPerService,
-    milesBetweenOilChanges: meta.milesBetweenOilChanges,
-    autoInsuranceAnnualCost: meta.autoInsuranceAnnualCost,
-    markupPercent: meta.markupPercent,
-  };
-
-  Object.entries(map).forEach(([id, value]) => {
-    if(value === undefined || value === null) return;
-    const el = document.getElementById(id);
-    if(el) el.value = value;
+    const value = input.value === '' ? 0 : Number(input.value);
+    mp24Inputs[key] = Number.isFinite(value) ? value : 0;
   });
 }
 
-function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
+function mp24Calculate() {
+  const employerCostHourly = mp24Inputs.divisor > 0
+    ? mp24Inputs.baselinePayRate / mp24Inputs.divisor
+    : 0;
 
-function onPatrolTypeChange(){
-  const sel = document.getElementById('scenarioName');
-  const hours = parseInt((sel.value||'').split('|')[1]||24);
-  document.getElementById('hoursPerDay').value = hours;
-  calculate();
+  const annualLaborCost = employerCostHourly * mp24Inputs.annualHours;
+  const milesPerDay = mp24Inputs.mph * mp24Inputs.hoursPerDay;
+  const milesPerYear = milesPerDay * 365;
+  const gallonsPerYear = mp24Inputs.mpg > 0 ? milesPerYear / mp24Inputs.mpg : 0;
+  const annualFuelCost = gallonsPerYear * mp24Inputs.fuelCostPerGallon;
+  const oilChangesPerYear = mp24Inputs.oilChangeIntervalMiles > 0
+    ? Math.ceil(milesPerYear / mp24Inputs.oilChangeIntervalMiles)
+    : 0;
+  const annualOilCost = oilChangesPerYear * mp24Inputs.oilChangeCost;
+  const annualTireCost = mp24Inputs.tireSetsPerYear * mp24Inputs.tireCostPerSet;
+  const totalAnnualCost = annualLaborCost
+    + annualFuelCost
+    + mp24Inputs.annualMaintenance
+    + annualTireCost
+    + mp24Inputs.autoInsurance
+    + annualOilCost;
+  const costPerHour = mp24Inputs.annualHours > 0 ? totalAnnualCost / mp24Inputs.annualHours : 0;
+  const hourlyBillRate = mp24Inputs.returnOnSalesPct >= 100
+    ? 0
+    : costPerHour / (1 - (mp24Inputs.returnOnSalesPct / 100));
+
+  return {
+    employerCostHourly,
+    annualLaborCost,
+    milesPerDay,
+    milesPerYear,
+    gallonsPerYear,
+    annualFuelCost,
+    oilChangesPerYear,
+    annualOilCost,
+    annualTireCost,
+    totalAnnualCost,
+    costPerHour,
+    hourlyBillRate,
+  };
 }
 
-function resetToDefaults(){
-  Object.entries(DEFAULTS).forEach(([k,v])=>{ const el=document.getElementById(k); if(el) el.value=v; });
-  document.getElementById('scenarioName').value='24-hour|24';
-  calculate();
+function mp24ResultRow(label, value, className = '') {
+  return `
+    <div class="mp24-row ${className}">
+      <span>${label}</span>
+      <strong>${value}</strong>
+    </div>
+  `;
 }
 
-function downloadPDF(){
-  window.print();
+function mp24RenderResults() {
+  const results = mp24Calculate();
+  const resultsEl = mp24ById('mp24Results');
+
+  resultsEl.innerHTML = [
+    mp24ResultRow('1. Employer Cost Per Hour', mp24Money(results.employerCostHourly)),
+    mp24ResultRow('2. Annual Labor Cost', mp24Money(results.annualLaborCost)),
+    mp24ResultRow('3. Miles Per Day', mp24Number(results.milesPerDay, 0)),
+    mp24ResultRow('4. Miles Per Year', mp24Number(results.milesPerYear, 0)),
+    mp24ResultRow('5. Gallons Per Year', mp24Number(results.gallonsPerYear, 0)),
+    mp24ResultRow('6. Annual Fuel Cost', mp24Money(results.annualFuelCost)),
+    mp24ResultRow('7. Annual Maintenance / Repair', mp24Money(mp24Inputs.annualMaintenance)),
+    mp24ResultRow('8. Annual Tire Cost', mp24Money(results.annualTireCost)),
+    mp24ResultRow('9. Auto Insurance', mp24Money(mp24Inputs.autoInsurance)),
+    mp24ResultRow('10. Oil Changes / Year', `${mp24Number(results.oilChangesPerYear, 0)} (${mp24Money(results.annualOilCost)})`),
+    mp24ResultRow('11. Total Annual Cost', mp24Money(results.totalAnnualCost), 'mp24-row-dark'),
+    mp24ResultRow('12. Cost Per Hour', mp24Money(results.costPerHour)),
+    mp24ResultRow('13. Hourly Bill Rate', mp24Money(results.hourlyBillRate), 'mp24-row-success'),
+  ].join('');
+
+  window.__gasqMobilePatrol = {
+    inputs: { ...mp24Inputs },
+    results,
+  };
 }
 
-function sendEmail(){
-  const email = document.getElementById('emailAddr').value;
-  if(!email){ alert('Please enter an email address first.'); return; }
-  alert('PDF report would be emailed to: ' + email);
+function mp24RenderInputs() {
+  const grid = mp24ById('mp24InputGrid');
+  grid.innerHTML = '';
+
+  MP24_FIELDS.forEach(([label, key, placeholder]) => {
+    const col = document.createElement('div');
+    col.className = 'col-sm-6';
+    col.innerHTML = `
+      <label class="mp24-label" for="mp24-${key}">${label}</label>
+      <input
+        id="mp24-${key}"
+        type="number"
+        step="any"
+        class="mp24-input"
+        value="${mp24Inputs[key] ?? 0}"
+        placeholder="${placeholder}"
+      />
+      <div class="mp24-hint">${placeholder}</div>
+    `;
+    grid.appendChild(col);
+  });
+
+  grid.querySelectorAll('input').forEach((input) => {
+    input.addEventListener('input', () => {
+      mp24ReadInputsFromDom();
+      mp24RenderResults();
+      mp24PersistLocal();
+      mp24ScheduleReportPersist();
+    });
+  });
 }
 
-let mpTimer = null;
-function scheduleCalculate(){ clearTimeout(mpTimer); mpTimer = setTimeout(calculate, 350); }
+function mp24PersistLocal() {
+  try {
+    window.localStorage.setItem(MP24_STORAGE_KEY, JSON.stringify(mp24Inputs));
+  } catch (error) {
+    console.warn('Unable to save mobile patrol calculator state.', error);
+  }
+}
+
+function mp24LoadLocal() {
+  try {
+    const raw = window.localStorage.getItem(MP24_STORAGE_KEY);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (error) {
+    console.warn('Unable to restore mobile patrol calculator state.', error);
+  }
+
+  return null;
+}
+
+function mp24LoadSavedScenario() {
+  const meta = window.__gasqCalculatorState?.scenario?.meta || {};
+  const map = {
+    baselinePayRate: meta.baselinePayRate,
+    divisor: meta.divisor,
+    annualHours: meta.annualHours,
+    mph: meta.mph,
+    hoursPerDay: meta.hoursPerDay,
+    mpg: meta.mpg,
+    fuelCostPerGallon: meta.fuelCostPerGallon,
+    annualMaintenance: meta.annualMaintenance,
+    tireSetsPerYear: meta.tireSetsPerYear,
+    tireCostPerSet: meta.tireCostPerSet,
+    autoInsurance: meta.autoInsurance,
+    oilChangeIntervalMiles: meta.oilChangeIntervalMiles,
+    oilChangeCost: meta.oilChangeCost,
+    returnOnSalesPct: meta.returnOnSalesPct,
+  };
+
+  const filled = Object.values(map).some((value) => value !== undefined && value !== null);
+  return filled ? map : null;
+}
+
+function mp24ScenarioPayload() {
+  return {
+    meta: { ...mp24Inputs },
+  };
+}
+
+function mp24ResultPayload() {
+  return {
+    kpis: { ...mp24Calculate() },
+  };
+}
+
+async function mp24PersistReportPayload() {
+  const response = await fetch(MP24_REPORT_PAYLOAD_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+    },
+    body: JSON.stringify({
+      type: MP24_REPORT_TYPE,
+      scenario: mp24ScenarioPayload(),
+      result: mp24ResultPayload(),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('We could not prepare the mobile patrol report right now.');
+  }
+}
+
+function mp24ScheduleReportPersist() {
+  clearTimeout(mp24PersistTimer);
+  mp24PersistTimer = setTimeout(async () => {
+    try {
+      await mp24PersistReportPayload();
+    } catch (error) {
+      console.error(error);
+    }
+  }, 350);
+}
+
+function mp24Reset() {
+  mp24Inputs = { ...MP24_DEFAULTS };
+  mp24RenderInputs();
+  mp24RenderResults();
+  mp24PersistLocal();
+  mp24ScheduleReportPersist();
+  mp24ShowStatus('success', 'Mobile patrol calculator reset to defaults.');
+}
+
+async function mp24DownloadReport() {
+  try {
+    await mp24PersistReportPayload();
+    window.location.href = MP24_REPORT_DOWNLOAD_URL;
+  } catch (error) {
+    mp24ShowStatus('danger', error.message || 'Unable to prepare the PDF right now.');
+  }
+}
+
+async function mp24EmailReport() {
+  const email = mp24ById('mp24Email').value.trim();
+  if (!email) {
+    mp24ShowStatus('warning', 'Enter an email address before sending the report.');
+    return;
+  }
+
+  try {
+    await mp24PersistReportPayload();
+    mp24ById('mp24EmailTarget').value = email;
+    mp24ById('mp24EmailForm').submit();
+  } catch (error) {
+    mp24ShowStatus('danger', error.message || 'Unable to prepare the email report right now.');
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-  hydrateSavedState();
-  document.querySelectorAll('input,select,textarea').forEach(el => el.addEventListener('input', scheduleCalculate));
-  calculate();
-});
-</script>
-@if(!empty($mpMapsKey))
-<script>
-window._mpGoogleMapsLoaded = false;
-
-window.handleMpGoogleMapsLoadError = function (message) {
-  var errorEl = document.getElementById('mp-route-map-error');
-  var mapEl = document.getElementById('mp-route-map');
-  var summaryEl = document.getElementById('mp-route-summary');
-  if (errorEl) {
-    errorEl.classList.remove('d-none');
-    if (message) {
-      errorEl.textContent = message;
-    }
-  }
-  if (mapEl) {
-    mapEl.style.display = 'none';
-  }
-  if (summaryEl && message) {
-    summaryEl.textContent = message;
-  }
-};
-
-window.gm_authFailure = function () {
-  window.handleMpGoogleMapsLoadError(
-    'Google Maps rejected the API key for this deployed site. Verify the key is in the correct Google Cloud project, billing is active, and the project is allowed to use Maps JavaScript API, Places API, and Directions API.'
-  );
-};
-
-window.initMobilePatrolMap = function () {
-  var mapEl = document.getElementById('mp-route-map');
-  if (!mapEl || !window.google || !google.maps) {
-    return;
-  }
-  window._mpGoogleMapsLoaded = true;
-  var map = new google.maps.Map(mapEl, {
-    center: { lat: 39.8283, lng: -98.5795 },
-    zoom: 4,
-  });
-  var directionsRenderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers: false });
-  var directionsService = new google.maps.DirectionsService();
-  var inputA = document.getElementById('mp-route-origin');
-  var inputB = document.getElementById('mp-route-dest');
-  if (!inputA || !inputB || !google.maps.places) {
-    return;
-  }
-  var state = { placeA: null, placeB: null };
-  var acA = new google.maps.places.Autocomplete(inputA, { fields: ['formatted_address', 'geometry', 'name'] });
-  var acB = new google.maps.places.Autocomplete(inputB, { fields: ['formatted_address', 'geometry', 'name'] });
-  acA.addListener('place_changed', function () {
-    state.placeA = acA.getPlace();
-  });
-  acB.addListener('place_changed', function () {
-    state.placeB = acB.getPlace();
-  });
-  window._mpPatrolRoute = {
-    map: map,
-    directionsRenderer: directionsRenderer,
-    directionsService: directionsService,
-    state: state,
+  mp24Inputs = {
+    ...MP24_DEFAULTS,
+    ...(mp24LoadLocal() || {}),
+    ...(mp24LoadSavedScenario() || {}),
   };
-};
 
-window.applyMpRouteMiles = function () {
-  var ctx = window._mpPatrolRoute;
-  if (!ctx || !window.google) {
-    return;
-  }
-  var a = ctx.state.placeA;
-  var b = ctx.state.placeB;
-  if (!a || !b || !a.geometry || !a.geometry.location || !b.geometry || !b.geometry.location) {
-    window.alert('Select both patrol addresses from the dropdown suggestions.');
-    return;
-  }
-  var roundTripEl = document.getElementById('mp-route-roundtrip');
-  var roundTrip = roundTripEl ? roundTripEl.checked : true;
-  ctx.directionsService.route(
-    {
-      origin: a.geometry.location,
-      destination: b.geometry.location,
-      travelMode: google.maps.TravelMode.DRIVING,
-    },
-    function (result, status) {
-      var summary = document.getElementById('mp-route-summary');
-      if (status !== 'OK' || !result.routes || !result.routes[0]) {
-        if (summary) {
-          summary.textContent = 'Could not get driving directions: ' + status + '. Enable Directions API for your key.';
-        } else {
-          window.alert('Could not get driving directions: ' + status);
-        }
-        return;
-      }
-      ctx.directionsRenderer.setDirections(result);
-      var leg = result.routes[0].legs[0];
-      var milesOneWay = leg.distance.value / 1609.344;
-      var milesDay = roundTrip ? milesOneWay * 2 : milesOneWay;
-      var mpInput = document.getElementById('milesDrivenPerDay');
-      if (mpInput) {
-        mpInput.value = milesDay.toFixed(1);
-      }
-      if (summary) {
-        summary.textContent =
-          'Route: ' +
-          leg.distance.text +
-          ' one-way · Applied ' +
-          milesDay.toFixed(1) +
-          ' mi to “Miles driven per day”' +
-          (roundTrip ? ' (round trip).' : ' (one-way).');
-      }
-      if (typeof calculate === 'function') {
-        calculate();
-      }
-    }
-  );
-};
-</script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ $mpMapsKey }}&libraries=places&callback=initMobilePatrolMap" async defer onerror="window.handleMpGoogleMapsLoadError && window.handleMpGoogleMapsLoadError('Google Maps failed to load. Check the deployed browser API key and referrer restrictions for this domain.')"></script>
-<script>
-window.addEventListener('load', function () {
-  window.setTimeout(function () {
-    if (!window._mpGoogleMapsLoaded) {
-      window.handleMpGoogleMapsLoadError(
-        'Google Maps did not initialize. If you see ProjectDeniedMapError in the console, the browser key is present but the Google Cloud project, billing, or API enablement is denying this site.'
-      );
-    }
-  }, 4000);
+  mp24RenderInputs();
+  mp24RenderResults();
+  mp24ScheduleReportPersist();
+
+  mp24ById('mp24ResetButton').addEventListener('click', mp24Reset);
+  mp24ById('mp24PrintButton').addEventListener('click', () => window.print());
+  mp24ById('mp24DownloadButton').addEventListener('click', mp24DownloadReport);
+  mp24ById('mp24EmailButton').addEventListener('click', mp24EmailReport);
 });
 </script>
-@endif
 @endpush
