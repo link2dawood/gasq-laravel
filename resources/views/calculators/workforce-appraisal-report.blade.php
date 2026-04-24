@@ -621,7 +621,6 @@
 
         <ul class="nav gasq-wa-page-links mb-3 gasq-wa-no-print">
           <li class="nav-item"><a class="nav-link {{ $pageKey === 'full-report' ? 'active' : '' }}" href="{{ route('workforce-appraisal-report.index') }}"><i class="fa fa-briefcase"></i><span>Workforce Report</span></a></li>
-          <li class="nav-item"><a class="nav-link {{ $pageKey === 'cfo' ? 'active' : '' }}" href="{{ route('cfo-bill-rate-breakdown.index') }}"><i class="fa fa-table"></i><span>CFO Bill Rate</span></a></li>
           <li class="nav-item"><a class="nav-link {{ $pageKey === 'posts' ? 'active' : '' }}" href="{{ route('post-position-summary.index') }}"><i class="fa fa-users"></i><span>Post Position</span></a></li>
           <li class="nav-item"><a class="nav-link {{ $pageKey === 'appraisal' ? 'active' : '' }}" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale"></i><span>Appraisal Summary</span></a></li>
         </ul>

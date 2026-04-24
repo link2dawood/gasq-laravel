@@ -31,7 +31,7 @@
                 <p class="text-gasq-muted small mb-3">
                     Publish scope, coverage, and evaluation criteria so vendors respond on one platform.
                 </p>
-                <a class="btn btn-sm btn-outline-primary" href="{{ url('/gasq-tco-calculator') }}">TCO preview</a>
+                <a class="btn btn-sm btn-outline-primary" href="{{ route('instant-estimator.index') }}">Instant estimator</a>
             </x-card>
         </div>
         <div class="col-md-4">

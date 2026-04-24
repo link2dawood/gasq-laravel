@@ -89,9 +89,6 @@
       </div>
     </div>
     <div class="d-flex flex-wrap gap-2">
-      <a href="{{ route('mobile-patrol-comparison') }}" class="btn btn-outline-primary btn-sm">
-        <i class="fa fa-code-compare me-1"></i> Compare Scenarios
-      </a>
       <button class="btn btn-outline-secondary btn-sm" onclick="resetToDefaults()">
         <i class="fa fa-rotate me-1"></i> Reset
       </button>

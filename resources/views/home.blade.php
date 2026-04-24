@@ -219,29 +219,11 @@
           </a>
         </div>
         <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/mobile-patrol-comparison') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-code-compare"></i></div>
-            <div>
-              <div class="action-title">Mobile Patrol Comparison</div>
-              <div class="action-desc">Side-by-side patrol analysis</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
           <a href="{{ url('/budget-calculator') }}" class="gasq-action-card">
             <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-piggy-bank"></i></div>
             <div>
               <div class="action-title">Budget Calculator</div>
               <div class="action-desc">Annual security budget planning</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/mobile-patrol-analysis') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-map-marked-alt"></i></div>
-            <div>
-              <div class="action-title">Mobile Patrol Analysis</div>
-              <div class="action-desc">Detailed patrol cost breakdown</div>
             </div>
           </a>
         </div>
@@ -257,15 +239,6 @@
         </div>
       </div>
       <div class="row g-3">
-        <div class="col-md-6 col-lg-3">
-          <a href="{{ url('/gasq-tco-calculator') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-chart-area"></i></div>
-            <div>
-              <div class="action-title">GASQ TCO</div>
-              <div class="action-desc">Total cost of ownership</div>
-            </div>
-          </a>
-        </div>
         <div class="col-md-6 col-lg-3">
           <a href="{{ url('/government-contract-calculator') }}" class="gasq-action-card">
             <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-landmark"></i></div>

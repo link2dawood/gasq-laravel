@@ -158,31 +158,11 @@
                 </a>
             </div>
             <div class="col-md-6 col-xl-4">
-                <a href="{{ route('mobile-patrol-comparison') }}" class="calc-card">
-                    <div class="calc-card-icon"><i class="fa fa-code-compare"></i></div>
-                    <div class="calc-card-body">
-                        <div class="calc-card-title">Mobile Patrol Comparison</div>
-                        <div class="calc-card-desc">Compare dedicated guard vs patrol service cost models.</div>
-                    </div>
-                    <i class="fa fa-arrow-right calc-card-arrow"></i>
-                </a>
-            </div>
-            <div class="col-md-6 col-xl-4">
                 <a href="{{ route('mobile-patrol-hit-calculator.index') }}" class="calc-card">
                     <div class="calc-card-icon"><i class="fa fa-bullseye"></i></div>
                     <div class="calc-card-body">
                         <div class="calc-card-title">Mobile Patrol Hit Calculator</div>
                         <div class="calc-card-desc">Determine cost per check and optimal patrol frequency.</div>
-                    </div>
-                    <i class="fa fa-arrow-right calc-card-arrow"></i>
-                </a>
-            </div>
-            <div class="col-md-6 col-xl-4">
-                <a href="{{ route('mobile-patrol-analysis.index') }}" class="calc-card">
-                    <div class="calc-card-icon"><i class="fa fa-route"></i></div>
-                    <div class="calc-card-body">
-                        <div class="calc-card-title">Mobile Patrol Analysis</div>
-                        <div class="calc-card-desc">Full route-based coverage analysis with visit density metrics.</div>
                     </div>
                     <i class="fa fa-arrow-right calc-card-arrow"></i>
                 </a>
@@ -194,16 +174,6 @@
         <div class="mb-5">
         <h5 class="calc-group-label">Full TCO Suite</h5>
         <div class="row g-3">
-            <div class="col-md-6 col-xl-4">
-                <a href="{{ route('gasq-tco-calculator.index') }}" class="calc-card">
-                    <div class="calc-card-icon"><i class="fa fa-table"></i></div>
-                    <div class="calc-card-body">
-                        <div class="calc-card-title">GASQ TCO Calculator</div>
-                        <div class="calc-card-desc">Full total cost of ownership analysis across all labor and overhead components.</div>
-                    </div>
-                    <i class="fa fa-arrow-right calc-card-arrow"></i>
-                </a>
-            </div>
             <div class="col-md-6 col-xl-4">
                 <a href="{{ route('government-contract-calculator.index') }}" class="calc-card">
                     <div class="calc-card-icon"><i class="fa fa-landmark"></i></div>
@@ -227,16 +197,6 @@
                     <div class="calc-card-body">
                         <div class="calc-card-title">Workforce Appraisal Report</div>
                         <div class="calc-card-desc">Full appraisal across all workforce tabs including labor build-up and cost stack.</div>
-                    </div>
-                    <i class="fa fa-arrow-right calc-card-arrow"></i>
-                </a>
-            </div>
-            <div class="col-md-6 col-xl-4">
-                <a href="{{ route('cfo-bill-rate-breakdown.index') }}" class="calc-card">
-                    <div class="calc-card-icon"><i class="fa fa-percent"></i></div>
-                    <div class="calc-card-body">
-                        <div class="calc-card-title">CFO Bill Rate Breakdown</div>
-                        <div class="calc-card-desc">Executive-level bill rate decomposition for finance and procurement review.</div>
                     </div>
                     <i class="fa fa-arrow-right calc-card-arrow"></i>
                 </a>

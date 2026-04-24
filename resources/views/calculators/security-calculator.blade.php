@@ -73,13 +73,6 @@
                     'href' => route('government-contract-calculator.index'),
                     'access' => 'Public',
                 ],
-                [
-                    'title' => 'GASQ TCO Calculator',
-                    'subtitle' => 'Public page',
-                    'description' => 'Compare vendor total cost of ownership versus GASQ should-cost rates.',
-                    'href' => route('gasq-tco-calculator.index'),
-                    'access' => 'Public',
-                ],
             ],
         ],
         [
@@ -94,24 +87,10 @@
                     'access' => 'Protected',
                 ],
                 [
-                    'title' => 'Mobile Patrol Comparison',
-                    'subtitle' => 'Scenario comparison',
-                    'description' => 'Compare two patrol scenarios side by side with live delta results.',
-                    'href' => route('mobile-patrol-comparison'),
-                    'access' => 'Protected',
-                ],
-                [
                     'title' => 'Mobile Patrol Hit Calculator',
                     'subtitle' => 'Per-hit model',
                     'description' => 'Estimate patrol hit pricing, unit economics, and billable impact.',
                     'href' => route('mobile-patrol-hit-calculator.index'),
-                    'access' => 'Protected',
-                ],
-                [
-                    'title' => 'Mobile Patrol Analysis',
-                    'subtitle' => 'Fleet analysis',
-                    'description' => 'Review monthly and annual fleet performance with live analysis dashboards.',
-                    'href' => route('mobile-patrol-analysis.index'),
                     'access' => 'Protected',
                 ],
             ],
@@ -125,13 +104,6 @@
                     'subtitle' => 'All tabs',
                     'description' => 'Open the complete workforce appraisal workspace with every report tab.',
                     'href' => route('workforce-appraisal-report.index'),
-                    'access' => 'Protected',
-                ],
-                [
-                    'title' => 'CFO Bill Rate Breakdown',
-                    'subtitle' => 'Focused tab',
-                    'description' => 'Jump directly to the CFO bill rate breakdown tab.',
-                    'href' => route('cfo-bill-rate-breakdown.index'),
                     'access' => 'Protected',
                 ],
                 [
