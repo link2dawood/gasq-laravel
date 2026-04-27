@@ -1,283 +1,397 @@
 @extends('layouts.app')
-
-@section('title', 'Mobile Patrol Hit Calculator')
+@section('title', 'Mobile Patrol Hit Service Calculator')
 @section('header_variant', 'dashboard')
 
 @push('styles')
 <style>
-  .mphc-shell {
+  .mphc2-page {
+    min-height: calc(100vh - 5rem);
     background:
-      radial-gradient(circle at top right, rgba(6, 45, 121, 0.08), transparent 30%),
-      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      radial-gradient(circle at top left, rgba(6, 45, 121, 0.07), transparent 28rem),
+      linear-gradient(180deg, #f3f5f8 0%, #eef2f7 100%);
   }
-  .mphc-sidebar {
-    background: linear-gradient(180deg, #fbfcff 0%, #f2f5fb 100%);
+  .mphc2-hero {
+    border-radius: 1.75rem;
+    background: #050505;
+    color: #fff;
+    padding: 2rem;
+    box-shadow: 0 24px 48px -24px rgba(0,0,0,.45);
   }
-  .mphc-sticky {
-    position: sticky;
-    top: 1.25rem;
+  .mphc2-card {
+    border-radius: 1.5rem;
+    background: rgba(255,255,255,.96);
+    border: 1px solid rgba(15,23,42,.06);
+    box-shadow: 0 18px 36px -28px rgba(15,23,42,.28);
   }
-  .mphc-kicker {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gasq-muted);
-  }
-  .mphc-section + .mphc-section {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(15, 23, 42, 0.08);
-  }
-  .mphc-panel {
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 1rem;
-    background: #fff;
-  }
-  .mphc-panel-muted {
-    background: rgba(6, 45, 121, 0.04);
-  }
-  .mphc-stat {
-    border: 1px solid rgba(6, 45, 121, 0.08);
-    border-radius: 1rem;
-    padding: 1rem;
-    background: #fff;
-  }
-  .mphc-stat-label {
-    font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--gasq-muted);
-  }
-  .mphc-stat-value {
-    font-size: 1.55rem;
+  .mphc2-section-title {
+    font-size: 1.1rem;
     font-weight: 700;
-    color: var(--gasq-primary);
-    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+    color: #111827;
   }
-  .mphc-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 999px;
-    background: rgba(6, 45, 121, 0.08);
-    color: var(--gasq-primary);
-    font-size: 0.78rem;
+  .mphc2-sub-title {
+    font-size: .85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #062d79;
+    margin: 1.25rem 0 .65rem;
+  }
+  .mphc2-sub-title:first-child { margin-top: 0; }
+  .mphc2-label {
+    display: block;
+    font-size: .85rem;
     font-weight: 600;
+    color: #1f2937;
+    margin-bottom: .4rem;
   }
-  .mphc-mono {
-    font-variant-numeric: tabular-nums;
+  .mphc2-input {
+    width: 100%;
+    border-radius: .85rem;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    padding: .75rem 1rem;
+    font-size: .92rem;
+    color: #111827;
+    transition: border-color .15s ease, box-shadow .15s ease;
   }
-  @media (max-width: 1199.98px) {
-    .mphc-sticky {
-      position: static;
-    }
+  .mphc2-input:focus {
+    outline: none;
+    border-color: #062d79;
+    box-shadow: 0 0 0 3px rgba(6,45,121,.1);
+  }
+  .mphc2-input[readonly] {
+    background: #f3f5f8;
+    color: #6b7280;
+    cursor: default;
+  }
+  .mphc2-hint { margin-top: .35rem; font-size: .75rem; color: #6b7280; }
+  .mphc2-divider { border: none; border-top: 1px solid rgba(15,23,42,.08); margin: 1.25rem 0; }
+
+  /* Stat cards */
+  .mphc2-results { display: grid; gap: .75rem; }
+  .mphc2-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .mphc2-stat {
+    border-radius: 1.1rem;
+    padding: 1rem 1.1rem;
+    background: #f7f8fa;
+  }
+  .mphc2-stat-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; font-weight: 700; margin-bottom: .35rem; }
+  .mphc2-stat-value { font-size: 1.45rem; font-weight: 700; color: #062d79; font-variant-numeric: tabular-nums; }
+  .mphc2-stat-sub { font-size: .75rem; color: #6b7280; margin-top: .2rem; }
+
+  .mphc2-stat-hero {
+    border-radius: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background: #062d79;
+    color: #fff;
+    text-align: center;
+  }
+  .mphc2-stat-hero .mphc2-stat-label { color: rgba(255,255,255,.65); }
+  .mphc2-stat-hero .mphc2-stat-value { font-size: 2.4rem; color: #fff; }
+  .mphc2-stat-hero .mphc2-stat-sub { color: rgba(255,255,255,.6); }
+
+  /* Result rows */
+  .mphc2-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-radius: .85rem;
+    padding: .75rem 1rem;
+    background: #f7f8fa;
+    font-size: .88rem;
+    color: #111827;
+  }
+  .mphc2-row strong { font-variant-numeric: tabular-nums; }
+  .mphc2-row-dark { background: #050505; color: #fff; }
+  .mphc2-row-dark strong { color: #fff; }
+  .mphc2-row-success { background: #ecfdf3; color: #065f46; }
+  .mphc2-row-success strong { color: #065f46; }
+
+  /* Actions */
+  .mphc2-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+  .mphc2-email { min-width: 200px; flex: 1 1 220px; }
+
+  @media (max-width: 575.98px) {
+    .mphc2-stat-grid { grid-template-columns: 1fr; }
   }
 </style>
 @endpush
 
 @section('content')
-<div class="min-vh-100 py-4 px-3 px-md-4" style="background:var(--gasq-background)">
+<div class="mphc2-page py-4 py-md-5 px-3 px-md-4">
   <div class="container-xl">
 
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
-      <div class="d-flex align-items-center gap-3">
-        <a href="{{ route('mobile-patrol-calculator') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
-        <div>
-          <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
-            <i class="fa fa-bullseye text-primary"></i> Mobile Patrol Hit Calculator
-          </h1>
-          <div class="text-gasq-muted small">Shared input rail with live cost-per-hit and bill-per-hit outputs.</div>
-        </div>
-      </div>
-      <div class="d-flex flex-wrap gap-2 d-print-none">
-        <button class="btn btn-outline-secondary btn-sm" onclick="resetDefaults()"><i class="fa fa-rotate me-1"></i> Reset</button>
-        <button class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
+    <div class="d-flex align-items-start gap-3 mb-4">
+      <a href="{{ url()->previous() }}" class="mp24-back" style="width:2.75rem;height:2.75rem;border-radius:.9rem;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(15,23,42,.12);background:rgba(255,255,255,.8);color:#062d79;text-decoration:none;">
+        <i class="fa fa-arrow-left"></i>
+      </a>
+      <div>
+        <div class="text-uppercase small fw-semibold text-gasq-muted" style="letter-spacing:.08em">Patrol Calculator</div>
+        <h1 class="h2 fw-bold mb-0">Mobile Patrol Hit Service Calculator</h1>
       </div>
     </div>
 
-    <div class="card gasq-card mphc-shell overflow-hidden">
-      <div class="card-body p-0">
-        <div class="row g-0">
-          <div class="col-xl-4 border-end mphc-sidebar">
-            <div class="p-3 p-md-4 mphc-sticky">
-              <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-                <div>
-                  <div class="mphc-kicker mb-2">Shared Inputs</div>
-                  <h2 class="h4 fw-bold mb-2">Hit Model Controls</h2>
-                  <p class="small text-gasq-muted mb-0">Daily coverage, hits, vehicle assumptions, and labor inputs all live here and update the results workspace on the right in real time.</p>
-                </div>
-                <span class="mphc-chip"><i class="fa fa-bolt"></i> Live</span>
-              </div>
+    <div class="mphc2-hero mb-4">
+      <h2 class="h3 fw-semibold mb-2">Hit Service Pricing Calculator</h2>
+      <p class="mb-0 text-white-50" style="max-width:56rem;">
+        Price patrol checks by service type and frequency. Enter minutes per check, labor rates, overhead, G&amp;A, and markup
+        to generate a per-check sell price with weekly, monthly, and annual revenue totals.
+      </p>
+    </div>
 
-              <div class="mphc-section">
-                <h5 class="fw-semibold d-flex align-items-center gap-2 mb-3">
-                  <i class="fa fa-calendar-days text-primary"></i> Service Volume
-                </h5>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Days / year</label>
-                    <input type="number" id="i_days" class="form-control form-control-sm" value="365" min="1" step="1">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Hours / day</label>
-                    <input type="number" id="i_hours" class="form-control form-control-sm" value="24" min="0" step="0.25">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-medium">Hits / day</label>
-                    <input type="number" id="i_hits" class="form-control form-control-sm" value="180" min="0" step="1">
-                    <div class="form-text">Stops or checkpoints completed per day.</div>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-medium">Markup %</label>
-                    <input type="number" id="i_markup" class="form-control form-control-sm" value="27" min="0" step="0.1">
-                  </div>
-                </div>
-              </div>
+    <div id="mphc2Status" class="alert d-none mb-4" role="alert"></div>
 
-              <div class="mphc-section">
-                <h5 class="fw-semibold d-flex align-items-center gap-2 mb-3">
-                  <i class="fa fa-route text-primary"></i> Vehicle &amp; Operating
-                </h5>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Miles / day</label>
-                    <input type="number" id="i_miles" class="form-control form-control-sm" value="360" min="0" step="1">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Cost / mile ($)</label>
-                    <input type="number" id="i_cpm" class="form-control form-control-sm" value="0.67" min="0" step="0.01">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-medium">Equipment / day ($)</label>
-                    <input type="number" id="i_equip" class="form-control form-control-sm" value="0" min="0" step="0.01">
-                  </div>
-                </div>
-              </div>
+    {{-- Contact / Site Info --}}
+    <div class="mphc2-card p-4 p-md-5 mb-4">
+      <h2 class="mphc2-section-title mb-1">Client &amp; Site Information</h2>
+      <p class="text-gasq-muted small mb-4">This information will appear on the PDF report.</p>
+      <div class="row g-3">
+        <div class="col-sm-6 col-lg-4">
+          <label class="mphc2-label" for="mphc2-siteName">Site Name</label>
+          <input id="mphc2-siteName" type="text" class="mphc2-input" placeholder="Demo Property">
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <label class="mphc2-label" for="mphc2-contactName">Contact Name</label>
+          <input id="mphc2-contactName" type="text" class="mphc2-input" placeholder="Full name">
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <label class="mphc2-label" for="mphc2-companyName">Company Name</label>
+          <input id="mphc2-companyName" type="text" class="mphc2-input" placeholder="Company">
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <label class="mphc2-label" for="mphc2-contactAddress">Address</label>
+          <input id="mphc2-contactAddress" type="text" class="mphc2-input" placeholder="Street address, city, state">
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <label class="mphc2-label" for="mphc2-contactEmail">Email</label>
+          <input id="mphc2-contactEmail" type="email" class="mphc2-input" placeholder="Email address">
+        </div>
+        <div class="col-sm-6 col-lg-4">
+          <label class="mphc2-label" for="mphc2-contactPhone">Phone</label>
+          <input id="mphc2-contactPhone" type="tel" class="mphc2-input" placeholder="Phone number">
+        </div>
+      </div>
+    </div>
 
-              <div class="mphc-section">
-                <h5 class="fw-semibold d-flex align-items-center gap-2 mb-3">
-                  <i class="fa fa-user-clock text-primary"></i> Labor
-                </h5>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Regular hrs/day</label>
-                    <input type="number" id="i_regH" class="form-control form-control-sm" value="24" min="0" step="0.25">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">OT hrs/day</label>
-                    <input type="number" id="i_otH" class="form-control form-control-sm" value="0" min="0" step="0.25">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">Regular $/hr</label>
-                    <input type="number" id="i_regR" class="form-control form-control-sm" value="30.00" min="0" step="0.01">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-medium">OT $/hr</label>
-                    <input type="number" id="i_otR" class="form-control form-control-sm" value="45.00" min="0" step="0.01">
-                  </div>
-                </div>
-              </div>
+    <div class="row g-4">
 
-              <div class="mphc-section">
-                <div class="alert alert-light border gasq-border small mb-0">
-                  Uses a single-day model: <span class="fw-semibold">daily cost</span> is divided by <span class="fw-semibold">hits/day</span> to estimate <span class="fw-semibold">cost per hit</span>.
-                </div>
-              </div>
+      {{-- Left: Inputs --}}
+      <div class="col-lg-5">
+        <div class="mphc2-card p-4 p-md-5 h-100">
+          <h2 class="mphc2-section-title mb-4">Inputs</h2>
+
+          <div class="mphc2-sub-title">Service Volume</div>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-serviceType">Service Type</label>
+              <select id="mphc2-serviceType" class="mphc2-input">
+                <option>Drive By Check</option>
+                <option selected>Park &amp; Walk Thru Check</option>
+                <option>Park &amp; Make Contact Check</option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-weeklyChecks">Weekly Checks</label>
+              <select id="mphc2-weeklyChecks" class="mphc2-input">
+                <option value="21">21</option>
+                <option value="28">28</option>
+                <option value="42">42</option>
+                <option value="56">56</option>
+                <option value="84" selected>84</option>
+              </select>
+              <div class="mphc2-hint">Checks per week at this site</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-weeksPerYear">Weeks Per Year</label>
+              <input id="mphc2-weeksPerYear" type="number" class="mphc2-input" value="52" min="1" max="52" step="1">
+              <div class="mphc2-hint">1–52 weeks</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label">Checks Per Day</label>
+              <input type="text" class="mphc2-input" id="mphc2-checksPerDay" readonly>
+              <div class="mphc2-hint">Auto: weekly ÷ 7</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-minutesOnSite">Avg Minutes On Site</label>
+              <input id="mphc2-minutesOnSite" type="number" class="mphc2-input" value="15" min="0" step="1">
+              <div class="mphc2-hint">Per check</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-minutesTravel">Avg Travel / Dispatch Min</label>
+              <input id="mphc2-minutesTravel" type="number" class="mphc2-input" value="10" min="0" step="1">
+              <div class="mphc2-hint">Per check</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label">Total Billable Minutes</label>
+              <input type="text" class="mphc2-input" id="mphc2-totalMinutes" readonly>
+              <div class="mphc2-hint">Auto: on-site + travel</div>
             </div>
           </div>
 
-          <div class="col-xl-8">
-            <div class="p-3 p-md-4">
-              <div class="alert alert-light border gasq-border small d-print-none mb-3" id="mphc_error" style="display:none"></div>
+          <hr class="mphc2-divider">
+          <div class="mphc2-sub-title">Labor &amp; Operating Costs</div>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-officerPayRate">Officer Pay Rate / Hr</label>
+              <input id="mphc2-officerPayRate" type="number" class="mphc2-input" value="25" min="0" step="0.01">
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-payrollBurdenPct">Payroll Burden %</label>
+              <input id="mphc2-payrollBurdenPct" type="number" class="mphc2-input" value="30" min="0" step="0.1">
+              <div class="mphc2-hint">Example: 30 for 30%</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label">Fully Burdened Rate / Hr</label>
+              <input type="text" class="mphc2-input" id="mphc2-burdenedRate" readonly>
+              <div class="mphc2-hint">Auto: pay × (1 + burden)</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-vehicleCostPerHour">Vehicle Cost / Hr</label>
+              <input id="mphc2-vehicleCostPerHour" type="number" class="mphc2-input" value="6.50" min="0" step="0.01">
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-fuelCostPerHour">Fuel Cost / Hr</label>
+              <input id="mphc2-fuelCostPerHour" type="number" class="mphc2-input" value="2.25" min="0" step="0.01">
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-equipmentCostPerHour">Equipment / Tech / Hr</label>
+              <input id="mphc2-equipmentCostPerHour" type="number" class="mphc2-input" value="1.75" min="0" step="0.01">
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-supervisionCostPerHour">Supervision / Admin / Hr</label>
+              <input id="mphc2-supervisionCostPerHour" type="number" class="mphc2-input" value="4.00" min="0" step="0.01">
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label">Total Operating Cost / Hr</label>
+              <input type="text" class="mphc2-input" id="mphc2-totalOpCost" readonly>
+              <div class="mphc2-hint">Auto: all cost categories</div>
+            </div>
+          </div>
 
-              <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                  <div class="mphc-stat">
-                    <div class="mphc-stat-label mb-2">Cost Per Hit</div>
-                    <div class="mphc-stat-value" id="o_costPerHit">$0.0000</div>
-                    <div class="small text-gasq-muted">Total daily cost divided by hits per day</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mphc-stat">
-                    <div class="mphc-stat-label mb-2">Bill Per Hit</div>
-                    <div class="mphc-stat-value" id="o_billPerHit">$0.0000</div>
-                    <div class="small text-gasq-muted">Includes current markup assumptions</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mphc-stat">
-                    <div class="mphc-stat-label mb-2">Bill Rate Per Hour</div>
-                    <div class="mphc-stat-value" id="o_billHr">$0.00/hr</div>
-                    <div class="small text-gasq-muted">Bill per day divided by hours per day</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mphc-stat">
-                    <div class="mphc-stat-label mb-2">Annual Bill Total</div>
-                    <div class="mphc-stat-value" id="o_annualBill">$0.00</div>
-                    <div class="small text-gasq-muted">Bill per day multiplied by days per year</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-                <div>
-                  <div class="mphc-kicker mb-1">Results Workspace</div>
-                  <h3 class="h5 fw-bold mb-0">Live Hit Calculator Outputs</h3>
-                </div>
-                <div class="small text-gasq-muted">The full daily and annual hit breakdown below updates from the shared input rail on the left.</div>
-              </div>
-
-              <div class="row g-3">
-                <div class="col-lg-5">
-                  <div class="mphc-panel mphc-panel-muted p-3 h-100">
-                    <div class="small text-gasq-muted mb-1">Decision Snapshot</div>
-                    <h4 class="fw-bold mb-3">Per-hit pricing at current patrol assumptions</h4>
-                    <div class="d-flex justify-content-between mb-2">
-                      <span class="text-gasq-muted small">Hits per day</span>
-                      <span class="fw-medium mphc-mono" id="o_hitsDay">0</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                      <span class="text-gasq-muted small">Annual hits</span>
-                      <span class="fw-medium mphc-mono" id="o_hitsAnnual">0</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                      <span class="text-gasq-muted small">Hours per day</span>
-                      <span class="fw-medium mphc-mono" id="o_hoursDay">0</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-lg-7">
-                  <div class="mphc-panel p-0 overflow-hidden">
-                    <div class="p-3 border-bottom">
-                      <h5 class="fw-semibold mb-0">Breakdown</h5>
-                    </div>
-                    <div class="table-responsive">
-                      <table class="table table-striped align-middle mb-0 small">
-                        <tbody>
-                          <tr><td class="text-gasq-muted">Mileage cost / day</td><td class="text-end mphc-mono" id="o_mileage">$0.00</td></tr>
-                          <tr><td class="text-gasq-muted">Operating cost / day</td><td class="text-end mphc-mono" id="o_operating">$0.00</td></tr>
-                          <tr><td class="text-gasq-muted">Labor cost / day</td><td class="text-end mphc-mono" id="o_labor">$0.00</td></tr>
-                          <tr class="fw-semibold"><td>Total cost / day</td><td class="text-end mphc-mono" id="o_total">$0.00</td></tr>
-                          <tr><td class="text-gasq-muted">Bill / day (with markup)</td><td class="text-end mphc-mono text-primary" id="o_billDay">$0.00</td></tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-4">
-                <x-report-actions reportType="mobile-patrol-hit-calculator" />
-              </div>
+          <hr class="mphc2-divider">
+          <div class="mphc2-sub-title">Pricing</div>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-overheadPct">Overhead %</label>
+              <input id="mphc2-overheadPct" type="number" class="mphc2-input" value="10" min="0" step="0.1">
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-gaPct">G&amp;A %</label>
+              <input id="mphc2-gaPct" type="number" class="mphc2-input" value="10" min="0" step="0.1">
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-profitPct">Profit / Markup %</label>
+              <input id="mphc2-profitPct" type="number" class="mphc2-input" value="10" min="0" step="0.1">
+            </div>
+            <div class="col-sm-6">
+              <label class="mphc2-label" for="mphc2-minimumCharge">Minimum Charge / Check</label>
+              <input id="mphc2-minimumCharge" type="number" class="mphc2-input" value="23" min="0" step="0.01">
+            </div>
+            <div class="col-sm-12">
+              <label class="mphc2-label" for="mphc2-addOnCost">Add-On Cost / Check</label>
+              <input id="mphc2-addOnCost" type="number" class="mphc2-input" value="0" min="0" step="0.01">
+              <div class="mphc2-hint">Optional fixed add-on per patrol check</div>
             </div>
           </div>
         </div>
       </div>
+
+      {{-- Right: Results --}}
+      <div class="col-lg-7">
+        <div class="d-grid gap-4">
+
+          {{-- Hero stat --}}
+          <div class="mphc2-stat-hero">
+            <div class="mphc2-stat-label">Final Sell Price Per Check</div>
+            <div class="mphc2-stat-value" id="mphc2-out-pricePerCheck">$0.00</div>
+            <div class="mphc2-stat-sub">Includes overhead, G&amp;A, profit &amp; minimum floor</div>
+          </div>
+
+          {{-- Volume stats --}}
+          <div class="mphc2-stat-grid">
+            <div class="mphc2-stat">
+              <div class="mphc2-stat-label">Total Weekly Checks</div>
+              <div class="mphc2-stat-value" id="mphc2-out-weeklyChecks">0</div>
+            </div>
+            <div class="mphc2-stat">
+              <div class="mphc2-stat-label">Total Monthly Checks</div>
+              <div class="mphc2-stat-value" id="mphc2-out-monthlyChecks">0</div>
+            </div>
+            <div class="mphc2-stat">
+              <div class="mphc2-stat-label">Total Annual Checks</div>
+              <div class="mphc2-stat-value" id="mphc2-out-annualChecks">0</div>
+            </div>
+            <div class="mphc2-stat">
+              <div class="mphc2-stat-label">Profit Margin</div>
+              <div class="mphc2-stat-value" id="mphc2-out-profitMargin">0%</div>
+            </div>
+          </div>
+
+          {{-- Revenue breakdown --}}
+          <div class="mphc2-card p-4">
+            <h3 class="mphc2-section-title mb-3">Revenue Summary</h3>
+            <div class="mphc2-results">
+              <div class="mphc2-row"><span>Total Weekly Revenue</span><strong id="mphc2-out-weeklyRevenue">$0.00</strong></div>
+              <div class="mphc2-row"><span>Total Monthly Revenue</span><strong id="mphc2-out-monthlyRevenue">$0.00</strong></div>
+              <div class="mphc2-row mphc2-row-dark"><span>Total Annual Revenue</span><strong id="mphc2-out-annualRevenue">$0.00</strong></div>
+            </div>
+          </div>
+
+          {{-- Cost breakdown --}}
+          <div class="mphc2-card p-4">
+            <h3 class="mphc2-section-title mb-3">Per-Check Cost Breakdown</h3>
+            <div class="mphc2-results">
+              <div class="mphc2-row"><span>Hours Per Check</span><strong id="mphc2-out-hoursPerCheck">0.00</strong></div>
+              <div class="mphc2-row"><span>Base Cost Per Check</span><strong id="mphc2-out-baseCost">$0.00</strong></div>
+              <div class="mphc2-row"><span>Overhead Per Check</span><strong id="mphc2-out-overhead">$0.00</strong></div>
+              <div class="mphc2-row"><span>G&amp;A Per Check</span><strong id="mphc2-out-ga">$0.00</strong></div>
+              <div class="mphc2-row"><span>Subtotal Cost Per Check</span><strong id="mphc2-out-subtotal">$0.00</strong></div>
+              <div class="mphc2-row"><span>Add-On Per Check</span><strong id="mphc2-out-addon">$0.00</strong></div>
+              <div class="mphc2-row"><span>Pre-Markup Cost Per Check</span><strong id="mphc2-out-preMkup">$0.00</strong></div>
+              <div class="mphc2-row"><span>Profit Amount Per Check</span><strong id="mphc2-out-profitAmt">$0.00</strong></div>
+              <div class="mphc2-row mphc2-row-success"><span>Final Sell Price Per Check</span><strong id="mphc2-out-finalPrice">$0.00</strong></div>
+            </div>
+          </div>
+
+          {{-- Report Actions --}}
+          <div class="mphc2-card p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+              <div>
+                <h3 class="mphc2-section-title mb-1">Report Actions</h3>
+                <p class="text-gasq-muted small mb-0">Download the PDF or email this report to your customer.</p>
+              </div>
+            </div>
+            <div class="mphc2-actions">
+              <button type="button" class="btn btn-outline-secondary" id="mphc2ResetBtn">
+                <i class="fa fa-rotate me-1"></i> Reset
+              </button>
+              <button type="button" class="btn btn-outline-primary" id="mphc2DownloadBtn">
+                <i class="fa fa-download me-1"></i> Download PDF
+              </button>
+              <input
+                type="email"
+                id="mphc2Email"
+                class="form-control mphc2-email"
+                placeholder="Email address"
+                value="{{ auth()->user()?->email }}"
+              >
+              <button type="button" class="btn btn-primary" id="mphc2EmailBtn">
+                <i class="fa fa-envelope me-1"></i> Email Report
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
+
+    <form id="mphc2EmailForm" action="{{ route('reports.email') }}" method="POST" class="d-none">
+      @csrf
+      <input type="hidden" name="type" value="mobile-patrol-hit-calculator">
+      <input type="hidden" name="email" id="mphc2EmailTarget" value="{{ auth()->user()?->email }}">
+    </form>
 
   </div>
 </div>
@@ -285,146 +399,271 @@
 
 @push('scripts')
 <script>
-(() => {
-  const savedScenario = window.__gasqCalculatorState?.scenario || null;
-  const url = @json(route('backend.standalone.v24.compute', ['type' => 'mobile-patrol-hit-calculator']));
-  const DEFAULTS = {
-    i_days: 365,
-    i_hours: 24,
-    i_hits: 180,
-    i_markup: 27,
-    i_miles: 360,
-    i_cpm: 0.67,
-    i_equip: 0,
-    i_regH: 24,
-    i_otH: 0,
-    i_regR: 30.00,
-    i_otR: 45.00,
-  };
-  let t = null;
-  let inflight = null;
+const MPHC2_STORAGE_KEY = 'gasq.mobilePatrolHits.v2';
+const MPHC2_REPORT_TYPE = 'mobile-patrol-hit-calculator';
+const MPHC2_REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'mobile-patrol-hit-calculator']));
+const MPHC2_REPORT_PAYLOAD_URL = @json(route('backend.report-payload.store'));
 
-  const money = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
-  const money4 = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:4,maximumFractionDigits:4}).format(n||0);
-  const number0 = (n) => new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(n||0);
-  const number2 = (n) => new Intl.NumberFormat('en-US',{minimumFractionDigits:0,maximumFractionDigits:2}).format(n||0);
-  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
-  const setError = (msg) => {
-    const el = document.getElementById('mphc_error');
-    if(!el) return;
-    if(!msg){ el.style.display='none'; el.textContent=''; return; }
-    el.style.display='';
-    el.textContent = msg;
-  };
+const MPHC2_DEFAULTS = {
+  siteName: '',
+  serviceType: 'Park & Walk Thru Check',
+  weeklyChecks: 84,
+  weeksPerYear: 52,
+  minutesOnSite: 15,
+  minutesTravel: 10,
+  officerPayRate: 25,
+  payrollBurdenPct: 30,
+  vehicleCostPerHour: 6.50,
+  fuelCostPerHour: 2.25,
+  equipmentCostPerHour: 1.75,
+  supervisionCostPerHour: 4.00,
+  overheadPct: 10,
+  gaPct: 10,
+  profitPct: 10,
+  minimumCharge: 23,
+  addOnCost: 0,
+  contactName: '',
+  companyName: '',
+  contactAddress: '',
+  contactEmail: '',
+  contactPhone: '',
+};
 
-  function payload(){
-    return {
-      version: 'v24',
-      scenario: { meta: {
-        daysPerYear: parseFloat(i_days.value)||365,
-        hoursPerDay: parseFloat(i_hours.value)||0,
-        hitsPerDay: parseFloat(i_hits.value)||0,
-        markupPct: parseFloat(i_markup.value)||0,
-        milesPerDay: parseFloat(i_miles.value)||0,
-        costPerMile: parseFloat(i_cpm.value)||0,
-        equipmentPerDay: parseFloat(i_equip.value)||0,
-        regularHoursPerDay: parseFloat(i_regH.value)||0,
-        overtimeHoursPerDay: parseFloat(i_otH.value)||0,
-        regularHourlyUsd: parseFloat(i_regR.value)||0,
-        overtimeHourlyUsd: parseFloat(i_otR.value)||0,
-      } }
-    };
-  }
+let mphc2Inputs = { ...MPHC2_DEFAULTS };
+let mphc2PersistTimer = null;
 
-  function hydrateSavedState(){
-    const meta = savedScenario?.meta || {};
-    const map = {
-      i_days: meta.daysPerYear,
-      i_hours: meta.hoursPerDay,
-      i_hits: meta.hitsPerDay,
-      i_markup: meta.markupPct,
-      i_miles: meta.milesPerDay,
-      i_cpm: meta.costPerMile,
-      i_equip: meta.equipmentPerDay,
-      i_regH: meta.regularHoursPerDay,
-      i_otH: meta.overtimeHoursPerDay,
-      i_regR: meta.regularHourlyUsd,
-      i_otR: meta.overtimeHourlyUsd,
-    };
+function $id(id) { return document.getElementById(id); }
 
-    Object.entries(map).forEach(([id, value]) => {
-      if(value === undefined || value === null) return;
-      const el = document.getElementById(id);
-      if(el) el.value = value;
-    });
-  }
+const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtN = (v, d = 2) => new Intl.NumberFormat('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v || 0);
+const money = (v) => fmt.format(v || 0);
+const pct = (v) => fmtN(v * 100, 2) + '%';
 
-  async function compute(){
-    try{
-      setError('');
-      if(inflight){ inflight.abort(); }
-      inflight = new AbortController();
-      const res = await fetch(url, {
-        method: 'POST',
-        signal: inflight.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        },
-        body: JSON.stringify(payload())
-      });
-      let data = null;
-      try { data = await res.json(); } catch { data = null; }
-      if(!res.ok || !data || !data.ok){
-        if (data && data.error === 'insufficient_credits') {
-          setError(data.message || 'Not enough credits to run this calculator.');
-        } else {
-          setError('Unable to calculate right now. Please try again.');
-        }
-        console.error(data);
-        return;
-      }
-      const k = data.kpis || {};
-      const d = k.daily || {};
-      const a = k.annual || {};
-      set('o_mileage', money(d.mileageCost));
-      set('o_operating', money(d.operatingCost));
-      set('o_labor', money(d.laborCost));
-      set('o_total', money(d.totalCost));
-      set('o_billDay', money(d.billPerDay));
-      set('o_costPerHit', money4(d.costPerHit));
-      set('o_billPerHit', money4(d.billPerHit));
-      set('o_billHr', money(d.billRatePerHour) + '/hr');
-      set('o_annualBill', money(a.billTotal));
-      set('o_hitsAnnual', number0(a.totalHits));
-      set('o_hitsDay', number0(parseFloat(i_hits.value) || 0));
-      set('o_hoursDay', number2(parseFloat(i_hours.value) || 0));
-    }catch(e){
-      if(e?.name === 'AbortError') return;
-      console.error(e);
-      setError('Unable to calculate right now. Please try again.');
-    }
-  }
+function mphc2Read() {
+  const textIds = ['siteName','serviceType','contactName','companyName','contactAddress','contactEmail','contactPhone'];
+  const numIds = ['weeklyChecks','weeksPerYear','minutesOnSite','minutesTravel','officerPayRate','payrollBurdenPct',
+    'vehicleCostPerHour','fuelCostPerHour','equipmentCostPerHour','supervisionCostPerHour',
+    'overheadPct','gaPct','profitPct','minimumCharge','addOnCost'];
 
-  function schedule(){
-    clearTimeout(t);
-    t = setTimeout(compute, 250);
-  }
-
-  window.resetDefaults = function(){
-    Object.entries(DEFAULTS).forEach(([id, value]) => {
-      const el = document.getElementById(id);
-      if (el) el.value = value;
-    });
-    compute();
-  };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    hydrateSavedState();
-    document.querySelectorAll('input').forEach(el => el.addEventListener('input', schedule));
-    compute();
+  textIds.forEach(k => {
+    const el = $id(`mphc2-${k}`);
+    if (el) mphc2Inputs[k] = el.value;
   });
-})();
+  numIds.forEach(k => {
+    const el = $id(`mphc2-${k}`);
+    if (el) mphc2Inputs[k] = parseFloat(el.value) || 0;
+  });
+}
+
+function mphc2Calculate() {
+  const i = mphc2Inputs;
+  const weeklyChecks = Math.max(0, parseInt(i.weeklyChecks) || 0);
+  const weeksPerYear = Math.max(1, i.weeksPerYear);
+  const checksPerDay = weeklyChecks / 7;
+  const totalMinutes = (i.minutesOnSite || 0) + (i.minutesTravel || 0);
+  const hoursPerCheck = totalMinutes / 60;
+
+  const burdenedRate = i.officerPayRate * (1 + (i.payrollBurdenPct / 100));
+  const totalOpCostPerHour = burdenedRate + i.vehicleCostPerHour + i.fuelCostPerHour + i.equipmentCostPerHour + i.supervisionCostPerHour;
+
+  const baseCostPerCheck = totalOpCostPerHour * hoursPerCheck;
+  const overheadPerCheck = baseCostPerCheck * (i.overheadPct / 100);
+  const gaPerCheck = baseCostPerCheck * (i.gaPct / 100);
+  const subtotalCostPerCheck = baseCostPerCheck + overheadPerCheck + gaPerCheck;
+  const preMkupCostPerCheck = subtotalCostPerCheck + (i.addOnCost || 0);
+  const profitAmountPerCheck = preMkupCostPerCheck * (i.profitPct / 100);
+  const calculatedPricePerCheck = preMkupCostPerCheck + profitAmountPerCheck;
+  const finalPricePerCheck = Math.max(calculatedPricePerCheck, i.minimumCharge || 0);
+
+  const monthlyChecks = weeklyChecks * (weeksPerYear / 12);
+  const annualChecks = weeklyChecks * weeksPerYear;
+  const weeklyRevenue = finalPricePerCheck * weeklyChecks;
+  const monthlyRevenue = finalPricePerCheck * monthlyChecks;
+  const annualRevenue = finalPricePerCheck * annualChecks;
+
+  const grossProfitPerCheck = finalPricePerCheck - preMkupCostPerCheck;
+  const profitMarginPct = finalPricePerCheck > 0 ? grossProfitPerCheck / finalPricePerCheck : 0;
+
+  return {
+    checksPerDay, totalMinutes, hoursPerCheck, burdenedRate, totalOpCostPerHour,
+    baseCostPerCheck, overheadPerCheck, gaPerCheck, subtotalCostPerCheck,
+    preMkupCostPerCheck, profitAmountPerCheck, calculatedPricePerCheck, finalPricePerCheck,
+    weeklyChecks, monthlyChecks, annualChecks,
+    weeklyRevenue, monthlyRevenue, annualRevenue,
+    grossProfitPerCheck, profitMarginPct,
+  };
+}
+
+function mphc2Render() {
+  const r = mphc2Calculate();
+
+  // Auto-computed readonly fields
+  const setVal = (id, v) => { const el = $id(id); if (el) el.value = v; };
+  setVal('mphc2-checksPerDay', fmtN(r.checksPerDay, 2));
+  setVal('mphc2-totalMinutes', fmtN(r.totalMinutes, 0) + ' min');
+  setVal('mphc2-burdenedRate', money(r.burdenedRate) + '/hr');
+  setVal('mphc2-totalOpCost', money(r.totalOpCostPerHour) + '/hr');
+
+  // Stat cards
+  const set = (id, v) => { const el = $id(id); if (el) el.textContent = v; };
+  set('mphc2-out-pricePerCheck', money(r.finalPricePerCheck));
+  set('mphc2-out-weeklyChecks', fmtN(r.weeklyChecks, 0));
+  set('mphc2-out-monthlyChecks', fmtN(r.monthlyChecks, 0));
+  set('mphc2-out-annualChecks', fmtN(r.annualChecks, 0));
+  set('mphc2-out-profitMargin', pct(r.profitMarginPct));
+
+  // Revenue
+  set('mphc2-out-weeklyRevenue', money(r.weeklyRevenue));
+  set('mphc2-out-monthlyRevenue', money(r.monthlyRevenue));
+  set('mphc2-out-annualRevenue', money(r.annualRevenue));
+
+  // Breakdown
+  set('mphc2-out-hoursPerCheck', fmtN(r.hoursPerCheck, 4) + ' hrs');
+  set('mphc2-out-baseCost', money(r.baseCostPerCheck));
+  set('mphc2-out-overhead', money(r.overheadPerCheck));
+  set('mphc2-out-ga', money(r.gaPerCheck));
+  set('mphc2-out-subtotal', money(r.subtotalCostPerCheck));
+  set('mphc2-out-addon', money(mphc2Inputs.addOnCost));
+  set('mphc2-out-preMkup', money(r.preMkupCostPerCheck));
+  set('mphc2-out-profitAmt', money(r.profitAmountPerCheck));
+  set('mphc2-out-finalPrice', money(r.finalPricePerCheck));
+
+  return r;
+}
+
+function mphc2PersistLocal() {
+  try { localStorage.setItem(MPHC2_STORAGE_KEY, JSON.stringify(mphc2Inputs)); } catch {}
+}
+
+function mphc2LoadLocal() {
+  try {
+    const raw = localStorage.getItem(MPHC2_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function mphc2HydrateInputs() {
+  const textIds = ['siteName','serviceType','contactName','companyName','contactAddress','contactEmail','contactPhone'];
+  textIds.forEach(k => {
+    const el = $id(`mphc2-${k}`);
+    if (el && mphc2Inputs[k] !== undefined) {
+      if (el.tagName === 'SELECT') {
+        [...el.options].forEach(o => { o.selected = o.value === mphc2Inputs[k] || o.text === mphc2Inputs[k]; });
+      } else {
+        el.value = mphc2Inputs[k];
+      }
+    }
+  });
+  const numIds = ['weeklyChecks','weeksPerYear','minutesOnSite','minutesTravel','officerPayRate','payrollBurdenPct',
+    'vehicleCostPerHour','fuelCostPerHour','equipmentCostPerHour','supervisionCostPerHour',
+    'overheadPct','gaPct','profitPct','minimumCharge','addOnCost'];
+  numIds.forEach(k => {
+    const el = $id(`mphc2-${k}`);
+    if (el && mphc2Inputs[k] !== undefined) {
+      if (el.tagName === 'SELECT') {
+        [...el.options].forEach(o => { o.selected = parseFloat(o.value) === mphc2Inputs[k]; });
+      } else {
+        el.value = mphc2Inputs[k];
+      }
+    }
+  });
+}
+
+function mphc2ScenarioPayload(results) {
+  return {
+    meta: { ...mphc2Inputs },
+    contact: {
+      siteName: mphc2Inputs.siteName,
+      contactName: mphc2Inputs.contactName,
+      companyName: mphc2Inputs.companyName,
+      contactAddress: mphc2Inputs.contactAddress,
+      contactEmail: mphc2Inputs.contactEmail,
+      contactPhone: mphc2Inputs.contactPhone,
+    },
+  };
+}
+
+function mphc2ResultPayload(results) {
+  return { kpis: results };
+}
+
+function mphc2ShowStatus(type, msg) {
+  const el = $id('mphc2Status');
+  if (!el) return;
+  if (!msg) { el.className = 'alert d-none mb-4'; el.textContent = ''; return; }
+  el.className = `alert alert-${type} mb-4`;
+  el.textContent = msg;
+}
+
+async function mphc2PersistReportPayload(results) {
+  const res = await fetch(MPHC2_REPORT_PAYLOAD_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+    },
+    body: JSON.stringify({
+      type: MPHC2_REPORT_TYPE,
+      scenario: mphc2ScenarioPayload(results),
+      result: mphc2ResultPayload(results),
+    }),
+  });
+  if (!res.ok) throw new Error('Could not prepare the report right now.');
+}
+
+async function mphc2Download() {
+  try {
+    const results = mphc2Calculate();
+    await mphc2PersistReportPayload(results);
+    window.location.href = MPHC2_REPORT_DOWNLOAD_URL;
+  } catch (e) {
+    mphc2ShowStatus('danger', e.message || 'Unable to prepare the PDF right now.');
+  }
+}
+
+async function mphc2EmailReport() {
+  const email = $id('mphc2Email').value.trim();
+  if (!email) { mphc2ShowStatus('warning', 'Enter an email address before sending.'); return; }
+  try {
+    const results = mphc2Calculate();
+    await mphc2PersistReportPayload(results);
+    $id('mphc2EmailTarget').value = email;
+    $id('mphc2EmailForm').submit();
+  } catch (e) {
+    mphc2ShowStatus('danger', e.message || 'Unable to send the report right now.');
+  }
+}
+
+function mphc2Reset() {
+  mphc2Inputs = { ...MPHC2_DEFAULTS };
+  mphc2HydrateInputs();
+  mphc2Render();
+  mphc2PersistLocal();
+  mphc2ShowStatus('success', 'Calculator reset to defaults.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = mphc2LoadLocal();
+  mphc2Inputs = { ...MPHC2_DEFAULTS, ...(saved || {}) };
+  mphc2HydrateInputs();
+  mphc2Render();
+
+  document.querySelectorAll('[id^="mphc2-"]:not([readonly])').forEach(el => {
+    el.addEventListener('input', () => {
+      mphc2Read();
+      mphc2Render();
+      mphc2PersistLocal();
+      clearTimeout(mphc2PersistTimer);
+      mphc2PersistTimer = setTimeout(async () => {
+        try { await mphc2PersistReportPayload(mphc2Calculate()); } catch {}
+      }, 400);
+    });
+  });
+
+  $id('mphc2ResetBtn').addEventListener('click', mphc2Reset);
+  $id('mphc2DownloadBtn').addEventListener('click', mphc2Download);
+  $id('mphc2EmailBtn').addEventListener('click', mphc2EmailReport);
+});
 </script>
 @endpush

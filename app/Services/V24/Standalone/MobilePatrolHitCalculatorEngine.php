@@ -6,79 +6,73 @@ use Illuminate\Support\Arr;
 
 class MobilePatrolHitCalculatorEngine
 {
-    /**
-     * A lightweight single-scenario “per hit/stop” calculator.
-     *
-     * Inputs live under scenario.meta.* and default to a reasonable patrol demo.
-     *
-     * @param  array<string, mixed>  $scenario
-     * @return array<string, mixed>
-     */
     public function compute(array $scenario): array
     {
         $m = (array) ($scenario['meta'] ?? []);
 
-        $daysPerYear = max(1.0, (float) Arr::get($m, 'daysPerYear', 365));
-        $hoursPerDay = max(0.0, (float) Arr::get($m, 'hoursPerDay', 24));
-        $hitsPerDay = max(0.0, (float) Arr::get($m, 'hitsPerDay', 180));
+        $weeklyChecks          = max(0, (int)   Arr::get($m, 'weeklyChecks', 84));
+        $weeksPerYear          = max(1, (float)  Arr::get($m, 'weeksPerYear', 52));
+        $minutesOnSite         = max(0, (float)  Arr::get($m, 'minutesOnSite', 15));
+        $minutesTravel         = max(0, (float)  Arr::get($m, 'minutesTravel', 10));
+        $officerPayRate        = max(0, (float)  Arr::get($m, 'officerPayRate', 25));
+        $payrollBurdenPct      = max(0, (float)  Arr::get($m, 'payrollBurdenPct', 30)) / 100;
+        $vehicleCostPerHour    = max(0, (float)  Arr::get($m, 'vehicleCostPerHour', 6.50));
+        $fuelCostPerHour       = max(0, (float)  Arr::get($m, 'fuelCostPerHour', 2.25));
+        $equipmentCostPerHour  = max(0, (float)  Arr::get($m, 'equipmentCostPerHour', 1.75));
+        $supervisionCostPerHour= max(0, (float)  Arr::get($m, 'supervisionCostPerHour', 4.00));
+        $overheadPct           = max(0, (float)  Arr::get($m, 'overheadPct', 10)) / 100;
+        $gaPct                 = max(0, (float)  Arr::get($m, 'gaPct', 10)) / 100;
+        $profitPct             = max(0, (float)  Arr::get($m, 'profitPct', 10)) / 100;
+        $minimumCharge         = max(0, (float)  Arr::get($m, 'minimumCharge', 23));
+        $addOnCost             = max(0, (float)  Arr::get($m, 'addOnCost', 0));
 
-        $milesPerDay = max(0.0, (float) Arr::get($m, 'milesPerDay', 360));
-        $costPerMile = max(0.0, (float) Arr::get($m, 'costPerMile', 0.67));
-        $equipmentPerDay = max(0.0, (float) Arr::get($m, 'equipmentPerDay', 0));
+        $checksPerDay       = $weeklyChecks / 7;
+        $totalMinutes       = $minutesOnSite + $minutesTravel;
+        $hoursPerCheck      = $totalMinutes / 60;
 
-        $regularHoursPerDay = max(0.0, (float) Arr::get($m, 'regularHoursPerDay', $hoursPerDay));
-        $overtimeHoursPerDay = max(0.0, (float) Arr::get($m, 'overtimeHoursPerDay', 0));
+        $burdenedRate          = $officerPayRate * (1 + $payrollBurdenPct);
+        $totalOpCostPerHour    = $burdenedRate + $vehicleCostPerHour + $fuelCostPerHour + $equipmentCostPerHour + $supervisionCostPerHour;
 
-        $regularHourlyUsd = max(0.0, (float) Arr::get($m, 'regularHourlyUsd', 30.00));
-        $overtimeHourlyUsd = max(0.0, (float) Arr::get($m, 'overtimeHourlyUsd', 45.00));
+        $baseCostPerCheck      = $totalOpCostPerHour * $hoursPerCheck;
+        $overheadPerCheck      = $baseCostPerCheck * $overheadPct;
+        $gaPerCheck            = $baseCostPerCheck * $gaPct;
+        $subtotalCostPerCheck  = $baseCostPerCheck + $overheadPerCheck + $gaPerCheck;
+        $preMkupCostPerCheck   = $subtotalCostPerCheck + $addOnCost;
+        $profitAmountPerCheck  = $preMkupCostPerCheck * $profitPct;
+        $calculatedPrice       = $preMkupCostPerCheck + $profitAmountPerCheck;
+        $finalPricePerCheck    = max($calculatedPrice, $minimumCharge);
 
-        $markupPct = max(0.0, (float) Arr::get($m, 'markupPct', 27.0)) / 100.0;
+        $monthlyChecks  = $weeklyChecks * ($weeksPerYear / 12);
+        $annualChecks   = $weeklyChecks * $weeksPerYear;
+        $weeklyRevenue  = $finalPricePerCheck * $weeklyChecks;
+        $monthlyRevenue = $finalPricePerCheck * $monthlyChecks;
+        $annualRevenue  = $finalPricePerCheck * $annualChecks;
 
-        $mileageCostPerDay = $milesPerDay * $costPerMile;
-        $operatingCostPerDay = $mileageCostPerDay + $equipmentPerDay;
-        $laborCostPerDay = $regularHoursPerDay * $regularHourlyUsd + $overtimeHoursPerDay * $overtimeHourlyUsd;
-        $totalCostPerDay = $operatingCostPerDay + $laborCostPerDay;
-
-        $costPerHit = $hitsPerDay > 0 ? $totalCostPerDay / $hitsPerDay : 0.0;
-        $billRatePerHour = $hoursPerDay > 0 ? ($totalCostPerDay / $hoursPerDay) * (1 + $markupPct) : 0.0;
-        $billPerDay = $totalCostPerDay * (1 + $markupPct);
-        $billPerHit = $hitsPerDay > 0 ? $billPerDay / $hitsPerDay : 0.0;
-
-        $annual = fn (float $perDay) => $perDay * $daysPerYear;
+        $grossProfitPerCheck = $finalPricePerCheck - $preMkupCostPerCheck;
+        $profitMarginPct     = $finalPricePerCheck > 0 ? $grossProfitPerCheck / $finalPricePerCheck : 0;
 
         return [
-            'inputs' => [
-                'daysPerYear' => round($daysPerYear, 0),
-                'hoursPerDay' => round($hoursPerDay, 2),
-                'hitsPerDay' => round($hitsPerDay, 2),
-                'milesPerDay' => round($milesPerDay, 2),
-                'costPerMile' => round($costPerMile, 4),
-                'equipmentPerDay' => round($equipmentPerDay, 2),
-                'regularHoursPerDay' => round($regularHoursPerDay, 2),
-                'overtimeHoursPerDay' => round($overtimeHoursPerDay, 2),
-                'regularHourlyUsd' => round($regularHourlyUsd, 2),
-                'overtimeHourlyUsd' => round($overtimeHourlyUsd, 2),
-                'markupPct' => round($markupPct * 100.0, 2),
-            ],
-            'daily' => [
-                'mileageCost' => round($mileageCostPerDay, 2),
-                'operatingCost' => round($operatingCostPerDay, 2),
-                'laborCost' => round($laborCostPerDay, 2),
-                'totalCost' => round($totalCostPerDay, 2),
-                'costPerHit' => round($costPerHit, 4),
-                'billPerDay' => round($billPerDay, 2),
-                'billPerHit' => round($billPerHit, 4),
-                'billRatePerHour' => round($billRatePerHour, 2),
-            ],
-            'annual' => [
-                'operatingCost' => round($annual($operatingCostPerDay), 2),
-                'laborCost' => round($annual($laborCostPerDay), 2),
-                'totalCost' => round($annual($totalCostPerDay), 2),
-                'billTotal' => round($annual($billPerDay), 2),
-                'totalHits' => (int) round($hitsPerDay * $daysPerYear),
-            ],
-            'reference' => 'standalone:mobile-patrol-hit-calculator',
+            'checksPerDay'         => round($checksPerDay, 2),
+            'totalMinutes'         => round($totalMinutes, 2),
+            'hoursPerCheck'        => round($hoursPerCheck, 4),
+            'burdenedRate'         => round($burdenedRate, 2),
+            'totalOpCostPerHour'   => round($totalOpCostPerHour, 2),
+            'baseCostPerCheck'     => round($baseCostPerCheck, 4),
+            'overheadPerCheck'     => round($overheadPerCheck, 4),
+            'gaPerCheck'           => round($gaPerCheck, 4),
+            'subtotalCostPerCheck' => round($subtotalCostPerCheck, 4),
+            'preMkupCostPerCheck'  => round($preMkupCostPerCheck, 4),
+            'profitAmountPerCheck' => round($profitAmountPerCheck, 4),
+            'finalPricePerCheck'   => round($finalPricePerCheck, 2),
+            'weeklyChecks'         => $weeklyChecks,
+            'monthlyChecks'        => round($monthlyChecks, 2),
+            'annualChecks'         => round($annualChecks, 2),
+            'weeklyRevenue'        => round($weeklyRevenue, 2),
+            'monthlyRevenue'       => round($monthlyRevenue, 2),
+            'annualRevenue'        => round($annualRevenue, 2),
+            'grossProfitPerCheck'  => round($grossProfitPerCheck, 4),
+            'profitMarginPct'      => round($profitMarginPct, 6),
+            'reference'            => 'standalone:mobile-patrol-hit-calculator',
         ];
     }
 }
-

@@ -43,8 +43,8 @@ class ReportService
             'mobile-patrol' => 'pdf.mobile-patrol',
             'mobile-patrol-buyer' => 'pdf.mobile-patrol-buyer',
             'mobile-patrol-comparison' => 'pdf.mobile-patrol-comparison',
+            'mobile-patrol-hit-calculator' => 'pdf.mobile-patrol-hit-calculator',
             // Generic standalone calculators (server-rendered PDF from latest session payload)
-            'mobile-patrol-hit-calculator',
             'mobile-patrol-analysis',
             'gasq-tco-calculator',
             'government-contract-calculator',
