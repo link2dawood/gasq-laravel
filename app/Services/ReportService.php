@@ -41,6 +41,7 @@ class ReportService
             'contract-analysis' => 'pdf.contract-analysis',
             'security-billing' => 'pdf.security-billing',
             'mobile-patrol' => 'pdf.mobile-patrol',
+            'mobile-patrol-buyer' => 'pdf.mobile-patrol-buyer',
             'mobile-patrol-comparison' => 'pdf.mobile-patrol-comparison',
             // Generic standalone calculators (server-rendered PDF from latest session payload)
             'mobile-patrol-hit-calculator',

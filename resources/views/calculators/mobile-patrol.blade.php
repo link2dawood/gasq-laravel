@@ -176,6 +176,12 @@
 
     <div id="mobilePatrolStatus" class="alert d-none mb-4" role="alert"></div>
 
+    <div class="mp24-card p-4 p-md-5 mb-4">
+      <h2 class="mp24-section-title mb-1">Contact Information</h2>
+      <p class="text-gasq-muted small mb-4">This information will appear on the PDF report.</p>
+      <div class="row g-3" id="mp24ContactGrid"></div>
+    </div>
+
     <div class="row g-4">
       <div class="col-lg-6">
         <div class="mp24-card p-4 p-md-5 h-100">
@@ -191,6 +197,7 @@
             <div class="mp24-results" id="mp24Results"></div>
           </div>
 
+          @if(auth()->user()?->isAdmin())
           <div class="mp24-card p-4 p-md-5">
             <h3 class="mp24-section-title mb-3">Formula Notes</h3>
             <div class="mp24-note-list">
@@ -202,13 +209,13 @@
               <p><strong>Annual Fuel Cost</strong> = Gallons Per Year × Fuel Cost Per Gallon</p>
               <p><strong>Annual Tire Cost</strong> = Tire Sets Per Year × Tire Cost Per Set</p>
               <p><strong>Annual Oil Cost</strong> = Ceiling(Miles Per Year ÷ Oil Change Interval) × Oil Change Cost</p>
-              <p><strong>Total Annual Cost</strong> = Labor + Fuel + Maintenance + Tires + Insurance + Oil</p>
+              <p><strong>Total Annual Cost</strong> = Labor + Fuel + Maintenance + Tires + Auto Lease and Insurance + Oil</p>
               <p><strong>Return on Sales Amount</strong> = Total Annual Cost × Return on Sales %</p>
               <p><strong>Total Annual Cost + Return on Sales</strong> = Total Annual Cost + Return on Sales Amount</p>
-              <p><strong>Cost Per Hour</strong> = (Total Annual Cost + Return on Sales) ÷ Annual Hours</p>
-              <p><strong>Hourly Bill Rate</strong> = same as Cost Per Hour in this spreadsheet model</p>
+              <p><strong>Hourly Bill Rate</strong> = (Total Annual Cost + Return on Sales) ÷ Annual Hours</p>
             </div>
           </div>
+          @endif
 
           <div class="mp24-card p-4 p-md-5">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
@@ -224,8 +231,11 @@
               <button type="button" class="btn btn-outline-secondary" id="mp24PrintButton">
                 <i class="fa fa-print me-1"></i> Print
               </button>
-              <button type="button" class="btn btn-outline-primary" id="mp24DownloadButton">
-                <i class="fa fa-download me-1"></i> Download PDF
+              <button type="button" class="btn btn-outline-primary" id="mp24DownloadVendorButton">
+                <i class="fa fa-download me-1"></i> Vendor PDF
+              </button>
+              <button type="button" class="btn btn-outline-secondary" id="mp24DownloadBuyerButton">
+                <i class="fa fa-user me-1"></i> Buyer PDF
               </button>
               <input
                 type="email"
@@ -254,9 +264,10 @@
 
 @push('scripts')
 <script>
-const MP24_STORAGE_KEY = 'gasq.mobilePatrolFormula.v1';
+const MP24_STORAGE_KEY = 'gasq.mobilePatrolFormula.v2';
 const MP24_REPORT_TYPE = 'mobile-patrol';
 const MP24_REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'mobile-patrol']));
+const MP24_BUYER_REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'mobile-patrol-buyer']));
 const MP24_REPORT_PAYLOAD_URL = @json(route('backend.report-payload.store'));
 
 const MP24_DEFAULTS = {
@@ -287,13 +298,30 @@ const MP24_FIELDS = [
   ['Projected Annual Maintenance / Repair', 'annualMaintenance', 'Annual total'],
   ['Tire Sets Per Year', 'tireSetsPerYear', 'Default: 4'],
   ['Tire Cost Per Set', 'tireCostPerSet', 'Per set'],
-  ['Auto Insurance', 'autoInsurance', 'Annual total'],
+  ['Auto Lease and Insurance', 'autoInsurance', 'Annual total'],
   ['Oil Change Interval (Miles)', 'oilChangeIntervalMiles', 'Default: 7500'],
   ['Oil Change Cost', 'oilChangeCost', 'Default: 100'],
   ['Return on Sales %', 'returnOnSalesPct', 'Example: 0.25 or 25 for 25%'],
 ];
 
+const MP24_CONTACT_DEFAULTS = {
+  contactName: '',
+  companyName: '',
+  contactAddress: '',
+  contactEmail: '',
+  contactPhone: '',
+};
+
+const MP24_CONTACT_FIELDS = [
+  ['contactName',    'Contact Name',  'text',  'Full name'],
+  ['companyName',    'Company Name',  'text',  'Company'],
+  ['contactAddress', 'Address',       'text',  'Street address, city, state'],
+  ['contactEmail',   'Email',         'email', 'Email address'],
+  ['contactPhone',   'Phone',         'tel',   'Phone number'],
+];
+
 let mp24Inputs = { ...MP24_DEFAULTS };
+let mp24Contact = { ...MP24_CONTACT_DEFAULTS };
 let mp24PersistTimer = null;
 
 function mp24ById(id) {
@@ -422,13 +450,12 @@ function mp24RenderResults() {
     mp24ResultRow('6. Annual Fuel Cost', mp24Money(results.annualFuelCost)),
     mp24ResultRow('7. Annual Maintenance / Repair', mp24Money(mp24Inputs.annualMaintenance)),
     mp24ResultRow('8. Annual Tire Cost', mp24Money(results.annualTireCost)),
-    mp24ResultRow('9. Auto Insurance', mp24Money(mp24Inputs.autoInsurance)),
+    mp24ResultRow('9. Auto Lease and Insurance', mp24Money(mp24Inputs.autoInsurance)),
     mp24ResultRow('10. Oil Changes / Year', `${mp24Number(results.oilChangesPerYear, 0)} (${mp24Money(results.annualOilCost)})`),
     mp24ResultRow('11. Total Annual Cost', mp24Money(results.totalAnnualCost), 'mp24-row-dark'),
     mp24ResultRow(`12. Return on Sales Amount (${mp24Number(results.returnOnSalesPercentDisplay, 2)}%)`, mp24Money(results.returnOnSalesAmount)),
     mp24ResultRow('13. Total Annual Cost + Return on Sales', mp24Money(results.totalAnnualCostWithReturnOnSales), 'mp24-row-dark'),
-    mp24ResultRow('14. Cost Per Hour', mp24Money(results.costPerHour)),
-    mp24ResultRow('15. Hourly Bill Rate', mp24Money(results.hourlyBillRate), 'mp24-row-success'),
+    mp24ResultRow('14. Hourly Bill Rate', mp24Money(results.costPerHour), 'mp24-row-success'),
   ].join('');
 
   window.__gasqMobilePatrol = {
@@ -469,9 +496,33 @@ function mp24RenderInputs() {
   });
 }
 
+function mp24RenderContactFields() {
+  const grid = mp24ById('mp24ContactGrid');
+  grid.innerHTML = '';
+
+  MP24_CONTACT_FIELDS.forEach(([key, label, type, placeholder]) => {
+    const col = document.createElement('div');
+    col.className = 'col-sm-6';
+    col.innerHTML = `
+      <label class="mp24-label" for="mp24c-${key}">${label}</label>
+      <input id="mp24c-${key}" type="${type}" class="mp24-input" value="${mp24Contact[key] ?? ''}" placeholder="${placeholder}" />
+    `;
+    grid.appendChild(col);
+  });
+
+  grid.querySelectorAll('input').forEach((input) => {
+    const key = input.id.replace('mp24c-', '');
+    input.addEventListener('input', () => {
+      mp24Contact[key] = input.value;
+      mp24PersistLocal();
+      mp24ScheduleReportPersist();
+    });
+  });
+}
+
 function mp24PersistLocal() {
   try {
-    window.localStorage.setItem(MP24_STORAGE_KEY, JSON.stringify(mp24Inputs));
+    window.localStorage.setItem(MP24_STORAGE_KEY, JSON.stringify({ inputs: mp24Inputs, contact: mp24Contact }));
   } catch (error) {
     console.warn('Unable to save mobile patrol calculator state.', error);
   }
@@ -481,7 +532,11 @@ function mp24LoadLocal() {
   try {
     const raw = window.localStorage.getItem(MP24_STORAGE_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && parsed.inputs) {
+        return parsed;
+      }
+      return { inputs: parsed };
     }
   } catch (error) {
     console.warn('Unable to restore mobile patrol calculator state.', error);
@@ -516,6 +571,7 @@ function mp24LoadSavedScenario() {
 function mp24ScenarioPayload() {
   return {
     meta: { ...mp24Inputs },
+    contact: { ...mp24Contact },
   };
 }
 
@@ -558,17 +614,19 @@ function mp24ScheduleReportPersist() {
 
 function mp24Reset() {
   mp24Inputs = { ...MP24_DEFAULTS };
+  mp24Contact = { ...MP24_CONTACT_DEFAULTS };
   mp24RenderInputs();
+  mp24RenderContactFields();
   mp24RenderResults();
   mp24PersistLocal();
   mp24ScheduleReportPersist();
   mp24ShowStatus('success', 'Mobile patrol calculator reset to defaults.');
 }
 
-async function mp24DownloadReport() {
+async function mp24DownloadReport(url) {
   try {
     await mp24PersistReportPayload();
-    window.location.href = MP24_REPORT_DOWNLOAD_URL;
+    window.location.href = url;
   } catch (error) {
     mp24ShowStatus('danger', error.message || 'Unable to prepare the PDF right now.');
   }
@@ -591,19 +649,29 @@ async function mp24EmailReport() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const saved = mp24LoadLocal();
+  const savedScenario = mp24LoadSavedScenario();
+
   mp24Inputs = {
     ...MP24_DEFAULTS,
-    ...(mp24LoadLocal() || {}),
-    ...(mp24LoadSavedScenario() || {}),
+    ...(saved?.inputs || {}),
+    ...(savedScenario || {}),
   };
 
+  mp24Contact = {
+    ...MP24_CONTACT_DEFAULTS,
+    ...(saved?.contact || {}),
+  };
+
+  mp24RenderContactFields();
   mp24RenderInputs();
   mp24RenderResults();
   mp24ScheduleReportPersist();
 
   mp24ById('mp24ResetButton').addEventListener('click', mp24Reset);
   mp24ById('mp24PrintButton').addEventListener('click', () => window.print());
-  mp24ById('mp24DownloadButton').addEventListener('click', mp24DownloadReport);
+  mp24ById('mp24DownloadVendorButton').addEventListener('click', () => mp24DownloadReport(MP24_REPORT_DOWNLOAD_URL));
+  mp24ById('mp24DownloadBuyerButton').addEventListener('click', () => mp24DownloadReport(MP24_BUYER_REPORT_DOWNLOAD_URL));
   mp24ById('mp24EmailButton').addEventListener('click', mp24EmailReport);
 });
 </script>

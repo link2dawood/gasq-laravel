@@ -53,7 +53,7 @@ class ReportController extends Controller
     public function emailReport(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
-            'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
+            'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
             'email' => 'required|email',
         ]);
 
@@ -81,9 +81,12 @@ class ReportController extends Controller
             return null;
         }
 
+        // Buyer report shares data with the base vendor report type
+        $lookupType = $type === 'mobile-patrol-buyer' ? 'mobile-patrol' : $type;
+
         $payload = session('report_payload');
-        if ($payload && ($payload['type'] ?? null) === $type) {
-            return $payload;
+        if ($payload && ($payload['type'] ?? null) === $lookupType) {
+            return array_merge($payload, ['type' => $type]);
         }
 
         $user = $request->user();
@@ -93,7 +96,7 @@ class ReportController extends Controller
 
         /** @var CalculatorState|null $state */
         $state = $user->calculatorStates()
-            ->where('calculator_type', $type)
+            ->where('calculator_type', $lookupType)
             ->latest('last_ran_at')
             ->first();
 
@@ -102,9 +105,10 @@ class ReportController extends Controller
         }
 
         return [
-            'type' => $state->calculator_type,
+            'type' => $type,
             'scenario' => $state->scenario ?? [],
             'result' => $state->result ?? [],
+            'reportId' => $state->id,
         ];
     }
 }
