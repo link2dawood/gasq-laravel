@@ -25,7 +25,7 @@
     $rosPct   = (float)($kpis['returnOnSalesPercentDisplay'] ?? ($rosRate * 100));
 
     $reportNum   = 'GASQ ' . now()->format('Y-m-d') . '-' . str_pad(($reportId ?? rand(1,9999)), 4, '0', STR_PAD_LEFT);
-    $logoPath    = 'file://' . public_path('img/gasq-logo.png');
+    $logoPath    = 'file://' . public_path('images/site-logo.png');
 
     $cName    = trim($contact['contactName']    ?? '');
     $cCompany = trim($contact['companyName']    ?? '');

@@ -22,7 +22,7 @@
     $pct    = static fn ($v) => number_format((float)($v ?? 0) * 100, 2) . '%';
 
     $reportNum  = 'GASQ ' . now()->format('Y-m-d') . '-' . str_pad(($reportId ?? rand(1,9999)), 4, '0', STR_PAD_LEFT);
-    $logoPath   = 'file://' . public_path('img/gasq-logo.png');
+    $logoPath   = 'file://' . public_path('images/site-logo.png');
 
     $siteName   = trim($meta['siteName']         ?? $contact['siteName']    ?? '');
     $svcType    = trim($meta['serviceType']       ?? '');
@@ -251,7 +251,7 @@
   <tr><td style="background:#f4f6fb; border-left:4px solid #1e3558; padding:11px 16px;">
     <p style="font-size:10px; color:#374151; line-height:1.6;">
       This mobile patrol estimate is based on <strong style="color:#1e3558;">{{ $weeklyChecks }} weekly checks</strong>
-      over <strong style="color:#1e3558;">{{ (int)$weeksPerYear }} weeks per year</strong>{{ $siteName ? " at <strong style=\"color:#1e3558;\">{$siteName}</strong>" : '' }}.
+      over <strong style="color:#1e3558;">{{ (int)$weeksPerYear }} weeks per year</strong>@if($siteName) at <strong style="color:#1e3558;">{{ $siteName }}</strong>@endif.
       The selected service type is <strong style="color:#1e3558;">{{ $svcType ?: 'N/A' }}</strong>.
       The final sell price of <strong style="color:#1e3558;">{{ $money($finalPrice) }} per check</strong>
       reflects fully burdened labor, vehicle, fuel, equipment and supervision costs plus overhead, G&amp;A, and a
