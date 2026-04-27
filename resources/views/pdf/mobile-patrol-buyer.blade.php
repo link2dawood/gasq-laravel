@@ -1,79 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>GASQ Mobile Patrol – Buyer Report</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #1f2937; background: #fff; }
-
-        /* ── Header ─────────────────────────────────────────── */
-        .header {
-            background: #062d79;
-            color: #fff;
-            padding: 18px 24px;
-            display: table;
-            width: 100%;
-        }
-        .header-logo { display: table-cell; vertical-align: middle; width: 100px; }
-        .header-logo img { width: 80px; height: auto; }
-        .header-info { display: table-cell; vertical-align: middle; padding-left: 14px; }
-        .header-title { font-size: 16px; font-weight: bold; letter-spacing: 0.02em; }
-        .header-sub { font-size: 10px; color: rgba(255,255,255,0.72); margin-top: 3px; }
-        .header-meta { display: table-cell; vertical-align: middle; text-align: right; font-size: 9px; color: rgba(255,255,255,0.65); white-space: nowrap; }
-        .report-number { font-size: 11px; font-weight: bold; color: #fff; }
-
-        /* ── Accent bar ──────────────────────────────────────── */
-        .accent-bar { height: 4px; background: linear-gradient(90deg, #062d79 0%, #1a56db 100%); }
-
-        /* ── Contact block ──────────────────────────────────── */
-        .contact-block { padding: 14px 24px; background: #f3f5f8; border-bottom: 1px solid #dde3ed; display: table; width: 100%; }
-        .contact-col { display: table-cell; vertical-align: top; width: 50%; padding-right: 16px; }
-        .contact-col:last-child { padding-right: 0; }
-        .contact-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; font-weight: bold; margin-bottom: 3px; }
-        .contact-value { font-size: 11px; color: #111827; font-weight: bold; }
-        .contact-value-sm { font-size: 10px; color: #374151; }
-
-        /* ── Body ──────────────────────────────────────────── */
-        .body { padding: 32px 24px; }
-
-        /* ── Rate display ────────────────────────────────────── */
-        .rate-wrapper { text-align: center; padding: 40px 24px; }
-        .rate-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7280; font-weight: bold; margin-bottom: 12px; }
-        .rate-value { font-size: 56px; font-weight: bold; color: #062d79; letter-spacing: -0.02em; }
-        .rate-unit { font-size: 16px; color: #374151; margin-top: 6px; }
-        .rate-box {
-            border: 2px solid #062d79;
-            border-radius: 8px;
-            display: inline-block;
-            padding: 28px 48px;
-            background: #f0f5ff;
-        }
-        .rate-note {
-            margin-top: 20px;
-            font-size: 10px;
-            color: #6b7280;
-            font-style: italic;
-        }
-
-        /* ── Divider ─────────────────────────────────────────── */
-        .divider { border: none; border-top: 1px solid #e5e7eb; margin: 0 24px; }
-
-        /* ── Info table ──────────────────────────────────────── */
-        .info-section { padding: 16px 24px 0; }
-        .info-heading { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.07em; color: #062d79; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        td { padding: 6px 8px; border-bottom: 1px solid #e5e7eb; color: #374151; }
-        td.label-col { color: #6b7280; width: 50%; }
-        td.val { text-align: right; font-variant-numeric: tabular-nums; font-weight: bold; color: #111827; }
-
-        /* ── Badge ──────────────────────────────────────────── */
-        .badge-buyer { display: inline-block; background: #065f46; color: #fff; font-size: 8px; font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
-
-        /* ── Footer ─────────────────────────────────────────── */
-        .footer { margin-top: 32px; padding: 12px 24px; background: #f3f5f8; border-top: 2px solid #062d79; text-align: center; font-size: 9px; color: #6b7280; }
-        .footer strong { color: #062d79; }
-    </style>
+<meta charset="utf-8">
+<title>GASQ Mobile Patrol – Buyer Quote</title>
+<style>
+    body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #1a1a2e; margin: 0; padding: 0; background: #fff; }
+    table { border-collapse: collapse; }
+    td, th { padding: 0; margin: 0; }
+    p { margin: 0; padding: 0; }
+</style>
 </head>
 <body>
 @php
@@ -81,15 +16,16 @@
     $contact      = (array) ($scenario['contact'] ?? []);
     $kpis         = (array) ($result['kpis'] ?? $result ?? []);
 
-    $money = static fn ($v) => '$' . number_format((float) ($v ?? 0), 2);
-    $num   = static fn ($v, $d = 2) => number_format((float) ($v ?? 0), $d);
+    $money  = static fn ($v) => '$' . number_format((float)($v ?? 0), 2);
+    $moneyK = static fn ($v) => '$' . number_format((float)($v ?? 0), 0);
+    $num    = static fn ($v, $d = 2) => number_format((float)($v ?? 0), $d);
 
-    $rosInput = (float) ($scenarioMeta['returnOnSalesPct'] ?? 0);
-    $rosRate  = $rosInput > 1 ? ($rosInput / 100) : $rosInput;
-    $rosPct   = (float) ($kpis['returnOnSalesPercentDisplay'] ?? ($rosRate * 100));
+    $rosInput = (float)($scenarioMeta['returnOnSalesPct'] ?? 0);
+    $rosRate  = $rosInput > 1 ? $rosInput / 100 : $rosInput;
+    $rosPct   = (float)($kpis['returnOnSalesPercentDisplay'] ?? ($rosRate * 100));
 
-    $reportNum = 'GASQ ' . now()->format('Y-m-d') . '-' . str_pad(($reportId ?? rand(1, 9999)), 4, '0', STR_PAD_LEFT);
-    $logoPath  = 'file://' . public_path('img/gasq-logo.png');
+    $reportNum   = 'GASQ ' . now()->format('Y-m-d') . '-' . str_pad(($reportId ?? rand(1,9999)), 4, '0', STR_PAD_LEFT);
+    $logoPath    = 'file://' . public_path('img/gasq-logo.png');
 
     $cName    = trim($contact['contactName']    ?? '');
     $cCompany = trim($contact['companyName']    ?? '');
@@ -97,85 +33,130 @@
     $cEmail   = trim($contact['contactEmail']   ?? '');
     $cPhone   = trim($contact['contactPhone']   ?? '');
 
-    $hourlyRate = $kpis['costPerHour'] ?? 0;
+    $hourlyRate  = (float)($kpis['costPerHour']                     ?? 0);
+    $totalCost   = (float)($kpis['totalAnnualCost']                 ?? 0);
+    $totalRos    = (float)($kpis['totalAnnualCostWithReturnOnSales'] ?? 0);
+    $annualHours = (float)($scenarioMeta['annualHours']              ?? 0);
 @endphp
 
-{{-- Header --}}
-<div class="header">
-    <div class="header-logo">
-        <img src="{{ $logoPath }}" alt="GASQ">
-    </div>
-    <div class="header-info">
-        <div class="header-title">Mobile Patrol Quote <span class="badge-buyer">Buyer</span></div>
-        <div class="header-sub">Estimated Hourly Service Rate</div>
-    </div>
-    <div class="header-meta">
-        <div class="report-number">{{ $reportNum }}</div>
-        <div style="margin-top:4px;">{{ now()->format('M j, Y') }}</div>
-        <div>{{ now()->format('g:i A') }}</div>
-    </div>
-</div>
-<div class="accent-bar"></div>
+{{-- HEADER --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#1e3558;">
+  <tr>
+    <td width="90" style="padding:16px 12px 16px 20px; vertical-align:middle;">
+      <img src="{{ $logoPath }}" alt="GASQ" style="width:70px; height:auto; display:block;">
+    </td>
+    <td style="padding:16px 12px; vertical-align:middle;">
+      <p style="font-size:17px; font-weight:bold; color:#ffffff; letter-spacing:0.03em; margin-bottom:3px;">GASQ Mobile Patrol Quote</p>
+      <p style="font-size:9px; color:rgba(255,255,255,0.65); text-transform:uppercase; letter-spacing:0.1em;">Estimated Hourly Service Rate</p>
+    </td>
+    <td style="padding:16px 20px 16px 12px; vertical-align:middle; text-align:right;">
+      <p style="font-size:10px; font-weight:bold; color:#ffffff; margin-bottom:4px;">{{ $reportNum }}</p>
+      <p style="font-size:9px; color:rgba(255,255,255,0.6);">{{ now()->format('F j, Y') }}</p>
+    </td>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="height:4px; background:#3a7bd5;"></td></tr></table>
 
-{{-- Contact block --}}
-@if($cName || $cCompany || $cAddress || $cEmail || $cPhone)
-<div class="contact-block">
-    <div class="contact-col">
-        @if($cName)    <div class="contact-label">Prepared For</div><div class="contact-value">{{ $cName }}</div> @endif
-        @if($cCompany) <div style="margin-top:6px;"><div class="contact-label">Company</div><div class="contact-value">{{ $cCompany }}</div></div> @endif
-        @if($cAddress) <div style="margin-top:6px;"><div class="contact-label">Address</div><div class="contact-value-sm">{{ $cAddress }}</div></div> @endif
-    </div>
-    <div class="contact-col">
-        @if($cEmail) <div class="contact-label">Email</div><div class="contact-value-sm">{{ $cEmail }}</div> @endif
-        @if($cPhone) <div style="margin-top:6px;"><div class="contact-label">Phone</div><div class="contact-value-sm">{{ $cPhone }}</div></div> @endif
-    </div>
-</div>
+{{-- CONTACT --}}
+@if($cName || $cCompany || $cEmail)
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb; border-bottom:1px solid #d8dff0;">
+  <tr>
+    <td width="40%" style="padding:11px 10px 11px 20px; vertical-align:top; border-right:1px solid #d8dff0;">
+      <p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-bottom:2px;">Prepared For</p>
+      @if($cName)    <p style="font-size:12px; font-weight:bold; color:#1e3558;">{{ $cName }}</p>@endif
+      @if($cCompany) <p style="font-size:10px; color:#374151; margin-top:2px;">{{ $cCompany }}</p>@endif
+      @if($cAddress) <p style="font-size:9px; color:#6b7280; margin-top:2px;">{{ $cAddress }}</p>@endif
+    </td>
+    <td style="padding:11px 10px; vertical-align:top; border-right:1px solid #d8dff0;">
+      @if($cEmail)<p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-bottom:2px;">Email</p><p style="font-size:10px; color:#1e3558;">{{ $cEmail }}</p>@endif
+      @if($cPhone)<p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-top:6px; margin-bottom:2px;">Phone</p><p style="font-size:10px; color:#1e3558;">{{ $cPhone }}</p>@endif
+    </td>
+    <td style="padding:11px 20px 11px 10px; vertical-align:middle; text-align:right;">
+      <p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-bottom:2px;">Date</p>
+      <p style="font-size:10px; color:#1e3558;">{{ now()->format('M j, Y') }}</p>
+    </td>
+  </tr>
+</table>
 @endif
 
-{{-- Rate display --}}
-<div class="body">
-    <div class="rate-wrapper">
-        <div class="rate-box">
-            <div class="rate-label">Estimated Hourly Bill Rate</div>
-            <div class="rate-value">{{ $money($hourlyRate) }}</div>
-            <div class="rate-unit">per hour</div>
-        </div>
-        <div class="rate-note">
-            This rate is calculated from mobile patrol operating costs including labor, fuel, vehicle,<br>
-            maintenance, and a {{ $num($rosPct, 0) }}% return on sales margin.
-        </div>
-    </div>
-</div>
+{{-- KPI GRID --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="border-top:3px solid #1e3558; margin-top:16px;">
+  <tr>
+    <td width="34%" style="background:#1e3558; padding:9px 16px; text-align:center; border-right:2px solid #ffffff;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Hourly Bill Rate</p>
+    </td>
+    <td width="33%" style="background:#1e3558; padding:9px 16px; text-align:center; border-right:2px solid #ffffff;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Total Annual Cost</p>
+    </td>
+    <td width="33%" style="background:#1e3558; padding:9px 16px; text-align:center;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Annual Hours Covered</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="background:#f5f8ff; padding:20px 16px; text-align:center; border-right:2px solid #ffffff; border-bottom:3px solid #1e3558;">
+      <p style="font-size:44px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $money($hourlyRate) }}</p>
+      <p style="font-size:8px; color:#6b7280; margin-top:4px;">estimated hourly service rate</p>
+    </td>
+    <td style="background:#fde8e0; padding:20px 16px; text-align:center; border-right:2px solid #ffffff; border-bottom:3px solid #1e3558;">
+      <p style="font-size:32px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $moneyK($totalCost) }}</p>
+      <p style="font-size:8px; color:#7a4a3a; margin-top:4px;">annual operating cost</p>
+    </td>
+    <td style="background:#e0eaf8; padding:20px 16px; text-align:center; border-bottom:3px solid #1e3558;">
+      <p style="font-size:32px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $num($annualHours,0) }}</p>
+      <p style="font-size:8px; color:#3a5a8a; margin-top:4px;">hours per year</p>
+    </td>
+  </tr>
+</table>
 
-<hr class="divider">
+{{-- SERVICE SUMMARY --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+  <tr><td style="background:#1e3558; padding:9px 16px;">
+    <p style="font-size:11px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.08em;">Service Summary</p>
+  </td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d8dff0; border-top:none;">
+  @php
+    $summary = [
+      ['Annual Coverage Hours', $num($annualHours, 0) . ' hrs/yr'],
+      ['Annual Hours ÷ Return on Sales', $moneyK($totalRos)],
+      ['Return on Sales Rate', $num($rosPct, 2) . '%'],
+      ['Annual Operating Cost', $moneyK($totalCost)],
+      ['Hourly Bill Rate', $money($hourlyRate)],
+    ];
+  @endphp
+  @foreach($summary as $i => [$label, $val])
+  <tr style="background:{{ $i % 2 === 0 ? '#ffffff' : '#f6f8fb' }};">
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#374151;">{{ $label }}</td>
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#1e3558; font-weight:bold; text-align:right; font-variant-numeric:tabular-nums;">{{ $val }}</td>
+  </tr>
+  @endforeach
+</table>
 
-{{-- Summary key facts --}}
-<div class="info-section">
-    <div class="info-heading">Service Summary</div>
-    <table>
-        <tr>
-            <td class="label-col">Annual coverage hours</td>
-            <td class="val">{{ $num($scenarioMeta['annualHours'] ?? 0, 0) }} hrs/yr</td>
-            <td class="label-col">Patrol speed</td>
-            <td class="val">{{ $num($scenarioMeta['mph'] ?? 0, 0) }} MPH</td>
-        </tr>
-        <tr>
-            <td class="label-col">Hours per day</td>
-            <td class="val">{{ $num($scenarioMeta['hoursPerDay'] ?? 0, 0) }}</td>
-            <td class="label-col">Miles covered per year</td>
-            <td class="val">{{ $num($kpis['milesPerYear'] ?? 0, 0) }}</td>
-        </tr>
-        <tr>
-            <td class="label-col">Total annual operating cost</td>
-            <td class="val">{{ $money($kpis['totalAnnualCost'] ?? 0) }}</td>
-            <td class="label-col">Return on sales</td>
-            <td class="val">{{ $num($rosPct, 2) }}%</td>
-        </tr>
-    </table>
-</div>
+{{-- NARRATIVE --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+  <tr><td style="background:#f4f6fb; border-left:4px solid #1e3558; padding:12px 16px;">
+    <p style="font-size:10px; color:#374151; line-height:1.6;">
+      This estimate covers mobile patrol services at an hourly bill rate of <strong style="color:#1e3558;">{{ $money($hourlyRate) }}</strong>
+      over <strong style="color:#1e3558;">{{ $num($annualHours,0) }} annual hours</strong>.
+      The rate accounts for all labor, vehicle, fuel, maintenance, and insurance costs, plus a
+      <strong style="color:#1e3558;">{{ $num($rosPct,1) }}%</strong> return on sales.
+      Detailed cost breakdowns are available upon request.
+    </p>
+  </td></tr>
+</table>
 
-<div class="footer">
-    <strong>GASQ Security</strong> &nbsp;|&nbsp; Mobile Patrol Buyer Quote &nbsp;|&nbsp; {{ $reportNum }} &nbsp;|&nbsp; Rates are estimates based on provided inputs
-</div>
+{{-- FOOTER --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px; border-top:2px solid #1e3558;">
+  <tr style="background:#f4f6fb;">
+    <td style="padding:10px 20px;">
+      <p style="font-size:8.5px; color:#1e3558; font-weight:bold;">GASQ Security</p>
+      <p style="font-size:8px; color:#6b7280; margin-top:2px;">{{ $reportNum }} &nbsp;·&nbsp; Buyer Quote &nbsp;·&nbsp; Rates are estimates based on provided inputs</p>
+    </td>
+    <td style="padding:10px 20px; text-align:right;">
+      <p style="font-size:8px; color:#6b7280;">{{ now()->format('M j, Y') }}</p>
+    </td>
+  </tr>
+</table>
+
 </body>
 </html>
