@@ -40,22 +40,21 @@
 @endphp
 
 {{-- HEADER --}}
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#1e3558;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff; border-bottom:3px solid #1e3558;">
   <tr>
-    <td width="90" style="padding:16px 12px 16px 20px; vertical-align:middle;">
-      <img src="{{ $logoPath }}" alt="GASQ" style="width:70px; height:auto; display:block;">
+    <td width="110" style="padding:14px 12px 14px 20px; vertical-align:middle;">
+      <img src="{{ $logoPath }}" alt="GASQ" style="width:80px; height:auto; display:block;">
     </td>
-    <td style="padding:16px 12px; vertical-align:middle;">
-      <p style="font-size:17px; font-weight:bold; color:#ffffff; letter-spacing:0.03em; margin-bottom:3px;">GASQ Mobile Patrol Quote</p>
-      <p style="font-size:9px; color:rgba(255,255,255,0.65); text-transform:uppercase; letter-spacing:0.1em;">Estimated Hourly Service Rate</p>
+    <td style="padding:14px 12px; vertical-align:middle;">
+      <p style="font-size:18px; font-weight:bold; color:#1e3558; letter-spacing:0.01em; margin-bottom:4px;">GASQ Mobile Patrol Quote</p>
+      <p style="font-size:8.5px; color:#6b7280; text-transform:uppercase; letter-spacing:0.12em;">Estimated Hourly Service Rate</p>
     </td>
-    <td style="padding:16px 20px 16px 12px; vertical-align:middle; text-align:right;">
-      <p style="font-size:10px; font-weight:bold; color:#ffffff; margin-bottom:4px;">{{ $reportNum }}</p>
-      <p style="font-size:9px; color:rgba(255,255,255,0.6);">{{ now()->format('F j, Y') }}</p>
+    <td style="padding:14px 20px 14px 12px; vertical-align:middle; text-align:right;">
+      <p style="font-size:11px; font-weight:bold; color:#1e3558; margin-bottom:4px;">{{ $reportNum }}</p>
+      <p style="font-size:9px; color:#6b7280;">{{ now()->format('F j, Y') }}</p>
     </td>
   </tr>
 </table>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="height:4px; background:#3a7bd5;"></td></tr></table>
 
 {{-- CONTACT --}}
 @if($cName || $cCompany || $cEmail)
