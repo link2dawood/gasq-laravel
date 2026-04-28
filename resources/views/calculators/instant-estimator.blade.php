@@ -2110,9 +2110,13 @@ async function prepareJobDraftFromEstimator() {
     }
 
     const continueToJobButton = byId('continueToJobButton');
-    continueToJobButton.setAttribute('href', data.job_create_url || continueToJobButton.getAttribute('href'));
+    const jobCreateUrl = data.job_create_url || continueToJobButton.getAttribute('href');
+    continueToJobButton.setAttribute('href', jobCreateUrl);
 
-    return data;
+    return {
+        ...data,
+        job_create_url: jobCreateUrl,
+    };
 }
 
 function bindEvents() {
@@ -2180,7 +2184,9 @@ function bindEvents() {
     byId('backToStep2FromResults').addEventListener('click', () => setStepState(2));
 
     byId('gateFeeBtn').addEventListener('click', () => unlockResults('fee'));
-    byId('gatePostJobBtn').addEventListener('click', async () => {
+    byId('gatePostJobBtn').addEventListener('click', async event => {
+        const trigger = event.currentTarget;
+
         if (!IS_AUTHENTICATED) {
             window.location.href = LOGIN_URL;
             return;
@@ -2192,10 +2198,21 @@ function bindEvents() {
         }
 
         try {
-            await prepareJobDraftFromEstimator();
+            trigger.disabled = true;
+            showStatus('info', 'Preparing your buyer questionnaire and sending you to the job-posting form...');
+
+            const data = await prepareJobDraftFromEstimator();
+
+            if (data?.job_create_url) {
+                window.location.href = data.job_create_url;
+                return;
+            }
+
             unlockResults('post-job');
         } catch (error) {
             showStatus('danger', error.message || 'We could not prepare the job draft right now.');
+        } finally {
+            trigger.disabled = false;
         }
     });
 
