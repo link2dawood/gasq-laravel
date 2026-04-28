@@ -1,136 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>GASQ Instant Estimator Report</title>
-    <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #24324a; padding: 28px; }
-        h1 { font-size: 20px; margin-bottom: 4px; }
-        h2 { font-size: 14px; margin: 20px 0 10px; }
-        .meta { color: #667085; margin-bottom: 18px; font-size: 10px; }
-        .hero {
-            border: 1px solid #d7deec;
-            border-radius: 10px;
-            padding: 16px;
-            background: #f8fbff;
-        }
-        .hero-label { color: #667085; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
-        .hero-value { font-size: 24px; font-weight: bold; margin: 4px 0; color: #0f2f69; }
-        .grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .grid td { vertical-align: top; width: 50%; padding: 0 6px 0 0; }
-        .card {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 12px;
-            background: #ffffff;
-            min-height: 180px;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 7px 0; border-bottom: 1px solid #eef2f7; }
-        th { color: #667085; font-weight: 600; width: 58%; }
-        tr:last-child th, tr:last-child td { border-bottom: 0; }
-        .chips { margin-top: 12px; }
-        .chip {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 999px;
-            background: #edf4ff;
-            color: #0f2f69;
-            font-size: 10px;
-            margin-right: 6px;
-            margin-bottom: 6px;
-        }
-        .footer { margin-top: 26px; font-size: 10px; color: #98a2b3; }
-    </style>
+<meta charset="utf-8">
+<title>GASQ Instant Estimator Report</title>
+<style>
+    body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #1a1a2e; margin: 0; padding: 0; background: #fff; }
+    table { border-collapse: collapse; }
+    td, th { padding: 0; margin: 0; }
+    p { margin: 0; padding: 0; }
+</style>
 </head>
 <body>
 @php
-    $kpis = $result['kpis'] ?? [];
-    $legacy = $result;
-    $requestData = $result['request'] ?? [];
-    $serviceLabel = $kpis['serviceLabel'] ?? 'Instant estimate';
-    $outsourcedTerm = $kpis['outsourcedTerm'] ?? ($legacy['annual_total'] ?? 0);
-    $outsourcedHourly = $kpis['outsourcedHourly'] ?? ($legacy['hourly_rate'] ?? 0);
-    $internalTerm = $kpis['internalTerm'] ?? 0;
-    $internalHourly = $kpis['internalTrueHourly'] ?? 0;
-    $coverageText = ($kpis['weeksCoveredRounded'] ?? null) && ($kpis['monthsOfCoverageRounded'] ?? null)
-        ? ($kpis['weeksCoveredRounded'].' weeks / '.$kpis['monthsOfCoverageRounded'].' months')
+    $kpis        = (array) ($result['kpis'] ?? $result ?? []);
+    $requestData = (array) ($result['request'] ?? []);
+
+    $money  = static fn ($v) => '$' . number_format((float)($v ?? 0), 2);
+    $moneyK = static fn ($v) => '$' . number_format((float)($v ?? 0), 0);
+    $num    = static fn ($v, $d = 2) => number_format((float)($v ?? 0), $d);
+
+    $outsourcedHourly  = (float)($kpis['outsourcedHourly']  ?? $result['hourly_rate']    ?? 0);
+    $outsourcedWeekly  = (float)($kpis['outsourcedWeekly']  ?? $result['weekly_total']   ?? 0);
+    $outsourcedMonthly = (float)($kpis['outsourcedMonthly'] ?? $result['monthly_total']  ?? 0);
+    $outsourcedAnnual  = (float)($kpis['outsourcedAnnual']  ?? $result['annual_total']   ?? 0);
+    $outsourcedTerm    = (float)($kpis['outsourcedTerm']    ?? $result['annual_total']   ?? 0);
+
+    $internalHourly  = (float)($kpis['internalTrueHourly'] ?? 0);
+    $internalWeekly  = (float)($kpis['internalWeekly']     ?? 0);
+    $internalMonthly = (float)($kpis['internalMonthly']    ?? 0);
+    $internalAnnual  = (float)($kpis['internalAnnual']     ?? 0);
+    $internalTerm    = (float)($kpis['internalTerm']       ?? 0);
+
+    $recoveredCapital  = (float)($kpis['recoveredCapitalTerm'] ?? 0);
+    $appraisalFee      = (float)($kpis['appraisalFee']         ?? 0);
+    $efficiencyGain    = (float)($kpis['efficiencyGain']        ?? 0);
+    $paybackMonths     = (float)($kpis['breakevenMonths']       ?? 0);
+    $weeklyCovHours    = (float)($kpis['weeklyCoverageHours']   ?? 0);
+    $termCovHours      = (float)($kpis['termCoverageHours']     ?? 0);
+    $workforce         = (float)($kpis['totalWorkforceRequired'] ?? 0);
+
+    $serviceLabel  = $kpis['serviceLabel'] ?? 'Instant Estimate';
+    $weeksCovered  = $kpis['weeksCoveredRounded']      ?? null;
+    $monthsCovered = $kpis['monthsOfCoverageRounded']  ?? null;
+    $coverageText  = ($weeksCovered && $monthsCovered)
+        ? ($weeksCovered . ' weeks / ' . $monthsCovered . ' months')
         : 'Directional estimate';
+
+    $reportNum = 'GASQ ' . now()->format('Y-m-d') . '-' . str_pad(($reportId ?? rand(1,9999)), 4, '0', STR_PAD_LEFT);
+    $logoPath  = 'file://' . public_path('images/site-logo.png');
+
+    $cName    = trim($requestData['name']    ?? '');
+    $cCompany = trim($requestData['company'] ?? '');
+    $cEmail   = trim($requestData['email']   ?? '');
+    $cPhone   = trim($requestData['phone']   ?? '');
+    $cLoc     = trim($requestData['location'] ?? '');
 @endphp
 
-    <h1>GASQ Instant Estimator</h1>
-    <p class="meta">Report generated {{ $generatedAt ?? now()->format('M j, Y g:i A') }}</p>
+{{-- HEADER --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff; border-bottom:3px solid #1e3558;">
+  <tr>
+    <td width="110" style="padding:14px 12px 14px 20px; vertical-align:middle;">
+      <img src="{{ $logoPath }}" alt="GASQ" style="width:80px; height:auto; display:block;">
+    </td>
+    <td style="padding:14px 12px; vertical-align:middle;">
+      <p style="font-size:18px; font-weight:bold; color:#1e3558; letter-spacing:0.01em; margin-bottom:4px;">GASQ Instant Estimator Report</p>
+      <p style="font-size:8.5px; color:#6b7280; text-transform:uppercase; letter-spacing:0.12em;">{{ $serviceLabel }} &nbsp;·&nbsp; {{ $coverageText }}</p>
+    </td>
+    <td style="padding:14px 20px 14px 12px; vertical-align:middle; text-align:right;">
+      <p style="font-size:11px; font-weight:bold; color:#1e3558; margin-bottom:4px;">{{ $reportNum }}</p>
+      <p style="font-size:9px; color:#6b7280;">{{ now()->format('F j, Y') }}</p>
+    </td>
+  </tr>
+</table>
 
-    <div class="hero">
-        <div class="hero-label">Outsourced Term Cost</div>
-        <div class="hero-value">${{ number_format((float) $outsourcedTerm, 2) }}</div>
-        <div>{{ $serviceLabel }} · {{ $coverageText }}</div>
-        <div class="chips">
-            <span class="chip">Outsourced hourly: ${{ number_format((float) $outsourcedHourly, 2) }}</span>
-            @if($internalHourly > 0)
-                <span class="chip">Internal true hourly: ${{ number_format((float) $internalHourly, 2) }}</span>
-            @endif
-            @if(($kpis['totalWorkforceRequired'] ?? 0) > 0)
-                <span class="chip">Annualized workforce: {{ number_format((float) ($kpis['totalWorkforceRequired'] ?? 0), 0) }}</span>
-            @endif
-        </div>
-    </div>
+{{-- CONTACT --}}
+@if($cName || $cCompany || $cEmail)
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb; border-bottom:1px solid #d8dff0;">
+  <tr>
+    <td width="40%" style="padding:11px 10px 11px 20px; vertical-align:top; border-right:1px solid #d8dff0;">
+      <p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-bottom:2px;">Prepared For</p>
+      @if($cName)    <p style="font-size:12px; font-weight:bold; color:#1e3558;">{{ $cName }}</p>@endif
+      @if($cCompany) <p style="font-size:10px; color:#374151; margin-top:2px;">{{ $cCompany }}</p>@endif
+      @if($cLoc)     <p style="font-size:9px; color:#6b7280; margin-top:2px;">{{ $cLoc }}</p>@endif
+    </td>
+    <td style="padding:11px 10px; vertical-align:top; border-right:1px solid #d8dff0;">
+      @if($cEmail)<p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-bottom:2px;">Email</p><p style="font-size:10px; color:#1e3558;">{{ $cEmail }}</p>@endif
+      @if($cPhone)<p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-top:6px; margin-bottom:2px;">Phone</p><p style="font-size:10px; color:#1e3558;">{{ $cPhone }}</p>@endif
+    </td>
+    <td style="padding:11px 20px 11px 10px; vertical-align:middle; text-align:right;">
+      <p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-bottom:2px;">Date</p>
+      <p style="font-size:10px; color:#1e3558;">{{ now()->format('M j, Y') }}</p>
+    </td>
+  </tr>
+</table>
+@endif
 
-    <h2>Cost Comparison</h2>
-    <table class="grid" role="presentation">
-        <tr>
-            <td>
-                <div class="card">
-                    <strong>Outsourced</strong>
-                    <table>
-                        <tr><th>Hourly</th><td>${{ number_format((float) ($kpis['outsourcedHourly'] ?? ($legacy['hourly_rate'] ?? 0)), 2) }}</td></tr>
-                        <tr><th>Weekly</th><td>${{ number_format((float) ($kpis['outsourcedWeekly'] ?? ($legacy['weekly_total'] ?? 0)), 2) }}</td></tr>
-                        <tr><th>Monthly</th><td>${{ number_format((float) ($kpis['outsourcedMonthly'] ?? ($legacy['monthly_total'] ?? 0)), 2) }}</td></tr>
-                        <tr><th>Annual</th><td>${{ number_format((float) ($kpis['outsourcedAnnual'] ?? ($legacy['annual_total'] ?? 0)), 2) }}</td></tr>
-                        <tr><th>Term</th><td>${{ number_format((float) $outsourcedTerm, 2) }}</td></tr>
-                    </table>
-                </div>
-            </td>
-            <td>
-                <div class="card">
-                    <strong>Internal TCO</strong>
-                    <table>
-                        <tr><th>Hourly</th><td>${{ number_format((float) ($kpis['internalTrueHourly'] ?? 0), 2) }}</td></tr>
-                        <tr><th>Weekly</th><td>${{ number_format((float) ($kpis['internalWeekly'] ?? 0), 2) }}</td></tr>
-                        <tr><th>Monthly</th><td>${{ number_format((float) ($kpis['internalMonthly'] ?? 0), 2) }}</td></tr>
-                        <tr><th>Annual</th><td>${{ number_format((float) ($kpis['internalAnnual'] ?? 0), 2) }}</td></tr>
-                        <tr><th>Term</th><td>${{ number_format((float) $internalTerm, 2) }}</td></tr>
-                    </table>
-                </div>
-            </td>
-        </tr>
-    </table>
+{{-- KPI GRID ROW 1 --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="border-top:3px solid #1e3558; margin-top:16px;">
+  <tr>
+    <td width="34%" style="background:#1e3558; padding:9px 16px; text-align:center; border-right:2px solid #ffffff;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Outsourced Hourly Rate</p>
+    </td>
+    <td width="33%" style="background:#1e3558; padding:9px 16px; text-align:center; border-right:2px solid #ffffff;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Outsourced Annual Cost</p>
+    </td>
+    <td width="33%" style="background:#1e3558; padding:9px 16px; text-align:center;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Internal True Hourly</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="background:#fdf8ee; padding:20px 16px; text-align:center; border-right:2px solid #ffffff; border-bottom:2px solid #e8e0cc;">
+      <p style="font-size:44px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $money($outsourcedHourly) }}</p>
+      <p style="font-size:8px; color:#6b7280; margin-top:4px;">per hour · outsourced</p>
+    </td>
+    <td style="background:#fde8e0; padding:20px 16px; text-align:center; border-right:2px solid #ffffff; border-bottom:2px solid #e8e0cc;">
+      <p style="font-size:32px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $moneyK($outsourcedAnnual) }}</p>
+      <p style="font-size:8px; color:#7a4a3a; margin-top:4px;">annual outsourced cost</p>
+    </td>
+    <td style="background:#e4f5e9; padding:20px 16px; text-align:center; border-bottom:2px solid #e8e0cc;">
+      <p style="font-size:32px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $internalHourly > 0 ? $money($internalHourly) : '—' }}</p>
+      <p style="font-size:8px; color:#2d6a4f; margin-top:4px;">internal true cost/hr</p>
+    </td>
+  </tr>
+</table>
 
-    <h2>Request Context</h2>
-    <table>
-        <tr><th>Requester</th><td>{{ $requestData['name'] ?? '—' }}</td></tr>
-        <tr><th>Company</th><td>{{ $requestData['company'] ?? '—' }}</td></tr>
-        <tr><th>Email</th><td>{{ $requestData['email'] ?? '—' }}</td></tr>
-        <tr><th>Phone</th><td>{{ $requestData['phone'] ?? '—' }}</td></tr>
-        <tr><th>Location</th><td>{{ $requestData['location'] ?? '—' }}</td></tr>
-        <tr><th>Website</th><td>{{ $requestData['website'] ?? '—' }}</td></tr>
-        <tr><th>Budget</th><td>{{ $requestData['budgetAmount'] ?? '—' }}</td></tr>
-        <tr><th>Decision maker</th><td>{{ $requestData['decisionMaker'] ?? '—' }}</td></tr>
-        <tr><th>Budget approved</th><td>{{ $requestData['approvedBudget'] ?? '—' }}</td></tr>
-        <tr><th>Attachments</th><td>{{ !empty($requestData['attachments']) ? implode(', ', (array) $requestData['attachments']) : '—' }}</td></tr>
-        <tr><th>Notes</th><td>{{ $requestData['notes'] ?? '—' }}</td></tr>
-    </table>
+{{-- KPI GRID ROW 2 --}}
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="34%" style="background:#1e3558; padding:9px 16px; text-align:center; border-right:2px solid #ffffff;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Term Cost</p>
+    </td>
+    <td width="33%" style="background:#1e3558; padding:9px 16px; text-align:center; border-right:2px solid #ffffff;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Recovered Capital</p>
+    </td>
+    <td width="33%" style="background:#1e3558; padding:9px 16px; text-align:center;">
+      <p style="font-size:8.5px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em;">Weekly Coverage Hours</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="background:#fde8f5; padding:16px; text-align:center; border-right:2px solid #ffffff; border-bottom:3px solid #1e3558;">
+      <p style="font-size:26px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $moneyK($outsourcedTerm) }}</p>
+      <p style="font-size:8px; color:#7a3a6a; margin-top:4px;">outsourced term total</p>
+    </td>
+    <td style="background:#ede8fd; padding:16px; text-align:center; border-right:2px solid #ffffff; border-bottom:3px solid #1e3558;">
+      <p style="font-size:26px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $recoveredCapital > 0 ? $moneyK($recoveredCapital) : '—' }}</p>
+      <p style="font-size:8px; color:#3a2d7a; margin-top:4px;">capital recovered over term</p>
+    </td>
+    <td style="background:#e0eaf8; padding:16px; text-align:center; border-bottom:3px solid #1e3558;">
+      <p style="font-size:26px; font-weight:bold; color:#1e3558; font-variant-numeric:tabular-nums;">{{ $num($weeklyCovHours, 0) }}</p>
+      <p style="font-size:8px; color:#3a5a8a; margin-top:4px;">hours / week covered</p>
+    </td>
+  </tr>
+</table>
 
-    <h2>Recovery Metrics</h2>
-    <table>
-        <tr><th>Recovered capital</th><td>${{ number_format((float) ($kpis['recoveredCapitalTerm'] ?? 0), 2) }}</td></tr>
-        <tr><th>Appraisal fee</th><td>${{ number_format((float) ($kpis['appraisalFee'] ?? 0), 2) }}</td></tr>
-        <tr><th>Efficiency gain</th><td>{{ number_format((float) ($kpis['efficiencyGain'] ?? 0), 0) }} : 1</td></tr>
-        <tr><th>Payback period</th><td>{{ number_format((float) ($kpis['breakevenMonths'] ?? 0), 2) }} months</td></tr>
-        <tr><th>Weekly coverage hours</th><td>{{ number_format((float) ($kpis['weeklyCoverageHours'] ?? 0), 0) }}</td></tr>
-        <tr><th>Term coverage hours</th><td>{{ number_format((float) ($kpis['termCoverageHours'] ?? 0), 0) }}</td></tr>
-    </table>
+{{-- COST COMPARISON --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+  <tr><td style="background:#1e3558; padding:9px 16px;">
+    <p style="font-size:11px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.08em;">Cost Comparison: Outsourced vs Internal TCO</p>
+  </td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d8dff0; border-top:none;">
+  {{-- Sub-headers --}}
+  <tr style="background:#eef2fb;">
+    <td style="padding:7px 16px; border-bottom:1px solid #d8dff0; font-size:9px; font-weight:bold; color:#1e3558; text-transform:uppercase; letter-spacing:0.08em; width:30%;">Period</td>
+    <td style="padding:7px 16px; border-bottom:1px solid #d8dff0; font-size:9px; font-weight:bold; color:#1e3558; text-transform:uppercase; letter-spacing:0.08em; text-align:right; width:35%;">Outsourced</td>
+    <td style="padding:7px 16px; border-bottom:1px solid #d8dff0; font-size:9px; font-weight:bold; color:#1e3558; text-transform:uppercase; letter-spacing:0.08em; text-align:right; width:35%;">Internal TCO</td>
+  </tr>
+  @php
+    $comparison = [
+      ['Hourly',   $money($outsourcedHourly),   $internalHourly  > 0 ? $money($internalHourly)  : '—'],
+      ['Weekly',   $money($outsourcedWeekly),   $internalWeekly  > 0 ? $money($internalWeekly)  : '—'],
+      ['Monthly',  $money($outsourcedMonthly),  $internalMonthly > 0 ? $money($internalMonthly) : '—'],
+      ['Annual',   $moneyK($outsourcedAnnual),  $internalAnnual  > 0 ? $moneyK($internalAnnual) : '—'],
+      ['Full Term',$moneyK($outsourcedTerm),    $internalTerm    > 0 ? $moneyK($internalTerm)   : '—'],
+    ];
+  @endphp
+  @foreach($comparison as $i => [$label, $out, $int])
+  <tr style="background:{{ $i % 2 === 0 ? '#ffffff' : '#f6f8fb' }};">
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#374151;">{{ $label }}</td>
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#1e3558; font-weight:bold; text-align:right; font-variant-numeric:tabular-nums;">{{ $out }}</td>
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#2d6a4f; font-weight:bold; text-align:right; font-variant-numeric:tabular-nums;">{{ $int }}</td>
+  </tr>
+  @endforeach
+</table>
 
-    <p class="footer">GASQ Instant Estimator report. Directional pricing only; final proposal values depend on scope, site conditions, and contract structure.</p>
+{{-- RECOVERY METRICS --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+  <tr><td style="background:#1e3558; padding:9px 16px;">
+    <p style="font-size:11px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.08em;">Recovery &amp; Coverage Metrics</p>
+  </td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d8dff0; border-top:none;">
+  @php
+    $metrics = [
+      ['Recovered Capital (Term)',  $recoveredCapital > 0 ? $moneyK($recoveredCapital) : '—'],
+      ['Appraisal Fee',             $appraisalFee > 0     ? $money($appraisalFee)       : '—'],
+      ['Efficiency Gain Ratio',     $efficiencyGain > 0   ? $num($efficiencyGain, 0) . ' : 1' : '—'],
+      ['Payback Period',            $paybackMonths > 0    ? $num($paybackMonths, 1) . ' months' : '—'],
+      ['Weekly Coverage Hours',     $num($weeklyCovHours, 0) . ' hrs'],
+      ['Term Coverage Hours',       $num($termCovHours, 0)   . ' hrs'],
+      ['Annualized Workforce',      $workforce > 0        ? $num($workforce, 0) : '—'],
+    ];
+  @endphp
+  @foreach($metrics as $i => [$label, $val])
+  <tr style="background:{{ $i % 2 === 0 ? '#ffffff' : '#f6f8fb' }};">
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#374151;">{{ $label }}</td>
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#1e3558; font-weight:bold; text-align:right; font-variant-numeric:tabular-nums;">{{ $val }}</td>
+  </tr>
+  @endforeach
+</table>
+
+{{-- REQUEST CONTEXT --}}
+@php
+  $reqRows = array_filter([
+    'Company'          => $requestData['company']       ?? '',
+    'Location'         => $requestData['location']      ?? '',
+    'Website'          => $requestData['website']       ?? '',
+    'Budget'           => $requestData['budgetAmount']  ?? '',
+    'Decision Maker'   => $requestData['decisionMaker'] ?? '',
+    'Budget Approved'  => $requestData['approvedBudget'] ?? '',
+    'Notes'            => $requestData['notes']         ?? '',
+  ], static fn ($v) => $v !== '');
+@endphp
+@if(!empty($reqRows))
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+  <tr><td style="background:#1e3558; padding:9px 16px;">
+    <p style="font-size:11px; font-weight:bold; color:#ffffff; text-transform:uppercase; letter-spacing:0.08em;">Request Context</p>
+  </td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d8dff0; border-top:none;">
+  @php $ri = 0; @endphp
+  @foreach($reqRows as $rLabel => $rVal)
+  <tr style="background:{{ $ri % 2 === 0 ? '#ffffff' : '#f6f8fb' }};">
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#374151; width:35%;">{{ $rLabel }}</td>
+    <td style="padding:8px 16px; border-bottom:1px solid #e8edf5; font-size:10.5px; color:#1e3558; font-weight:bold;">{{ $rVal }}</td>
+  </tr>
+  @php $ri++; @endphp
+  @endforeach
+</table>
+@endif
+
+{{-- NARRATIVE --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+  <tr><td style="background:#f4f6fb; border-left:4px solid #1e3558; padding:12px 16px;">
+    <p style="font-size:10px; color:#374151; line-height:1.6;">
+      This estimate covers <strong style="color:#1e3558;">{{ $serviceLabel }}</strong>
+      at an outsourced rate of <strong style="color:#1e3558;">{{ $money($outsourcedHourly) }}/hr</strong>
+      ({{ $moneyK($outsourcedAnnual) }}/yr) over <strong style="color:#1e3558;">{{ $coverageText }}</strong>.
+      @if($internalHourly > 0)
+        Internal true cost is <strong style="color:#1e3558;">{{ $money($internalHourly) }}/hr</strong> for comparison.
+      @endif
+      @if($recoveredCapital > 0)
+        Recovered capital over the term is projected at <strong style="color:#1e3558;">{{ $moneyK($recoveredCapital) }}</strong>.
+      @endif
+      Rates are directional; final values depend on scope, site conditions, and contract structure.
+    </p>
+  </td></tr>
+</table>
+
+{{-- FOOTER --}}
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px; border-top:2px solid #1e3558;">
+  <tr style="background:#f4f6fb;">
+    <td style="padding:10px 20px;">
+      <p style="font-size:8.5px; color:#1e3558; font-weight:bold;">GASQ Security</p>
+      <p style="font-size:8px; color:#6b7280; margin-top:2px;">{{ $reportNum }} &nbsp;·&nbsp; Instant Estimator &nbsp;·&nbsp; Directional pricing only</p>
+    </td>
+    <td style="padding:10px 20px; text-align:right;">
+      <p style="font-size:8px; color:#6b7280;">{{ now()->format('M j, Y') }}</p>
+    </td>
+  </tr>
+</table>
+
 </body>
 </html>
