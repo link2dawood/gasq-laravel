@@ -81,6 +81,165 @@ class BuyerQuestionnairePostingTest extends TestCase
         $response->assertSeeText('123 Peachtree St, Atlanta, GA');
     }
 
+    public function test_buyer_can_prepare_job_draft_from_instant_estimator(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '+14045551234',
+            'phone_verified' => true,
+        ]);
+
+        $response = $this->actingAs($buyer)->postJson(route('instant-estimator.prepare-job'), [
+            'service_type' => 'unarmed',
+            'location' => '123 Peachtree St, Atlanta, GA',
+            'title' => 'Night coverage request',
+            'contact_name' => 'Estimator Buyer',
+            'contact_job_title' => 'Property Manager',
+            'organization_name' => 'Acme Properties',
+            'property_site_name' => 'Buckhead Tower',
+            'contact_email' => 'buyer@example.com',
+            'contact_phone' => '+14045559876',
+            'business_address' => '123 Peachtree St, Atlanta, GA',
+            'final_decision_maker' => 'yes',
+            'funds_approval_status' => 'flexible_budget',
+            'move_forward_if_accepted' => 'yes',
+            'property_type' => 'Commercial Office',
+            'current_security_setup' => 'outsourced',
+            'service_start_timeline' => '30_60_days',
+            'primary_reason' => 'Need a replacement vendor for the overnight shift.',
+            'budget_amount_range' => '$18,000 monthly',
+            'hours_per_day' => 12,
+            'days_per_week' => 7,
+            'weeks_per_year' => 52,
+            'guards_per_shift' => 2,
+            'cost_comparison_requested' => 'yes',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('job_create_url', route('jobs.create', ['step' => 'details']));
+
+        $response->assertSessionHas('job_posting_starter', function (array $starter): bool {
+            return $starter['starter_service_type'] === 'Unarmed Security Guard'
+                && $starter['service_label'] === 'Unarmed Security Guard'
+                && $starter['category'] === 'Unarmed Security Guard'
+                && $starter['title'] === 'Unarmed Security Guard request for 123 Peachtree St, Atlanta, GA'
+                && $starter['location'] === '123 Peachtree St, Atlanta, GA';
+        });
+
+        $response->assertSessionHas('job_posting_estimator_prefill', function (array $prefill): bool {
+            return $prefill['title'] === 'Night coverage request'
+                && $prefill['contact_name'] === 'Estimator Buyer'
+                && $prefill['contact_job_title'] === 'Property Manager'
+                && $prefill['organization_name'] === 'Acme Properties'
+                && $prefill['property_site_name'] === 'Buckhead Tower'
+                && $prefill['contact_email'] === 'buyer@example.com'
+                && $prefill['contact_phone'] === '+14045559876'
+                && $prefill['business_address'] === '123 Peachtree St, Atlanta, GA'
+                && $prefill['final_decision_maker'] === 'yes'
+                && $prefill['funds_approval_status'] === 'flexible_budget'
+                && $prefill['move_forward_if_accepted'] === 'yes'
+                && $prefill['property_type'] === 'Commercial Office'
+                && $prefill['current_security_setup'] === 'outsourced'
+                && $prefill['service_start_timeline'] === '30_60_days'
+                && $prefill['primary_reason'] === 'Need a replacement vendor for the overnight shift.'
+                && $prefill['budget_amount_range'] === '$18,000 monthly'
+                && $prefill['hours_per_day'] === 12
+                && $prefill['days_per_week'] === 7
+                && $prefill['weeks_per_year'] === 52
+                && $prefill['guards_per_shift'] === 2
+                && $prefill['cost_comparison_requested'] === 'yes'
+                && $prefill['location'] === '123 Peachtree St, Atlanta, GA';
+        });
+    }
+
+    public function test_estimator_prepared_job_draft_prefills_buyer_questionnaire_step(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '+14045551234',
+            'phone_verified' => true,
+        ]);
+
+        $response = $this->actingAs($buyer)
+            ->withSession([
+                'job_posting_starter' => [
+                    'starter_service_type' => 'Unarmed Security Guard',
+                    'starter_service_type_other' => null,
+                    'service_label' => 'Unarmed Security Guard',
+                    'service_types' => ['Unarmed Security Guard'],
+                    'service_type_other' => null,
+                    'category' => 'Unarmed Security Guard',
+                    'title' => 'Unarmed Security Guard request for 123 Peachtree St, Atlanta, GA',
+                    'location' => '123 Peachtree St, Atlanta, GA',
+                    'zip_code' => '',
+                    'latitude' => null,
+                    'longitude' => null,
+                    'google_place_id' => '',
+                ],
+                'job_posting_estimator_prefill' => [
+                    'title' => 'Night coverage request',
+                    'contact_name' => 'Estimator Buyer',
+                    'contact_job_title' => 'Property Manager',
+                    'organization_name' => 'Acme Properties',
+                    'property_site_name' => 'Buckhead Tower',
+                    'contact_email' => 'buyer@example.com',
+                    'contact_phone' => '+14045559876',
+                    'business_address' => '123 Peachtree St, Atlanta, GA',
+                    'final_decision_maker' => 'yes',
+                    'funds_approval_status' => 'flexible_budget',
+                    'move_forward_if_accepted' => 'yes',
+                    'property_type' => 'Commercial Office',
+                    'current_security_setup' => 'outsourced',
+                    'service_start_timeline' => '30_60_days',
+                    'primary_reason' => 'Need a replacement vendor for the overnight shift.',
+                    'budget_amount_range' => '$18,000 monthly',
+                    'hours_per_day' => 12,
+                    'days_per_week' => 7,
+                    'weeks_per_year' => 52,
+                    'guards_per_shift' => 2,
+                    'cost_comparison_requested' => 'yes',
+                    'location' => '123 Peachtree St, Atlanta, GA',
+                ],
+            ])
+            ->get(route('jobs.create', ['step' => 'details']));
+
+        $response->assertOk();
+        $response->assertSeeText('Step 2: Buyer Questionnaire');
+        $response->assertSee('value="Estimator Buyer"', false);
+        $response->assertSee('value="Property Manager"', false);
+        $response->assertSee('value="Acme Properties"', false);
+        $response->assertSee('value="Buckhead Tower"', false);
+        $response->assertSee('value="buyer@example.com"', false);
+        $response->assertSee('value="+14045559876"', false);
+        $response->assertSeeText('123 Peachtree St, Atlanta, GA');
+        $response->assertSeeText('Night coverage request');
+        $response->assertSeeText('Need a replacement vendor for the overnight shift.');
+    }
+
+    public function test_vendor_cannot_prepare_job_draft_from_instant_estimator(): void
+    {
+        $vendor = User::factory()->create([
+            'user_type' => 'vendor',
+            'phone' => '+14045551234',
+            'phone_verified' => true,
+        ]);
+
+        $response = $this->actingAs($vendor)->postJson(route('instant-estimator.prepare-job'), [
+            'service_type' => 'unarmed',
+            'location' => '123 Peachtree St, Atlanta, GA',
+        ]);
+
+        $response
+            ->assertForbidden()
+            ->assertJson([
+                'message' => 'Only buyers can use the post-job path from the instant estimator.',
+            ]);
+    }
+
     public function test_buyer_can_generate_announcement_preview_from_questionnaire(): void
     {
         Storage::fake('public');
