@@ -308,7 +308,20 @@ class JobPostingController extends Controller
                 ->with('error', 'There is no generated job announcement ready to publish yet.');
         }
 
-        $job = JobPosting::create($preview['payload']);
+        $payload = $preview['payload'];
+
+        // If questionnaire_data column does not exist in production yet, strip it rather than crash.
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('job_postings', 'questionnaire_data')) {
+            unset($payload['questionnaire_data']);
+        }
+
+        try {
+            $job = JobPosting::create($payload);
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->route('jobs.review')
+                ->with('error', 'There was a problem saving your job announcement. Please try again or contact support.');
+        }
 
         $this->clearDraftSessions($request);
 

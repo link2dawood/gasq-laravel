@@ -81,6 +81,22 @@
             </form>
         </x-card>
     @else
+        @if($errors->any())
+        <div class="alert alert-danger border-0 shadow-sm mb-4" id="validation-error-summary">
+            <div class="d-flex align-items-start gap-3">
+                <i class="fa fa-circle-exclamation fa-lg mt-1 flex-shrink-0"></i>
+                <div class="flex-grow-1">
+                    <div class="fw-bold mb-1">Please fix the following errors before continuing:</div>
+                    <ul class="mb-0 ps-3">
+                        @foreach($errors->all() as $error)
+                            <li class="small">{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <div class="small text-uppercase text-gasq-muted fw-semibold mb-3">Step 2: Buyer Questionnaire</div>
@@ -1001,6 +1017,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     syncVisibility();
     syncJobPhoneUi();
+
+    // Scroll to validation errors on page load
+    const errorSummary = document.getElementById('validation-error-summary');
+    if (errorSummary) {
+        errorSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 });
 </script>
 @endsection
