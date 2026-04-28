@@ -159,14 +159,14 @@
                     @error('contact_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Verify Mobile Number by SMS <span class="text-danger">*</span></label>
+                    <label class="form-label">Verify Mobile Number by SMS <span class="text-muted">(optional for now)</span></label>
                     <div class="border rounded bg-light p-3">
                         <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
                             <span class="badge text-bg-success d-none" id="job_phone_verified_badge">SMS Verified</span>
-                            <span class="badge text-bg-warning" id="job_phone_required_badge">Verification Required</span>
+                            <span class="badge text-bg-secondary" id="job_phone_required_badge">Verification Optional</span>
                             <button type="button" class="btn btn-outline-primary btn-sm" id="job_phone_send_button">Send Verification Code</button>
                         </div>
-                        <div class="small text-gasq-muted mb-2">Verify the same mobile number you want attached to this job request. You can do it here without leaving the page.</div>
+                        <div class="small text-gasq-muted mb-2">If you want, you can verify the same mobile number you want attached to this job request without leaving the page.</div>
                         <div class="small text-danger mb-2 d-none" id="job_phone_error_text"></div>
                         <div class="small text-success mb-2 d-none" id="job_phone_status_text"></div>
                         <div class="row g-2 d-none" id="job_phone_otp_wrap">
@@ -856,10 +856,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (jobPhoneSendButton) {
             jobPhoneSendButton.disabled = !hasPhone || verified;
-        }
-
-        if (jobPreviewSubmit) {
-            jobPreviewSubmit.disabled = !verified;
         }
 
         if (jobPhoneOtpWrap && verified) {

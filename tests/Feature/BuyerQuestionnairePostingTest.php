@@ -372,7 +372,7 @@ class BuyerQuestionnairePostingTest extends TestCase
         }
     }
 
-    public function test_buyer_posting_request_enforces_phone_verification_and_conditional_fields(): void
+    public function test_buyer_posting_request_allows_unverified_phone_but_still_enforces_conditional_fields(): void
     {
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
@@ -397,7 +397,6 @@ class BuyerQuestionnairePostingTest extends TestCase
         $response
             ->assertRedirect(route('jobs.create'))
             ->assertSessionHasErrors([
-                'contact_phone',
                 'property_type_other',
                 'service_type_other',
                 'patrol_types',
@@ -450,10 +449,32 @@ class BuyerQuestionnairePostingTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Verify Mobile Number by SMS');
         $response->assertSeeText('Send Verification Code');
-        $response->assertSeeText('Verification Required');
+        $response->assertSeeText('Verification Optional');
     }
 
-    public function test_verified_buyer_cannot_post_when_request_phone_does_not_match_verified_account_phone(): void
+    public function test_unverified_buyer_can_complete_job_post_without_phone_verification(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '+14045551234',
+            'phone_verified' => false,
+        ]);
+
+        $response = $this->actingAs($buyer)->post(route('jobs.store'), $this->validPostingPayload());
+
+        $response
+            ->assertRedirect(route('job-board'))
+            ->assertSessionHas('success', 'Job posted successfully.');
+
+        $job = JobPosting::query()->latest('id')->first();
+
+        $this->assertNotNull($job);
+        $this->assertFalse((bool) $job?->questionnaire('phone_verified'));
+        $this->assertSame('+1 (404) 555-1234', $job?->questionnaire('contact_phone'));
+    }
+
+    public function test_verified_buyer_can_post_when_request_phone_does_not_match_verified_account_phone(): void
     {
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
@@ -466,13 +487,16 @@ class BuyerQuestionnairePostingTest extends TestCase
             'contact_phone' => '+14706332816',
         ]);
 
-        $response = $this->actingAs($buyer)->from(route('jobs.create'))->post(route('jobs.store'), $payload);
+        $response = $this->actingAs($buyer)->post(route('jobs.store'), $payload);
 
         $response
-            ->assertRedirect(route('jobs.create'))
-            ->assertSessionHasErrors([
-                'contact_phone',
-            ]);
+            ->assertRedirect(route('job-board'))
+            ->assertSessionHas('success', 'Job posted successfully.');
+
+        $job = JobPosting::query()->latest('id')->first();
+
+        $this->assertNotNull($job);
+        $this->assertSame('+14706332816', $job?->questionnaire('contact_phone'));
     }
 
     public function test_open_bid_offer_uses_questionnaire_snapshot_for_summary_fields(): void
