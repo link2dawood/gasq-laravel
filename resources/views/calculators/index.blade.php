@@ -99,23 +99,6 @@
             </div>
         </div>
 
-        {{-- Contract & Billing --}}
-        <div class="mb-5">
-            <h5 class="calc-group-label">Contract &amp; Billing</h5>
-            <div class="row g-3">
-                <div class="col-md-6 col-xl-4">
-                    <a href="{{ route('security-billing.index') }}" class="calc-card">
-                        <div class="calc-card-icon"><i class="fa fa-file-invoice-dollar"></i></div>
-                        <div class="calc-card-body">
-                            <div class="calc-card-title">Security Billing</div>
-                            <div class="calc-card-desc">Full contract billing breakdown with direct labor, burden, overhead, and profit.</div>
-                        </div>
-                        <i class="fa fa-arrow-right calc-card-arrow"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-
         {{-- Rates & Labor --}}
         <div class="mb-5">
         <h5 class="calc-group-label">Rates &amp; Labor</h5>
@@ -227,16 +210,6 @@
                     <div class="calc-card-body">
                         <div class="calc-card-title">Direct Labor Build-Up</div>
                         <div class="calc-card-desc">Layer-by-layer direct labor cost construction from wage through fully loaded rate.</div>
-                    </div>
-                    <i class="fa fa-arrow-right calc-card-arrow"></i>
-                </a>
-            </div>
-            <div class="col-md-6 col-xl-4">
-                <a href="{{ route('gasq-additional-cost-stack.index') }}" class="calc-card">
-                    <div class="calc-card-icon"><i class="fa fa-list-ul"></i></div>
-                    <div class="calc-card-body">
-                        <div class="calc-card-title">Additional Cost Stack</div>
-                        <div class="calc-card-desc">Add vehicle, equipment, uniform, and other pass-through costs to the total.</div>
                     </div>
                     <i class="fa fa-arrow-right calc-card-arrow"></i>
                 </a>
