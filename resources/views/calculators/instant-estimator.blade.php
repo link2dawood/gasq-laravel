@@ -1076,9 +1076,12 @@ const REPORT_TYPE = 'instant-estimator';
 const REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'instant-estimator']));
 const REPORT_PAYLOAD_URL = @json(route('backend.report-payload.store'));
 const PREPARE_JOB_URL = @json(route('instant-estimator.prepare-job'));
+const FEE_CHECKOUT_CREATE_URL = @json(route('instant-estimator.fee-checkout'));
 const LOGIN_URL = @json(route('login'));
 const CAN_PREPARE_JOB = @json($canPrepareEstimatorJob);
 const IS_AUTHENTICATED = @json(auth()->check());
+const FEE_CHECKOUT_PAID = @json($feeCheckoutPaid ?? false);
+const FEE_CHECKOUT_STATUS = @json($feeCheckoutStatus);
 const VENDOR_NETWORK_RECIPIENTS = [
     'vendors@getasecurityquote.com',
     'network@getasecurityquote.com',
@@ -2038,16 +2041,16 @@ function validateStepTwo() {
     return true;
 }
 
-function unlockResults(choice) {
+function unlockResults(choice, messageOverride = null) {
     const continueToJobButton = byId('continueToJobButton');
     setStepState(3);
 
     if (choice === 'post-job') {
         continueToJobButton.classList.remove('d-none');
-        showStatus('success', 'Job draft prepared. Your estimate is now unlocked and your buyer questionnaire is ready to continue in the job-posting flow.');
+        showStatus('success', messageOverride || 'Job draft prepared. Your estimate is now unlocked and your buyer questionnaire is ready to continue in the job-posting flow.');
     } else if (choice === 'fee') {
         continueToJobButton.classList.add('d-none');
-        showStatus('success', 'Fee path selected. Your Step 3 estimate is now unlocked.');
+        showStatus('success', messageOverride || 'Card payment confirmed. Your Step 3 estimate is now unlocked.');
     }
 }
 
@@ -2119,6 +2122,46 @@ async function prepareJobDraftFromEstimator() {
     };
 }
 
+async function createFeeCheckoutSession() {
+    const appraisalFee = Number(window.__gasqInstantEstimator?.results?.appraisalFee ?? 0);
+    if (!Number.isFinite(appraisalFee) || appraisalFee < 0.5) {
+        throw new Error('A valid appraisal fee is required before card checkout.');
+    }
+
+    const response = await fetch(FEE_CHECKOUT_CREATE_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
+        body: JSON.stringify({
+            appraisal_fee: appraisalFee,
+        }),
+    });
+
+    if (response.redirected && response.url) {
+        window.location.href = response.url;
+        return null;
+    }
+
+    if (response.status === 401 || response.status === 419) {
+        window.location.href = LOGIN_URL;
+        return null;
+    }
+
+    const responseType = response.headers.get('content-type') || '';
+    const data = responseType.includes('application/json')
+        ? await response.json().catch(() => ({}))
+        : {};
+
+    if (!response.ok) {
+        throw new Error(data.message || 'We could not start the card checkout right now.');
+    }
+
+    return data;
+}
+
 function bindEvents() {
     document.querySelectorAll('input, select, textarea').forEach(element => {
         if (element.classList.contains('rate-library-input')) {
@@ -2183,7 +2226,29 @@ function bindEvents() {
     byId('backToStep2Btn').addEventListener('click', () => setStepState(2));
     byId('backToStep2FromResults').addEventListener('click', () => setStepState(2));
 
-    byId('gateFeeBtn').addEventListener('click', () => unlockResults('fee'));
+    byId('gateFeeBtn').addEventListener('click', async event => {
+        const trigger = event.currentTarget;
+
+        if (!IS_AUTHENTICATED) {
+            window.location.href = LOGIN_URL;
+            return;
+        }
+
+        try {
+            trigger.disabled = true;
+            showStatus('info', 'Preparing your secure card checkout...');
+
+            const data = await createFeeCheckoutSession();
+            if (data?.checkout_url) {
+                window.location.href = data.checkout_url;
+                return;
+            }
+        } catch (error) {
+            showStatus('danger', error.message || 'We could not start the card checkout right now.');
+        } finally {
+            trigger.disabled = false;
+        }
+    });
     byId('gatePostJobBtn').addEventListener('click', async event => {
         const trigger = event.currentTarget;
 
@@ -2260,6 +2325,12 @@ document.addEventListener('DOMContentLoaded', () => {
     bindEvents();
     render();
     setStepState(1);
+
+    if (FEE_CHECKOUT_PAID) {
+        unlockResults('fee', FEE_CHECKOUT_STATUS || 'Card payment confirmed. Your Step 3 estimate is now unlocked.');
+    } else if (FEE_CHECKOUT_STATUS) {
+        showStatus('warning', FEE_CHECKOUT_STATUS);
+    }
 });
 </script>
 @endpush

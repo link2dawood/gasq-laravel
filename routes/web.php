@@ -73,6 +73,8 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::post('/instant-estimator/prepare-job', [App\Http\Controllers\JobPostingController::class, 'prepareFromEstimator'])
         ->name('instant-estimator.prepare-job');
+    Route::post('/instant-estimator/checkout-fee', [App\Http\Controllers\InstantEstimatorFeeCheckoutController::class, 'store'])
+        ->name('instant-estimator.fee-checkout');
 
     // Jobs (create, edit, delete) and bids.
     // Buyers can reach the job flow before phone verification because the job form
