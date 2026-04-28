@@ -14,6 +14,7 @@ class JobPostingController extends Controller
     private const STARTER_SESSION_KEY = 'job_posting_starter';
     private const PREVIEW_SESSION_KEY = 'job_posting_preview';
     private const ESTIMATOR_PREFILL_SESSION_KEY = 'job_posting_estimator_prefill';
+    private const ESTIMATOR_RETURN_SESSION_KEY = 'job_posting_estimator_return_url';
 
     /**
      * @var list<string>
@@ -220,6 +221,10 @@ class JobPostingController extends Controller
 
         $request->session()->put(self::STARTER_SESSION_KEY, $starter);
         $request->session()->put(self::ESTIMATOR_PREFILL_SESSION_KEY, $prefill);
+        $request->session()->put(
+            self::ESTIMATOR_RETURN_SESSION_KEY,
+            route('instant-estimator.index', ['post_job' => 'success'])
+        );
 
         return response()->json([
             'ok' => true,
@@ -296,6 +301,7 @@ class JobPostingController extends Controller
     public function publish(Request $request): RedirectResponse
     {
         $preview = $this->previewSessionData();
+        $estimatorReturnUrl = session(self::ESTIMATOR_RETURN_SESSION_KEY);
 
         if ($preview === [] || ! isset($preview['payload']) || ! is_array($preview['payload'])) {
             return redirect()->route('jobs.create', ['step' => 'details'])
@@ -305,6 +311,11 @@ class JobPostingController extends Controller
         $job = JobPosting::create($preview['payload']);
 
         $this->clearDraftSessions($request);
+
+        if (is_string($estimatorReturnUrl) && $estimatorReturnUrl !== '') {
+            return redirect()->to($estimatorReturnUrl)
+                ->with('success', 'Job announcement published successfully. Your estimate results are now unlocked.');
+        }
 
         return redirect()->route('jobs.show', $job)
             ->with('success', 'Job announcement published successfully.');
@@ -533,6 +544,7 @@ class JobPostingController extends Controller
             self::STARTER_SESSION_KEY,
             self::PREVIEW_SESSION_KEY,
             self::ESTIMATOR_PREFILL_SESSION_KEY,
+            self::ESTIMATOR_RETURN_SESSION_KEY,
         ]);
     }
 

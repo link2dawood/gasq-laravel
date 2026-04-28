@@ -286,6 +286,35 @@ class BuyerQuestionnairePostingTest extends TestCase
         $this->assertNull(session('job_posting_preview'));
     }
 
+    public function test_estimator_origin_publish_returns_to_instant_estimator_with_results_unlocked(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '+14045551234',
+            'phone_verified' => true,
+        ]);
+
+        $this->actingAs($buyer)
+            ->withSession([
+                'job_posting_estimator_return_url' => route('instant-estimator.index', ['post_job' => 'success']),
+            ])
+            ->post(route('jobs.preview'), $this->validPostingPayload())
+            ->assertRedirect(route('jobs.review'));
+
+        $publishResponse = $this->actingAs($buyer)
+            ->withSession([
+                'job_posting_estimator_return_url' => route('instant-estimator.index', ['post_job' => 'success']),
+            ])
+            ->post(route('jobs.publish'));
+
+        $job = JobPosting::query()->latest('id')->first();
+
+        $this->assertNotNull($job);
+        $publishResponse->assertRedirect(route('instant-estimator.index', ['post_job' => 'success']));
+        $publishResponse->assertSessionHas('success', 'Job announcement published successfully. Your estimate results are now unlocked.');
+    }
+
     public function test_buyer_posting_request_persists_questionnaire_snapshot_on_job_posting(): void
     {
         $buyer = User::factory()->create([

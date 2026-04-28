@@ -22,6 +22,10 @@ class InstantEstimatorController extends Controller
         $result = null;
         $feeCheckoutPaid = false;
         $feeCheckoutStatus = null;
+        $postJobPublished = $request->query('post_job') === 'success';
+        $postJobStatus = $postJobPublished
+            ? session('success', 'Job announcement published successfully. Your estimate results are now unlocked.')
+            : null;
 
         if ($request->isMethod('post') && $request->filled(['location', 'hours_per_week', 'number_of_guards'])) {
             $result = $this->estimator->estimate(
@@ -62,6 +66,8 @@ class InstantEstimatorController extends Controller
             'result' => $result,
             'feeCheckoutPaid' => $feeCheckoutPaid,
             'feeCheckoutStatus' => $feeCheckoutStatus,
+            'postJobPublished' => $postJobPublished,
+            'postJobStatus' => $postJobStatus,
         ]);
     }
 }

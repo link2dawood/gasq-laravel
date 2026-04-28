@@ -1082,6 +1082,8 @@ const CAN_PREPARE_JOB = @json($canPrepareEstimatorJob);
 const IS_AUTHENTICATED = @json(auth()->check());
 const FEE_CHECKOUT_PAID = @json($feeCheckoutPaid ?? false);
 const FEE_CHECKOUT_STATUS = @json($feeCheckoutStatus);
+const POST_JOB_PUBLISHED = @json($postJobPublished ?? false);
+const POST_JOB_STATUS = @json($postJobStatus);
 const VENDOR_NETWORK_RECIPIENTS = [
     'vendors@getasecurityquote.com',
     'network@getasecurityquote.com',
@@ -2041,12 +2043,12 @@ function validateStepTwo() {
     return true;
 }
 
-function unlockResults(choice, messageOverride = null) {
+function unlockResults(choice, messageOverride = null, showContinueToJob = choice === 'post-job') {
     const continueToJobButton = byId('continueToJobButton');
     setStepState(3);
 
     if (choice === 'post-job') {
-        continueToJobButton.classList.remove('d-none');
+        continueToJobButton.classList.toggle('d-none', !showContinueToJob);
         showStatus('success', messageOverride || 'Job draft prepared. Your estimate is now unlocked and your buyer questionnaire is ready to continue in the job-posting flow.');
     } else if (choice === 'fee') {
         continueToJobButton.classList.add('d-none');
@@ -2328,6 +2330,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (FEE_CHECKOUT_PAID) {
         unlockResults('fee', FEE_CHECKOUT_STATUS || 'Card payment confirmed. Your Step 3 estimate is now unlocked.');
+    } else if (POST_JOB_PUBLISHED) {
+        unlockResults('post-job', POST_JOB_STATUS || 'Job announcement published successfully. Your estimate results are now unlocked.', false);
     } else if (FEE_CHECKOUT_STATUS) {
         showStatus('warning', FEE_CHECKOUT_STATUS);
     }
