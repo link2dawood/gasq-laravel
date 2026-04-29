@@ -52,7 +52,7 @@
         @if($job->guards_per_shift)<p class="mb-1"><strong>Guards per shift:</strong> {{ $job->guards_per_shift }}</p>@endif
         @if($job->description)
             <hr>
-            <div>{{ nl2br(e($job->description)) }}</div>
+            <div>{!! nl2br(e($job->description)) !!}</div>
         @endif
         @if($job->property_type)<p class="mb-0 mt-2"><strong>Property type:</strong> {{ $job->property_type }}</p>@endif
         @if($job->special_requirements && count($job->special_requirements) > 0)
@@ -88,10 +88,10 @@
 
     <h2 class="gasq-card-title-lg mb-3">Bids ({{ $job->bids->count() }})</h2>
 
-    @auth
+    @if(auth()->check())
         @if(auth()->user()->isVendor() && $job->user_id !== auth()->id())
             @php $userBid = $job->bids->firstWhere('user_id', auth()->id()); @endphp
-            @if(!$userBid)
+            @if(! $userBid)
                 <x-card title="Submit a bid" class="mb-4">
                     <form action="{{ route('bids.store', $job) }}" method="POST">
                         @csrf
@@ -117,7 +117,9 @@
                 @if($userBid->hasCounterOffer())
                     <div class="alert alert-info mb-4">
                         <strong>Counter offer from buyer:</strong> ${{ number_format($userBid->counter_offer_amount, 2) }}
-                        @if($userBid->counter_offer_message)<p class="mb-0 mt-1">{{ $userBid->counter_offer_message }}</p>@endif
+                        @if($userBid->counter_offer_message)
+                            <p class="mb-0 mt-1">{{ $userBid->counter_offer_message }}</p>
+                        @endif
                         <p class="small mb-0 mt-1 text-gasq-muted">Update your bid below to respond.</p>
                     </div>
                 @endif
@@ -149,7 +151,7 @@
         @endif
     @else
         <p class="text-gasq-muted"><a href="{{ route('login') }}" class="text-primary text-decoration-none">Sign in</a> as a vendor to submit a bid.</p>
-    @endauth
+    @endif
 
     @if($job->bids->isEmpty())
         <p class="text-gasq-muted">No bids yet.</p>
