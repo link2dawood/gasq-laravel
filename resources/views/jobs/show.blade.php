@@ -92,61 +92,71 @@
         @if(auth()->user()->isVendor() && $job->user_id !== auth()->id())
             @php $userBid = $job->bids->firstWhere('user_id', auth()->id()); @endphp
             @if(! $userBid)
-                <x-card title="Submit a bid" class="mb-4">
-                    <form action="{{ route('bids.store', $job) }}" method="POST">
-                        @csrf
-                        <div class="mb-3">
-                            <label class="form-label">Amount ($) <span class="text-danger">*</span></label>
-                            <input type="number" name="amount" class="form-control @error('amount') is-invalid @enderror" value="{{ old('amount') }}" step="0.01" min="0" required>
-                            @error('amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="card gasq-card mb-4">
+                    <div class="card-header"><h5 class="card-title mb-0">Submit a bid</h5></div>
+                    <div class="card-body">
+                        <form action="{{ route('bids.store', $job) }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label">Amount ($) <span class="text-danger">*</span></label>
+                                <input type="number" name="amount" class="form-control @error('amount') is-invalid @enderror" value="{{ old('amount') }}" step="0.01" min="0" required>
+                                @error('amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Message</label>
+                                <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="2">{{ old('message') }}</textarea>
+                                @error('message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Proposal</label>
+                                <textarea name="proposal" class="form-control @error('proposal') is-invalid @enderror" rows="4">{{ old('proposal') }}</textarea>
+                                @error('proposal')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit Bid</button>
+                        </form>
+                    </div>
+                </div>
+            @else
+                @if($userBid->isPending())
+                    @if($userBid->hasCounterOffer())
+                        <div class="alert alert-info mb-4">
+                            <strong>Counter offer from buyer:</strong> ${{ number_format($userBid->counter_offer_amount, 2) }}
+                            @if($userBid->counter_offer_message)
+                                <p class="mb-0 mt-1">{{ $userBid->counter_offer_message }}</p>
+                            @endif
+                            <p class="small mb-0 mt-1 text-gasq-muted">Update your bid below to respond.</p>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Message</label>
-                            <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="2">{{ old('message') }}</textarea>
-                            @error('message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @endif
+                    <div class="card gasq-card mb-4">
+                        <div class="card-header"><h5 class="card-title mb-0">Your bid (pending)</h5></div>
+                        <div class="card-body">
+                            <form action="{{ route('bids.update', $userBid) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <div class="mb-3">
+                                    <label class="form-label">Amount ($) <span class="text-danger">*</span></label>
+                                    <input type="number" name="amount" class="form-control @error('amount') is-invalid @enderror" value="{{ old('amount', $userBid->amount) }}" step="0.01" min="0" required>
+                                    @error('amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Message</label>
+                                    <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="2">{{ old('message', $userBid->message) }}</textarea>
+                                    @error('message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Proposal</label>
+                                    <textarea name="proposal" class="form-control @error('proposal') is-invalid @enderror" rows="4">{{ old('proposal', $userBid->proposal) }}</textarea>
+                                    @error('proposal')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Bid</button>
+                            </form>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Proposal</label>
-                            <textarea name="proposal" class="form-control @error('proposal') is-invalid @enderror" rows="4">{{ old('proposal') }}</textarea>
-                            @error('proposal')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <button type="submit" class="btn btn-primary">Submit Bid</button>
-                    </form>
-                </x-card>
-            @elseif($userBid->isPending())
-                @if($userBid->hasCounterOffer())
+                    </div>
+                @else
                     <div class="alert alert-info mb-4">
-                        <strong>Counter offer from buyer:</strong> ${{ number_format($userBid->counter_offer_amount, 2) }}
-                        @if($userBid->counter_offer_message)
-                            <p class="mb-0 mt-1">{{ $userBid->counter_offer_message }}</p>
-                        @endif
-                        <p class="small mb-0 mt-1 text-gasq-muted">Update your bid below to respond.</p>
+                        Your bid of ${{ number_format($userBid->amount, 2) }} was <strong>{{ $userBid->status }}</strong>.
                     </div>
                 @endif
-                <x-card title="Your bid (pending)" class="mb-4">
-                    <form action="{{ route('bids.update', $userBid) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label class="form-label">Amount ($) <span class="text-danger">*</span></label>
-                            <input type="number" name="amount" class="form-control @error('amount') is-invalid @enderror" value="{{ old('amount', $userBid->amount) }}" step="0.01" min="0" required>
-                            @error('amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Message</label>
-                            <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="2">{{ old('message', $userBid->message) }}</textarea>
-                            @error('message')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Proposal</label>
-                            <textarea name="proposal" class="form-control @error('proposal') is-invalid @enderror" rows="4">{{ old('proposal', $userBid->proposal) }}</textarea>
-                            @error('proposal')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <button type="submit" class="btn btn-primary">Update Bid</button>
-                    </form>
-                </x-card>
-            @else
-                <x-alert type="info">Your bid of ${{ number_format($userBid->amount, 2) }} was <strong>{{ $userBid->status }}</strong>.</x-alert>
             @endif
         @endif
     @else
