@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\AdminVendorOpportunityController;
 use App\Http\Controllers\OpenBidOfferController;
 use App\Http\Controllers\StripeCreditsController;
+use App\Http\Controllers\VendorOpportunityController;
 
 Route::get('/', [PageController::class, 'landing'])->name('landing');
 Route::get('/marketplace-landing', [PageController::class, 'marketplaceLanding'])->name('marketplace-landing');
@@ -32,6 +34,10 @@ Route::middleware(['auth', 'phone.verified', 'vendor'])->group(function () {
 Route::get('/open-bid-offer', OpenBidOfferController::class)
     ->middleware('auth')
     ->name('open-bid-offer.index');
+
+Route::get('/vendor-opportunities/{invitation}', [VendorOpportunityController::class, 'show'])
+    ->middleware('signed')
+    ->name('vendor-opportunities.show');
 
 Route::get('/post-job', function () {
     return view('calculators.post-job');
@@ -90,6 +96,13 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/bids/{bid}', [App\Http\Controllers\BidController::class, 'update'])->name('bids.update');
     Route::post('/bids/{bid}/respond', [App\Http\Controllers\BidController::class, 'respond'])->name('bids.respond');
     Route::post('/bids/{bid}/counter-offer', [App\Http\Controllers\BidController::class, 'counterOffer'])->name('bids.counter-offer');
+
+    Route::post('/vendor-opportunities/{invitation}/accept', [VendorOpportunityController::class, 'accept'])
+        ->name('vendor-opportunities.accept');
+    Route::post('/vendor-opportunities/{invitation}/decline', [VendorOpportunityController::class, 'decline'])
+        ->name('vendor-opportunities.decline');
+    Route::post('/vendor-opportunities/{invitation}/bid', [VendorOpportunityController::class, 'submitBid'])
+        ->name('vendor-opportunities.submit-bid');
 });
 
 // Vendor-only calculator suite.
@@ -251,6 +264,11 @@ Route::post('/stripe/webhook', [StripeCreditsController::class, 'webhook'])->nam
 // Admin
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/analytics', [App\Http\Controllers\AnalyticsController::class, 'index'])->name('admin.analytics');
+    Route::get('/admin/vendor-opportunities', [AdminVendorOpportunityController::class, 'index'])->name('admin.vendor-opportunities.index');
+    Route::get('/admin/vendor-opportunities/{opportunity}', [AdminVendorOpportunityController::class, 'show'])->name('admin.vendor-opportunities.show');
+    Route::post('/admin/vendor-opportunities/{opportunity}/approve', [AdminVendorOpportunityController::class, 'approve'])->name('admin.vendor-opportunities.approve');
+    Route::post('/admin/vendor-opportunities/{opportunity}/close', [AdminVendorOpportunityController::class, 'close'])->name('admin.vendor-opportunities.close');
+    Route::post('/admin/vendor-opportunity-invitations/{invitation}/award', [AdminVendorOpportunityController::class, 'award'])->name('admin.vendor-opportunities.award');
     Route::get('/admin/settings', [App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
     Route::post('/admin/settings/logo', [App\Http\Controllers\AdminSettingsController::class, 'uploadLogo'])->name('admin.settings.logo');

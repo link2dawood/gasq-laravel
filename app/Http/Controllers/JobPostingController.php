@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreJobPostingRequest;
 use App\Models\JobPosting;
+use App\Services\VendorOpportunityManager;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -298,7 +299,7 @@ class JobPostingController extends Controller
             ->withInput($preview['form_data'] ?? []);
     }
 
-    public function publish(Request $request): RedirectResponse
+    public function publish(Request $request, VendorOpportunityManager $vendorOpportunityManager): RedirectResponse
     {
         $preview = $this->previewSessionData();
         $estimatorReturnUrl = session(self::ESTIMATOR_RETURN_SESSION_KEY);
@@ -317,6 +318,7 @@ class JobPostingController extends Controller
 
         try {
             $job = JobPosting::create($payload);
+            $vendorOpportunityManager->createForPublishedJob($job);
         } catch (\Throwable $e) {
             report($e);
             return redirect()->route('jobs.review')
@@ -334,12 +336,13 @@ class JobPostingController extends Controller
             ->with('success', 'Job announcement published successfully.');
     }
 
-    public function store(StoreJobPostingRequest $request): RedirectResponse
+    public function store(StoreJobPostingRequest $request, VendorOpportunityManager $vendorOpportunityManager): RedirectResponse
     {
         $data = $request->validated();
         $data['supporting_documents'] = $this->storeSupportingDocuments($request);
 
-        JobPosting::create($this->buildJobPostingPayload($data, $request));
+        $job = JobPosting::create($this->buildJobPostingPayload($data, $request));
+        $vendorOpportunityManager->createForPublishedJob($job);
         $this->clearDraftSessions($request);
         return redirect()->route('job-board')->with('success', 'Job posted successfully.');
     }

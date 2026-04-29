@@ -10,11 +10,22 @@ class Bid extends Model
     protected $fillable = [
         'job_posting_id',
         'user_id',
+        'vendor_opportunity_invitation_id',
         'amount',
+        'hourly_bill_rate',
+        'weekly_price',
+        'monthly_price',
+        'annual_price',
         'status',
         'vendor_response_status',
         'message',
         'proposal',
+        'staffing_plan',
+        'start_availability',
+        'vendor_notes',
+        'realism_score',
+        'realism_label',
+        'realism_flagged',
         'responded_at',
         'vendor_responded_at',
         'counter_offer_amount',
@@ -24,6 +35,12 @@ class Bid extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'hourly_bill_rate' => 'decimal:2',
+        'weekly_price' => 'decimal:2',
+        'monthly_price' => 'decimal:2',
+        'annual_price' => 'decimal:2',
+        'realism_score' => 'integer',
+        'realism_flagged' => 'boolean',
         'responded_at' => 'datetime',
         'vendor_responded_at' => 'datetime',
         'counter_offer_amount' => 'decimal:2',
@@ -68,5 +85,10 @@ class Bid extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function vendorOpportunityInvitation(): BelongsTo
+    {
+        return $this->belongsTo(VendorOpportunityInvitation::class);
     }
 }
