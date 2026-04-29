@@ -12,10 +12,16 @@
     </nav>
 
     @if(session('success'))
-        <x-alert type="success" dismissible>{{ session('success') }}</x-alert>
+        <div class="alert alert-success" role="alert">
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            {{ session('success') }}
+        </div>
     @endif
     @if(session('error'))
-        <x-alert type="danger" dismissible>{{ session('error') }}</x-alert>
+        <div class="alert alert-danger" role="alert">
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            {{ session('error') }}
+        </div>
     @endif
 
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
@@ -34,42 +40,49 @@
         @endauth
     </div>
 
-    <x-card class="mb-4">
-        <p class="text-gasq-muted small mb-2">Posted by {{ $job->user->name }} @if($job->user->company)({{ $job->user->company }})@endif · {{ $job->created_at->format('M j, Y') }}</p>
-        @if($job->location)
-            <p class="mb-1"><strong>Location:</strong> {{ $job->location }}</p>
-        @endif
-        @if($job->hasGeoPoint())
-            <p class="mb-1 small text-gasq-muted"><i class="fa fa-map-pin me-1"></i>{{ number_format((float) $job->latitude, 5) }}, {{ number_format((float) $job->longitude, 5) }}</p>
-        @endif
-        @if($job->category)<p class="mb-1"><strong>Category:</strong> {{ $job->category }}</p>@endif
-        @if($job->service_start_date || $job->service_end_date)
-            <p class="mb-1"><strong>Period:</strong> {{ $job->service_start_date?->format('M j, Y') }} – {{ $job->service_end_date?->format('M j, Y') }}</p>
-        @endif
-        @if($job->budget_min || $job->budget_max)
-            <p class="mb-1"><strong>Budget:</strong> ${{ number_format($job->budget_min ?? 0) }} – ${{ number_format($job->budget_max ?? 0) }}</p>
-        @endif
-        @if($job->guards_per_shift)<p class="mb-1"><strong>Guards per shift:</strong> {{ $job->guards_per_shift }}</p>@endif
-        @if($job->description)
-            <hr>
-            <div>{!! nl2br(e($job->description)) !!}</div>
-        @endif
-        @if($job->property_type)<p class="mb-0 mt-2"><strong>Property type:</strong> {{ $job->property_type }}</p>@endif
-        @if($job->special_requirements && count($job->special_requirements) > 0)
-            <p class="mb-0 mt-2"><strong>Special requirements:</strong></p>
-            <ul class="mb-0">
-                @foreach($job->special_requirements as $req)
-                    <li>{{ $req }}</li>
-                @endforeach
-            </ul>
-        @endif
-    </x-card>
+    <div class="card gasq-card mb-4">
+        <div class="card-body">
+            <p class="text-gasq-muted small mb-2">Posted by {{ $job->user->name }} @if($job->user->company)({{ $job->user->company }})@endif · {{ $job->created_at->format('M j, Y') }}</p>
+            @if($job->location)
+                <p class="mb-1"><strong>Location:</strong> {{ $job->location }}</p>
+            @endif
+            @if($job->hasGeoPoint())
+                <p class="mb-1 small text-gasq-muted"><i class="fa fa-map-pin me-1"></i>{{ number_format((float) $job->latitude, 5) }}, {{ number_format((float) $job->longitude, 5) }}</p>
+            @endif
+            @if($job->category)<p class="mb-1"><strong>Category:</strong> {{ $job->category }}</p>@endif
+            @if($job->service_start_date || $job->service_end_date)
+                <p class="mb-1"><strong>Period:</strong> {{ $job->service_start_date?->format('M j, Y') }} – {{ $job->service_end_date?->format('M j, Y') }}</p>
+            @endif
+            @if($job->budget_min || $job->budget_max)
+                <p class="mb-1"><strong>Budget:</strong> ${{ number_format($job->budget_min ?? 0) }} – ${{ number_format($job->budget_max ?? 0) }}</p>
+            @endif
+            @if($job->guards_per_shift)<p class="mb-1"><strong>Guards per shift:</strong> {{ $job->guards_per_shift }}</p>@endif
+            @if($job->description)
+                <hr>
+                <div>{!! nl2br(e($job->description)) !!}</div>
+            @endif
+            @if($job->property_type)<p class="mb-0 mt-2"><strong>Property type:</strong> {{ $job->property_type }}</p>@endif
+            @if($job->special_requirements && count($job->special_requirements) > 0)
+                <p class="mb-0 mt-2"><strong>Special requirements:</strong></p>
+                <ul class="mb-0">
+                    @foreach($job->special_requirements as $req)
+                        <li>{{ $req }}</li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+    </div>
 
     @php($mapsKey = config('services.google.maps_api_key'))
     @if($job->hasGeoPoint() && $mapsKey)
-        <x-card title="Job site map" class="mb-4">
-            <div id="job-show-map" class="rounded border" style="height: 280px; min-height: 200px; border-color: var(--gasq-border);"></div>
-        </x-card>
+        <div class="card gasq-card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Job site map</h5>
+            </div>
+            <div class="card-body">
+                <div id="job-show-map" class="rounded border" style="height: 280px; min-height: 200px; border-color: var(--gasq-border);"></div>
+            </div>
+        </div>
         @push('scripts')
             <script>
                 window.initJobShowMap = function () {
