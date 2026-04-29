@@ -30,6 +30,8 @@ class BidNotification extends Notification implements ShouldQueue
             'updated' => 'Bid updated on: ' . $job->title,
             'accepted' => 'Your bid was accepted: ' . $job->title,
             'rejected' => 'Your bid was declined: ' . $job->title,
+            'vendor_accepted' => 'Vendor accepted job offer: ' . $job->title,
+            'vendor_declined' => 'Vendor declined job offer: ' . $job->title,
             'counter_offer' => 'Counter offer on your bid: ' . $job->title,
             default => 'Bid update: ' . $job->title,
         };
@@ -44,6 +46,8 @@ class BidNotification extends Notification implements ShouldQueue
             'updated' => $this->bid->user->name . ' updated their bid to $' . number_format($this->bid->amount, 2) . '.',
             'accepted' => 'Your bid of $' . number_format($this->bid->amount, 2) . ' was accepted.',
             'rejected' => 'Your bid was declined by the buyer.',
+            'vendor_accepted' => $this->bid->user->name . ' accepted the job offer announcement.',
+            'vendor_declined' => $this->bid->user->name . ' declined the job offer announcement.',
             'counter_offer' => 'The buyer sent a counter offer of $' . number_format($this->bid->counter_offer_amount, 2) . '.',
             default => 'There is an update on your bid.',
         });
@@ -61,6 +65,7 @@ class BidNotification extends Notification implements ShouldQueue
             'job_title' => $job->title,
             'amount' => (float) $this->bid->amount,
             'vendor_name' => $this->bid->user->name,
+            'vendor_response_status' => $this->bid->vendor_response_status,
         ];
     }
 }

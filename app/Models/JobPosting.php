@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class JobPosting extends Model
 {
@@ -53,6 +54,19 @@ class JobPosting extends Model
             && $this->longitude !== null
             && is_numeric($this->latitude)
             && is_numeric($this->longitude);
+    }
+
+    public function isOfferOpen(): bool
+    {
+        if (in_array($this->status, ['closed', 'awarded'], true)) {
+            return false;
+        }
+
+        if ($this->expires_at instanceof Carbon) {
+            return $this->expires_at->isFuture();
+        }
+
+        return true;
     }
 
     public function user(): BelongsTo

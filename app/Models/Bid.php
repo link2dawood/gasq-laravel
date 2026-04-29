@@ -12,9 +12,11 @@ class Bid extends Model
         'user_id',
         'amount',
         'status',
+        'vendor_response_status',
         'message',
         'proposal',
         'responded_at',
+        'vendor_responded_at',
         'counter_offer_amount',
         'counter_offer_message',
         'counter_offer_at',
@@ -23,6 +25,7 @@ class Bid extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'responded_at' => 'datetime',
+        'vendor_responded_at' => 'datetime',
         'counter_offer_amount' => 'decimal:2',
         'counter_offer_at' => 'datetime',
     ];
@@ -35,6 +38,26 @@ class Bid extends Model
     public function isPending(): bool
     {
         return $this->status === 'pending';
+    }
+
+    public function vendorResponsePending(): bool
+    {
+        return ($this->vendor_response_status ?? 'pending') === 'pending';
+    }
+
+    public function vendorAccepted(): bool
+    {
+        return ($this->vendor_response_status ?? 'pending') === 'accepted';
+    }
+
+    public function vendorDeclined(): bool
+    {
+        return in_array($this->vendor_response_status ?? 'pending', ['declined', 'rejected'], true);
+    }
+
+    public function hasVendorResponded(): bool
+    {
+        return $this->vendorAccepted() || $this->vendorDeclined();
     }
 
     public function jobPosting(): BelongsTo

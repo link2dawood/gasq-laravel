@@ -12,6 +12,60 @@ use Illuminate\Http\Request;
 
 class BidController extends Controller
 {
+    public function offerResponse(Request $request, JobPosting $job): RedirectResponse
+    {
+        if (! $request->user()?->isVendor()) {
+            abort(403);
+        }
+
+        if ($job->user_id === $request->user()->id) {
+            return back()->with('error', 'You cannot respond to your own job offer.');
+        }
+
+        if (! $job->isOfferOpen()) {
+            return back()->with('error', 'This job offer is no longer open for vendor responses.');
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', 'in:accepted,declined'],
+        ]);
+        $offerResponseMessage = $validated['status'] === 'accepted'
+            ? 'Accepted job offer announcement.'
+            : 'Declined job offer announcement.';
+
+        $bid = Bid::firstOrNew([
+            'job_posting_id' => $job->id,
+            'user_id' => $request->user()->id,
+        ]);
+
+        if (! $bid->exists) {
+            $bid->amount = 0;
+            $bid->status = 'pending';
+            $bid->message = $offerResponseMessage;
+        } elseif (in_array($bid->message, [
+            'Accepted job offer announcement.',
+            'Declined job offer announcement.',
+        ], true)) {
+            $bid->message = $offerResponseMessage;
+        }
+
+        $bid->vendor_response_status = $validated['status'];
+        $bid->vendor_responded_at = now();
+        $bid->save();
+
+        $job->user->notify(new BidNotification(
+            $bid->fresh(),
+            $validated['status'] === 'accepted' ? 'vendor_accepted' : 'vendor_declined'
+        ));
+
+        return back()->with(
+            'success',
+            $validated['status'] === 'accepted'
+                ? 'You accepted this job offer. You can change your response while the offer remains open.'
+                : 'You declined this job offer. You can change your response while the offer remains open.'
+        );
+    }
+
     public function store(StoreBidRequest $request, JobPosting $job): RedirectResponse
     {
         if ($job->user_id === $request->user()->id) {

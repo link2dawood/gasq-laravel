@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/jobs/publish', [App\Http\Controllers\JobPostingController::class, 'publish'])->name('jobs.publish');
     Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
     Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
+    Route::post('/jobs/{job}/offer-response', [App\Http\Controllers\BidController::class, 'offerResponse'])->name('bids.offer-response');
     Route::put('/bids/{bid}', [App\Http\Controllers\BidController::class, 'update'])->name('bids.update');
     Route::post('/bids/{bid}/respond', [App\Http\Controllers\BidController::class, 'respond'])->name('bids.respond');
     Route::post('/bids/{bid}/counter-offer', [App\Http\Controllers\BidController::class, 'counterOffer'])->name('bids.counter-offer');
