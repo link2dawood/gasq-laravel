@@ -54,7 +54,7 @@ return new class extends Migration
             $table->timestamp('accepted_bid_reminder_sent_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['vendor_opportunity_id', 'vendor_id']);
+            $table->unique(['vendor_opportunity_id', 'vendor_id'], 'voi_opportunity_vendor_unique');
             $table->index(['status', 'sent_at']);
         });
     }
