@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('vendor_opportunities'))
         Schema::create('vendor_opportunities', function (Blueprint $table) {
             $table->id();
             $table->foreignId('job_posting_id')->constrained('job_postings')->cascadeOnDelete();
@@ -30,6 +31,7 @@ return new class extends Migration
             $table->index(['lead_tier', 'status']);
         });
 
+        if (! Schema::hasTable('vendor_opportunity_invitations'))
         Schema::create('vendor_opportunity_invitations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vendor_opportunity_id')->constrained('vendor_opportunities')->cascadeOnDelete();
