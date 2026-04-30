@@ -3,6 +3,10 @@
 @section('header_variant', 'dashboard')
 @section('main_class', 'py-0')
 
+@php
+    $vendorLeadsMapsKey = config('services.google.maps_api_key');
+@endphp
+
 @push('styles')
 <style>
     .vendor-leads-shell {
@@ -194,6 +198,24 @@
         line-height: 1.45;
         color: #232b3d;
     }
+    .lead-map-card {
+        margin: .9rem 0 1.1rem;
+        border: 1px solid #dbe1ec;
+        border-radius: 1rem;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.96);
+    }
+    .lead-map-head {
+        padding: .8rem 1rem;
+        border-bottom: 1px solid #e4e8f1;
+        font-size: .94rem;
+        font-weight: 700;
+        color: #23304a;
+    }
+    .lead-map-canvas {
+        height: 250px;
+        min-height: 210px;
+    }
     .lead-detail-block {
         padding-top: 1rem;
         border-top: 1px solid #dde2eb;
@@ -284,6 +306,7 @@
                         @php
                             $selected = $selectedLead;
                             $filledDots = min((int) $selected['response_count'], (int) $selected['response_denominator']);
+                            $hasLeadMap = is_numeric($selected['latitude'] ?? null) && is_numeric($selected['longitude'] ?? null);
                         @endphp
                         <div class="lead-detail-inner">
                             <div class="lead-detail-header">
@@ -321,6 +344,13 @@
                             <div class="lead-location mb-1"><i class="fa fa-location-dot me-2"></i>{{ $selected['location'] }}</div>
                             <div class="lead-summary mb-3">{{ $selected['summary'] }}</div>
 
+                            @if($hasLeadMap && $vendorLeadsMapsKey)
+                                <div class="lead-map-card">
+                                    <div class="lead-map-head">Location map</div>
+                                    <div id="vendor-lead-map" class="lead-map-canvas"></div>
+                                </div>
+                            @endif
+
                             <div class="lead-detail-block">
                                 <h2 class="lead-detail-heading">Details</h2>
                                 @foreach($selected['detail_rows'] as $row)
@@ -338,3 +368,36 @@
     </div>
 </div>
 @endsection
+
+@if(!empty($selectedLead) && is_numeric($selectedLead['latitude'] ?? null) && is_numeric($selectedLead['longitude'] ?? null) && $vendorLeadsMapsKey)
+    @push('scripts')
+        <script>
+            window.initVendorLeadMap = function () {
+                var el = document.getElementById('vendor-lead-map');
+                if (!el || !window.google || !google.maps) {
+                    return;
+                }
+
+                var center = {
+                    lat: {{ (float) $selectedLead['latitude'] }},
+                    lng: {{ (float) $selectedLead['longitude'] }}
+                };
+
+                var map = new google.maps.Map(el, {
+                    zoom: 14,
+                    center: center,
+                    mapTypeControl: true,
+                    streetViewControl: false,
+                    fullscreenControl: false
+                });
+
+                new google.maps.Marker({
+                    position: center,
+                    map: map,
+                    title: @json($selectedLead['location'] ?? $selectedLead['title'] ?? 'Lead location')
+                });
+            };
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ $vendorLeadsMapsKey }}&callback=initVendorLeadMap" async defer></script>
+    @endpush
+@endif
