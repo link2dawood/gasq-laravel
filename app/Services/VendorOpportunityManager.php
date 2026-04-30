@@ -23,6 +23,7 @@ class VendorOpportunityManager
         private readonly VendorOpportunityTracker $tracker,
         private readonly WalletService $walletService,
         private readonly VendorOpportunityBidScoringService $bidScoringService,
+        private readonly BuyerVendorMatchNotifier $buyerVendorMatchNotifier,
     ) {}
 
     public function createForPublishedJob(JobPosting $job): VendorOpportunity
@@ -69,6 +70,7 @@ class VendorOpportunityManager
     public function sendInvitations(VendorOpportunity $opportunity): VendorOpportunity
     {
         $opportunity->loadMissing('jobPosting.user');
+        $wasOpportunityUnsent = $opportunity->sent_at === null;
 
         if ($opportunity->lead_tier === 'c') {
             return $opportunity;
@@ -130,6 +132,10 @@ class VendorOpportunityManager
                     'notification_type' => 'new',
                 ]);
             }
+        }
+
+        if ($wasOpportunityUnsent && $newlySentInvitationIds !== []) {
+            $this->buyerVendorMatchNotifier->notifyOpportunityLive($opportunity);
         }
 
         return $opportunity;
@@ -227,6 +233,7 @@ class VendorOpportunityManager
             $this->tracker->track('vendor_opportunity_credits_charged', $invitation, $vendor, [
                 'credits' => $invitation->credits_to_unlock,
             ]);
+            $this->buyerVendorMatchNotifier->notifyAcceptedProgress($invitation->opportunity->fresh());
         }
 
         return $invitation;

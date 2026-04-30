@@ -8,7 +8,9 @@ use App\Models\User;
 use App\Models\VendorCapability;
 use App\Models\VendorOpportunity;
 use App\Models\VendorOpportunityInvitation;
+use App\Notifications\BuyerVendorMatchNotification;
 use App\Notifications\VendorOpportunityNotification;
+use App\Services\TwilioSmsService;
 use App\Services\VendorOpportunityManager;
 use App\Services\WalletService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,11 +26,14 @@ class VendorOpportunityAutomationTest extends TestCase
     public function test_a_tier_job_creates_opportunity_and_sends_only_matching_vendor_invites(): void
     {
         Notification::fake();
+        $smsFake = $this->fakeSmsService();
+        app()->instance(TwilioSmsService::class, $smsFake);
 
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
             'company' => 'Buyer Co',
             'phone_verified' => true,
+            'phone' => '5551234567',
         ]);
 
         $matchingVendor = $this->createVendorWithCapability('vendor1@example.com', ['California'], ['Event Security']);
@@ -52,6 +57,15 @@ class VendorOpportunityAutomationTest extends TestCase
         Notification::assertSentTo($matchingVendor, VendorOpportunityNotification::class, function (VendorOpportunityNotification $notification): bool {
             return $notification->type === 'new';
         });
+        Notification::assertSentTo($buyer, BuyerVendorMatchNotification::class, function (BuyerVendorMatchNotification $notification): bool {
+            return $notification->type === 'live'
+                && $notification->acceptedCount === 0
+                && str_contains($notification->smsBody(), '0 of 5 vendors accepted');
+        });
+        $this->assertTrue(collect($smsFake->messages)->contains(
+            fn (array $message): bool => $message['to'] === '+15551234567'
+                && str_contains($message['body'], '0 of 5 vendors accepted')
+        ));
     }
 
     public function test_b_tier_job_stays_pending_review_until_admin_approval(): void
@@ -97,8 +111,10 @@ class VendorOpportunityAutomationTest extends TestCase
     public function test_vendor_accept_deducts_credits_and_unlocks_details_once(): void
     {
         Notification::fake();
+        $smsFake = $this->fakeSmsService();
+        app()->instance(TwilioSmsService::class, $smsFake);
 
-        $buyer = User::factory()->create(['user_type' => 'buyer', 'phone_verified' => true]);
+        $buyer = User::factory()->create(['user_type' => 'buyer', 'phone_verified' => true, 'phone' => '5551234567']);
         $vendor = $this->createVendorWithCapability('vendor@example.com', ['California'], ['Event Security']);
         app(WalletService::class)->addTokens($vendor, 200, 'grant', 'Seed credits');
 
@@ -123,6 +139,18 @@ class VendorOpportunityAutomationTest extends TestCase
         $balanceAfterFirstAccept = app(WalletService::class)->getBalance($vendor);
         $this->actingAs($vendor)->post(route('vendor-opportunities.accept', $invitation));
         $this->assertSame($balanceAfterFirstAccept, app(WalletService::class)->getBalance($vendor));
+
+        Notification::assertSentTo($buyer, BuyerVendorMatchNotification::class, function (BuyerVendorMatchNotification $notification): bool {
+            return $notification->type === 'accepted_progress'
+                && $notification->acceptedCount === 1
+                && str_contains($notification->smsBody(), '1 of 5 vendors accepted');
+        });
+        $this->assertSame(
+            2,
+            collect($smsFake->messages)
+                ->filter(fn (array $message): bool => $message['to'] === '+15551234567')
+                ->count()
+        );
     }
 
     public function test_vendor_accept_fails_when_credits_are_insufficient(): void
@@ -370,6 +398,23 @@ class VendorOpportunityAutomationTest extends TestCase
         ]);
 
         return $vendor;
+    }
+
+    private function fakeSmsService(): TwilioSmsService
+    {
+        return new class extends TwilioSmsService
+        {
+            /** @var list<array{to: string, body: string}> */
+            public array $messages = [];
+
+            public function send(string $toE164, string $body): void
+            {
+                $this->messages[] = [
+                    'to' => $toE164,
+                    'body' => $body,
+                ];
+            }
+        };
     }
 
     /**
