@@ -24,6 +24,16 @@ class VendorOpportunityController extends Controller
             abort(403);
         }
 
+        return $this->renderOpportunityPage($request, $invitation, true);
+    }
+
+    public function manage(Request $request, VendorOpportunityInvitation $invitation): View|RedirectResponse
+    {
+        return $this->renderOpportunityPage($request, $invitation, false);
+    }
+
+    private function renderOpportunityPage(Request $request, VendorOpportunityInvitation $invitation, bool $allowGuestRedirect): View|RedirectResponse
+    {
         $invitation->load([
             'opportunity.jobPosting.user',
             'opportunity.invitations.vendor',
@@ -34,7 +44,11 @@ class VendorOpportunityController extends Controller
         $this->manager->markInvitationOpened($invitation);
 
         if (! $request->user()) {
-            return redirect()->guest(route('login'))->with('info', 'Sign in to review and respond to this GASQ opportunity.');
+            if ($allowGuestRedirect) {
+                return redirect()->guest(route('login'))->with('info', 'Sign in to review and respond to this GASQ opportunity.');
+            }
+
+            abort(403);
         }
 
         if ($request->user()->isAdmin() === false && (int) $request->user()->id !== (int) $invitation->vendor_id) {

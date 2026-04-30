@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Vendor Opportunity Review')
+@section('header_variant', 'dashboard')
 
 @section('content')
 <div class="container py-4">

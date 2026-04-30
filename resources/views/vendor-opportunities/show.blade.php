@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Vendor Opportunity')
+@section('header_variant', 'dashboard')
 
 @section('content')
 @php

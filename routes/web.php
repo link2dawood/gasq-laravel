@@ -6,6 +6,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\AdminVendorOpportunityController;
 use App\Http\Controllers\OpenBidOfferController;
 use App\Http\Controllers\StripeCreditsController;
+use App\Http\Controllers\VendorLeadsController;
 use App\Http\Controllers\VendorOpportunityController;
 
 Route::get('/', [PageController::class, 'landing'])->name('landing');
@@ -64,6 +65,10 @@ Route::get('/register/vendor', function () {
 
 // Auth-only routes (phone verification)
 Route::middleware('auth')->group(function () {
+    Route::get('/vendor/leads', [VendorLeadsController::class, 'index'])->name('vendor-leads.index');
+    Route::get('/vendor-opportunities/manage/{invitation}', [VendorOpportunityController::class, 'manage'])
+        ->name('vendor-opportunities.manage');
+
     // Phone verification (signup OTP)
     Route::get('/phone/verify', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'show'])->name('phone.verify.show');
     Route::post('/phone/verify/send', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'send'])->name('phone.verify.send');
