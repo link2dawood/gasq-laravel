@@ -10,7 +10,7 @@
     .vendor-leads-list { border-right: 1px solid #d8dde8; background: #fff; overflow-y: auto; max-height: calc(100vh - 72px); }
     .vendor-leads-detail { overflow-y: auto; max-height: calc(100vh - 72px); }
     .lead-row {
-        display: block; padding: 1.6rem 1.75rem; color: inherit; text-decoration: none;
+        display: block; padding: 1.15rem 1.25rem; color: inherit; text-decoration: none;
         border-bottom: 1px solid #e5e9f2; background: #fff;
     }
     .lead-row:hover, .lead-row.is-active { background: #f7faff; color: inherit; }
@@ -20,7 +20,7 @@
         font-size: .95rem; font-weight: 700;
     }
     .lead-credits { font-weight: 800; font-size: 1rem; }
-    .lead-detail-inner { padding: 2rem 2.2rem 3rem; }
+    .lead-detail-inner { padding: 1.4rem 1.6rem 2rem; }
     .lead-verify li { margin-bottom: .4rem; }
     .lead-progress-box {
         display: inline-flex; align-items: center; gap: .7rem; flex-wrap: wrap;
@@ -67,16 +67,16 @@
                         href="{{ route('vendor-leads.index', array_filter(['lead' => $item['key'], 'view' => $leadView ?: null])) }}"
                         class="lead-row {{ ($selectedLead['key'] ?? null) === $item['key'] ? 'is-active' : '' }}"
                     >
-                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                             <div>
-                                <div class="fs-2 fw-semibold">{{ $item['subtitle'] }}</div>
-                                <div class="display-6 fw-semibold lh-sm mt-2">{{ $item['title'] }}</div>
+                                <div class="fs-3 fw-semibold">{{ $item['subtitle'] }}</div>
+                                <div class="h1 fw-semibold lh-sm mt-1 mb-0">{{ $item['title'] }}</div>
                             </div>
                             <span class="lead-age">{{ $item['age_badge'] }}</span>
                         </div>
-                        <div class="fs-4 mb-2"><i class="fa fa-location-dot me-2 text-gasq-muted"></i>{{ $item['location'] }}</div>
-                        <div class="fs-3 mb-2">{{ $item['summary'] }}</div>
-                        <div class="fs-3 text-success fw-semibold mb-3">Additional details: <span class="fw-normal text-dark">{{ $item['additional_details'] }}</span></div>
+                        <div class="fs-5 mb-1"><i class="fa fa-location-dot me-2 text-gasq-muted"></i>{{ $item['location'] }}</div>
+                        <div class="fs-4 mb-1">{{ $item['summary'] }}</div>
+                        <div class="fs-5 text-success fw-semibold mb-2">Additional details: <span class="fw-normal text-dark">{{ $item['additional_details'] }}</span></div>
                         <div class="lead-credits"><i class="fa fa-coins me-2 text-gasq-muted"></i>{{ number_format((int) $item['credits']) }} credits</div>
                     </a>
                 @endforeach
@@ -88,14 +88,14 @@
                     $filledDots = min((int) $selected['response_count'], (int) $selected['response_denominator']);
                 @endphp
                 <div class="lead-detail-inner">
-                    <div class="mb-4">
-                        <div class="fs-1 fw-semibold">{{ $selected['subtitle'] }}</div>
-                        <h1 class="display-5 fw-semibold mt-2 mb-4">{{ $selected['title'] }}</h1>
-                        <div class="fs-2 mb-1"><i class="fa fa-phone me-2"></i>{{ $selected['buyer_phone'] }}</div>
-                        <div class="fs-2 mb-4"><i class="fa fa-envelope me-2"></i>{{ $selected['buyer_email'] }}</div>
+                    <div class="mb-3">
+                        <div class="display-6 fw-semibold">{{ $selected['subtitle'] }}</div>
+                        <h1 class="display-6 fw-semibold mt-1 mb-3">{{ $selected['title'] }}</h1>
+                        <div class="fs-3 mb-1"><i class="fa fa-phone me-2"></i>{{ $selected['buyer_phone'] }}</div>
+                        <div class="fs-3 mb-3"><i class="fa fa-envelope me-2"></i>{{ $selected['buyer_email'] }}</div>
                     </div>
 
-                    <ul class="lead-verify list-unstyled fs-3 mb-4">
+                    <ul class="lead-verify list-unstyled fs-4 mb-3">
                         @foreach($selected['verification_rows'] as $label => $value)
                             <li>
                                 <i class="fa fa-square-check me-2 text-success"></i>
@@ -109,26 +109,26 @@
                         @endforeach
                     </ul>
 
-                    <div class="lead-progress-box mb-4">
+                    <div class="lead-progress-box mb-3">
                         @for($i = 1; $i <= (int) $selected['response_denominator']; $i++)
                             <span class="lead-progress-dot {{ $i <= $filledDots ? 'is-on' : '' }}"></span>
                         @endfor
-                        <span class="fs-3">{{ $selected['response_label'] }}</span>
+                        <span class="fs-4">{{ $selected['response_label'] }}</span>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <a href="{{ $selected['action_url'] }}" class="lead-primary-btn">{{ $selected['buyer_contact_action'] }}</a>
                     </div>
 
-                    <div class="fs-3 mb-2"><i class="fa fa-location-dot me-2"></i>{{ $selected['location'] }}</div>
-                    <div class="fs-2 mb-4">{{ $selected['summary'] }}</div>
+                    <div class="fs-4 mb-1"><i class="fa fa-location-dot me-2"></i>{{ $selected['location'] }}</div>
+                    <div class="fs-3 mb-3">{{ $selected['summary'] }}</div>
 
                     <div class="lead-detail-block">
-                        <h2 class="display-6 fw-semibold mb-4">Details</h2>
+                        <h2 class="h1 fw-semibold mb-3">Details</h2>
                         @foreach($selected['detail_rows'] as $row)
-                            <div class="mb-4">
-                                <div class="fs-3 text-gasq-muted fw-semibold">{{ $row['label'] }}</div>
-                                <div class="fs-2">{{ $row['value'] }}</div>
+                            <div class="mb-3">
+                                <div class="fs-4 text-gasq-muted fw-semibold">{{ $row['label'] }}</div>
+                                <div class="fs-3">{{ $row['value'] }}</div>
                             </div>
                         @endforeach
                     </div>
