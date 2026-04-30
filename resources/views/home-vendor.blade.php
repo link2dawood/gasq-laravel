@@ -16,6 +16,25 @@
     }
     .vendor-progress { height: 1rem; background: #edf1f7; border-radius: 999px; overflow: hidden; }
     .vendor-progress > span { display: block; height: 100%; background: linear-gradient(90deg, #1f6fff, #4f8fff); }
+    .vendor-meta-line { color: #667089; font-size: .98rem; line-height: 1.45; }
+    .vendor-kpi-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .6rem;
+        margin: 0 0 1rem;
+    }
+    .vendor-kpi-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .45rem .7rem;
+        border-radius: 999px;
+        background: #f4f7fd;
+        border: 1px solid #e1e7f2;
+        color: #24304a;
+        font-size: .92rem;
+        font-weight: 600;
+    }
     .vendor-cta {
         display: inline-flex; align-items: center; justify-content: center; min-width: 10rem;
         padding: .75rem 1.25rem; border-radius: 999px; background: #ff825f; color: #fff;
@@ -57,8 +76,15 @@
                 <div class="vendor-panel-body">
                     <p class="fs-5 mb-2">Your profile is completed {{ $vendorProfileCompletion ?? 0 }}%</p>
                     <div class="vendor-progress mb-3"><span style="width: {{ min(100, max(0, (int) ($vendorProfileCompletion ?? 0))) }}%"></span></div>
-                    <p class="fs-5 mb-3">There are higher chances to get leads if you complete your profile.</p>
-                    <a href="{{ route('profile.show') }}" class="vendor-cta">Complete profile</a>
+                    <p class="fs-5 mb-2">{{ $vendorProfileMessage ?? 'There are higher chances to get leads if you complete your profile.' }}</p>
+                    <p class="vendor-meta-line mb-3">
+                        @if(($vendorProfileMissingCount ?? 0) > 0)
+                            {{ $vendorProfileMissingCount }} profile item{{ ($vendorProfileMissingCount ?? 0) === 1 ? '' : 's' }} still missing
+                        @else
+                            Profile quality looks strong for vendor matching.
+                        @endif
+                    </p>
+                    <a href="{{ route('profile.show') }}" class="vendor-cta">{{ $vendorProfileCta ?? 'Complete profile' }}</a>
                 </div>
             </section>
 
@@ -68,6 +94,11 @@
                     <div class="vendor-metric-circle">{{ $vendorLeadCount ?? 0 }}</div>
                     <p class="fs-4 mb-1">Leads</p>
                     <p class="fs-5 text-gasq-muted mb-3">{{ $vendorUnreadLeadCount ?? 0 }} unread leads</p>
+                    <div class="vendor-kpi-row justify-content-center">
+                        <span class="vendor-kpi-pill"><i class="fa fa-bolt"></i>{{ $vendorActiveLeadCount ?? 0 }} active</span>
+                        <span class="vendor-kpi-pill"><i class="fa fa-envelope-open"></i>{{ $vendorUnreadLeadCount ?? 0 }} unread</span>
+                    </div>
+                    <p class="vendor-meta-line mb-3">{{ $vendorLeadMessage ?? 'Your invited leads will appear here as soon as GASQ routes matching projects.' }}</p>
                     <a href="{{ route('vendor-leads.index') }}" class="vendor-link-btn">View My Leads</a>
                 </div>
             </section>
@@ -114,6 +145,12 @@
                             You do not have any responses right now
                         @endif
                     </p>
+                    <div class="vendor-kpi-row">
+                        <span class="vendor-kpi-pill"><i class="fa fa-circle-check text-success"></i>{{ $vendorAcceptedResponseCount ?? 0 }} accepted</span>
+                        <span class="vendor-kpi-pill"><i class="fa fa-file-signature text-primary"></i>{{ $vendorBidSubmittedCount ?? 0 }} bids</span>
+                        <span class="vendor-kpi-pill"><i class="fa fa-circle-xmark text-muted"></i>{{ $vendorDeclinedResponseCount ?? 0 }} declined</span>
+                    </div>
+                    <p class="vendor-meta-line mb-3">{{ $vendorResponseMessage ?? 'No vendor responses recorded yet.' }}</p>
                     <a href="{{ route('vendor-leads.index', ['view' => 'responses']) }}" class="vendor-cta">View All</a>
                 </div>
             </section>
