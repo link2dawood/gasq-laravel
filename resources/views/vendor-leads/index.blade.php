@@ -307,9 +307,13 @@
                             $selected = $selectedLead;
                             $filledDots = min((int) $selected['response_count'], (int) $selected['response_denominator']);
                             $hasLeadMap = is_numeric($selected['latitude'] ?? null) && is_numeric($selected['longitude'] ?? null);
-                            $hasLeadLocationText = filled($selected['location'] ?? null) && ($selected['location'] ?? '') !== 'Not provided';
-                            $leadMapEmbedUrl = $hasLeadLocationText
-                                ? 'https://www.google.com/maps?q=' . rawurlencode((string) $selected['location']) . '&output=embed'
+                            $leadMapQuery = filled($selected['zip_code'] ?? null)
+                                ? (string) $selected['zip_code']
+                                : ((filled($selected['location'] ?? null) && ($selected['location'] ?? '') !== 'Not provided')
+                                    ? (string) $selected['location']
+                                    : null);
+                            $leadMapEmbedUrl = $leadMapQuery
+                                ? 'https://www.google.com/maps?q=' . rawurlencode($leadMapQuery) . '&output=embed'
                                 : null;
                         @endphp
                         <div class="lead-detail-inner">
