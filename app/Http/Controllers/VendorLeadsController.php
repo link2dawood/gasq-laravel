@@ -102,7 +102,7 @@ class VendorLeadsController extends Controller
             'summary' => 'Looking for ' . $serviceType,
             'additional_details' => $this->valueText(data_get($questionnaire, 'additional_notes_to_vendors') ?: data_get($questionnaire, 'primary_reason')),
             'credits' => (int) $invitation->credits_to_unlock,
-            'age_badge' => strtoupper($this->shortAge($invitation->sent_at ?? $invitation->created_at)),
+            'age_badge' => $this->shortAge($invitation->sent_at ?? $invitation->created_at),
             'response_label' => sprintf('%d/%d professionals have responded', $respondedCount, (int) ($opportunity?->max_accepts ?? 5)),
             'response_count' => $respondedCount,
             'response_denominator' => (int) ($opportunity?->max_accepts ?? 5),
@@ -148,7 +148,7 @@ class VendorLeadsController extends Controller
             'summary' => 'Looking for ' . $serviceType,
             'additional_details' => $this->valueText(data_get($questionnaire, 'additional_notes_to_vendors') ?: data_get($questionnaire, 'primary_reason')),
             'credits' => (int) floor(((float) $bid->amount) / 100),
-            'age_badge' => strtoupper($this->shortAge($bid->created_at)),
+            'age_badge' => $this->shortAge($bid->created_at),
             'response_label' => sprintf('%d/%d professionals have responded', $acceptedCount, 5),
             'response_count' => $acceptedCount,
             'response_denominator' => 5,
@@ -180,15 +180,24 @@ class VendorLeadsController extends Controller
     private function shortAge(?Carbon $date): string
     {
         if (! $date instanceof Carbon) {
-            return 'NEW';
+            return 'New';
         }
 
-        $diffInHours = $date->diffInHours(now());
+        $now = now();
+        $diffInMinutes = max(0, (int) floor($date->diffInMinutes($now)));
+
+        if ($diffInMinutes < 60) {
+            return max(1, $diffInMinutes) . 'm ago';
+        }
+
+        $diffInHours = (int) floor($date->diffInHours($now));
         if ($diffInHours < 48) {
             return $diffInHours . 'h ago';
         }
 
-        return $date->diffInDays(now()) . 'd ago';
+        $diffInDays = (int) floor($date->diffInDays($now));
+
+        return $diffInDays . 'd ago';
     }
 
     /**
