@@ -35,6 +35,37 @@
         'Uses 1099 employees' => $yesNo(data_get($additionalInfo, 'uses_1099_employees')),
         '24-hour dispatch center' => $yesNo(data_get($additionalInfo, 'has_dispatch_center')),
     ];
+    $maskIdentifier = static function (?string $value, int $visible = 4): ?string {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        $suffix = substr($value, -$visible);
+
+        return str_repeat('*', max(strlen($value) - strlen($suffix), 0)) . $suffix;
+    };
+    $maskPhone = static function (?string $value): ?string {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        return preg_replace('/\d(?=\d{4})/', '*', $value) ?? $value;
+    };
+    $maskEmail = static function (?string $value): ?string {
+        $value = trim((string) $value);
+        if ($value === '' || ! str_contains($value, '@')) {
+            return $value !== '' ? $value : null;
+        }
+
+        [$local, $domain] = explode('@', $value, 2);
+        $local = strlen($local) <= 2
+            ? substr($local, 0, 1) . '*'
+            : substr($local, 0, 1) . str_repeat('*', max(strlen($local) - 2, 1)) . substr($local, -1);
+
+        return $local . '@' . $domain;
+    };
 @endphp
 
 @push('styles')
@@ -196,7 +227,7 @@
                                 @if(data_get($additionalInfo, 'vendor_ein'))
                                     <div class="vendor-public-item">
                                         <span class="vendor-public-label">Vendor EIN</span>
-                                        <div class="vendor-public-value">{{ data_get($additionalInfo, 'vendor_ein') }}</div>
+                                        <div class="vendor-public-value">{{ $maskIdentifier(data_get($additionalInfo, 'vendor_ein')) }}</div>
                                     </div>
                                 @endif
                                 @if($capability?->years_of_experience)
@@ -287,10 +318,10 @@
                                         'Deductible per Occurrence' => data_get($generalInsurance, 'deductible_per_occurrence'),
                                         'Insurance Company Name' => data_get($generalInsurance, 'company_name'),
                                         'Insurance Company Address' => data_get($generalInsurance, 'company_address'),
-                                        'Policy Number' => data_get($generalInsurance, 'policy_number'),
-                                        'Carrier Phone Number' => data_get($generalInsurance, 'carrier_phone'),
+                                        'Policy Number' => $maskIdentifier(data_get($generalInsurance, 'policy_number')),
+                                        'Carrier Phone Number' => $maskPhone(data_get($generalInsurance, 'carrier_phone')),
                                         'Agent to Contact' => data_get($generalInsurance, 'agent_name'),
-                                        'Agent Email Address' => data_get($generalInsurance, 'agent_email'),
+                                        'Agent Email Address' => $maskEmail(data_get($generalInsurance, 'agent_email')),
                                     ];
                                 @endphp
                                 @forelse(array_filter($generalRows) as $label => $value)
@@ -315,10 +346,10 @@
                                     $workersRows = [
                                         'Insurance Company Name' => data_get($workersCompInsurance, 'company_name'),
                                         'Insurance Company Address' => data_get($workersCompInsurance, 'company_address'),
-                                        'Policy Number' => data_get($workersCompInsurance, 'policy_number'),
-                                        'Carrier Phone Number' => data_get($workersCompInsurance, 'carrier_phone'),
+                                        'Policy Number' => $maskIdentifier(data_get($workersCompInsurance, 'policy_number')),
+                                        'Carrier Phone Number' => $maskPhone(data_get($workersCompInsurance, 'carrier_phone')),
                                         'Agent to Contact' => data_get($workersCompInsurance, 'agent_name'),
-                                        'Agent Email Address' => data_get($workersCompInsurance, 'agent_email'),
+                                        'Agent Email Address' => $maskEmail(data_get($workersCompInsurance, 'agent_email')),
                                     ];
                                 @endphp
                                 @forelse(array_filter($workersRows) as $label => $value)
