@@ -52,6 +52,8 @@ class VendorOpportunityManager
 
         if ($opportunity->lead_tier === 'a') {
             $this->sendInvitations($opportunity);
+        } else {
+            $this->buyerVendorMatchNotifier->notifyPendingQualification($opportunity);
         }
 
         return $opportunity->fresh(['jobPosting.user', 'invitations.vendor']);

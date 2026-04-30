@@ -71,10 +71,13 @@ class VendorOpportunityAutomationTest extends TestCase
     public function test_b_tier_job_stays_pending_review_until_admin_approval(): void
     {
         Notification::fake();
+        $smsFake = $this->fakeSmsService();
+        app()->instance(TwilioSmsService::class, $smsFake);
 
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
             'phone_verified' => true,
+            'phone' => '5551234567',
         ]);
 
         $job = $this->createQualifiedJob($buyer, [
@@ -86,10 +89,17 @@ class VendorOpportunityAutomationTest extends TestCase
         $this->assertSame('b', $opportunity->lead_tier);
         $this->assertSame(VendorOpportunity::STATUS_PENDING_REVIEW, $opportunity->status);
         $this->assertDatabaseCount('vendor_opportunity_invitations', 0);
+        Notification::assertSentTo($buyer, BuyerVendorMatchNotification::class, function (BuyerVendorMatchNotification $notification): bool {
+            return $notification->type === BuyerVendorMatchNotification::TYPE_PENDING_QUALIFICATION
+                && $notification->smsBody() === '';
+        });
+        $this->assertCount(0, $smsFake->messages);
     }
 
     public function test_c_tier_job_is_held_internally(): void
     {
+        Notification::fake();
+
         $buyer = User::factory()->create([
             'user_type' => 'buyer',
             'phone_verified' => true,
@@ -106,6 +116,9 @@ class VendorOpportunityAutomationTest extends TestCase
         $this->assertSame('c', $opportunity->lead_tier);
         $this->assertSame(VendorOpportunity::STATUS_HELD, $opportunity->status);
         $this->assertDatabaseCount('vendor_opportunity_invitations', 0);
+        Notification::assertSentTo($buyer, BuyerVendorMatchNotification::class, function (BuyerVendorMatchNotification $notification): bool {
+            return $notification->type === BuyerVendorMatchNotification::TYPE_PENDING_QUALIFICATION;
+        });
     }
 
     public function test_vendor_accept_deducts_credits_and_unlocks_details_once(): void
