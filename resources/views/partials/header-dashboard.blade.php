@@ -17,6 +17,9 @@
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('home') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('home') }}">Dashboard</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('vendor-leads.index') && request('view') !== 'responses' ? 'active fw-semibold text-dark' : '' }}" href="{{ route('vendor-leads.index') }}">Leads</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('vendor-leads.index') && request('view') === 'responses' ? 'active fw-semibold text-dark' : '' }}" href="{{ route('vendor-leads.index', ['view' => 'responses']) }}">Responses</a></li>
+                            @include('partials.nav-calculators-dropdown', ['toggleId' => 'navbarCalculatorsVendor', 'navLinkClass' => 'nav-link text-gasq-muted dropdown-toggle'])
+                            <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('credits') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('credits') }}">Credits</a></li>
+                            <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('discovery-call.index') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('discovery-call.index') }}">Discovery Call</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('profile.*') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('profile.show') }}">Settings</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('landing') }}">Home</a></li>
                             <li class="nav-item ms-md-2">

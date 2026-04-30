@@ -50,6 +50,7 @@
 @endpush
 
 @section('content')
+<div class="container-fluid px-0">
 <div class="vendor-leads-shell">
     @if($leadItems->isEmpty())
         <div class="lead-empty">
@@ -136,5 +137,6 @@
             </section>
         </div>
     @endif
+</div>
 </div>
 @endsection
