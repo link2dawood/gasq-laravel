@@ -13,7 +13,7 @@ class VendorProfileController extends Controller
         if ($user->user_type !== 'vendor') {
             abort(404);
         }
-        $user->load('vendorProfile');
+        $user->load(['vendorProfile', 'vendorCapability']);
         return view('vendor-profile.show', ['vendor' => $user]);
     }
 }
