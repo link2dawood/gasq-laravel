@@ -53,6 +53,7 @@ class VendorCapability extends Model
         'naics_codes' => 'array',
         'psc_codes' => 'array',
         'service_areas' => 'array',
+        'additional_info' => 'array',
         'signature_date' => 'date',
         'license_verified' => 'boolean',
         'insurance_verified' => 'boolean',
