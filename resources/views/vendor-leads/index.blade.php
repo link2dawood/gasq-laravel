@@ -307,6 +307,10 @@
                             $selected = $selectedLead;
                             $filledDots = min((int) $selected['response_count'], (int) $selected['response_denominator']);
                             $hasLeadMap = is_numeric($selected['latitude'] ?? null) && is_numeric($selected['longitude'] ?? null);
+                            $hasLeadLocationText = filled($selected['location'] ?? null) && ($selected['location'] ?? '') !== 'Not provided';
+                            $leadMapEmbedUrl = $hasLeadLocationText
+                                ? 'https://www.google.com/maps?q=' . rawurlencode((string) $selected['location']) . '&output=embed'
+                                : null;
                         @endphp
                         <div class="lead-detail-inner">
                             <div class="lead-detail-header">
@@ -344,10 +348,21 @@
                             <div class="lead-location mb-1"><i class="fa fa-location-dot me-2"></i>{{ $selected['location'] }}</div>
                             <div class="lead-summary mb-3">{{ $selected['summary'] }}</div>
 
-                            @if($hasLeadMap && $vendorLeadsMapsKey)
+                            @if(($hasLeadMap && $vendorLeadsMapsKey) || $leadMapEmbedUrl)
                                 <div class="lead-map-card">
                                     <div class="lead-map-head">Location map</div>
-                                    <div id="vendor-lead-map" class="lead-map-canvas"></div>
+                                    @if($hasLeadMap && $vendorLeadsMapsKey)
+                                        <div id="vendor-lead-map" class="lead-map-canvas"></div>
+                                    @else
+                                        <iframe
+                                            src="{{ $leadMapEmbedUrl }}"
+                                            class="lead-map-canvas w-100 border-0"
+                                            loading="lazy"
+                                            referrerpolicy="no-referrer-when-downgrade"
+                                            allowfullscreen
+                                            title="Lead location map"
+                                        ></iframe>
+                                    @endif
                                 </div>
                             @endif
 
