@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreJobPostingRequest;
+use App\Models\Bid;
 use App\Models\JobPosting;
+use App\Notifications\HireNotification;
 use App\Services\VendorOpportunityManager;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class JobPostingController extends Controller
@@ -373,6 +377,152 @@ class JobPostingController extends Controller
             : null;
         $job->update($data);
         return redirect()->route('jobs.show', $job)->with('success', 'Job updated.');
+    }
+
+    public function hire(Request $request, JobPosting $job): RedirectResponse
+    {
+        if ($job->user_id !== $request->user()->id) {
+            abort(403);
+        }
+        if ($job->isHired()) {
+            return back()->with('error', 'A vendor has already been hired for this job.');
+        }
+
+        $data = $request->validate([
+            'bid_id' => ['nullable', 'integer', 'exists:bids,id'],
+            'external_name' => ['nullable', 'string', 'max:255'],
+            'source' => ['nullable', 'in:platform,external,none'],
+        ]);
+
+        $source = $data['source'] ?? ($data['bid_id'] ?? null ? 'platform' : 'external');
+
+        if ($source === 'none') {
+            return $this->close($request->merge(['close_reason' => $request->input('close_reason', 'still_deciding')]), $job);
+        }
+
+        $hiredBid = null;
+        if ($source === 'platform') {
+            if (empty($data['bid_id'])) {
+                return back()->with('error', 'Pick which vendor you hired.');
+            }
+            $hiredBid = Bid::with('user')->findOrFail($data['bid_id']);
+            if ($hiredBid->job_posting_id !== $job->id) {
+                abort(403);
+            }
+        } elseif ($source === 'external' && empty($data['external_name'])) {
+            return back()->with('error', 'Tell us who you hired.');
+        }
+
+        DB::transaction(function () use ($job, $hiredBid, $data, $source) {
+            $now = now();
+
+            if ($hiredBid) {
+                $hiredBid->update([
+                    'status' => 'accepted',
+                    'hired_at' => $now,
+                    'responded_at' => $hiredBid->responded_at ?? $now,
+                ]);
+
+                Bid::where('job_posting_id', $job->id)
+                    ->where('id', '!=', $hiredBid->id)
+                    ->where('status', 'pending')
+                    ->update([
+                        'status' => 'rejected',
+                        'responded_at' => $now,
+                    ]);
+            }
+
+            $job->update([
+                'hired_bid_id' => $hiredBid?->id,
+                'hired_at' => $now,
+                'hired_external_name' => $source === 'external' ? $data['external_name'] : null,
+                'status' => 'awarded',
+                'last_activity_at' => $now,
+            ]);
+        });
+
+        $job->refresh()->load('hiredBid.user', 'user', 'bids.user');
+
+        $job->user->notify(new HireNotification($job, 'buyer'));
+        if ($hiredBid) {
+            $hiredBid->user->notify(new HireNotification($job, 'vendor'));
+            foreach ($job->bids as $other) {
+                if ($other->id !== $hiredBid->id) {
+                    $other->user?->notify(new HireNotification($job, 'other_vendors'));
+                }
+            }
+        }
+
+        return redirect()->route('jobs.show', $job)->with('success', 'Hire recorded. Other bids were rejected and notifications sent.');
+    }
+
+    public function close(Request $request, JobPosting $job): RedirectResponse
+    {
+        if ($job->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'close_reason' => ['required', 'in:still_deciding,diy_or_friend,change_of_plan,on_hold,quotes_not_right,other'],
+            'close_reason_other' => ['nullable', 'string', 'max:500', 'required_if:close_reason,other'],
+        ]);
+
+        $job->update([
+            'status' => 'closed',
+            'closed_at' => now(),
+            'close_reason' => $data['close_reason'],
+            'close_reason_other' => $data['close_reason_other'] ?? null,
+            'last_activity_at' => now(),
+        ]);
+
+        return redirect()->route('jobs.show', $job)->with('success', 'Job closed. Thanks for the feedback.');
+    }
+
+    public function bidsFragment(Request $request, JobPosting $job): JsonResponse
+    {
+        $job->load(['bids.user:id,name,company', 'hiredBid.user:id,name,company']);
+
+        $isOwner = $request->user()?->id === $job->user_id;
+
+        $bids = $job->bids->map(function (Bid $bid) {
+            return [
+                'id' => $bid->id,
+                'vendor_id' => $bid->user_id,
+                'vendor_name' => $bid->user?->name,
+                'vendor_company' => $bid->user?->company,
+                'amount' => (float) $bid->amount,
+                'status' => $bid->status,
+                'vendor_response_status' => $bid->vendor_response_status,
+                'message' => $bid->message,
+                'counter_offer_amount' => $bid->counter_offer_amount ? (float) $bid->counter_offer_amount : null,
+                'counter_offer_message' => $bid->counter_offer_message,
+                'counter_offer_at' => $bid->counter_offer_at?->toIso8601String(),
+                'vendor_responded_at' => $bid->vendor_responded_at?->toIso8601String(),
+                'hired_at' => $bid->hired_at?->toIso8601String(),
+                'is_hired' => $job->hired_bid_id === $bid->id,
+            ];
+        })->values();
+
+        return response()->json([
+            'job' => [
+                'id' => $job->id,
+                'status' => $job->status,
+                'hired_bid_id' => $job->hired_bid_id,
+                'hired_external_name' => $job->hired_external_name,
+                'hired_at' => $job->hired_at?->toIso8601String(),
+                'closed_at' => $job->closed_at?->toIso8601String(),
+                'is_hired' => $job->isHired(),
+                'is_closed' => $job->isClosed(),
+                'is_owner' => $isOwner,
+            ],
+            'counts' => [
+                'total' => $job->bids->count(),
+                'responded' => $job->bids->filter(fn ($b) => $b->hasVendorResponded())->count(),
+                'accepted' => $job->bids->filter(fn ($b) => $b->vendorAccepted())->count(),
+                'declined' => $job->bids->filter(fn ($b) => $b->vendorDeclined())->count(),
+            ],
+            'bids' => $bids,
+        ]);
     }
 
     public function destroy(Request $request, JobPosting $job): RedirectResponse

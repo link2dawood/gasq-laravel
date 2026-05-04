@@ -79,8 +79,8 @@
                     <p class="text-gasq-muted mb-0">{{ $yesNo($decisionMakerValidated) }}</p>
                 </div>
                 <div class="col-md-6">
-                    <p class="mb-1"><strong>Budget Verified/Validated:</strong></p>
-                    <p class="text-gasq-muted mb-0">{{ $yesNo($budgetValidated) }}</p>
+                    <p class="mb-1"><strong>Budget Amount:</strong></p>
+                    <p class="text-gasq-muted mb-0">{{ $budgetAmountText ?? 'Not provided' }}</p>
                 </div>
             </div>
         </div>

@@ -95,6 +95,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/jobs/review', [App\Http\Controllers\JobPostingController::class, 'review'])->name('jobs.review');
     Route::post('/jobs/review/edit', [App\Http\Controllers\JobPostingController::class, 'editReview'])->name('jobs.review.edit');
     Route::post('/jobs/publish', [App\Http\Controllers\JobPostingController::class, 'publish'])->name('jobs.publish');
+    Route::post('/jobs/{job}/hire', [App\Http\Controllers\JobPostingController::class, 'hire'])->name('jobs.hire');
+    Route::post('/jobs/{job}/close', [App\Http\Controllers\JobPostingController::class, 'close'])->name('jobs.close');
     Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
     Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
     Route::post('/jobs/{job}/offer-response', [App\Http\Controllers\BidController::class, 'offerResponse'])->name('bids.offer-response');
@@ -111,6 +113,10 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Vendor-only calculator suite.
+Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job', 'master.inputs'])->group(function () {
+    Route::get('/budget-calculator', function () { return view('calculators.budget'); })->name('budget-calculator.index');
+});
+
 Route::middleware(['auth', 'phone.verified', 'vendor', 'has.credits', 'buyer.has_job', 'master.inputs'])->group(function () {
     Route::get('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.index');
     Route::post('/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('main-menu-calculator.post');
@@ -126,7 +132,7 @@ Route::middleware(['auth', 'phone.verified', 'vendor', 'has.credits', 'buyer.has
 
     Route::get('/bill-rate-analysis', function () { return view('calculators.bill-rate'); })->name('bill-rate-analysis.index');
     Route::get('/economic-justification', function () { return view('calculators.economic-justification'); })->name('economic-justification.index');
-    Route::get('/budget-calculator', function () { return view('calculators.budget'); })->name('budget-calculator.index');
+
     Route::get('/mobile-patrol-analysis', function () { return view('calculators.mobile-patrol-analysis'); })->name('mobile-patrol-analysis.index');
     Route::get('/mobile-patrol-hit-calculator', function () {
         return view('calculators.mobile-patrol-hit-calculator');
@@ -159,6 +165,7 @@ Route::get('/job-board', function () {
     return redirect()->route('jobs.index');
 })->name('job-board');
 Route::get('/jobs', [App\Http\Controllers\JobPostingController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/{job}/bids-fragment', [App\Http\Controllers\JobPostingController::class, 'bidsFragment'])->name('jobs.bids-fragment');
 Route::get('/vendor-profile/{user}', [App\Http\Controllers\VendorProfileController::class, 'show'])->name('vendor-profile.show');
 
 Auth::routes(['verify' => true]);

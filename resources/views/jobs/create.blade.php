@@ -585,12 +585,12 @@
                     @error('hourly_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3 mb-3" id="monthly_budget_wrap">
-                    <label class="form-label">Enter your approved monthly security budget</label>
+                    <label class="form-label">Enter your approved monthly workforce budget</label>
                     <input type="number" step="0.01" min="0" name="monthly_budget" class="form-control @error('monthly_budget') is-invalid @enderror" value="{{ old('monthly_budget') }}">
                     @error('monthly_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-3 mb-3" id="annual_budget_wrap">
-                    <label class="form-label">Enter your approved annual security budget</label>
+                    <label class="form-label">Enter your approved annual workforce budget</label>
                     <input type="number" step="0.01" min="0" name="annual_budget" class="form-control @error('annual_budget') is-invalid @enderror" value="{{ old('annual_budget') }}">
                     @error('annual_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>

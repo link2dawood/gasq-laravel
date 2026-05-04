@@ -27,8 +27,8 @@ class BudgetEngine
         );
         $hasBenchmarkInputs = array_key_exists('governmentShouldCostHourly', $meta) || array_key_exists('annualBillableHours', $meta);
         $annual = $hasBenchmarkInputs
-            ? round($governmentShouldCostHourly * $annualBillableHours, 2)
-            : (float) Arr::get($meta, 'annualBudget', round($governmentShouldCostHourly * $annualBillableHours, 2));
+            ? round(($governmentShouldCostHourly * $annualBillableHours) / 0.70, 2)
+            : (float) Arr::get($meta, 'annualBudget', round(($governmentShouldCostHourly * $annualBillableHours) / 0.70, 2));
         $allocations = (array) Arr::get($meta, 'allocations', []);
         $groups = (array) config('budget_calculator.groups', []);
         $modelAnnualTotal = $this->modelAnnualTotal($groups);

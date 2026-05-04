@@ -57,7 +57,7 @@ class OpenBidOfferController extends Controller
             'maskedBuyerPhone' => $this->maskPhone((string) ($buyer?->phone ?? '')),
             'phoneVerified' => (bool) data_get($questionnaire, 'phone_verified', $buyer?->phone_verified ?? false),
             'decisionMakerValidated' => in_array(data_get($questionnaire, 'final_decision_maker'), ['yes', 'authorized_representative'], true),
-            'budgetValidated' => in_array(data_get($questionnaire, 'funds_approval_status'), ['flexible_budget', 'restrictive_budget'], true),
+            'budgetAmountText' => $this->budgetAmountText($job, $questionnaire),
             'bidOfferValue' => $bidOfferValue > 0 ? $bidOfferValue : null,
             'city' => $city,
             'state' => $state ?: $buyer?->state,
@@ -327,6 +327,36 @@ class OpenBidOfferController extends Controller
             null, '' => 'Not provided',
             default => ucwords(str_replace('_', ' ', $value)),
         };
+    }
+
+    /**
+     * @param  array<string, mixed>  $questionnaire
+     */
+    private function budgetAmountText(?\App\Models\JobPosting $job, array $questionnaire): string
+    {
+        $range = data_get($questionnaire, 'budget_amount_range');
+        if (is_string($range) && trim($range) !== '') {
+            return trim($range);
+        }
+
+        foreach (['hourly_budget' => '/hr', 'monthly_budget' => '/month', 'annual_budget' => '/year'] as $key => $suffix) {
+            $value = data_get($questionnaire, $key);
+            if (is_numeric($value) && (float) $value > 0) {
+                return '$' . number_format((float) $value, 2) . ' ' . $suffix;
+            }
+        }
+
+        if ($job && ($job->budget_min || $job->budget_max)) {
+            $min = (float) ($job->budget_min ?? 0);
+            $max = (float) ($job->budget_max ?? 0);
+            if ($min > 0 && $max > 0 && $min !== $max) {
+                return '$' . number_format($min, 2) . ' – $' . number_format($max, 2);
+            }
+            $value = $max > 0 ? $max : $min;
+            return '$' . number_format($value, 2);
+        }
+
+        return 'Not provided';
     }
 
     private function humanizeBudgetApproval(?string $value): string

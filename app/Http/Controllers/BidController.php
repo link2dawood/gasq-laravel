@@ -52,6 +52,7 @@ class BidController extends Controller
         $bid->vendor_response_status = $validated['status'];
         $bid->vendor_responded_at = now();
         $bid->save();
+        $job->forceFill(['last_activity_at' => now()])->save();
 
         $job->user->notify(new BidNotification(
             $bid->fresh(),
@@ -82,6 +83,7 @@ class BidController extends Controller
             'proposal' => $request->proposal,
             'status' => 'pending',
         ]);
+        $job->forceFill(['last_activity_at' => now()])->save();
         $job->user->notify(new BidNotification($bid, 'submitted'));
         return back()->with('success', 'Bid submitted successfully.');
     }

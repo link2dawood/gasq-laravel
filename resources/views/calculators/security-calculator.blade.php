@@ -26,7 +26,7 @@
                     'access' => 'Protected',
                 ],
                 [
-                    'title' => 'Budget Calculator',
+                    'title' => 'Workforce Calculator',
                     'subtitle' => 'Budget planning',
                     'description' => 'Estimate annual, monthly, and weekly budget coverage with live inputs.',
                     'href' => route('budget-calculator.index'),

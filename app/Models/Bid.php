@@ -31,9 +31,11 @@ class Bid extends Model
         'counter_offer_amount',
         'counter_offer_message',
         'counter_offer_at',
+        'hired_at',
     ];
 
     protected $casts = [
+        'hired_at' => 'datetime',
         'amount' => 'decimal:2',
         'hourly_bill_rate' => 'decimal:2',
         'weekly_price' => 'decimal:2',

@@ -7,7 +7,7 @@
     $title = match ($type) {
         'bill-rate-analysis' => 'Bill Rate Analysis',
         'economic-justification' => 'Economic Justification',
-        'budget-calculator' => 'Budget Calculator',
+        'budget-calculator' => 'Workforce Calculator',
         'government-contract-calculator' => 'Government Contract Calculator',
         'gasq-tco-calculator' => 'GASQ TCO Calculator',
         'mobile-patrol-hit-calculator' => 'Mobile Patrol Hit Calculator',

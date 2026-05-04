@@ -222,8 +222,8 @@
           <a href="{{ url('/budget-calculator') }}" class="gasq-action-card">
             <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-piggy-bank"></i></div>
             <div>
-              <div class="action-title">Budget Calculator</div>
-              <div class="action-desc">Annual security budget planning</div>
+              <div class="action-title">Workforce Calculator</div>
+              <div class="action-desc">Annual workforce planning</div>
             </div>
           </a>
         </div>

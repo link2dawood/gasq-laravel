@@ -70,7 +70,7 @@
           <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
             <i class="fa fa-list-ul text-primary"></i> GASQ Additional Cost Stack
           </h1>
-          <div class="text-gasq-muted small">Manage the merged annual additional-cost stack with the same structured summary and workspace rhythm used in the Budget calculator.</div>
+          <div class="text-gasq-muted small">Manage the merged annual additional-cost stack with the same structured summary and workspace rhythm used in the Workforce calculator.</div>
         </div>
       </div>
       <div class="d-flex flex-wrap gap-2 d-print-none">

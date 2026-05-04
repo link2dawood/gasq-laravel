@@ -6,33 +6,33 @@
     'full-report' => [
       'icon' => 'fa-briefcase',
       'title' => 'Workforce Appraisal Report',
-      'subtitle' => 'Review the full workforce capital recovery workspace with the same structured summary, input rhythm, and clean right-side analysis pattern used in the Budget calculator.',
+      'subtitle' => 'Review the full workforce capital recovery workspace with the same structured summary, input rhythm, and clean right-side analysis pattern used in the Workforce calculator.',
     ],
     'posts' => [
       'icon' => 'fa-users',
       'title' => 'Post Position Summary',
-      'subtitle' => 'Review scope-driven post rows, weekly and monthly billable hours, and annual labor totals in the same structured workspace style as the Budget calculator.',
+      'subtitle' => 'Review scope-driven post rows, weekly and monthly billable hours, and annual labor totals in the same structured workspace style as the Workforce calculator.',
     ],
     'appraisal' => [
       'icon' => 'fa-balance-scale',
       'title' => 'Appraisal Comparison Summary',
-      'subtitle' => 'Compare internal should-cost against vendor TCO with the same clean summary hierarchy and workspace rhythm used across the Budget calculator.',
+      'subtitle' => 'Compare internal should-cost against vendor TCO with the same clean summary hierarchy and workspace rhythm used across the Workforce calculator.',
     ],
     'price' => [
       'icon' => 'fa-chart-line',
       'title' => 'Price Realism Review',
-      'subtitle' => 'Inspect benchmark rates, module feeds, and realism checks in a calmer summary-driven layout aligned with the Budget calculator UI.',
+      'subtitle' => 'Inspect benchmark rates, module feeds, and realism checks in a calmer summary-driven layout aligned with the Workforce calculator UI.',
     ],
     'cfo' => [
       'icon' => 'fa-file-invoice',
       'title' => 'CFO Bill Rate Breakdown',
-      'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Budget calculator.',
+      'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Workforce calculator.',
     ],
   ];
   $pageMeta = $pageMetaByKey[$pageKey] ?? [
     'icon' => 'fa-file-invoice',
     'title' => 'CFO Bill Rate Breakdown',
-    'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Budget calculator.',
+    'subtitle' => 'Analyze the full workforce capital recovery stack with the same structured inputs, summary cards, and right-side workspace pattern used in the Workforce calculator.',
   ];
   $showFullReport = $pageKey === 'full-report';
   $showDirectLabor = $pageKey === 'full-report';

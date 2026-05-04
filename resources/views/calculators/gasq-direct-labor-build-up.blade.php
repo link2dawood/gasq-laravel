@@ -83,7 +83,7 @@
           <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
             <i class="fa fa-layer-group text-primary"></i> GASQ Direct Labor Build-Up
           </h1>
-          <div class="text-gasq-muted small">Review the live direct labor, burden, and fully loaded rate stack using the same calmer workspace pattern as the Budget calculator.</div>
+          <div class="text-gasq-muted small">Review the live direct labor, burden, and fully loaded rate stack using the same calmer workspace pattern as the Workforce calculator.</div>
         </div>
       </div>
       <div class="d-flex flex-wrap gap-2 d-print-none">

@@ -30,12 +30,24 @@ class JobPosting extends Model
         'special_requirements',
         'questionnaire_data',
         'expires_at',
+        'hired_bid_id',
+        'hired_at',
+        'closed_at',
+        'close_reason',
+        'close_reason_other',
+        'hired_external_name',
+        'last_activity_at',
+        'inactivity_survey_sent_at',
     ];
 
     protected $casts = [
         'service_start_date' => 'date',
         'service_end_date' => 'date',
         'expires_at' => 'datetime',
+        'hired_at' => 'datetime',
+        'closed_at' => 'datetime',
+        'last_activity_at' => 'datetime',
+        'inactivity_survey_sent_at' => 'datetime',
         'budget_min' => 'decimal:2',
         'budget_max' => 'decimal:2',
         'latitude' => 'float',
@@ -83,5 +95,20 @@ class JobPosting extends Model
     public function vendorOpportunity(): HasOne
     {
         return $this->hasOne(VendorOpportunity::class);
+    }
+
+    public function hiredBid(): BelongsTo
+    {
+        return $this->belongsTo(Bid::class, 'hired_bid_id');
+    }
+
+    public function isHired(): bool
+    {
+        return $this->hired_bid_id !== null || $this->status === 'awarded';
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->status === 'closed';
     }
 }

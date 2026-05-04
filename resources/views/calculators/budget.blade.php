@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Budget Calculator')
+@section('title', 'Workforce Calculator')
 @section('header_variant', 'dashboard')
 
 @php
@@ -7,7 +7,7 @@
     $budgetGroups = $budgetConfig['groups'] ?? [];
     $defaultGovernmentShouldCost = (float) ($budgetConfig['default_government_should_cost_hourly'] ?? 86.75);
     $defaultAnnualBillableHours = (float) ($budgetConfig['default_annual_billable_hours'] ?? 8736);
-    $defaultTotal = (float) ($budgetConfig['default_total'] ?? ($defaultGovernmentShouldCost * $defaultAnnualBillableHours));
+    $defaultTotal = (float) ($budgetConfig['default_total'] ?? (($defaultGovernmentShouldCost * $defaultAnnualBillableHours) / 0.70));
     $modelAnnualTotal = collect($budgetGroups)->sum(
         fn (array $group) => collect($group['items'] ?? [])->sum('annual')
     );
@@ -59,9 +59,9 @@
       <a href="{{ route('main-menu-calculator.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
       <div>
         <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
-          <i class="fa fa-piggy-bank text-primary"></i> Security Budget Calculator
+          <i class="fa fa-piggy-bank text-primary"></i> Workforce Calculator
         </h1>
-        <div class="text-gasq-muted small">Plan and analyze your security budget across detailed spreadsheet line items.</div>
+        <div class="text-gasq-muted small">Plan and analyze your workforce budget across detailed spreadsheet line items.</div>
       </div>
     </div>
     <div class="d-flex flex-wrap gap-2 d-print-none">
@@ -103,7 +103,7 @@
           <div>
             <label class="form-label fw-medium">Derived Annual Budget ($)</label>
             <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="{{ number_format($defaultTotal, 2, '.', '') }}" step="1000" readonly>
-            <div class="small text-gasq-muted mt-1">Formula: Government Should-Cost × Annual Billable Hours</div>
+            <div class="small text-gasq-muted mt-1">Formula: (Government Should-Cost × Annual Billable Hours) / 0.70 (Employer Fee)</div>
           </div>
 
           <hr class="my-1">
@@ -412,7 +412,7 @@ function calcBudget() {
   const monthlyHours = annualHours / 12;
   const weeklyHours = annualHours / 52;
   const dailyHours = annualHours / 365;
-  const total = governmentShouldCost * annualHours;
+  const total = (governmentShouldCost * annualHours) / 0.70;
   const itemStates = ALL_ITEMS.map((item) => ({ ...item, pct: g(item.id) }));
   const allocationsPayload = Object.fromEntries(itemStates.map((item) => [item.key, item.pct]));
   const sumPct = itemStates.reduce((sum, item) => sum + item.pct, 0);

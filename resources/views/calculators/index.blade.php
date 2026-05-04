@@ -117,7 +117,7 @@
                 <a href="{{ route('budget-calculator.index') }}" class="calc-card">
                     <div class="calc-card-icon"><i class="fa fa-piggy-bank"></i></div>
                     <div class="calc-card-body">
-                        <div class="calc-card-title">Budget Calculator</div>
+                        <div class="calc-card-title">Workforce Calculator</div>
                         <div class="calc-card-desc">Estimate annual security spend based on post coverage and wage assumptions.</div>
                     </div>
                     <i class="fa fa-arrow-right calc-card-arrow"></i>

@@ -26,7 +26,7 @@
       <div class="card gasq-card h-100">
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Cost Inputs</h5></div>
         <div class="card-body d-flex flex-column gap-3">
-          <div><label class="form-label fw-medium">Annual Security Budget ($)</label>
+          <div><label class="form-label fw-medium">Annual Workforce Budget ($)</label>
             <input type="number" id="ca_budget" class="form-control" value="180000" oninput="calcCA()"></div>
           <div><label class="form-label fw-medium">Number of Guards</label>
             <input type="number" id="ca_guards" class="form-control" value="3" min="1" oninput="calcCA()"></div>

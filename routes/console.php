@@ -45,3 +45,4 @@ Artisan::command('twilio:health {to?}', function (TwilioSmsService $sms) {
 // Optional: run monthly free-pool grant (e.g. first day of month at 09:00)
 // Schedule::command('credits:grant-free-pool', ['--amount' => 5])->monthlyOn(1, '09:00');
 Schedule::command('vendor-opportunities:process')->hourly();
+Schedule::command('jobs:send-inactivity-survey --days=14')->dailyAt('09:00');
