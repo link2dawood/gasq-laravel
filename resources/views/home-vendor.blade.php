@@ -166,7 +166,65 @@
                         <li>Accurate guard requirements for different security scenarios</li>
                         <li>Insights you need to make informed decisions</li>
                     </ul>
+                    @php
+                        $instantEstUnlocked = session('paid_calc_access.instant_estimator_access') === true;
+                    @endphp
+                    <p class="vendor-meta-line mb-2">
+                        @if($instantEstUnlocked)
+                            <i class="fa fa-circle-check text-success me-1"></i> Unlocked for this session
+                        @else
+                            <i class="fa fa-coins text-warning me-1"></i> 25 credits to unlock for this session
+                        @endif
+                    </p>
                     <a href="{{ route('instant-estimator.index') }}" class="vendor-cta">Open Instant Estimator</a>
+                </div>
+            </section>
+
+            <section class="vendor-panel vendor-panel-wide">
+                <div class="vendor-panel-head"><h2 class="h2 mb-0">Mobile Patrol Calculator</h2></div>
+                <div class="vendor-panel-body">
+                    <p class="text-uppercase text-gasq-muted fw-semibold mb-2">Key Features</p>
+                    <ul class="fs-5 mb-3">
+                        <li>Build accurate mobile patrol pricing</li>
+                        <li>Drive time, stops, and fuel modeled per route</li>
+                        <li>Compare cost stack against bill rate</li>
+                        <li>Export results for proposals and quotes</li>
+                    </ul>
+                    @php
+                        $mobilePatrolUnlocked = session('paid_calc_access.mobile_patrol_calculator_access') === true;
+                    @endphp
+                    <p class="vendor-meta-line mb-2">
+                        @if($mobilePatrolUnlocked)
+                            <i class="fa fa-circle-check text-success me-1"></i> Unlocked for this session
+                        @else
+                            <i class="fa fa-coins text-warning me-1"></i> 25 credits to unlock for this session
+                        @endif
+                    </p>
+                    <a href="{{ route('mobile-patrol-calculator') }}" class="vendor-cta">Open Mobile Patrol Calculator</a>
+                </div>
+            </section>
+
+            <section class="vendor-panel vendor-panel-wide">
+                <div class="vendor-panel-head"><h2 class="h2 mb-0">Mobile Patrol Hit Calculator</h2></div>
+                <div class="vendor-panel-body">
+                    <p class="text-uppercase text-gasq-muted fw-semibold mb-2">Key Features</p>
+                    <ul class="fs-5 mb-3">
+                        <li>Price each patrol "hit" individually</li>
+                        <li>Account for site visit time and frequency</li>
+                        <li>Per-hit profitability breakdown</li>
+                        <li>Quickly justify quotes to buyers</li>
+                    </ul>
+                    @php
+                        $mobilePatrolHitUnlocked = session('paid_calc_access.mobile_patrol_hit_calculator_access') === true;
+                    @endphp
+                    <p class="vendor-meta-line mb-2">
+                        @if($mobilePatrolHitUnlocked)
+                            <i class="fa fa-circle-check text-success me-1"></i> Unlocked for this session
+                        @else
+                            <i class="fa fa-coins text-warning me-1"></i> 25 credits to unlock for this session
+                        @endif
+                    </p>
+                    <a href="{{ route('mobile-patrol-hit-calculator.index') }}" class="vendor-cta">Open Mobile Patrol Hit Calculator</a>
                 </div>
             </section>
         </div>

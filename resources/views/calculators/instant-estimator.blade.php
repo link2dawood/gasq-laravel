@@ -361,6 +361,14 @@
                             <button type="button" class="btn btn-outline-primary btn-lg px-5" id="gatePostJobBtn">
                                 <i class="fa fa-briefcase me-2"></i> {{ $canPrepareEstimatorJob ? 'Post a Job Instead' : 'Sign In to Post a Job' }}
                             </button>
+                            @auth
+                                @if(auth()->user()->isVendor())
+                                    <button type="button" class="btn btn-success btn-lg px-5" id="gateSubmitToBuyerBtn" data-bs-toggle="modal" data-bs-target="#submitEstimateModal">
+                                        <i class="fa fa-paper-plane me-2"></i> Submit Estimate to Customer
+                                        <span class="fw-normal opacity-75 ms-1 small">(50 credits)</span>
+                                    </button>
+                                @endif
+                            @endauth
                         </div>
                         <p class="small text-gasq-muted">
                             {{ $canPrepareEstimatorJob
@@ -708,6 +716,39 @@
         </div>{{-- /tab-content --}}
     </div>
 </div>
+
+@auth
+    @if(auth()->user()->isVendor())
+        <div class="modal fade" id="submitEstimateModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Submit estimate to a buyer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-gasq-muted small">Pick the buyer's job. We'll spend <strong>50 credits</strong>, email them your estimate as a PDF, and unlock your Step 3 results.</p>
+                        <div id="submitEstimateLoading" class="py-4 text-center text-gasq-muted">Loading open jobs…</div>
+                        <div id="submitEstimateEmpty" class="d-none alert alert-info">No open buyer jobs are available right now.</div>
+                        <div id="submitEstimateError" class="d-none alert alert-danger"></div>
+                        <div id="submitEstimateJobs" class="vstack gap-2"></div>
+
+                        <div class="mt-3">
+                            <label class="form-label small">Optional message to the buyer</label>
+                            <textarea id="submitEstimateNotes" class="form-control" rows="2" maxlength="4000" placeholder="A short message that appears on the estimate page and PDF (optional)."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-link text-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" id="submitEstimateConfirmBtn" disabled>
+                            <i class="fa fa-paper-plane me-1"></i> Send estimate (50 credits)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+@endauth
 @endsection
 
 @push('scripts')
@@ -1077,6 +1118,9 @@ const REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'instant-
 const REPORT_PAYLOAD_URL = @json(route('backend.report-payload.store'));
 const PREPARE_JOB_URL = @json(route('instant-estimator.prepare-job'));
 const FEE_CHECKOUT_CREATE_URL = @json(route('instant-estimator.fee-checkout'));
+const VENDOR_SUBMIT_OPEN_JOBS_URL = @json(route('vendor-estimate-submissions.open-jobs'));
+const VENDOR_SUBMIT_STORE_URL = @json(route('vendor-estimate-submissions.store'));
+const IS_VENDOR_VIEWER = @json(auth()->check() && auth()->user()->isVendor());
 const LOGIN_URL = @json(route('login'));
 const CAN_PREPARE_JOB = @json($canPrepareEstimatorJob);
 const IS_AUTHENTICATED = @json(auth()->check());
@@ -2336,5 +2380,151 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus('warning', FEE_CHECKOUT_STATUS);
     }
 });
+
+// === Vendor → submit estimate to a buyer ===
+(function () {
+    if (!IS_VENDOR_VIEWER) return;
+    const modalEl = document.getElementById('submitEstimateModal');
+    if (!modalEl) return;
+
+    const jobsBox  = document.getElementById('submitEstimateJobs');
+    const loading  = document.getElementById('submitEstimateLoading');
+    const empty    = document.getElementById('submitEstimateEmpty');
+    const errorBox = document.getElementById('submitEstimateError');
+    const notesEl  = document.getElementById('submitEstimateNotes');
+    const confirmBtn = document.getElementById('submitEstimateConfirmBtn');
+    let selectedJobId = null;
+    let jobsLoaded = false;
+
+    function setError(msg) {
+        if (!msg) { errorBox.classList.add('d-none'); errorBox.textContent = ''; return; }
+        errorBox.classList.remove('d-none');
+        errorBox.textContent = msg;
+    }
+
+    async function loadJobs() {
+        if (jobsLoaded) return;
+        loading.classList.remove('d-none');
+        empty.classList.add('d-none');
+        setError(null);
+        jobsBox.innerHTML = '';
+        try {
+            const r = await fetch(VENDOR_SUBMIT_OPEN_JOBS_URL, {
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' },
+            });
+            if (!r.ok) throw new Error('Could not load open jobs.');
+            const data = await r.json();
+            const jobs = data.jobs || [];
+            if (jobs.length === 0) {
+                empty.classList.remove('d-none');
+            } else {
+                jobs.forEach(job => {
+                    const id = `submit-est-job-${job.id}`;
+                    const html = `
+                        <label for="${id}" class="border rounded p-3 d-flex gap-3 align-items-start mb-0" style="cursor:pointer;">
+                            <input class="form-check-input mt-1" type="radio" name="submit_est_job" id="${id}" value="${job.id}">
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">${escapeHtml(job.title || 'Untitled job')}</div>
+                                <div class="small text-gasq-muted">
+                                    ${escapeHtml(job.buyer_name || '')}${job.buyer_company ? ' — ' + escapeHtml(job.buyer_company) : ''}
+                                </div>
+                                <div class="small text-gasq-muted">
+                                    ${escapeHtml(job.category || '')}${job.location ? ' · ' + escapeHtml(job.location) : ''}${job.posted_on ? ' · Posted ' + escapeHtml(job.posted_on) : ''}
+                                </div>
+                            </div>
+                        </label>`;
+                    jobsBox.insertAdjacentHTML('beforeend', html);
+                });
+            }
+            jobsLoaded = true;
+        } catch (e) {
+            setError(e.message || 'Could not load jobs.');
+        } finally {
+            loading.classList.add('d-none');
+        }
+    }
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function buildSnapshot() {
+        // Best-effort: pull state and visible result rows
+        let state = null;
+        try { state = (typeof collectState === 'function') ? collectState() : null; } catch (e) { /* noop */ }
+        const rows = [];
+        document.querySelectorAll('#tab-report tr, #estPanel3 .result-row, [data-est-row]').forEach(tr => {
+            const label = tr.querySelector('th, .label, [data-label]')?.textContent?.trim();
+            const value = tr.querySelector('td:last-child, .value, [data-value]')?.textContent?.trim();
+            if (label && value) rows.push({ label, value });
+        });
+        const totals = [];
+        const recommendedRange = document.querySelector('.recommended-range, [data-recommended-range]')?.textContent?.trim();
+        if (recommendedRange) totals.push({ label: 'Recommended bill rate range', value: recommendedRange });
+        return {
+            service_label: state?.serviceLabel || document.querySelector('h1, h3.fw-bold')?.textContent?.trim(),
+            location: state?.location || '',
+            notes: notesEl?.value?.trim() || '',
+            rows,
+            totals,
+        };
+    }
+
+    modalEl.addEventListener('shown.bs.modal', loadJobs);
+
+    jobsBox.addEventListener('change', (e) => {
+        if (e.target.name === 'submit_est_job') {
+            selectedJobId = e.target.value;
+            confirmBtn.disabled = !selectedJobId;
+        }
+    });
+
+    confirmBtn.addEventListener('click', async () => {
+        if (!selectedJobId) return;
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending…';
+        setError(null);
+        try {
+            const r = await fetch(VENDOR_SUBMIT_STORE_URL, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({
+                    job_posting_id: Number(selectedJobId),
+                    snapshot: buildSnapshot(),
+                }),
+            });
+            const data = await r.json().catch(() => ({}));
+            if (r.status === 402 && data.error === 'insufficient_balance') {
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    setError(data.message || 'Not enough credits.');
+                }
+                return;
+            }
+            if (!r.ok || !data.ok) {
+                throw new Error(data.message || 'Could not submit estimate.');
+            }
+            // Close modal, unlock Step 3, show success
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+            unlockResults('fee', `Estimate sent. ${data.credits_spent} credits spent. Balance: ${data.balance_after}.`);
+            if (data.view_url) {
+                showStatus('success', `Estimate sent. <a href="${data.view_url}" class="alert-link" target="_blank" rel="noopener">View it</a>.`);
+            }
+        } catch (e) {
+            setError(e.message || 'Submission failed.');
+        } finally {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fa fa-paper-plane me-1"></i> Send estimate (50 credits)';
+        }
+    });
+})();
 </script>
 @endpush

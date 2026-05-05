@@ -6,6 +6,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\AdminVendorOpportunityController;
 use App\Http\Controllers\OpenBidOfferController;
 use App\Http\Controllers\StripeCreditsController;
+use App\Http\Controllers\VendorEstimateSubmissionController;
 use App\Http\Controllers\VendorLeadsController;
 use App\Http\Controllers\VendorOpportunityController;
 
@@ -49,6 +50,7 @@ Route::get('/calculator', function () {
 })->name('calculator.index');
 
 Route::match(['get', 'post'], '/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])
+    ->middleware(['auth', 'calc.credits:instant_estimator_access'])
     ->name('instant-estimator.index');
 
 Route::get('/vendor-form', function () {
@@ -87,6 +89,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/instant-estimator/checkout-fee', [App\Http\Controllers\InstantEstimatorFeeCheckoutController::class, 'store'])
         ->name('instant-estimator.fee-checkout');
 
+    // Vendor → submit estimate to a buyer who posted a job
+    Route::get('/vendor-estimate-submissions/open-jobs', [VendorEstimateSubmissionController::class, 'openJobs'])
+        ->name('vendor-estimate-submissions.open-jobs');
+    Route::post('/vendor-estimate-submissions', [VendorEstimateSubmissionController::class, 'store'])
+        ->name('vendor-estimate-submissions.store');
+
     // Jobs (create, edit, delete) and bids.
     // Buyers can reach the job flow before phone verification because the job form
     // itself now handles inline SMS verification for the contact phone.
@@ -124,8 +132,8 @@ Route::middleware(['auth', 'phone.verified', 'vendor', 'has.credits', 'buyer.has
     Route::get('/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('security-billing.index');
     Route::post('/security-billing', [App\Http\Controllers\SecurityBillingController::class, 'index'])->name('security-billing.post');
 
-    Route::get('/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->name('mobile-patrol-calculator');
-    Route::post('/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->name('mobile-patrol-calculator.post');
+    Route::get('/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->middleware('calc.credits:mobile_patrol_calculator_access')->name('mobile-patrol-calculator');
+    Route::post('/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->middleware('calc.credits:mobile_patrol_calculator_access')->name('mobile-patrol-calculator.post');
 
     Route::get('/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('mobile-patrol-comparison');
     Route::post('/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('mobile-patrol-comparison.post');
@@ -136,7 +144,7 @@ Route::middleware(['auth', 'phone.verified', 'vendor', 'has.credits', 'buyer.has
     Route::get('/mobile-patrol-analysis', function () { return view('calculators.mobile-patrol-analysis'); })->name('mobile-patrol-analysis.index');
     Route::get('/mobile-patrol-hit-calculator', function () {
         return view('calculators.mobile-patrol-hit-calculator');
-    })->name('mobile-patrol-hit-calculator.index');
+    })->middleware('calc.credits:mobile_patrol_hit_calculator_access')->name('mobile-patrol-hit-calculator.index');
     Route::get('/buyer-fit-index', function () {
         return view('calculators.buyer-fit-index');
     })->name('buyer-fit-index.index');
@@ -166,6 +174,10 @@ Route::get('/job-board', function () {
 })->name('job-board');
 Route::get('/jobs', [App\Http\Controllers\JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job}/bids-fragment', [App\Http\Controllers\JobPostingController::class, 'bidsFragment'])->name('jobs.bids-fragment');
+
+// Buyer / token-bearing customer can view a submitted vendor estimate
+Route::get('/vendor-estimate-submissions/{submission}', [VendorEstimateSubmissionController::class, 'show'])
+    ->name('vendor-estimate-submissions.show');
 Route::get('/vendor-profile/{user}', [App\Http\Controllers\VendorProfileController::class, 'show'])->name('vendor-profile.show');
 
 Auth::routes(['verify' => true]);
