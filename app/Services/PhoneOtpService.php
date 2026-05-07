@@ -13,7 +13,8 @@ class PhoneOtpService
     private const MAX_ATTEMPTS = 5;
 
     public function __construct(
-        private TwilioSmsService $sms
+        private TwilioSmsService $sms,
+        private TwilioVerifyService $verify,
     ) {
     }
 
@@ -53,12 +54,13 @@ class PhoneOtpService
             ->where('status', 'pending')
             ->update(['status' => 'failed']);
 
-        $code = (string) random_int(100000, 999999);
+        $useVerify = $this->verify->isConfigured();
+        $code = $useVerify ? null : (string) random_int(100000, 999999);
 
         $verification = VerificationCode::query()->create([
             'user_id' => $user->id,
             'code' => '',
-            'code_hash' => Hash::make($code),
+            'code_hash' => $useVerify ? '' : Hash::make($code),
             'type' => $type,
             'phone_number' => $phone,
             'email' => null,
@@ -69,7 +71,12 @@ class PhoneOtpService
         ]);
 
         try {
-            $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
+            if ($useVerify) {
+                // Twilio holds the code; we never see it.
+                $this->verify->start($phone, 'sms');
+            } else {
+                $this->sms->send($phone, "Your GASQ verification code is {$code}. It expires in 10 minutes.");
+            }
         } catch (\Throwable $e) {
             $verification->status = 'failed';
             $verification->save();
@@ -77,7 +84,9 @@ class PhoneOtpService
             return [
                 'ok' => false,
                 'field' => 'phone',
-                'message' => $this->sms->userFacingError($e),
+                'message' => $useVerify
+                    ? $this->verify->userFacingError($e)
+                    : $this->sms->userFacingError($e),
                 'phone' => $phone,
             ];
         }
@@ -144,7 +153,23 @@ class PhoneOtpService
             ];
         }
 
-        if (! is_string($verification->code_hash) || $verification->code_hash === '' || ! Hash::check($code, $verification->code_hash)) {
+        // The verification row is keyed on whether code_hash was set at send-time:
+        // empty hash => Verify path (delegate to Twilio); set hash => legacy bcrypt path.
+        $useVerify = ! is_string($verification->code_hash) || $verification->code_hash === '';
+
+        $passed = false;
+        try {
+            if ($useVerify) {
+                $passed = $this->verify->check($phone, $code);
+            } else {
+                $passed = Hash::check($code, $verification->code_hash);
+            }
+        } catch (\Throwable $e) {
+            // Treat Twilio API errors as a failed attempt rather than crashing.
+            $passed = false;
+        }
+
+        if (! $passed) {
             $verification->attempts = (int) ($verification->attempts ?? 0) + 1;
             if ($verification->attempts >= self::MAX_ATTEMPTS) {
                 $verification->status = 'failed';

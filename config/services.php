@@ -67,6 +67,10 @@ return [
         'auth_token' => env('TWILIO_AUTH_TOKEN'),
         'from' => env('TWILIO_FROM'),
         'messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID'),
+        // Twilio Verify — used for phone-verification OTPs. When set, PhoneOtpService
+        // delegates to Verify (exempt from US A2P 10DLC) instead of generating + sending
+        // codes via raw Messages API. Leave unset to fall back to the legacy SMS path.
+        'verify_service_sid' => env('TWILIO_VERIFY_SERVICE_SID'),
     ],
 
 ];
