@@ -155,6 +155,45 @@
                 </div>
             </section>
 
+            <section class="vendor-panel">
+                <div class="vendor-panel-head"><h2 class="h2 mb-0">Qualification Questionnaires</h2></div>
+                <div class="vendor-panel-body">
+                    @php
+                        $qDraft = $vendorQuestionnaireDraft ?? null;
+                        $qDraftCount = $vendorQuestionnaireDraftCount ?? 0;
+                        $qSubmittedCount = $vendorQuestionnaireSubmittedCount ?? 0;
+                        $totalSteps = \App\Models\VendorQuestionnaire::TOTAL_STEPS;
+                    @endphp
+                    <div class="vendor-kpi-row mb-3">
+                        <span class="vendor-kpi-pill"><i class="fa fa-pen-to-square text-warning"></i>{{ $qDraftCount }} draft</span>
+                        <span class="vendor-kpi-pill"><i class="fa fa-paper-plane text-success"></i>{{ $qSubmittedCount }} submitted</span>
+                    </div>
+                    @if($qDraft)
+                        @php
+                            $pct = (int) round((($qDraft->current_step ?? 1) / $totalSteps) * 100);
+                            $jobTitle = $qDraft->jobPosting?->title ?? 'Accepted offer';
+                        @endphp
+                        <p class="vendor-meta-line mb-2">
+                            <strong>{{ $jobTitle }}</strong> &mdash; step {{ $qDraft->current_step }} of {{ $totalSteps }}
+                        </p>
+                        <div class="progress mb-3" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $pct }}%"></div>
+                        </div>
+                        <a href="{{ route('vendor-questionnaires.show', ['questionnaire' => $qDraft->id, 'step' => $qDraft->current_step]) }}"
+                           class="vendor-cta">Resume Questionnaire</a>
+                    @else
+                        <p class="vendor-meta-line mb-3">
+                            @if($qSubmittedCount > 0)
+                                All your questionnaires have been submitted. New ones appear here after you accept an offer.
+                            @else
+                                Accept a buyer offer to start a qualification questionnaire.
+                            @endif
+                        </p>
+                        <a href="{{ route('vendor-leads.index') }}" class="vendor-link-btn">View My Leads</a>
+                    @endif
+                </div>
+            </section>
+
             <section class="vendor-panel vendor-panel-wide">
                 <div class="vendor-panel-head"><h2 class="h2 mb-0">Instant Estimator</h2></div>
                 <div class="vendor-panel-body">

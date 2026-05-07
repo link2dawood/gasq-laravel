@@ -54,16 +54,19 @@ class BidController extends Controller
         $bid->save();
         $job->forceFill(['last_activity_at' => now()])->save();
 
-        $job->user->notify(new BidNotification(
-            $bid->fresh(),
-            $validated['status'] === 'accepted' ? 'vendor_accepted' : 'vendor_declined'
-        ));
+        if ($validated['status'] === 'accepted') {
+            // Buyer is notified after the vendor completes & submits the qualification
+            // questionnaire (see VendorQuestionnaireController::submit). Redirect the
+            // vendor into the wizard now.
+            return redirect()->route('vendor-questionnaires.start', ['bid' => $bid->id])
+                ->with('success', 'Offer accepted. Please complete the qualification questionnaire to send your full response to the buyer.');
+        }
+
+        $job->user->notify(new BidNotification($bid->fresh(), 'vendor_declined'));
 
         return back()->with(
             'success',
-            $validated['status'] === 'accepted'
-                ? 'You accepted this job offer. You can change your response while the offer remains open.'
-                : 'You declined this job offer. You can change your response while the offer remains open.'
+            'You declined this job offer. You can change your response while the offer remains open.'
         );
     }
 

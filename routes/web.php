@@ -9,6 +9,7 @@ use App\Http\Controllers\StripeCreditsController;
 use App\Http\Controllers\VendorEstimateSubmissionController;
 use App\Http\Controllers\VendorLeadsController;
 use App\Http\Controllers\VendorOpportunityController;
+use App\Http\Controllers\VendorQuestionnaireController;
 
 Route::get('/', [PageController::class, 'landing'])->name('landing');
 Route::get('/marketplace-landing', [PageController::class, 'marketplaceLanding'])->name('marketplace-landing');
@@ -118,7 +119,23 @@ Route::middleware(['auth'])->group(function () {
         ->name('vendor-opportunities.decline');
     Route::post('/vendor-opportunities/{invitation}/bid', [VendorOpportunityController::class, 'submitBid'])
         ->name('vendor-opportunities.submit-bid');
+
+    // Vendor qualification questionnaire (post offer-acceptance)
+    Route::post('/vendor-questionnaires/start/{bid}', [VendorQuestionnaireController::class, 'start'])
+        ->name('vendor-questionnaires.start');
+    Route::get('/vendor-questionnaires/{questionnaire}/{step?}', [VendorQuestionnaireController::class, 'show'])
+        ->whereNumber('step')
+        ->name('vendor-questionnaires.show');
+    Route::post('/vendor-questionnaires/{questionnaire}/save/{step}', [VendorQuestionnaireController::class, 'saveStep'])
+        ->whereNumber('step')
+        ->name('vendor-questionnaires.save-step');
+    Route::post('/vendor-questionnaires/{questionnaire}/submit', [VendorQuestionnaireController::class, 'submit'])
+        ->name('vendor-questionnaires.submit');
 });
+
+// Public buyer review (tokenized, no auth required)
+Route::get('/buyer-review/vendor-questionnaire/{token}', [VendorQuestionnaireController::class, 'buyerReview'])
+    ->name('vendor-questionnaires.buyer-review');
 
 // Vendor-only calculator suite.
 Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job', 'master.inputs'])->group(function () {
@@ -318,6 +335,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
         'update' => 'admin.faqs.update',
         'destroy' => 'admin.faqs.destroy',
     ]);
+    Route::get('/admin/vendor-questionnaires/{questionnaire}', [VendorQuestionnaireController::class, 'adminShow'])
+        ->name('admin.vendor-questionnaires.show');
+
     Route::resource('admin/content-sections', App\Http\Controllers\AdminContentSectionController::class)->parameters(['content-section' => 'content_section'])->except(['show'])->names([
         'index' => 'admin.content-sections.index',
         'create' => 'admin.content-sections.create',

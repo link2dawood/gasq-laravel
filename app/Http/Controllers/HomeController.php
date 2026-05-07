@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bid;
 use App\Models\VendorOpportunityInvitation;
+use App\Models\VendorQuestionnaire;
 use App\Services\WalletService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -101,6 +102,21 @@ class HomeController extends Controller
 
             $profileSummary = $this->vendorProfileSummary($user);
 
+            $questionnaireDraft = null;
+            $questionnaireDraftCount = 0;
+            $questionnaireSubmittedCount = 0;
+            if (Schema::hasTable('vendor_questionnaires')) {
+                $questionnaireDraftCount = (int) VendorQuestionnaire::where('vendor_id', $user->id)
+                    ->where('status', 'draft')->count();
+                $questionnaireSubmittedCount = (int) VendorQuestionnaire::where('vendor_id', $user->id)
+                    ->where('status', 'submitted')->count();
+                $questionnaireDraft = VendorQuestionnaire::with('jobPosting')
+                    ->where('vendor_id', $user->id)
+                    ->where('status', 'draft')
+                    ->latest('updated_at')
+                    ->first();
+            }
+
             $dashboardData += [
                 'vendorProfileCompletion' => $profileSummary['completion'],
                 'vendorProfileMissingCount' => $profileSummary['missing_count'],
@@ -122,6 +138,9 @@ class HomeController extends Controller
                     ? 'Accepted: ' . $acceptedResponseCount . ' · Submitted bids: ' . $bidSubmittedCount . ' · Declined: ' . $declinedResponseCount
                     : 'No vendor responses recorded yet. New acceptances and bid activity will show here.',
                 'vendorWalletBalance' => $walletService->getBalance($user),
+                'vendorQuestionnaireDraftCount' => $questionnaireDraftCount,
+                'vendorQuestionnaireSubmittedCount' => $questionnaireSubmittedCount,
+                'vendorQuestionnaireDraft' => $questionnaireDraft,
             ];
         }
 
