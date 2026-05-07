@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('document_type', 64); // state_security_license, coi, w9, capability_statement, workers_comp, general_liability, business_license
             $table->boolean('prefilled_from_profile')->default(false);
             $table->timestamps();
-            $table->unique(['vendor_questionnaire_id', 'document_type']);
+            $table->unique(['vendor_questionnaire_id', 'document_type'], 'vqd_questionnaire_doctype_unique');
         });
     }
 
