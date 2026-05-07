@@ -8,9 +8,12 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\VendorOpportunity;
 use App\Models\VendorOpportunityInvitation;
+use App\Mail\BuyerQualificationApprovedMail;
+use App\Mail\BuyerQualificationNotApprovedMail;
 use App\Notifications\VendorOpportunityNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -56,7 +59,30 @@ class VendorOpportunityManager
             $this->buyerVendorMatchNotifier->notifyPendingQualification($opportunity);
         }
 
+        $this->dispatchBuyerQualificationEmail($job, $opportunity);
+
         return $opportunity->fresh(['jobPosting.user', 'invitations.vendor']);
+    }
+
+    private function dispatchBuyerQualificationEmail(JobPosting $job, VendorOpportunity $opportunity): void
+    {
+        $buyer = $job->user;
+        if (! $buyer || ! $buyer->email) {
+            return;
+        }
+
+        try {
+            // Tier A & B both eventually reach vendors (A immediately, B after admin review),
+            // so both warrant the "approved" buyer email. Tier C is held — buyer must rework.
+            $mailable = $opportunity->lead_tier === 'c'
+                ? new BuyerQualificationNotApprovedMail($job, $opportunity)
+                : new BuyerQualificationApprovedMail($job, $opportunity);
+
+            Mail::to($buyer->email)->send($mailable);
+        } catch (\Throwable $e) {
+            // Email delivery should never block job creation — log and move on.
+            report($e);
+        }
     }
 
     public function approveAndSend(VendorOpportunity $opportunity): VendorOpportunity
