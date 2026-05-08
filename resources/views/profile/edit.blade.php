@@ -10,7 +10,8 @@
     $verifiedCandidatePhone = (string) ($phoneVerification['phone'] ?? '');
     $isVerifiedCandidate = (bool) ($phoneVerification['verified'] ?? false);
     $isCurrentPhoneVerified = (bool) ($user->phone_verified ?? false);
-    $normalizePhone = static fn ($value) => preg_replace('/[\s\-\(\)]+/', '', trim((string) $value)) ?: '';
+    // Strip "+", spaces, dashes, parens so user-typed "14706332816" matches stored "+14706332816".
+    $normalizePhone = static fn ($value) => preg_replace('/[\s\-\(\)\+]+/', '', trim((string) $value)) ?: '';
     $normalizedFormPhone = $normalizePhone($formPhone);
     $normalizedOriginalPhone = $normalizePhone($originalPhone);
     $normalizedVerifiedCandidatePhone = $normalizePhone($verifiedCandidatePhone);
@@ -310,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const phoneStatusMessage = @json((string) session('phone_status', ''));
 
     function normalizePhone(value) {
-        return (value || '').trim().replace(/[\s\-()]+/g, '');
+        return (value || '').trim().replace(/[\s\-()+]+/g, '');
     }
 
     function syncPhoneTargets() {

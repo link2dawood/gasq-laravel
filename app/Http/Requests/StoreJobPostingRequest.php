@@ -75,6 +75,7 @@ class StoreJobPostingRequest extends FormRequest
             'contact_email' => ['required', 'email', 'max:255'],
             'contact_phone' => ['required', 'string', 'max:40'],
             'business_address' => ['required', 'string', 'max:500'],
+            'business_address_place_id' => ['nullable', 'string', 'max:255'],
             'preferred_contact_method' => ['required', 'in:email,mobile_phone,text_message'],
             'best_time_to_contact' => ['nullable', 'in:morning,midday,afternoon,evening'],
             'final_decision_maker' => ['required', 'in:yes,no,authorized_representative'],
@@ -86,7 +87,14 @@ class StoreJobPostingRequest extends FormRequest
             'service_start_timeline' => ['required', 'in:immediate,15_days_or_less,30_days_or_less,30_60_days,future_planning'],
             'funds_approval_status' => ['required', 'in:flexible_budget,restrictive_budget,pending,no_approved_budget'],
             'budget_type' => ['required', 'in:monthly,annual,contract_total'],
-            'budget_amount_range' => ['nullable', 'string', 'max:255'],
+            'budget_amount_range' => [
+                'nullable',
+                'string',
+                'max:255',
+                // Must contain at least one digit and only digits/currency formatting chars (no Lorem Ipsum).
+                'regex:/^[\d\$\s\.,\-KkMm]+(?:\s*(?:to|-)\s*[\d\$\s\.,\-KkMm]+)?$/',
+                'regex:/\d/',
+            ],
             'true_internal_cost_calculated' => ['required', 'in:yes,no'],
             'if_pricing_exceeds' => ['nullable', 'array'],
             'if_pricing_exceeds.*' => ['string', 'max:60'],
@@ -149,6 +157,7 @@ class StoreJobPostingRequest extends FormRequest
             'buyer_certification.accepted' => 'Buyer certification is required.',
             'consent_to_contact.accepted' => 'Consent to contact is required.',
             'project_readiness_reasons.required' => 'Select at least one reason for requesting security services.',
+            'budget_amount_range.regex' => 'Enter a dollar amount or range only — e.g. 12000, $12,000, $12K, or $12,000-$16,000.',
         ];
     }
 
@@ -162,6 +171,17 @@ class StoreJobPostingRequest extends FormRequest
             if (in_array($this->input('final_decision_maker'), ['no', 'authorized_representative'], true)
                 && blank($this->input('final_approver_name'))) {
                 $validator->errors()->add('final_approver_name', 'Please identify who approves the final award.');
+            }
+
+            // Reject Lorem-Ipsum / free-text addresses: require the user to pick a Google Places suggestion.
+            // Only enforced when a Maps API key is configured, so dev environments / fallback aren't broken.
+            if (filled(config('services.google.maps_api_key'))) {
+                if ($this->filled('business_address') && blank($this->input('business_address_place_id'))) {
+                    $validator->errors()->add(
+                        'business_address',
+                        'Please select your business address from the suggestions.'
+                    );
+                }
             }
 
             if ($this->input('multiple_locations') === 'yes' && ! $this->filled('locations_count')) {

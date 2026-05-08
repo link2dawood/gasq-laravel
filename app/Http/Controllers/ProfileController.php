@@ -150,6 +150,7 @@ class ProfileController extends Controller
             'company' => ['nullable', 'string', 'max:255'],
             'company_name' => ['nullable', 'string', 'max:255'],
             'street_address' => ['nullable', 'string', 'max:500'],
+            'street_address_place_id' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'zip_code' => ['nullable', 'string', 'max:20'],
@@ -220,6 +221,15 @@ class ProfileController extends Controller
                     'phone' => 'Verify this phone number before saving your profile.',
                 ])->withInput();
             }
+        }
+
+        // Reject free-text addresses when Google Maps is configured — must be picked from suggestions.
+        if (filled(config('services.google.maps_api_key'))
+            && filled($request->input('street_address'))
+            && blank($request->input('street_address_place_id'))) {
+            return back()->withErrors([
+                'street_address' => 'Please select your street address from the suggestions.',
+            ])->withInput();
         }
 
         $serviceCapabilities = array_values(array_filter((array) $request->input('service_capabilities', [])));

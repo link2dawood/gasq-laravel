@@ -62,6 +62,11 @@ return [
         'cancel_url' => env('STRIPE_CANCEL_URL'),
     ],
 
+    'gasq' => [
+        // Address that receives admin lead alerts when new buyer leads land.
+        'admin_alert_email' => env('GASQ_ADMIN_ALERT_EMAIL', 'info@getasecurityquote.com'),
+    ],
+
     'twilio' => [
         'account_sid' => env('TWILIO_ACCOUNT_SID'),
         'auth_token' => env('TWILIO_AUTH_TOKEN'),

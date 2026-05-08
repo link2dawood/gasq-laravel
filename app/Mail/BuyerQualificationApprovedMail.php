@@ -28,13 +28,21 @@ class BuyerQualificationApprovedMail extends Mailable
 
     public function content(): Content
     {
+        $target = (int) ($this->opportunity->vendor_target_count ?? 5);
+        $accepted = (int) ($this->opportunity->invitations()
+            ->whereIn('status', ['accepted', 'bid_submitted'])->count() ?? 0);
+
         return new Content(
             view: 'emails.buyer-qualification-approved',
             with: [
                 'job' => $this->job,
                 'opportunity' => $this->opportunity,
                 'dashboardUrl' => route('jobs.show', $this->job),
-                'vendorTargetCount' => (int) ($this->opportunity->vendor_target_count ?? 5),
+                'vendorTargetCount' => $target,
+                'vendorsAccepted' => $accepted,
+                'openSlots' => max($target - $accepted, 0),
+                'responseActivity' => $accepted > 0 ? 'Active' : 'Just released',
+                'interviewPhase' => $accepted > 0 ? 'Scheduling' : 'Pending',
             ],
         );
     }

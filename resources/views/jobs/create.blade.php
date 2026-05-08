@@ -218,9 +218,14 @@
                     @error('best_time_to_contact')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-12 mb-3">
-                    <label class="form-label">Business Address <span class="text-danger">*</span></label>
-                    <textarea name="business_address" class="form-control @error('business_address') is-invalid @enderror" rows="2" required>{{ old('business_address', $prefill['business_address'] ?? '') }}</textarea>
-                    @error('business_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @include('partials.address-autocomplete', [
+                        'name' => 'business_address',
+                        'suffix' => 'biz',
+                        'label' => 'Business Address',
+                        'required' => true,
+                        'value' => old('business_address', $prefill['business_address'] ?? ''),
+                        'placeId' => old('business_address_place_id', $prefill['business_address_place_id'] ?? ''),
+                    ])
                 </div>
             </div>
 
@@ -633,9 +638,33 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Budget amount or range</label>
-                    <input type="text" name="budget_amount_range" class="form-control @error('budget_amount_range') is-invalid @enderror" value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}" placeholder="e.g. $12,000-$16,000 monthly">
+                    <input
+                        type="text"
+                        name="budget_amount_range"
+                        id="budget_amount_range_input"
+                        class="form-control @error('budget_amount_range') is-invalid @enderror"
+                        value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}"
+                        placeholder="e.g. $12,000-$16,000 monthly"
+                        inputmode="numeric"
+                        pattern="^[\d\$\s\.,\-Kk Mm]+(?:\s*(?:to|-)\s*[\d\$\s\.,\-Kk Mm]+)?$"
+                        title="Enter a dollar amount or range — e.g. 12000, $12,000, $12K, or $12,000-$16,000"
+                        autocomplete="off">
                     @error('budget_amount_range')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="form-text">Numbers only. Examples: <code>12000</code>, <code>$12,000</code>, <code>$12K</code>, <code>$12,000-$16,000</code>.</div>
                 </div>
+                @push('scripts')
+                <script>
+                (function () {
+                    const el = document.getElementById('budget_amount_range_input');
+                    if (!el) return;
+                    // Allow only digits, $, comma, period, dash, space, K/M (k/m). Block letters/punct used in Lorem Ipsum.
+                    el.addEventListener('input', function () {
+                        const cleaned = el.value.replace(/[^\d\$\.,\-\sKkMm]/g, '');
+                        if (cleaned !== el.value) el.value = cleaned;
+                    });
+                })();
+                </script>
+                @endpush
                 <div class="col-md-6 mb-3">
                     <label class="form-label">If pricing exceeds expectations, are you willing to:</label>
                     <div class="d-flex flex-wrap gap-3">

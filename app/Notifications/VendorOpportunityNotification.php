@@ -2,9 +2,11 @@
 
 namespace App\Notifications;
 
+use App\Mail\VendorOpportunityInvitedMail;
 use App\Models\VendorOpportunityInvitation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
@@ -23,8 +25,14 @@ class VendorOpportunityNotification extends Notification implements ShouldQueue
         return ['database', 'mail'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): Mailable|MailMessage
     {
+        // Branded HTML invitation for the "new" type.
+        if ($this->type === 'new') {
+            return (new VendorOpportunityInvitedMail($this->invitation))
+                ->to($notifiable->email);
+        }
+
         $job = $this->invitation->opportunity->jobPosting;
         $buyer = $job->user;
         $questionnaire = is_array($job->questionnaire_data) ? $job->questionnaire_data : [];
@@ -33,17 +41,6 @@ class VendorOpportunityNotification extends Notification implements ShouldQueue
         $mail = (new MailMessage)->subject($this->subject($job->location ?? $job->title));
 
         return match ($this->type) {
-            'new' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('A new pre-qualified security services opportunity is available through the GASQ Vendor Network.')
-                ->line('Location: ' . ($job->location ?: 'Not provided'))
-                ->line('Service Type: ' . ($job->category ?: 'Not provided'))
-                ->line('Coverage: ' . $this->weeklyHours($questionnaire) . ' hours per week')
-                ->line('Estimated Staff Required: ' . ($job->guards_per_shift ?: 'Not provided'))
-                ->line('Start Timeline: ' . ($questionnaire['service_start_timeline'] ?? 'Not provided'))
-                ->line('Estimated Annual Contract Value: ' . $this->money($this->invitation->opportunity->estimated_annual_contract_value))
-                ->line('Qualification Status: Decision maker verified, budget confirmed, scope defined, buyer prepared to move forward.')
-                ->action('Respond Now', $url),
             'reminder' => $mail
                 ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
                 ->line('This opportunity is still awaiting your response.')

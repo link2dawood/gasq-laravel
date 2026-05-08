@@ -11,7 +11,8 @@
     $verifiedCandidatePhone = (string) ($phoneVerification['phone'] ?? '');
     $isVerifiedCandidate = (bool) ($phoneVerification['verified'] ?? false);
     $isCurrentPhoneVerified = (bool) ($user->phone_verified ?? false);
-    $normalizePhone = static fn ($value) => preg_replace('/[\s\-\(\)]+/', '', trim((string) $value)) ?: '';
+    // Strip "+", spaces, dashes, parens so user-typed "14706332816" matches stored "+14706332816".
+    $normalizePhone = static fn ($value) => preg_replace('/[\s\-\(\)\+]+/', '', trim((string) $value)) ?: '';
     $normalizedFormPhone = $normalizePhone($formPhone);
     $normalizedOriginalPhone = $normalizePhone($originalPhone);
     $normalizedVerifiedCandidatePhone = $normalizePhone($verifiedCandidatePhone);
@@ -147,9 +148,13 @@
                             <input type="hidden" name="company" value="{{ old('company', $user->company) }}">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Street Address</label>
-                            <input type="text" class="form-control @error('street_address') is-invalid @enderror" name="street_address" value="{{ old('street_address', $profile?->address) }}" placeholder="Street address">
-                            @error('street_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            @include('partials.address-autocomplete', [
+                                'name' => 'street_address',
+                                'suffix' => 'vendor-street',
+                                'label' => 'Street Address',
+                                'value' => old('street_address', $profile?->address ?? ''),
+                                'placeId' => old('street_address_place_id', data_get($additionalInfo, 'street_address_place_id', '')),
+                            ])
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">City</label>
@@ -453,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const phoneStatusMessage = @json((string) session('phone_status', ''));
 
     function normalizePhone(value) {
-        return (value || '').trim().replace(/[\s\-()]+/g, '');
+        return (value || '').trim().replace(/[\s\-()+]+/g, '');
     }
 
     function syncPhoneTargets() {

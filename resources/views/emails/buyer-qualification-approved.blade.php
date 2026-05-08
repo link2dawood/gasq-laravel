@@ -21,7 +21,16 @@
 </ul>
 
 <h3 style="margin-top:32px;">📊 Real-Time Vendor Match Status</h3>
-<p>You can now track vendor engagement in real time from your dashboard — vendor acceptances, open slots, response activity, and interview phase all update automatically as activity occurs.</p>
+<p>You can now track vendor engagement in real time:</p>
+<ul>
+    <li><strong>Vendors Accepted:</strong> {{ $vendorsAccepted }} of {{ $vendorTargetCount }}</li>
+    <li><strong>Open Slots Remaining:</strong> {{ $openSlots }}</li>
+    <li><strong>Response Activity:</strong> {{ $responseActivity }}</li>
+    <li><strong>Interview Phase:</strong> {{ $interviewPhase }}</li>
+</ul>
+<p style="color:#555;font-size:13px;margin-top:-6px;">
+    <em>(This is a snapshot at send time. Live updates are always available on your dashboard.)</em>
+</p>
 
 <p style="margin:24px 0;">
     <a href="{{ $dashboardUrl }}"

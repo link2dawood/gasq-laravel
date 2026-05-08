@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Workforce Calculator')
+@section('title', 'Workforce Absorbed Rate Calculator')
 @section('header_variant', 'dashboard')
 
 @php
@@ -7,7 +7,7 @@
     $budgetGroups = $budgetConfig['groups'] ?? [];
     $defaultGovernmentShouldCost = (float) ($budgetConfig['default_government_should_cost_hourly'] ?? 86.75);
     $defaultAnnualBillableHours = (float) ($budgetConfig['default_annual_billable_hours'] ?? 8736);
-    $defaultTotal = (float) ($budgetConfig['default_total'] ?? (($defaultGovernmentShouldCost * $defaultAnnualBillableHours) / 0.70));
+    $defaultTotal = (float) ($budgetConfig['default_total'] ?? ($defaultGovernmentShouldCost * $defaultAnnualBillableHours));
     $modelAnnualTotal = collect($budgetGroups)->sum(
         fn (array $group) => collect($group['items'] ?? [])->sum('annual')
     );
@@ -59,7 +59,7 @@
       <a href="{{ route('main-menu-calculator.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
       <div>
         <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
-          <i class="fa fa-piggy-bank text-primary"></i> Workforce Calculator
+          <i class="fa fa-piggy-bank text-primary"></i> Workforce Absorbed Rate Calculator
         </h1>
         <div class="text-gasq-muted small">Plan and analyze your workforce budget across detailed spreadsheet line items.</div>
       </div>
@@ -83,7 +83,7 @@
 
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label fw-medium">Government Should-Cost ($/hr)</label>
+              <label class="form-label fw-medium">Baseline Absorbed Rate ($/hr)</label>
               <div class="small text-gasq-muted mb-1">Current internal benchmark per hour</div>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" id="bg_govShouldCost" class="form-control fs-6 fw-semibold" value="{{ number_format($defaultGovernmentShouldCost, 2, '.', '') }}" step="0.01" min="0" oninput="calcBudget()">
@@ -102,8 +102,11 @@
 
           <div>
             <label class="form-label fw-medium">Derived Annual Budget ($)</label>
-            <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="{{ number_format($defaultTotal, 2, '.', '') }}" step="1000" readonly>
-            <div class="small text-gasq-muted mt-1">Formula: (Government Should-Cost × Annual Billable Hours) / 0.70 (Employer Fee)</div>
+            <div class="input-group">
+              <span class="input-group-text fs-5 fw-semibold">$</span>
+              <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="{{ number_format($defaultTotal, 2, '.', '') }}" step="1000" readonly>
+            </div>
+            <div class="small text-gasq-muted mt-1">Formula: Baseline Absorbed Rate × Annual Billable Hours</div>
           </div>
 
           <hr class="my-1">
@@ -175,7 +178,7 @@
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Budget Summary</h5></div>
         <div class="card-body">
           <div class="budget-benchmark-card mb-4">
-            <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Government Should-Cost</div>
+            <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Baseline Absorbed Rate</div>
             <div class="h3 fw-bold text-primary mb-1" id="r_govShouldCost">$0.00</div>
             <div class="small text-gasq-muted mb-2">Current internal benchmark per hour</div>
             <div class="d-flex justify-content-between align-items-center small gap-3">
@@ -412,7 +415,7 @@ function calcBudget() {
   const monthlyHours = annualHours / 12;
   const weeklyHours = annualHours / 52;
   const dailyHours = annualHours / 365;
-  const total = (governmentShouldCost * annualHours) / 0.70;
+  const total = governmentShouldCost * annualHours;
   const itemStates = ALL_ITEMS.map((item) => ({ ...item, pct: g(item.id) }));
   const allocationsPayload = Object.fromEntries(itemStates.map((item) => [item.key, item.pct]));
   const sumPct = itemStates.reduce((sum, item) => sum + item.pct, 0);

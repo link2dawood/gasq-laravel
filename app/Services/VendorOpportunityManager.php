@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\VendorOpportunity;
 use App\Models\VendorOpportunityInvitation;
+use App\Mail\AdminNewLeadMail;
 use App\Mail\BuyerQualificationApprovedMail;
 use App\Mail\BuyerQualificationNotApprovedMail;
 use App\Notifications\VendorOpportunityNotification;
@@ -60,8 +61,23 @@ class VendorOpportunityManager
         }
 
         $this->dispatchBuyerQualificationEmail($job, $opportunity);
+        $this->dispatchAdminLeadAlert($opportunity);
 
         return $opportunity->fresh(['jobPosting.user', 'invitations.vendor']);
+    }
+
+    private function dispatchAdminLeadAlert(VendorOpportunity $opportunity): void
+    {
+        $recipient = trim((string) config('services.gasq.admin_alert_email', ''));
+        if ($recipient === '') {
+            return;
+        }
+
+        try {
+            Mail::to($recipient)->send(new AdminNewLeadMail($opportunity));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     private function dispatchBuyerQualificationEmail(JobPosting $job, VendorOpportunity $opportunity): void

@@ -12,7 +12,7 @@ return [
             'description' => 'Core wage, premium, and direct-pay labor drivers.',
             'benchmarked' => true,
             'items' => [
-                ['key' => 'baseDirectLaborWage', 'label' => 'Base Consolidated Blended Direct Labor Wage', 'annual' => 442644.72, 'color' => '#2563eb'],
+                ['key' => 'baseDirectLaborWage', 'label' => 'Baseline Wage', 'annual' => 442644.72, 'color' => '#2563eb'],
                 ['key' => 'localityPay', 'label' => 'Locality Pay', 'annual' => 0.0, 'color' => '#3b82f6'],
                 ['key' => 'laborMarketAdjustment', 'label' => 'Labor Market Adjustment', 'annual' => 0.0, 'color' => '#60a5fa'],
                 ['key' => 'hwCash', 'label' => 'H&W (Cash)', 'annual' => 89978.84, 'color' => '#38bdf8'],
