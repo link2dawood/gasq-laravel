@@ -44,11 +44,12 @@ class ReportService
             'mobile-patrol-buyer' => 'pdf.mobile-patrol-buyer',
             'mobile-patrol-comparison' => 'pdf.mobile-patrol-comparison',
             'mobile-patrol-hit-calculator' => 'pdf.mobile-patrol-hit-calculator',
+            // Workforce Absorbed Rate Calculator → branded 3-page Workforce-to-Post Bill Rate Breakdown report.
+            'budget-calculator' => 'pdf.workforce-bill-rate-breakdown',
             // Generic standalone calculators (server-rendered PDF from latest session payload)
             'mobile-patrol-analysis',
             'gasq-tco-calculator',
             'government-contract-calculator',
-            'budget-calculator',
             'economic-justification',
             'bill-rate-analysis',
             'workforce-appraisal-report',
@@ -77,10 +78,14 @@ class ReportService
 
     /**
      * Suggested filename for a calculator report.
+     * Appends a vendor stamp when a user is supplied so files sent to buyers
+     * carry a traceable origin (e.g. "GASQ-budget-calculator-2026-05-13-V7.pdf").
      */
-    public function filenameForCalculator(string $type): string
+    public function filenameForCalculator(string $type, ?User $user = null): string
     {
         $slug = str_replace(' ', '-', $type);
-        return "GASQ-{$slug}-" . now()->format('Y-m-d-His') . '.pdf';
+        $stamp = now()->format('Y-m-d-His');
+        $vendorTag = $user ? '-V' . (int) $user->id : '';
+        return "GASQ-{$slug}-{$stamp}{$vendorTag}.pdf";
     }
 }

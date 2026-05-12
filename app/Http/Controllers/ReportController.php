@@ -44,7 +44,7 @@ class ReportController extends Controller
         }
 
         $pdf = $this->report->calculatorPdf($type, $payload);
-        return $pdf->download($this->report->filenameForCalculator($type));
+        return $pdf->download($this->report->filenameForCalculator($type, $request->user()));
     }
 
     /**
@@ -64,7 +64,7 @@ class ReportController extends Controller
         }
 
         $pdf = $this->report->calculatorPdf($type, $payload);
-        $filename = $this->report->filenameForCalculator($type);
+        $filename = $this->report->filenameForCalculator($type, $request->user());
 
         Mail::to($request->input('email'))->send(new ReportPdfMail(
             subjectLine: 'Your GASQ Calculator Report – ' . str_replace('-', ' ', ucfirst($type)),
@@ -86,7 +86,7 @@ class ReportController extends Controller
 
         $payload = session('report_payload');
         if ($payload && ($payload['type'] ?? null) === $lookupType) {
-            return array_merge($payload, ['type' => $type]);
+            return $this->withIdentity($request, array_merge($payload, ['type' => $type]));
         }
 
         $user = $request->user();
@@ -104,11 +104,33 @@ class ReportController extends Controller
             return null;
         }
 
-        return [
+        return $this->withIdentity($request, [
             'type' => $type,
             'scenario' => $state->scenario ?? [],
             'result' => $state->result ?? [],
             'reportId' => $state->id,
-        ];
+        ]);
+    }
+
+    /**
+     * Stamp vendor identity + a unique report number on every payload so the PDF
+     * can render the "Prepared for / Report #" header consistently and so vendors
+     * can pass the doc to a buyer with a traceable identifier.
+     *
+     * Report # format: GASQ-{YYYYMMDD}-{HHMMSS}-V{vendor_id}
+     */
+    private function withIdentity(Request $request, array $payload): array
+    {
+        $user = $request->user();
+        $vendorId = (int) ($user?->id ?? 0);
+        $reportNumber = 'GASQ-' . now()->format('Ymd-His') . '-V' . $vendorId;
+        $preparedFor = trim(($user?->name ?? '') . ($user?->company ? ' - ' . strtoupper($user->company) : ''));
+
+        return array_merge($payload, [
+            'user' => $user,
+            'vendorId' => $vendorId,
+            'reportNumber' => $reportNumber,
+            'preparedFor' => $preparedFor !== '' ? $preparedFor : null,
+        ]);
     }
 }
