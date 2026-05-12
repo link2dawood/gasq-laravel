@@ -23,15 +23,21 @@ class VendorOpportunityInvitedMail extends Mailable
     {
         $opportunity = $this->invitation->opportunity;
         $job = $opportunity?->jobPosting;
+        $buyer = $job?->user;
 
         $value = LeadFormatting::moneyShort($opportunity?->estimated_annual_contract_value ?? 0);
         $location = LeadFormatting::locationShort($job?->location);
-        $tag = ($opportunity?->decision_maker_verified ?? false)
-            ? 'Decision Maker Verified'
-            : 'Pending Decision Maker Verification';
+
+        // Build a slash-joined verification tag from whichever of the three flags are set.
+        // e.g. "Decision Maker/Budget/Phone # Verified" when all three pass.
+        $parts = [];
+        if ($opportunity?->decision_maker_verified) $parts[] = 'Decision Maker';
+        if ($opportunity?->budget_confirmed) $parts[] = 'Budget';
+        if ($buyer?->phone_verified) $parts[] = 'Phone #';
+        $tag = $parts === [] ? 'Pending Verification' : implode('/', $parts) . ' Verified';
 
         return new Envelope(
-            subject: "🚨 GASQ ALERT: {$value} Security Contract – {$location} ({$tag})",
+            subject: "GASQ ALERT: {$value} Security Contract – {$location} ({$tag})",
         );
     }
 

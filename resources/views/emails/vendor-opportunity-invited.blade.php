@@ -7,7 +7,7 @@
 <p style="margin:0 0 16px;">Hello Security Professional,</p>
 
 <p style="background:#dc3545;color:#fff;padding:14px 18px;border-radius:6px;font-size:18px;font-weight:600;text-align:center;margin:16px 0;">
-    🚨 New Pre-Qualified Security Opportunity Released
+    🚨 New Pre-Qualified Security Contract Opportunity Released
 </p>
 
 <p>You've been selected to review a budget-verified, decision-maker approved contract through the GASQ network.</p>
@@ -23,7 +23,7 @@
 
 <h3 style="border-bottom:2px solid #0d6efd;padding-bottom:6px;margin-top:28px;">👤 Buyer Preview (Redacted for Protection)</h3>
 <ul style="padding-left:20px;">
-    <li><strong>Decision Maker:</strong> {{ $redactedName }}</li>
+    <li><strong>Decision Maker Name:</strong> {{ $redactedName }}</li>
     <li><strong>Email:</strong> {{ $redactedEmail }}</li>
     <li><strong>Phone:</strong> {{ $redactedPhone }}</li>
     <li><strong>Phone Verified:</strong> {{ $phoneVerified ? 'Yes' : 'No' }}</li>
@@ -32,7 +32,7 @@
 
 <h3 style="border-bottom:2px solid #0d6efd;padding-bottom:6px;margin-top:28px;">📊 Qualification Status</h3>
 <ul style="padding-left:20px;list-style:none;">
-    <li>{!! $budgetConfirmed ? '✅' : '⏳' !!} Budget / Bid Offer Verified</li>
+    <li>{!! ($decisionMakerVerified && $budgetConfirmed) ? '✅' : '⏳' !!} Decision Maker / Budget / Bid Offer Verified</li>
     <li>{!! $scopeCompleted ? '✅' : '⏳' !!} Scope Defined</li>
     <li>{!! $moveForward ? '✅' : '⏳' !!} Ready to Move Forward</li>
     <li>👥 <strong>Vendor Responses:</strong> {{ $currentAccepts }} of {{ $maxAccepts }} Accepted</li>
@@ -54,7 +54,6 @@
 <p>To proceed:</p>
 <ul style="padding-left:20px;list-style:none;">
     <li>✅ Accept Opportunity (Unlock full buyer details &amp; contact)</li>
-    <li>💰 Submit Pricing aligned with scope</li>
     <li>❌ Decline if not a fit</li>
 </ul>
 
