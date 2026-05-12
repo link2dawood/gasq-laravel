@@ -24,33 +24,22 @@ class HireNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $hiredBid = $this->job->hiredBid;
-        $vendorName = $hiredBid?->user?->name
-            ?? $this->job->hired_external_name
-            ?? 'a professional';
-        $url = route('jobs.show', $this->job);
+        [$subject, $view] = match ($this->audience) {
+            'vendor' => ['🎉 Congratulations — You Were Hired: ' . $this->job->title, 'emails.notifications.hire-vendor'],
+            'other_vendors' => ['GASQ Update – Opportunity Awarded: ' . $this->job->title, 'emails.notifications.hire-other-vendors'],
+            default => ['🤝 Hire Confirmed: ' . $this->job->title, 'emails.notifications.hire-buyer'],
+        };
 
-        $mail = (new MailMessage)->action('View Job', $url);
-
-        if ($this->audience === 'vendor') {
-            return $mail
-                ->subject('Congratulations — you were hired: ' . $this->job->title)
-                ->line("The buyer hired you for \"{$this->job->title}\".")
-                ->line('They will be in touch with next steps.');
-        }
-
-        if ($this->audience === 'other_vendors') {
-            return $mail
-                ->subject('Job awarded to another vendor: ' . $this->job->title)
-                ->line("The buyer has hired another vendor for \"{$this->job->title}\".")
-                ->line('Thank you for your bid.');
-        }
-
-        // buyer confirmation
-        return $mail
-            ->subject('Hire confirmed: ' . $this->job->title)
-            ->line("You hired {$vendorName} for \"{$this->job->title}\".")
-            ->line('We sent them a confirmation email.');
+        // Pass `notification` so Blade templates can reach $notification->jobPosting and ->bid.
+        return (new MailMessage)
+            ->subject($subject)
+            ->view($view, [
+                'notification' => (object) [
+                    'jobPosting' => $this->job,
+                    'bid' => $this->job->hiredBid,
+                ],
+                'notifiable' => $notifiable,
+            ]);
     }
 
     public function toArray(object $notifiable): array

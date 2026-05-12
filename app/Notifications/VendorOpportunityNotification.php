@@ -34,66 +34,38 @@ class VendorOpportunityNotification extends Notification implements ShouldQueue
         }
 
         $job = $this->invitation->opportunity->jobPosting;
-        $buyer = $job->user;
-        $questionnaire = is_array($job->questionnaire_data) ? $job->questionnaire_data : [];
-
         $url = $this->invitationUrl();
         $mail = (new MailMessage)->subject($this->subject($job->location ?? $job->title));
 
-        return match ($this->type) {
-            'reminder' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('This opportunity is still awaiting your response.')
-                ->line('Location: ' . ($job->location ?: 'Not provided'))
-                ->line('Contract Value: ' . $this->money($this->invitation->opportunity->estimated_annual_contract_value))
-                ->line('Weekly Hours: ' . $this->weeklyHours($questionnaire))
-                ->line('Lead Tier: ' . strtoupper($this->invitation->opportunity->lead_tier))
-                ->action('Respond Now', $url),
-            'final_notice' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('Final notice: vendor selection is closing soon for this security services opportunity.')
-                ->line('If you intend to participate, please submit your response now.')
-                ->action('Submit Bid', $url),
-            'unlocked' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('Buyer details are now unlocked for your accepted opportunity.')
-                ->line('Buyer: ' . ($buyer->name ?: 'Not provided'))
-                ->line('Company: ' . ($buyer->company ?: 'Not provided'))
-                ->line('Email: ' . ($buyer->email ?: 'Not provided'))
-                ->line('Phone: ' . ($buyer->phone ?: 'Not provided'))
-                ->action('Submit Bid', $url),
-            'accepted_bid_reminder' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('You accepted this opportunity, but pricing submission is still needed to stay eligible.')
-                ->line('Your 24-hour bid window is still open.')
-                ->action('Submit Bid', $url),
-            'bid_received_vendor' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('Your bid has been received.')
-                ->line('Next steps: GASQ will review pricing for realism, then the buyer will review qualified submissions.')
-                ->action('View Opportunity', $url),
-            'bid_received_buyer' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Buyer') . ',')
-                ->line('A vendor submitted pricing for your opportunity.')
-                ->line('Vendor: ' . ($this->invitation->vendor->name ?: 'Vendor'))
-                ->line('Annual Price: ' . $this->money($this->invitation->bid?->annual_price))
-                ->line('Realism: ' . ucfirst((string) ($this->invitation->bid?->realism_label ?? 'pending')))
-                ->action('Review Job', route('jobs.show', $job)),
-            'awarded' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('You were selected for this GASQ opportunity.')
-                ->line('Please coordinate next steps with the buyer.')
-                ->action('View Opportunity', $url),
-            'not_selected' => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('The buyer review process closed and another vendor was selected for this opportunity.')
-                ->line('Thank you for participating in the GASQ Vendor Network.')
-                ->action('View Opportunity', $url),
-            default => $mail
-                ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
-                ->line('There is an update on your GASQ opportunity.')
-                ->action('View Opportunity', $url),
+        // Map each notification type to its branded Blade template. Each template
+        // extends emails.layouts.gasq-base and receives the invitation + url +
+        // notifiable so it can render fully self-contained HTML.
+        $view = match ($this->type) {
+            'reminder' => 'emails.notifications.vendor-reminder',
+            'final_notice' => 'emails.notifications.vendor-final-notice',
+            'unlocked' => 'emails.notifications.vendor-unlocked',
+            'accepted_bid_reminder' => 'emails.notifications.vendor-accepted-bid-reminder',
+            'bid_received_vendor' => 'emails.notifications.vendor-bid-received',
+            'bid_received_buyer' => 'emails.notifications.buyer-bid-received',
+            'awarded' => 'emails.notifications.vendor-awarded',
+            'not_selected' => 'emails.notifications.vendor-not-selected',
+            'expired' => 'emails.notifications.vendor-expired',
+            default => null,
         };
+
+        if ($view) {
+            return $mail->view($view, [
+                'invitation' => $this->invitation,
+                'notifiable' => $notifiable,
+                'url' => $url,
+            ]);
+        }
+
+        // Fallback for unknown types
+        return $mail
+            ->greeting('Hello ' . ($notifiable->name ?? 'Vendor') . ',')
+            ->line('There is an update on your GASQ opportunity.')
+            ->action('View Opportunity', $url);
     }
 
     public function toArray(object $notifiable): array
@@ -121,15 +93,16 @@ class VendorOpportunityNotification extends Notification implements ShouldQueue
     private function subject(string $locationOrTitle): string
     {
         return match ($this->type) {
-            'new' => 'New Pre-Qualified Security Opportunity – ' . $locationOrTitle,
-            'reminder' => 'Reminder: Security Opportunity Still Open',
-            'final_notice' => 'Final Notice: Vendor Selection Closing Soon',
-            'unlocked' => 'Buyer Details Unlocked',
-            'accepted_bid_reminder' => 'Pricing Submission Needed to Stay Eligible',
-            'bid_received_vendor' => 'Your Bid Has Been Submitted',
-            'bid_received_buyer' => 'Vendor Bid Received',
-            'awarded' => 'Opportunity Awarded',
-            'not_selected' => 'Opportunity Update',
+            'new' => '🚨 GASQ ALERT: New Pre-Qualified Opportunity – ' . $locationOrTitle,
+            'reminder' => '⏰ Reminder: Pre-Qualified Opportunity Still Open – ' . $locationOrTitle,
+            'final_notice' => '🚨 FINAL NOTICE: Vendor Selection Closing Soon',
+            'unlocked' => '🔓 Buyer Details Unlocked – Submit Your Bid',
+            'accepted_bid_reminder' => '⏰ Pricing Submission Needed to Stay Eligible',
+            'bid_received_vendor' => '✅ Your Bid Has Been Submitted',
+            'bid_received_buyer' => '💰 GASQ – Vendor Bid Received',
+            'awarded' => '🏆 Congratulations – You Were Selected',
+            'not_selected' => 'GASQ Update – Opportunity Awarded to Another Vendor',
+            'expired' => 'GASQ Update – Opportunity Window Closed',
             default => 'GASQ Opportunity Update',
         };
     }

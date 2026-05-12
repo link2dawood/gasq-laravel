@@ -26,34 +26,24 @@ class BidNotification extends Notification implements ShouldQueue
     {
         $job = $this->bid->jobPosting;
         $subject = match ($this->type) {
-            'submitted' => 'New bid on: ' . $job->title,
-            'updated' => 'Bid updated on: ' . $job->title,
-            'accepted' => 'Your bid was accepted: ' . $job->title,
-            'rejected' => 'Your bid was declined: ' . $job->title,
-            'vendor_accepted' => 'Vendor accepted job offer: ' . $job->title,
-            'vendor_declined' => 'Vendor declined job offer: ' . $job->title,
-            'counter_offer' => 'Counter offer on your bid: ' . $job->title,
-            default => 'Bid update: ' . $job->title,
+            'submitted' => '📩 New Bid on: ' . $job->title,
+            'updated' => '📝 Bid Updated on: ' . $job->title,
+            'accepted' => '🤝 Your Bid Was Accepted: ' . $job->title,
+            'rejected' => 'GASQ Update – Bid Decision: ' . $job->title,
+            'vendor_accepted' => '✅ Vendor Accepted Your Offer: ' . $job->title,
+            'vendor_declined' => 'GASQ Update – Vendor Response: ' . $job->title,
+            'counter_offer' => '💬 Counter Offer on Your Bid: ' . $job->title,
+            'counter_offer_accepted' => '✅ Counter Offer Accepted: ' . $job->title,
+            default => 'GASQ Update – Bid: ' . $job->title,
         };
-        $url = route('jobs.show', $job);
-        $budgetText = $this->jobBudgetText($job);
 
-        $mail = (new MailMessage)
+        return (new MailMessage)
             ->subject($subject)
-            ->action('View', $url);
-
-        $mail->line(match ($this->type) {
-            'submitted' => $this->bid->user->name . ' submitted a bid of $' . number_format($this->bid->amount, 2) . '. Buyer budget: ' . $budgetText . '.',
-            'updated' => $this->bid->user->name . ' updated their bid to $' . number_format($this->bid->amount, 2) . '. Buyer budget: ' . $budgetText . '.',
-            'accepted' => 'Your bid of $' . number_format($this->bid->amount, 2) . ' was accepted.',
-            'rejected' => 'Your bid was declined by the buyer.',
-            'vendor_accepted' => $this->bid->user->name . ' accepted the job offer announcement. Buyer budget: ' . $budgetText . '.',
-            'vendor_declined' => $this->bid->user->name . ' declined the job offer announcement.',
-            'counter_offer' => 'The buyer sent a counter offer of $' . number_format($this->bid->counter_offer_amount, 2) . '.',
-            default => 'There is an update on your bid.',
-        });
-
-        return $mail;
+            ->view('emails.notifications.bid-event', [
+                'bid' => $this->bid,
+                'type' => $this->type,
+                'notifiable' => $notifiable,
+            ]);
     }
 
     private function jobBudgetText(\App\Models\JobPosting $job): string

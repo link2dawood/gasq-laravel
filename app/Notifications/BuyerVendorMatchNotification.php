@@ -29,72 +29,25 @@ class BuyerVendorMatchNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $job = $this->opportunity->jobPosting;
-        $progress = $this->progressSnapshot();
-        $mail = (new MailMessage)
-            ->subject($this->subject())
-            ->greeting('Hello ' . ($notifiable->name ?? 'Buyer') . ',');
-
+        // Pending-qualification is fully handled by BuyerQualificationNotApprovedMail
+        // dispatched from VendorOpportunityManager. Skip the email here.
         if ($this->type === self::TYPE_PENDING_QUALIFICATION) {
-            return $mail
-                ->line('Thank you for your interest in working with GetASecurityQuoteNow (GASQ).')
-                ->line('After a thorough review of your questionnaire responses, we regret to inform you that your request does not currently meet our minimum lead qualification standards required for distribution to our prequalified vendor network.')
-                ->line('At least one or more responses did not align with our core qualification criteria, which are designed to ensure:')
-                ->line('- Verified decision-maker authority')
-                ->line('- Confirmed budget or pricing alignment')
-                ->line('- Commitment to interview and engage qualified vendors')
-                ->line('- Readiness to move forward under established service conditions')
-                ->line('Because of this, your request has been placed on Pending Qualification Status and will not be released to vendors at this time.')
-                ->line('What You Can Do Next:')
-                ->line('We encourage you to revisit and update your responses to meet the qualification requirements. Once your submission reflects a qualified status, we will promptly re-evaluate and activate your request for vendor distribution.')
-                ->line('Important Note:')
-                ->line('All qualified submissions benefit from access to our pre-screened vendor network, the Vendor Replacement Guarantee, the Price Lock Guarantee, and structured interview coordination and bid acceptance process.')
-                ->line('Next Step: Please update your questionnaire to proceed.')
-                ->action('Review Qualification Status', route('jobs.edit', $job));
+            return (new MailMessage)
+                ->subject($this->subject())
+                ->view('emails.notifications.buyer-vendor-progress', [
+                    'notification' => $this,
+                    'notifiable' => $notifiable,
+                ]);
         }
 
-        if ($this->type === self::TYPE_LIVE) {
-            return $mail
-                ->line('Thank you for completing your submission with GetASecurityQuoteNow (GASQ).')
-                ->line('We\'re pleased to inform you that your request has been successfully qualified and is now ACTIVE within our pre-screened vendor network.')
-                ->line('Qualification Status: APPROVED')
-                ->line('Your submission meets all required criteria:')
-                ->line('- Verified decision-maker authority')
-                ->line('- Confirmed budget and pricing alignment')
-                ->line('- Commitment to interview qualified vendors')
-                ->line('- Ready-to-move-forward status')
-                ->line('Real-Time Vendor Match Status')
-                ->line('- Vendors Accepted: ' . $progress['accepted_count'] . ' of ' . $progress['max_accepts'])
-                ->line('- Open Slots Remaining: ' . max($progress['max_accepts'] - $progress['accepted_count'], 0))
-                ->line('- Response Activity: Active')
-                ->line('- Interview Phase: Pending')
-                ->line('(This status updates automatically as vendors accept your request.)')
-                ->line('What Happens Next')
-                ->line('Your project is now visible to qualified vendors. As they review your request:')
-                ->line('- Vendors will accept or decline based on your approved price and scope')
-                ->line('- Once accepted, vendors will move into the interview scheduling phase')
-                ->line('- You will receive instant notifications as activity occurs')
-                ->line('Your Confirmed Commitments')
-                ->line('- Interview all qualified vendors prior to selection')
-                ->line('- Move forward if a vendor meets your requirements at your approved price')
-                ->line('Your GASQ Protections')
-                ->line('- Vendor Replacement Guarantee')
-                ->line('- Price Lock Guarantee')
-                ->line('Next Step: Prepare for interviews. As vendors continue to accept your request, you\'ll be prompted to schedule interviews directly through your dashboard.')
-                ->line('GASQ Insight: Projects with strong buyer responsiveness often reach full vendor acceptance faster.')
-                ->action('Track Vendor Match', route('jobs.show', $job));
-        }
-
-        return $mail
-            ->line('Thank you for completing your submission with GetASecurityQuoteNow (GASQ).')
-            ->line('Your security service request remains active within our pre-screened vendor network.')
-            ->line('Vendor Acceptance Progress')
-            ->line($progress['headline'])
-            ->line($progress['progress_bar'])
-            ->line('Status Message: ' . $progress['status_message'])
-            ->line('Next Step: ' . $progress['next_step'])
-            ->line('You will continue receiving updates as qualified vendors accept your request and move toward interview coordination.')
-            ->action('View Vendor Match', route('jobs.show', $job));
+        // Both TYPE_LIVE and TYPE_ACCEPTED_PROGRESS render the same branded
+        // progress-snapshot view; the template adapts based on acceptedCount.
+        return (new MailMessage)
+            ->subject($this->subject())
+            ->view('emails.notifications.buyer-vendor-progress', [
+                'notification' => $this,
+                'notifiable' => $notifiable,
+            ]);
     }
 
     public function toArray(object $notifiable): array

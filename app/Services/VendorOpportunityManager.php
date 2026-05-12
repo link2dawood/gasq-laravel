@@ -459,6 +459,10 @@ class VendorOpportunityManager
                     $this->processInvitationAutomation($invitation);
                 }
             });
+
+        // Tier C buyers: nudge them 3 days after the held lead if they haven't
+        // updated their questionnaire and re-qualified.
+        $this->processTierCReminders();
     }
 
     private function processInvitationAutomation(VendorOpportunityInvitation $invitation): void
@@ -468,9 +472,7 @@ class VendorOpportunityManager
         }
 
         if ($invitation->status === VendorOpportunityInvitation::STATUS_ACCEPTED && $invitation->bidWindowExpired()) {
-            $invitation->forceFill([
-                'status' => VendorOpportunityInvitation::STATUS_EXPIRED,
-            ])->save();
+            $this->transitionToExpired($invitation);
             return;
         }
 
@@ -512,9 +514,65 @@ class VendorOpportunityManager
     public function expireAcceptedWindowIfNeeded(VendorOpportunityInvitation $invitation): void
     {
         if ($invitation->status === VendorOpportunityInvitation::STATUS_ACCEPTED && $invitation->bidWindowExpired()) {
-            $invitation->forceFill([
-                'status' => VendorOpportunityInvitation::STATUS_EXPIRED,
-            ])->save();
+            $this->transitionToExpired($invitation);
         }
+    }
+
+    /**
+     * Mark an invitation as expired and notify the vendor exactly once.
+     * Idempotent — re-running does nothing.
+     */
+    private function transitionToExpired(VendorOpportunityInvitation $invitation): void
+    {
+        if ($invitation->status === VendorOpportunityInvitation::STATUS_EXPIRED) {
+            return;
+        }
+
+        $invitation->forceFill([
+            'status' => VendorOpportunityInvitation::STATUS_EXPIRED,
+        ])->save();
+
+        try {
+            $invitation->vendor?->notify(new VendorOpportunityNotification($invitation->fresh(), 'expired'));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
+     * Send a 3-day reminder to Tier C (held) buyers who never updated their
+     * questionnaire. Fires exactly once per opportunity.
+     */
+    private function processTierCReminders(): void
+    {
+        $threshold = now()->subDays(3);
+
+        VendorOpportunity::query()
+            ->with('jobPosting.user')
+            ->where('lead_tier', 'c')
+            ->whereNull('tier_c_reminder_sent_at')
+            ->where('created_at', '<=', $threshold)
+            ->chunkById(100, function (Collection $opportunities): void {
+                foreach ($opportunities as $opportunity) {
+                    $buyer = $opportunity->jobPosting?->user;
+                    if (! $buyer || ! $buyer->email) {
+                        $opportunity->forceFill(['tier_c_reminder_sent_at' => now()])->save();
+                        continue;
+                    }
+
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($buyer->email)->send(
+                            new \App\Mail\BuyerTierCReminderMail(
+                                $opportunity->jobPosting,
+                                $opportunity,
+                            )
+                        );
+                    } catch (\Throwable $e) {
+                        report($e);
+                    }
+
+                    $opportunity->forceFill(['tier_c_reminder_sent_at' => now()])->save();
+                }
+            });
     }
 }
