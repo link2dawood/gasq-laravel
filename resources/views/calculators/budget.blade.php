@@ -574,8 +574,19 @@ function queueAppraisalRefresh() {
 async function refreshAppraisal() {
   const governmentShouldCost = g('bg_govShouldCost');
   const vendorTco = g('bg_vendorTco');
-  const annualHours = g('bg_annualHours');
+  const annualHours = g('bg_annualHours') || 8736; // fall back to a full 24×7 year
   const masterInputs = window.__gasqMasterInputs || {};
+
+  // Derive the rest of the appraisal inputs from what the budget calculator has.
+  const hoursPerProf = parseFloat(masterInputs.annualPaidHoursPerFte
+    ?? masterInputs.annualPaidHoursPerFTE
+    ?? 1456);
+  const ftesRequired = Math.max(1, Math.ceil(annualHours / Math.max(hoursPerProf, 1)));
+  const weeklyHours = annualHours / 52;
+  const monthlyHours = annualHours / 12;
+  const baselineLaborRate = parseFloat(masterInputs.directLaborWage
+    ?? masterInputs.in_wage
+    ?? 30.43);
 
   try {
     const res = await fetch(APPRAISAL_COMPUTE_URL, {
@@ -589,14 +600,25 @@ async function refreshAppraisal() {
         version: 'v24',
         scenario: {
           meta: {
-            annualBillableHours: annualHours || 1,
+            annualBillableHours: annualHours,
             inputs: masterInputs,
+            // Scope drives the engine's coverage hours / FTE math. Default to 24×7×52
+            // single-post coverage when the budget calculator doesn't capture scope.
+            scope: {
+              hoursOfCoveragePerDay: 24,
+              daysOfCoveragePerWeek: 7,
+              weeksOfCoverage: 52,
+              staffPerShift: ftesRequired,
+            },
             appraisal: {
+              baselineLaborRate: baselineLaborRate,
               governmentShouldCostHourly: governmentShouldCost,
               vendorTcoHourly: vendorTco,
+              totalWeeklyHours: weeklyHours,
+              totalMonthlyHours: monthlyHours,
               totalAnnualHours: annualHours,
-              totalWeeklyHours: annualHours / 52,
-              totalMonthlyHours: annualHours / 12,
+              ftesRequired: ftesRequired,
+              hoursPerProfessionalAnnual: hoursPerProf,
             },
           },
         },
