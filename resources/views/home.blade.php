@@ -30,47 +30,122 @@
     </div>
   @endif
 
-  {{-- Stats Row --}}
+  {{-- Buyer Stats Row --}}
+  @php
+      $tierBadgeClass = match (strtolower((string) ($buyerLatestTier ?? ''))) {
+          'a' => 'badge bg-success',
+          'b' => 'badge bg-warning text-dark',
+          'c' => 'badge bg-danger',
+          default => 'badge bg-secondary',
+      };
+      $tierLabel = match (strtolower((string) ($buyerLatestTier ?? ''))) {
+          'a' => 'Tier A — Active',
+          'b' => 'Tier B — Under Review',
+          'c' => 'Tier C — Pending Qualification',
+          default => 'No active jobs',
+      };
+  @endphp
   <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="gasq-stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="gasq-icon-badge"><i class="fa fa-briefcase fa-sm"></i></div>
+          <span class="badge rounded-pill" style="background:rgba(6,45,121,0.08);color:var(--gasq-primary);font-size:0.7rem;font-weight:500">Active</span>
+        </div>
+        <div class="stat-value">{{ ($buyerActiveJobs ?? collect())->count() }}</div>
+        <div class="stat-sub">Active jobs</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="gasq-stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="gasq-icon-badge"><i class="fa fa-handshake fa-sm"></i></div>
+          <span class="badge rounded-pill" style="background:rgba(6,45,121,0.08);color:var(--gasq-primary);font-size:0.7rem;font-weight:500">Pipeline</span>
+        </div>
+        <div class="stat-value">{{ $buyerVendorsAccepted ?? 0 }}</div>
+        <div class="stat-sub">Vendor acceptances</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="gasq-stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="gasq-icon-badge"><i class="fa fa-file-invoice-dollar fa-sm"></i></div>
+          <span class="badge rounded-pill" style="background:rgba(6,45,121,0.08);color:var(--gasq-primary);font-size:0.7rem;font-weight:500">Bids</span>
+        </div>
+        <div class="stat-value">{{ $buyerBidsReceived ?? 0 }}</div>
+        <div class="stat-sub">Bids received</div>
+      </div>
+    </div>
     <div class="col-6 col-md-3">
       <div class="gasq-stat-card">
         <div class="d-flex align-items-center justify-content-between mb-2">
           <div class="gasq-icon-badge"><i class="fa fa-wallet fa-sm"></i></div>
           <span class="badge rounded-pill" style="background:rgba(6,45,121,0.08);color:var(--gasq-primary);font-size:0.7rem;font-weight:500">Balance</span>
         </div>
-        <div class="stat-value gasq-mono">{{ isset($walletBalance) ? $walletBalance : 0 }}</div>
+        <div class="stat-value gasq-mono">{{ $buyerWalletBalance ?? ($walletBalance ?? 0) }}</div>
         <div class="stat-sub">Credits available</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="gasq-stat-card">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div class="gasq-icon-badge"><i class="fa fa-calculator fa-sm"></i></div>
-          <span class="badge rounded-pill" style="background:rgba(6,45,121,0.08);color:var(--gasq-primary);font-size:0.7rem;font-weight:500">Tools</span>
-        </div>
-        <div class="stat-value">15+</div>
-        <div class="stat-sub">Calculators available</div>
+  </div>
+
+  {{-- Next Action + Qualification Status --}}
+  @if(isset($buyerNextAction) && is_array($buyerNextAction))
+    @php
+      $bg = match($buyerNextAction['tone']) {
+          'warn' => 'background:#fff3cd;border:1px solid #ffe69c;color:#664d03;',
+          'success' => 'background:#d1e7dd;border:1px solid #b5dfc4;color:#0a3622;',
+          'info' => 'background:#cfe2ff;border:1px solid #b6d4fe;color:#084298;',
+          default => 'background:#f8f9fa;border:1px solid #dee2e6;color:#212529;',
+      };
+    @endphp
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 rounded mb-4" style="{{ $bg }}">
+      <div>
+        <div class="fw-semibold mb-1">Next action</div>
+        <div>{{ $buyerNextAction['message'] }}</div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <span class="{{ $tierBadgeClass }}">{{ $tierLabel }}</span>
+        <a href="{{ $buyerNextAction['href'] }}" class="btn btn-primary btn-sm">{{ $buyerNextAction['cta'] }}</a>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="gasq-stat-card">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div class="gasq-icon-badge"><i class="fa fa-briefcase fa-sm"></i></div>
-          <span class="badge rounded-pill" style="background:rgba(6,45,121,0.08);color:var(--gasq-primary);font-size:0.7rem;font-weight:500">Jobs</span>
+  @endif
+
+  {{-- Active Jobs list --}}
+  @if(isset($buyerActiveJobs) && $buyerActiveJobs->isNotEmpty())
+    <div class="card gasq-card mb-4">
+      <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="gasq-card-title-lg mb-0">Your active jobs</h2>
+          <p class="text-gasq-muted small mb-0">Quick links and vendor activity per job.</p>
         </div>
-        <div class="stat-value" style="font-size:1.1rem;padding-top:4px">Job Board</div>
-        <div class="stat-sub">Browse opportunities</div>
+        <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary btn-sm">View all</a>
+      </div>
+      <div class="list-group list-group-flush">
+        @foreach($buyerActiveJobs as $job)
+          <a href="{{ route('jobs.show', $job) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ $job->title }}</div>
+              <div class="text-gasq-muted small">{{ $job->location ?? 'Location TBD' }} · Posted {{ $job->created_at?->diffForHumans() }}</div>
+            </div>
+            <div class="text-end">
+              <span class="badge bg-light text-dark border">{{ ucfirst((string) $job->status) }}</span>
+            </div>
+          </a>
+        @endforeach
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="gasq-stat-card">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <div class="gasq-icon-badge"><i class="fa fa-phone fa-sm"></i></div>
-          <span class="badge rounded-pill" style="background:rgba(6,45,121,0.08);color:var(--gasq-primary);font-size:0.7rem;font-weight:500">Support</span>
+  @endif
+
+  {{-- GASQ Protections --}}
+  <div class="card gasq-card mb-4" style="background:#f0f9ff;border:1px solid #bae6fd;">
+    <div class="card-body py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h3 class="h6 mb-1" style="color:#0369a1;"><i class="fa fa-shield-halved me-2"></i>Your GASQ Protections</h3>
+        <div class="text-gasq-muted small mb-0">
+          <strong>Price Lock Guarantee</strong> · <strong>Vendor Replacement Guarantee</strong> · Backed across every accepted engagement.
         </div>
-        <div class="stat-value" style="font-size:1.1rem;padding-top:4px">1-on-1</div>
-        <div class="stat-sub">Discovery call</div>
       </div>
+      <a href="{{ route('faq') }}" class="btn btn-outline-primary btn-sm">Learn more</a>
     </div>
   </div>
 

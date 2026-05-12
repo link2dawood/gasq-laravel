@@ -35,8 +35,42 @@ class VendorOpportunityMatchingService
             ->with(['vendorProfile', 'vendorCapability', 'vendorOpportunityInvitations'])
             ->get();
 
-        $matches = $vendors
-            ->map(function (User $vendor) use ($job, $requestedServiceTypes, $serviceAreaNeedles): ?array {
+        $matchedVendors = $this->scoreVendors($vendors, $job, $questionnaire, $requestedServiceTypes, $serviceAreaNeedles);
+
+        // Beta fallback: when strict matching returns zero, optionally fall back to any
+        // eligible vendor with a capability record so end-to-end flows can be tested.
+        // Toggle via .env: GASQ_BETA_VENDOR_FALLBACK=true
+        if ($matchedVendors->isEmpty() && (bool) env('GASQ_BETA_VENDOR_FALLBACK', false)) {
+            $matchedVendors = $vendors
+                ->filter(fn (User $v) => $v->vendorCapability instanceof VendorCapability)
+                ->map(fn (User $v) => [
+                    'vendor' => $v,
+                    'score' => 10.0,
+                    'reasons' => ['Beta fallback — strict matching returned no vendors'],
+                ])
+                ->values();
+        }
+
+        $poolLimit = $leadTier === 'a' ? 5 : 3;
+        return $matchedVendors->take(min($poolLimit, max(0, $targetCount)));
+    }
+
+    /**
+     * @param  Collection<int, User>  $vendors
+     * @param  array<string, mixed>  $questionnaire
+     * @param  Collection<int, string>  $requestedServiceTypes
+     * @param  Collection<int, string>  $serviceAreaNeedles
+     * @return Collection<int, array{vendor: User, score: float, reasons: list<string>}>
+     */
+    private function scoreVendors(
+        Collection $vendors,
+        JobPosting $job,
+        array $questionnaire,
+        Collection $requestedServiceTypes,
+        Collection $serviceAreaNeedles,
+    ): Collection {
+        return $vendors
+            ->map(function (User $vendor) use ($job, $questionnaire, $requestedServiceTypes, $serviceAreaNeedles): ?array {
                 $capability = $vendor->vendorCapability;
                 if (! $capability instanceof VendorCapability) {
                     return null;
@@ -91,10 +125,6 @@ class VendorOpportunityMatchingService
             ->filter()
             ->sortByDesc('score')
             ->values();
-
-        $poolLimit = $leadTier === 'a' ? 5 : 3;
-
-        return $matches->take(min($poolLimit, max(0, $targetCount)));
     }
 
     /**
@@ -135,9 +165,27 @@ class VendorOpportunityMatchingService
             return $competencies->isNotEmpty();
         }
 
+        // Compare at the token level so semantically-equivalent phrases match.
+        // "unarmed security guard" matches "guard & patrol services unarmed only"
+        // because both share the tokens {unarmed, guard}.
+        $stopwords = ['the','a','an','and','or','of','for','services','service','only','both','to'];
+        $tokenize = static function (string $value) use ($stopwords): array {
+            $parts = preg_split('/[^a-z0-9]+/i', $value) ?: [];
+            return array_values(array_diff(
+                array_filter(array_map('strtolower', $parts), fn ($t) => strlen($t) >= 3),
+                $stopwords
+            ));
+        };
+
         foreach ($requestedServiceTypes as $serviceType) {
-            if ($competencies->contains(fn (string $competency): bool => Str::contains($competency, $serviceType) || Str::contains($serviceType, $competency))) {
-                return true;
+            $reqTokens = $tokenize($serviceType);
+            if ($reqTokens === []) continue;
+
+            foreach ($competencies as $competency) {
+                $compTokens = $tokenize($competency);
+                if (array_intersect($reqTokens, $compTokens) !== []) {
+                    return true;
+                }
             }
         }
 

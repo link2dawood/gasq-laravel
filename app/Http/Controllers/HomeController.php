@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bid;
+use App\Models\JobPosting;
+use App\Models\VendorOpportunity;
 use App\Models\VendorOpportunityInvitation;
 use App\Models\VendorQuestionnaire;
 use App\Services\WalletService;
@@ -117,6 +119,49 @@ class HomeController extends Controller
                     ->first();
             }
 
+            // Tier-A vs Tier-B breakdown so vendors can see what's premium in their pipeline.
+            $tierACount = 0;
+            $tierBCount = 0;
+            if (Schema::hasTable('vendor_opportunity_invitations') && Schema::hasTable('vendor_opportunities')) {
+                $tierACount = (int) VendorOpportunityInvitation::query()
+                    ->where('vendor_id', $user->id)
+                    ->whereIn('status', ['new', 'viewed', 'accepted'])
+                    ->whereHas('opportunity', fn ($q) => $q->where('lead_tier', 'a'))
+                    ->count();
+                $tierBCount = (int) VendorOpportunityInvitation::query()
+                    ->where('vendor_id', $user->id)
+                    ->whereIn('status', ['new', 'viewed', 'accepted'])
+                    ->whereHas('opportunity', fn ($q) => $q->where('lead_tier', 'b'))
+                    ->count();
+            }
+
+            // Won / lost outcomes — drives the new outcome tracker tile.
+            $wonCount = (int) Bid::query()
+                ->where('user_id', $user->id)
+                ->whereNotNull('hired_at')
+                ->count();
+            $lostCount = (int) Bid::query()
+                ->where('user_id', $user->id)
+                ->where('status', 'rejected')
+                ->whereNull('hired_at')
+                ->count();
+            $totalDecidedBids = $wonCount + $lostCount;
+            $winRatePct = $totalDecidedBids > 0
+                ? (int) round(100 * $wonCount / $totalDecidedBids)
+                : 0;
+
+            // "Action Required" rollup — pulls items needing immediate vendor attention.
+            $acceptedNoBidCount = 0;
+            if (Schema::hasTable('vendor_opportunity_invitations')) {
+                $acceptedNoBidCount = (int) VendorOpportunityInvitation::query()
+                    ->where('vendor_id', $user->id)
+                    ->where('status', VendorOpportunityInvitation::STATUS_ACCEPTED)
+                    ->whereNull('bid_submitted_at')
+                    ->count();
+            }
+            $walletBalance = $walletService->getBalance($user);
+            $lowCreditsThreshold = 500;
+
             $dashboardData += [
                 'vendorProfileCompletion' => $profileSummary['completion'],
                 'vendorProfileMissingCount' => $profileSummary['missing_count'],
@@ -130,6 +175,8 @@ class HomeController extends Controller
                         ? $unreadLeadCount . ' new lead' . ($unreadLeadCount === 1 ? '' : 's') . ' waiting for review'
                         : $activeLeadCount . ' active lead' . ($activeLeadCount === 1 ? '' : 's') . ' in your pipeline')
                     : 'Your invited leads will appear here as soon as GASQ routes matching projects.',
+                'vendorTierACount' => $tierACount,
+                'vendorTierBCount' => $tierBCount,
                 'vendorResponseCount' => $responseCount,
                 'vendorAcceptedResponseCount' => $acceptedResponseCount,
                 'vendorBidSubmittedCount' => $bidSubmittedCount,
@@ -137,14 +184,132 @@ class HomeController extends Controller
                 'vendorResponseMessage' => $responseCount > 0
                     ? 'Accepted: ' . $acceptedResponseCount . ' · Submitted bids: ' . $bidSubmittedCount . ' · Declined: ' . $declinedResponseCount
                     : 'No vendor responses recorded yet. New acceptances and bid activity will show here.',
-                'vendorWalletBalance' => $walletService->getBalance($user),
+                'vendorWalletBalance' => $walletBalance,
                 'vendorQuestionnaireDraftCount' => $questionnaireDraftCount,
                 'vendorQuestionnaireSubmittedCount' => $questionnaireSubmittedCount,
                 'vendorQuestionnaireDraft' => $questionnaireDraft,
+                // New for beta:
+                'vendorWonCount' => $wonCount,
+                'vendorLostCount' => $lostCount,
+                'vendorWinRatePct' => $winRatePct,
+                'vendorAcceptedNoBidCount' => $acceptedNoBidCount,
+                'vendorLowCredits' => $walletBalance < $lowCreditsThreshold,
+                'vendorActionRequiredCount' => $acceptedNoBidCount + $questionnaireDraftCount + (($walletBalance < $lowCreditsThreshold) ? 1 : 0),
             ];
+        } else {
+            $dashboardData += $this->buyerDashboardData($user, $walletService);
         }
 
         return view($isVendorDashboard ? 'home-vendor' : 'home', $dashboardData);
+    }
+
+    /**
+     * Buyer-side dashboard data: active jobs, vendor activity, qualification status,
+     * and next-action prompts pulled from the jobs the buyer owns.
+     *
+     * @return array<string, mixed>
+     */
+    private function buyerDashboardData($user, WalletService $walletService): array
+    {
+        $jobs = JobPosting::query()
+            ->where('user_id', $user->id)
+            ->latest('created_at')
+            ->take(10)
+            ->get();
+
+        $activeJobs = $jobs->filter(fn ($j) => in_array((string) $j->status, ['open', 'pending', 'active'], true));
+        $hiredJobs = $jobs->filter(fn ($j) => $j->status === 'hired' || $j->hired_bid_id !== null);
+
+        $jobIds = $jobs->pluck('id')->all();
+
+        // Aggregate vendor activity across the buyer's recent jobs.
+        $bidsReceived = 0;
+        $vendorsAccepted = 0;
+        $pendingInterviews = 0;
+        if (! empty($jobIds)) {
+            $bidsReceived = (int) Bid::query()
+                ->whereIn('job_posting_id', $jobIds)
+                ->where('amount', '>', 0)
+                ->count();
+
+            if (Schema::hasTable('vendor_opportunities') && Schema::hasTable('vendor_opportunity_invitations')) {
+                $opportunityIds = VendorOpportunity::query()
+                    ->whereIn('job_posting_id', $jobIds)
+                    ->pluck('id')
+                    ->all();
+                if (! empty($opportunityIds)) {
+                    $vendorsAccepted = (int) VendorOpportunityInvitation::query()
+                        ->whereIn('vendor_opportunity_id', $opportunityIds)
+                        ->whereIn('status', ['accepted', 'bid_submitted'])
+                        ->count();
+                    $pendingInterviews = (int) VendorOpportunityInvitation::query()
+                        ->whereIn('vendor_opportunity_id', $opportunityIds)
+                        ->where('status', 'bid_submitted')
+                        ->count();
+                }
+            }
+        }
+
+        // Best (worst) lead tier across all open jobs so we can surface qualification status.
+        $latestTier = null;
+        $heldJobCount = 0;
+        if (Schema::hasTable('vendor_opportunities') && ! empty($jobIds)) {
+            $opps = VendorOpportunity::query()
+                ->whereIn('job_posting_id', $jobIds)
+                ->get();
+            $latestTier = $opps->sortBy(fn ($o) => $o->created_at)->last()?->lead_tier;
+            $heldJobCount = (int) $opps->where('lead_tier', 'c')->count();
+        }
+
+        // Compose a single "next action" message based on what's most important right now.
+        if ($heldJobCount > 0) {
+            $nextAction = [
+                'tone' => 'warn',
+                'message' => $heldJobCount . ' job' . ($heldJobCount === 1 ? '' : 's') . ' on Pending Qualification — update your questionnaire to release to vendors.',
+                'cta' => 'Update Questionnaire',
+                'href' => $activeJobs->isNotEmpty() ? route('jobs.edit', $activeJobs->first()) : route('jobs.index'),
+            ];
+        } elseif ($pendingInterviews > 0) {
+            $nextAction = [
+                'tone' => 'success',
+                'message' => $pendingInterviews . ' vendor' . ($pendingInterviews === 1 ? ' has' : 's have') . ' submitted bids — schedule interviews.',
+                'cta' => 'Schedule Interviews',
+                'href' => $activeJobs->isNotEmpty() ? route('jobs.show', $activeJobs->first()) : route('jobs.index'),
+            ];
+        } elseif ($vendorsAccepted > 0) {
+            $nextAction = [
+                'tone' => 'info',
+                'message' => $vendorsAccepted . ' vendor' . ($vendorsAccepted === 1 ? '' : 's') . ' accepted your offer — bids will arrive shortly.',
+                'cta' => 'View Active Jobs',
+                'href' => route('jobs.index'),
+            ];
+        } elseif ($activeJobs->isEmpty()) {
+            $nextAction = [
+                'tone' => 'neutral',
+                'message' => 'No active jobs yet. Post a job to start receiving qualified vendor responses.',
+                'cta' => 'Post a Job',
+                'href' => route('post-job.index'),
+            ];
+        } else {
+            $nextAction = [
+                'tone' => 'neutral',
+                'message' => 'Your jobs are live — vendors are reviewing.',
+                'cta' => 'View Active Jobs',
+                'href' => route('jobs.index'),
+            ];
+        }
+
+        return [
+            'buyerActiveJobs' => $activeJobs,
+            'buyerHiredJobsCount' => $hiredJobs->count(),
+            'buyerBidsReceived' => $bidsReceived,
+            'buyerVendorsAccepted' => $vendorsAccepted,
+            'buyerPendingInterviews' => $pendingInterviews,
+            'buyerLatestTier' => $latestTier,
+            'buyerHeldJobCount' => $heldJobCount,
+            'buyerNextAction' => $nextAction,
+            'buyerWalletBalance' => $walletService->getBalance($user),
+        ];
     }
 
     private function vendorProfileCompletion($user): int

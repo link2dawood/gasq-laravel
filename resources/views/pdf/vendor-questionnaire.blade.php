@@ -1,25 +1,9 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Vendor Qualification Response</title>
-<style>
-    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color: #222; }
-    h1 { font-size: 18px; margin: 0 0 4px; }
-    h2 { font-size: 13px; margin: 18px 0 6px; padding-bottom: 3px; border-bottom: 1px solid #999; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-    td { padding: 4px 6px; vertical-align: top; border-bottom: 1px solid #eee; }
-    td.label { color: #666; width: 45%; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; }
-    .ok { background: #d1e7dd; color: #0a3622; }
-    .bad { background: #fff3cd; color: #664d03; }
-    .meta { color: #666; font-size: 10px; }
-</style>
-</head>
-<body>
-
 @php
     $r = $questionnaire->responses ?? [];
+    $vendor = $questionnaire->vendor;
+    $job = $questionnaire->jobPosting;
+    $buyer = $job?->user;
+
     $sections = [
         'Part 1 — Section A: Vendor Submission Compliance' => [
             'p1_q1_legal_name' => 'Company Legal Name',
@@ -83,6 +67,7 @@
             'p2_q25_past_performance' => 'Proof of past performance',
         ],
     ];
+
     $fmt = function ($val) {
         if (is_array($val)) return count($val) ? implode(', ', $val) : '—';
         if ($val === null || $val === '') return '—';
@@ -90,21 +75,74 @@
     };
 @endphp
 
-<h1>GASQ Vendor Qualification Response</h1>
-<p class="meta">
-    Vendor: <strong>{{ $questionnaire->vendor?->name }}</strong><br>
-    Job: <strong>{{ $questionnaire->jobPosting?->title }}</strong><br>
-    Submitted: {{ $questionnaire->submitted_at?->format('M j, Y g:i A') }}
-</p>
+@extends('pdf.layouts.gasq-base', [
+    'title' => 'Vendor Qualification Packet',
+    'subtitle' => 'GASQ Responsive & Responsible Vendor Verification',
+    'preparedFor' => $buyer?->name . ($buyer?->company ? ' — ' . $buyer->company : ''),
+    'preparedBy' => $vendor?->name . ($vendor?->company ? ' — ' . $vendor->company : ''),
+    'reportDate' => $questionnaire->submitted_at?->format('F j, Y'),
+    'referenceNumber' => 'VQ-' . str_pad((string) $questionnaire->id, 6, '0', STR_PAD_LEFT),
+])
 
-<p>
-    <span class="badge {{ $questionnaire->is_responsive ? 'ok' : 'bad' }}">
-        {{ $questionnaire->is_responsive ? 'RESPONSIVE' : 'Non-responsive' }}
-    </span>
-    <span class="badge {{ $questionnaire->is_responsible ? 'ok' : 'bad' }}">
-        {{ $questionnaire->is_responsible ? 'RESPONSIBLE' : 'Non-responsible' }}
-    </span>
-</p>
+@section('cover_summary')
+    <div class="badge-row">
+        <span class="badge {{ $questionnaire->is_responsive ? 'ok' : 'warn' }}">
+            {{ $questionnaire->is_responsive ? '✓ RESPONSIVE' : 'NON-RESPONSIVE' }}
+        </span>
+        <span class="badge {{ $questionnaire->is_responsible ? 'ok' : 'warn' }}">
+            {{ $questionnaire->is_responsible ? '✓ RESPONSIBLE' : 'NON-RESPONSIBLE' }}
+        </span>
+    </div>
+
+    <p style="margin-top:18px;">
+        <strong>{{ $vendor?->name ?? 'The vendor' }}</strong>@if($vendor?->company) ({{ $vendor->company }})@endif has completed the GASQ Vendor Qualification Questionnaire for
+        <strong>"{{ $job?->title ?? 'this engagement' }}"</strong>{{ $job?->location ? ' in ' . $job->location : '' }}.
+    </p>
+
+    <p>
+        This packet contains the vendor's full set of compliance, operational capacity, workforce sustainment, financial responsibility, and performance responses, along with their uploaded supporting documents.
+    </p>
+
+    <h3 style="margin-top:24px;">At a glance</h3>
+    <table class="kv-table" style="margin-top:6px;">
+        <tr>
+            <td class="label">Years in business</td>
+            <td><strong>{{ $fmt($r['p2_q7_years_in_business'] ?? null) }}</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Active security personnel</td>
+            <td><strong>{{ $fmt($r['p2_q1_active_personnel'] ?? null) }}</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Active client accounts</td>
+            <td><strong>{{ $fmt($r['p2_q3_active_accounts'] ?? null) }}</strong></td>
+        </tr>
+        <tr>
+            <td class="label">24/7 dispatch</td>
+            <td><strong>{{ strtoupper((string) ($r['p2_q8_dispatch_24_7'] ?? '—')) }}</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Insurances on file</td>
+            <td>
+                @php $ins = is_array($r['p2_q21_insurances'] ?? null) ? $r['p2_q21_insurances'] : []; @endphp
+                {{ count($ins) > 0 ? implode(', ', $ins) : '—' }}
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Documents uploaded</td>
+            <td><strong>{{ $questionnaire->documents->count() }} of {{ count($documentTypes) }}</strong></td>
+        </tr>
+    </table>
+
+    <div class="gasq-protection-block">
+        <h3>GASQ Protections</h3>
+        <p class="small" style="margin:0;">
+            This engagement is backed by the GASQ <strong>Price Lock Guarantee</strong> — your approved pricing is locked through the engagement — and the <strong>Vendor Replacement Guarantee</strong> — if the selected vendor fails to perform, GASQ steps in to replace them at the same or higher service level.
+        </p>
+    </div>
+@endsection
+
+@section('content')
 
 @foreach($sections as $heading => $fields)
     <h2>{{ $heading }}</h2>
@@ -120,15 +158,19 @@
 
 <h2>Uploaded Documents</h2>
 <table>
-    @forelse($questionnaire->documents as $doc)
-        <tr>
-            <td class="label">{{ $documentTypes[$doc->document_type] ?? $doc->document_type }}</td>
-            <td>{{ $doc->fileUpload?->filename }}</td>
-        </tr>
-    @empty
-        <tr><td colspan="2" class="meta">No documents uploaded.</td></tr>
-    @endforelse
+    <thead>
+        <tr><th>Document type</th><th>File</th></tr>
+    </thead>
+    <tbody>
+        @forelse($questionnaire->documents as $doc)
+            <tr>
+                <td class="label">{{ $documentTypes[$doc->document_type] ?? $doc->document_type }}</td>
+                <td>{{ $doc->fileUpload?->filename ?? '—' }}</td>
+            </tr>
+        @empty
+            <tr><td colspan="2" class="muted">No documents uploaded.</td></tr>
+        @endforelse
+    </tbody>
 </table>
 
-</body>
-</html>
+@endsection

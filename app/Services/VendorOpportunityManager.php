@@ -9,8 +9,10 @@ use App\Models\User;
 use App\Models\VendorOpportunity;
 use App\Models\VendorOpportunityInvitation;
 use App\Mail\AdminNewLeadMail;
+use App\Mail\BidEngagementReportMail;
 use App\Mail\BuyerQualificationApprovedMail;
 use App\Mail\BuyerQualificationNotApprovedMail;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Notifications\VendorOpportunityNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -366,7 +368,41 @@ class VendorOpportunityManager
             'realism_flagged' => $score['flagged'],
         ]);
 
+        // Buyer receives the polished Bid Engagement Report PDF as a separate
+        // touchpoint — captures the full appraisal breakdown for sign-off.
+        $this->dispatchBidEngagementReport($bid->fresh(['user', 'jobPosting.user']), $invitation->opportunity);
+
         return $bid;
+    }
+
+    /**
+     * Generate and email the branded Bid Engagement Report PDF to the buyer.
+     * Wraps in try/catch so a PDF/email failure never blocks bid submission.
+     */
+    private function dispatchBidEngagementReport(Bid $bid, ?VendorOpportunity $opportunity): void
+    {
+        $buyer = $bid->jobPosting?->user;
+        if (! $buyer?->email) {
+            return;
+        }
+
+        try {
+            $pdf = Pdf::loadView('pdf.bid-engagement-report', [
+                'bid' => $bid,
+                'job' => $bid->jobPosting,
+                'vendor' => $bid->user,
+                'buyer' => $buyer,
+                'opportunity' => $opportunity,
+            ])->output();
+
+            $filename = 'gasq-bid-engagement-' . $bid->id . '.pdf';
+
+            Mail::to($buyer->email)->send(
+                new BidEngagementReportMail($bid, $opportunity, $pdf, $filename)
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     public function closeOpportunity(VendorOpportunity $opportunity): VendorOpportunity

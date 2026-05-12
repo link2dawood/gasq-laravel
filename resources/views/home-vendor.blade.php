@@ -104,17 +104,57 @@
             </section>
 
             <section class="vendor-panel">
-                <div class="vendor-panel-head"><h2 class="h2 mb-0">Help</h2></div>
+                <div class="vendor-panel-head">
+                    <h2 class="h2 mb-0">
+                        Action Required
+                        @if(($vendorActionRequiredCount ?? 0) > 0)
+                            <span class="badge bg-danger ms-1">{{ $vendorActionRequiredCount }}</span>
+                        @endif
+                    </h2>
+                </div>
                 <div class="vendor-panel-body">
-                    <p class="fs-5 mb-0">Here you will find the help section</p>
+                    @if(($vendorActionRequiredCount ?? 0) === 0)
+                        <p class="vendor-meta-line mb-2">
+                            <i class="fa fa-circle-check text-success me-1"></i> You're all caught up.
+                        </p>
+                        <p class="text-gasq-muted small mb-0">New action items will appear here as opportunities arrive.</p>
+                    @else
+                        @if(($vendorAcceptedNoBidCount ?? 0) > 0)
+                            <p class="vendor-meta-line mb-2">
+                                <i class="fa fa-triangle-exclamation text-warning me-1"></i>
+                                <strong>{{ $vendorAcceptedNoBidCount }}</strong> accepted opportunit{{ $vendorAcceptedNoBidCount === 1 ? 'y' : 'ies' }} awaiting your pricing.
+                            </p>
+                        @endif
+                        @if(($vendorQuestionnaireDraftCount ?? 0) > 0)
+                            <p class="vendor-meta-line mb-2">
+                                <i class="fa fa-pen-to-square text-warning me-1"></i>
+                                <strong>{{ $vendorQuestionnaireDraftCount }}</strong> qualification questionnaire{{ $vendorQuestionnaireDraftCount === 1 ? '' : 's' }} in draft.
+                            </p>
+                        @endif
+                        @if(! empty($vendorLowCredits))
+                            <p class="vendor-meta-line mb-2">
+                                <i class="fa fa-coins text-warning me-1"></i>
+                                Credits running low — refill to keep accepting opportunities.
+                            </p>
+                        @endif
+                        <a href="{{ route('vendor-leads.index') }}" class="vendor-cta mt-2">Open Items</a>
+                    @endif
                 </div>
             </section>
 
             <section class="vendor-panel">
-                <div class="vendor-panel-head"><h2 class="h2 mb-0">Lead settings</h2></div>
+                <div class="vendor-panel-head"><h2 class="h2 mb-0">Lead Tier Breakdown</h2></div>
                 <div class="vendor-panel-body">
-                    <p class="fs-5 mb-3">There are no lead settings right now</p>
-                    <a href="{{ route('profile.show') }}" class="vendor-link-btn">Lead Settings</a>
+                    <p class="fs-5 mb-3">Active leads by GASQ qualification tier</p>
+                    <div class="vendor-kpi-row mb-3">
+                        <span class="vendor-kpi-pill"><i class="fa fa-star text-success"></i>{{ $vendorTierACount ?? 0 }} Tier A</span>
+                        <span class="vendor-kpi-pill"><i class="fa fa-star-half-stroke text-warning"></i>{{ $vendorTierBCount ?? 0 }} Tier B</span>
+                    </div>
+                    <p class="vendor-meta-line mb-3 small">
+                        Tier A = decision-maker verified, budget confirmed, ready to engage.<br>
+                        Tier B = strong intent, pending admin review.
+                    </p>
+                    <a href="{{ route('vendor-leads.index') }}" class="vendor-link-btn">View Leads</a>
                 </div>
             </section>
 
@@ -152,6 +192,28 @@
                     </div>
                     <p class="vendor-meta-line mb-3">{{ $vendorResponseMessage ?? 'No vendor responses recorded yet.' }}</p>
                     <a href="{{ route('vendor-leads.index', ['view' => 'responses']) }}" class="vendor-cta">View All</a>
+                </div>
+            </section>
+
+            <section class="vendor-panel">
+                <div class="vendor-panel-head"><h2 class="h2 mb-0">Won / Lost</h2></div>
+                <div class="vendor-panel-body">
+                    @php $totalDecided = ($vendorWonCount ?? 0) + ($vendorLostCount ?? 0); @endphp
+                    <p class="fs-5 mb-3">
+                        @if($totalDecided > 0)
+                            <strong class="text-success">{{ $vendorWinRatePct ?? 0 }}%</strong> win rate ({{ $totalDecided }} decided)
+                        @else
+                            No closed bids yet
+                        @endif
+                    </p>
+                    <div class="vendor-kpi-row mb-3">
+                        <span class="vendor-kpi-pill"><i class="fa fa-trophy text-warning"></i>{{ $vendorWonCount ?? 0 }} won</span>
+                        <span class="vendor-kpi-pill"><i class="fa fa-circle-xmark text-muted"></i>{{ $vendorLostCount ?? 0 }} lost</span>
+                    </div>
+                    <p class="vendor-meta-line mb-3 small">
+                        Outcomes update once a buyer hires you or selects another vendor.
+                    </p>
+                    <a href="{{ route('vendor-leads.index', ['view' => 'responses']) }}" class="vendor-link-btn">View Outcomes</a>
                 </div>
             </section>
 
