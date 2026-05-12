@@ -254,7 +254,15 @@
           </div>
 
           <h6 class="fw-semibold mb-3">Allocation Group Totals</h6>
-          <div id="bg_group_summary" class="d-flex flex-column gap-2 mb-4"></div>
+          <div id="bg_group_summary" class="d-flex flex-column gap-2 mb-3"></div>
+          <div class="d-flex justify-content-between align-items-center p-3 rounded mb-4"
+               style="background:rgba(6,45,121,0.06);border:1px solid rgba(6,45,121,0.18);">
+            <div>
+              <div class="fw-semibold">Total Contract / Budget Value</div>
+              <div class="text-gasq-muted small">Sum of all allocation groups · auto-calculated</div>
+            </div>
+            <div class="h4 fw-bold text-primary mb-0" id="bg_contract_total">$0.00</div>
+          </div>
 
           <h6 class="fw-semibold mb-3">Line-Item Breakdown</h6>
           <div id="bg_breakdown" class="d-flex flex-column gap-3 mb-4"></div>
@@ -492,6 +500,11 @@ function calcBudget() {
   setText('r_hours_monthly', fmtHours(monthlyHours));
   setText('r_hours_weekly', fmtHours(weeklyHours));
   setText('r_hours_daily', fmtHours(dailyHours));
+
+  // Sum of all allocation groups equals the derived total — display it prominently
+  // so the user can see the contract/budget value at a glance.
+  const groupSum = groupStates.reduce((acc, group) => acc + group.amount, 0);
+  setText('bg_contract_total', fmt(groupSum));
 
   const groupSummary = document.getElementById('bg_group_summary');
   groupSummary.innerHTML = groupStates.map((group) => `
