@@ -70,6 +70,13 @@
 
     $money = fn ($v) => '$' . number_format((float) $v, 2);
     $pct = fn ($v) => number_format((float) $v, 2) . '%';
+
+    // Embed the logo as a base64 data URI so dompdf renders it reliably
+    // regardless of the public asset URL or filesystem path at render time.
+    $logoPath = public_path('images/site-logo.png');
+    $logoData = file_exists($logoPath)
+        ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+        : null;
 @endphp
 <!doctype html>
 <html>
@@ -77,32 +84,24 @@
 <meta charset="utf-8">
 <title>Workforce-to-Post Bill Rate Breakdown Report</title>
 <style>
-    @page { margin: 36px 28px; }
+    @page { margin: 28px; }
     body {
         font-family: DejaVu Sans, Arial, sans-serif;
         color: #1f2937;
         font-size: 11px;
         line-height: 1.45;
     }
-    .page { page-break-after: always; }
+    /* Each .page is wrapped in a thin black outer border like the sample. */
+    .page {
+        border: 1.5px solid #111827;
+        padding: 24px 28px;
+        page-break-after: always;
+        box-sizing: border-box;
+    }
     .page:last-child { page-break-after: auto; }
 
-    .brand-bar {
-        text-align: center;
-        margin-bottom: 16px;
-    }
-    .brand-bar .gasq-mark {
-        font-size: 30px;
-        font-weight: 900;
-        letter-spacing: 2px;
-        color: #1f2937;
-    }
-    .brand-bar .gasq-domain {
-        font-size: 9px;
-        color: #6b7280;
-        letter-spacing: 2px;
-        margin-top: -2px;
-    }
+    .brand-bar { text-align: center; margin-bottom: 4px; }
+    .brand-bar img { height: 64px; }
 
     h1.title {
         text-align: center;
@@ -239,8 +238,12 @@
 {{-- ============ PAGE 1: COVER / SUMMARY ============ --}}
 <div class="page">
     <div class="brand-bar">
-        <div class="gasq-mark">GASQ</div>
-        <div class="gasq-domain">GETASECURITYQUOTE.COM</div>
+        @if($logoData)
+            <img src="{{ $logoData }}" alt="GASQ">
+        @else
+            <div style="font-size:28px;font-weight:900;letter-spacing:2px;color:#1f2937;">GASQ</div>
+            <div style="font-size:9px;color:#6b7280;letter-spacing:2px;">GETASECURITYQUOTE.COM</div>
+        @endif
     </div>
 
     <h1 class="title">Workforce-to-Post™ Bill Rate Breakdown Report</h1>
@@ -299,8 +302,11 @@
 {{-- ============ PAGE 2: BREAKDOWN TABLE ============ --}}
 <div class="page">
     <div class="brand-bar">
-        <div class="gasq-mark" style="font-size:22px;">GASQ</div>
-        <div class="gasq-domain">GETASECURITYQUOTE.COM</div>
+        @if($logoData)
+            <img src="{{ $logoData }}" alt="GASQ" style="height:50px;">
+        @else
+            <div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#1f2937;">GASQ</div>
+        @endif
     </div>
 
     <h1 class="title" style="font-size:18px;">Workforce-to-Post™ Bill Rate Breakdown Report</h1>
@@ -358,8 +364,11 @@
 {{-- ============ PAGE 3: KEY COMPONENTS EXPLAINER ============ --}}
 <div class="page">
     <div class="brand-bar">
-        <div class="gasq-mark" style="font-size:22px;">GASQ</div>
-        <div class="gasq-domain">GETASECURITYQUOTE.COM</div>
+        @if($logoData)
+            <img src="{{ $logoData }}" alt="GASQ" style="height:50px;">
+        @else
+            <div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#1f2937;">GASQ</div>
+        @endif
     </div>
 
     <h1 class="title" style="font-size:18px; color:#1f2937;">
