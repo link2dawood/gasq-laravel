@@ -48,10 +48,12 @@ class VendorOpportunityInvitedMail extends Mailable
         $buyer = $job?->user;
         $questionnaire = is_array($job?->questionnaire_data) ? $job->questionnaire_data : [];
 
+        // Pass the model so Laravel uses the route key name (invite_key UUID),
+        // matching what VendorOpportunityNotification::invitationUrl() does.
         $url = URL::temporarySignedRoute(
             'vendor-opportunities.show',
             now()->addDays(14),
-            ['invitation' => $this->invitation->id]
+            ['invitation' => $this->invitation]
         );
 
         return new Content(
