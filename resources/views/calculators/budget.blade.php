@@ -84,10 +84,18 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-medium">Baseline Absorbed Rate ($/hr)</label>
-              <div class="small text-gasq-muted mb-1">Current internal benchmark per hour</div>
+              <div class="small text-gasq-muted mb-1">Internal should-cost benchmark per hour</div>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" id="bg_govShouldCost" class="form-control fs-6 fw-semibold" value="{{ number_format($defaultGovernmentShouldCost, 2, '.', '') }}" step="0.01" min="0" oninput="calcBudget()">
                 <input type="range" id="bg_govShouldCost_range" class="form-range mb-0" min="0" max="250" step="0.01" value="{{ number_format($defaultGovernmentShouldCost, 2, '.', '') }}" data-sync="bg_govShouldCost">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Vendor TCO ($/hr)</label>
+              <div class="small text-gasq-muted mb-1">Vendor total cost of ownership per hour</div>
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="bg_vendorTco" class="form-control fs-6 fw-semibold" value="54.78" step="0.01" min="0" oninput="calcBudget()">
+                <input type="range" id="bg_vendorTco_range" class="form-range mb-0" min="0" max="250" step="0.01" value="54.78" data-sync="bg_vendorTco">
               </div>
             </div>
             <div class="col-md-6">
@@ -260,6 +268,30 @@
             <div class="d-flex justify-content-between small"><span class="text-gasq-muted">Labor status</span><span id="ins_laborStatus" class="fw-medium">—</span></div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card gasq-card mt-4">
+    <div class="card-header py-3">
+      <h5 class="card-title mb-0 fw-semibold d-flex align-items-center gap-2">
+        <i class="fa fa-balance-scale text-primary"></i> Appraisal Comparison Summary
+      </h5>
+      <div class="text-gasq-muted small">Side-by-side comparison of internal should-cost vs vendor TCO. Updates live with the inputs above.</div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-bordered mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Description</th>
+              <th class="text-end font-monospace">Internal should-cost</th>
+              <th class="text-end font-monospace">Vendor TCO</th>
+            </tr>
+          </thead>
+          <tbody id="bg_ap_body"></tbody>
+          <tbody id="bg_ap_foot"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -527,6 +559,84 @@ function calcBudget() {
   }
 
   queueBudgetSync(total, allocationsPayload, governmentShouldCost, annualHours);
+  queueAppraisalRefresh();
+}
+
+// ---------- Appraisal Comparison Summary (mirrors Workforce Appraisal Report) ----------
+const APPRAISAL_COMPUTE_URL = @json(route('backend.standalone.v24.compute', ['type' => 'workforce-appraisal-report']));
+let appraisalTimer = null;
+
+function queueAppraisalRefresh() {
+  window.clearTimeout(appraisalTimer);
+  appraisalTimer = window.setTimeout(refreshAppraisal, 350);
+}
+
+async function refreshAppraisal() {
+  const governmentShouldCost = g('bg_govShouldCost');
+  const vendorTco = g('bg_vendorTco');
+  const annualHours = g('bg_annualHours');
+  const masterInputs = window.__gasqMasterInputs || {};
+
+  try {
+    const res = await fetch(APPRAISAL_COMPUTE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        version: 'v24',
+        scenario: {
+          meta: {
+            annualBillableHours: annualHours || 1,
+            inputs: masterInputs,
+            appraisal: {
+              governmentShouldCostHourly: governmentShouldCost,
+              vendorTcoHourly: vendorTco,
+              totalAnnualHours: annualHours,
+              totalWeeklyHours: annualHours / 52,
+              totalMonthlyHours: annualHours / 12,
+            },
+          },
+        },
+      }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.ok) return;
+    renderAppraisalTable(data.appraisalComparison || {});
+  } catch (err) {
+    console.error('Appraisal refresh failed:', err);
+  }
+}
+
+function renderAppraisalTable(a) {
+  const body = document.getElementById('bg_ap_body');
+  const foot = document.getElementById('bg_ap_foot');
+  if (!body || !foot) return;
+  body.innerHTML = '';
+  foot.innerHTML = '';
+  if (!a || !a.rows) return;
+
+  for (const r of a.rows) {
+    const vInt = (typeof r.internal === 'number') ? fmt(r.internal) : (r.internal ?? '—');
+    const vVen = (typeof r.vendor === 'number') ? fmt(r.vendor) : (r.vendor ?? '—');
+    body.innerHTML += `<tr><td>${r.description}</td><td class="text-end font-monospace">${vInt}</td><td class="text-end font-monospace">${vVen}</td></tr>`;
+  }
+
+  for (const r of (a.footerRows || [])) {
+    let vVen = '—';
+    if (r.vendor !== null && r.vendor !== undefined) {
+      if (r.isPercent) {
+        vVen = `${Number(r.vendor).toFixed(0)}%`;
+      } else if (typeof r.vendor === 'number') {
+        const suf = r.suffix || '';
+        vVen = r.description.includes('Payback') ? `${r.vendor}${suf}` : `${fmt(r.vendor)}${suf}`;
+      }
+    }
+    foot.innerHTML += `<tr class="fw-semibold" style="background:#fff4e6;"><td>${r.description}</td><td class="text-end font-monospace">—</td><td class="text-end font-monospace">${vVen}</td></tr>`;
+  }
 }
 
 function hydrateSavedBudget() {
