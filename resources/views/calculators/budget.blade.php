@@ -562,103 +562,99 @@ function calcBudget() {
   queueAppraisalRefresh();
 }
 
-// ---------- Appraisal Comparison Summary (mirrors Workforce Appraisal Report) ----------
-const APPRAISAL_COMPUTE_URL = @json(route('backend.standalone.v24.compute', ['type' => 'workforce-appraisal-report']));
-let appraisalTimer = null;
-
+// ---------- Appraisal Comparison Summary ----------
+// Computed entirely client-side using the same formula as WorkforceAppraisalReportEngine.
+// No backend call → no credit consumption → never silently empty due to 402.
 function queueAppraisalRefresh() {
-  window.clearTimeout(appraisalTimer);
-  appraisalTimer = window.setTimeout(refreshAppraisal, 350);
+  // Renders are cheap, no debounce needed.
+  refreshAppraisal();
 }
 
-async function refreshAppraisal() {
-  const governmentShouldCost = g('bg_govShouldCost');
-  const vendorTco = g('bg_vendorTco');
-  const annualHours = g('bg_annualHours') || 8736; // fall back to a full 24×7 year
+function refreshAppraisal() {
+  const internalHourly = g('bg_govShouldCost');
+  const vendorHourly = g('bg_vendorTco');
+  const annualHours = g('bg_annualHours') || 8736;
   const masterInputs = window.__gasqMasterInputs || {};
 
-  // Derive the rest of the appraisal inputs from what the budget calculator has.
   const hoursPerProf = parseFloat(masterInputs.annualPaidHoursPerFte
     ?? masterInputs.annualPaidHoursPerFTE
-    ?? 1456);
+    ?? 1456) || 1456;
   const ftesRequired = Math.max(1, Math.ceil(annualHours / Math.max(hoursPerProf, 1)));
   const weeklyHours = annualHours / 52;
   const monthlyHours = annualHours / 12;
   const baselineLaborRate = parseFloat(masterInputs.directLaborWage
     ?? masterInputs.in_wage
-    ?? 30.43);
+    ?? 30.43) || 30.43;
 
-  try {
-    const res = await fetch(APPRAISAL_COMPUTE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        version: 'v24',
-        scenario: {
-          meta: {
-            annualBillableHours: annualHours,
-            inputs: masterInputs,
-            // Scope drives the engine's coverage hours / FTE math. Default to 24×7×52
-            // single-post coverage when the budget calculator doesn't capture scope.
-            scope: {
-              hoursOfCoveragePerDay: 24,
-              daysOfCoveragePerWeek: 7,
-              weeksOfCoverage: 52,
-              staffPerShift: ftesRequired,
-            },
-            appraisal: {
-              baselineLaborRate: baselineLaborRate,
-              governmentShouldCostHourly: governmentShouldCost,
-              vendorTcoHourly: vendorTco,
-              totalWeeklyHours: weeklyHours,
-              totalMonthlyHours: monthlyHours,
-              totalAnnualHours: annualHours,
-              ftesRequired: ftesRequired,
-              hoursPerProfessionalAnnual: hoursPerProf,
-            },
-          },
-        },
-      }),
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    if (!data || !data.ok) return;
-    renderAppraisalTable(data.appraisalComparison || {});
-  } catch (err) {
-    console.error('Appraisal refresh failed:', err);
-  }
-}
+  const otMult = 1.5;
+  const internalOt = internalHourly * otMult;
+  const vendorOt = vendorHourly * otMult;
+  const annualPerInt = internalHourly * hoursPerProf;
+  const annualPerVend = vendorHourly * hoursPerProf;
+  const totalWeeklyInt = internalHourly * weeklyHours;
+  const totalWeeklyVend = vendorHourly * weeklyHours;
+  const totalMonthlyInt = internalHourly * monthlyHours;
+  const totalMonthlyVend = vendorHourly * monthlyHours;
+  const totalAnnualInt = internalHourly * annualHours;
+  const totalAnnualVend = vendorHourly * annualHours;
+  const operationalCapital = totalAnnualInt - totalAnnualVend;
+  const operationalCapitalPct = totalAnnualInt > 0
+    ? Math.round(100 * operationalCapital / totalAnnualInt)
+    : 0;
+  const monthlySavings = totalMonthlyInt - totalMonthlyVend;
+  const paybackMonths = monthlySavings > 0.01
+    ? Math.ceil(operationalCapital / monthlySavings)
+    : 0;
 
-function renderAppraisalTable(a) {
+  // Rows: each row's hour/FTE fields render as plain numbers; cost fields render as money.
+  const rows = [
+    { description: 'Workforce Baseline Assumption Labor Rate', internal: baselineLaborRate, vendor: baselineLaborRate, kind: 'money' },
+    { description: 'Workforce Hourly Cost Per Security Professional', internal: internalHourly, vendor: vendorHourly, kind: 'money' },
+    { description: 'Overtime/Holiday Rate', internal: internalOt, vendor: vendorOt, kind: 'money' },
+    { description: 'Workforce Annual Cost per Security Professional', internal: annualPerInt, vendor: annualPerVend, kind: 'money' },
+    { description: 'Total Weekly Hours of Coverage', internal: weeklyHours, vendor: weeklyHours, kind: 'hours' },
+    { description: 'Total Monthly Hours of Coverage', internal: monthlyHours, vendor: monthlyHours, kind: 'hours' },
+    { description: 'Total Annual Hours of Coverage', internal: annualHours, vendor: annualHours, kind: 'hours' },
+    { description: 'Total Workforce Required for Coverage', internal: ftesRequired, vendor: ftesRequired, kind: 'count' },
+    { description: 'Total Weekly Cost', internal: totalWeeklyInt, vendor: totalWeeklyVend, kind: 'money' },
+    { description: 'Total Monthly Cost', internal: totalMonthlyInt, vendor: totalMonthlyVend, kind: 'money' },
+    { description: 'Total Annual Cost', internal: totalAnnualInt, vendor: totalAnnualVend, kind: 'money' },
+  ];
+
+  const footerRows = [
+    { description: 'Operational Capital Recovered', vendor: operationalCapital, kind: 'money' },
+    { description: 'Operational Capital Recovered (%)', vendor: operationalCapitalPct, kind: 'percent' },
+    { description: 'Payback & Recovery Period', vendor: paybackMonths, kind: 'months' },
+  ];
+
   const body = document.getElementById('bg_ap_body');
   const foot = document.getElementById('bg_ap_foot');
   if (!body || !foot) return;
-  body.innerHTML = '';
-  foot.innerHTML = '';
-  if (!a || !a.rows) return;
 
-  for (const r of a.rows) {
-    const vInt = (typeof r.internal === 'number') ? fmt(r.internal) : (r.internal ?? '—');
-    const vVen = (typeof r.vendor === 'number') ? fmt(r.vendor) : (r.vendor ?? '—');
-    body.innerHTML += `<tr><td>${r.description}</td><td class="text-end font-monospace">${vInt}</td><td class="text-end font-monospace">${vVen}</td></tr>`;
-  }
+  const formatCell = (value, kind) => {
+    if (value === null || value === undefined) return '—';
+    if (kind === 'money') return fmt(value);
+    if (kind === 'percent') return `${Number(value).toFixed(0)}%`;
+    if (kind === 'months') return `${value} months`;
+    if (kind === 'hours' || kind === 'count') return fmtHours(value);
+    return String(value);
+  };
 
-  for (const r of (a.footerRows || [])) {
-    let vVen = '—';
-    if (r.vendor !== null && r.vendor !== undefined) {
-      if (r.isPercent) {
-        vVen = `${Number(r.vendor).toFixed(0)}%`;
-      } else if (typeof r.vendor === 'number') {
-        const suf = r.suffix || '';
-        vVen = r.description.includes('Payback') ? `${r.vendor}${suf}` : `${fmt(r.vendor)}${suf}`;
-      }
-    }
-    foot.innerHTML += `<tr class="fw-semibold" style="background:#fff4e6;"><td>${r.description}</td><td class="text-end font-monospace">—</td><td class="text-end font-monospace">${vVen}</td></tr>`;
-  }
+  body.innerHTML = rows.map((r) => `
+    <tr>
+      <td>${r.description}</td>
+      <td class="text-end font-monospace">${formatCell(r.internal, r.kind)}</td>
+      <td class="text-end font-monospace">${formatCell(r.vendor, r.kind)}</td>
+    </tr>
+  `).join('');
+
+  foot.innerHTML = footerRows.map((r) => `
+    <tr class="fw-semibold" style="background:#fff4e6;">
+      <td>${r.description}</td>
+      <td class="text-end font-monospace">—</td>
+      <td class="text-end font-monospace">${formatCell(r.vendor, r.kind)}</td>
+    </tr>
+  `).join('');
 }
 
 function hydrateSavedBudget() {
