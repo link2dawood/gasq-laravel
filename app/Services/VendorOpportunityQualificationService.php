@@ -30,11 +30,13 @@ class VendorOpportunityQualificationService
             true
         );
 
-        $budgetConfirmed = in_array(
-            (string) data_get($questionnaire, 'funds_approval_status'),
-            ['flexible_budget', 'restrictive_budget'],
-            true
-        );
+        // New questionnaire field: budget_approved_status (yes/no/pending).
+        // Legacy: funds_approval_status (flexible_budget / restrictive_budget / pending / no_approved_budget).
+        $budgetApprovedStatus = (string) data_get($questionnaire, 'budget_approved_status');
+        $legacyFundsApproval = (string) data_get($questionnaire, 'funds_approval_status');
+
+        $budgetConfirmed = $budgetApprovedStatus === 'yes'
+            || in_array($legacyFundsApproval, ['flexible_budget', 'restrictive_budget'], true);
 
         $scopeCompleted = $this->scopeCompleted($job, $questionnaire);
         $timelineReady = $this->timelineReady($job, $questionnaire);
