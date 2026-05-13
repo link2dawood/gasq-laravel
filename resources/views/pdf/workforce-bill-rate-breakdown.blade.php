@@ -125,38 +125,38 @@
 <meta charset="utf-8">
 <title>Workforce-to-Post Bill Rate Breakdown Report</title>
 <style>
-    @page { margin: 28px; }
-    body { font-family: DejaVu Sans, Arial, sans-serif; color:#1f2937; font-size:11px; line-height:1.45; }
-    .page { border:1.5px solid #111827; padding:24px 28px; page-break-after:always; box-sizing:border-box; }
+    @page { margin: 20px; }
+    body { font-family: DejaVu Sans, Arial, sans-serif; color:#1f2937; font-size:10.5px; line-height:1.35; }
+    .page { border:1.5px solid #111827; padding:14px 18px; page-break-after:always; box-sizing:border-box; }
     .page:last-child { page-break-after:auto; }
 
-    .brand-bar { text-align:center; margin-bottom:4px; }
-    .brand-bar img { height:64px; }
+    .brand-bar { text-align:center; margin-bottom:2px; }
+    .brand-bar img { height:42px; }
 
-    h1.title { text-align:center; font-size:22px; color:#8b0a0a; margin:14px 0 18px; text-transform:uppercase; letter-spacing:.5px; }
+    h1.title { text-align:center; font-size:17px; color:#8b0a0a; margin:6px 0 8px; text-transform:uppercase; letter-spacing:.5px; }
 
-    .meta-bar { background:#f3f4f6; border:1px solid #d1d5db; padding:12px 16px; margin-bottom:14px; font-size:12px; }
+    .meta-bar { background:#f3f4f6; border:1px solid #d1d5db; padding:7px 12px; margin-bottom:8px; font-size:10.5px; }
     .meta-bar table { width:100%; border-collapse:collapse; }
-    .meta-bar td { padding:2px 0; border:0; }
+    .meta-bar td { padding:1px 0; border:0; }
 
-    .preparedby { width:100%; border-collapse:collapse; margin:6px 0 16px; border:1px solid #d1d5db; background:#fafbfd; }
-    .preparedby td { border:0; padding:8px 12px; vertical-align:middle; font-size:10.5px; }
+    .preparedby { width:100%; border-collapse:collapse; margin:0 0 8px; border:1px solid #d1d5db; background:#fafbfd; }
+    .preparedby td { border:0; padding:6px 10px; vertical-align:middle; font-size:10px; }
 
-    /* Cover stat boxes */
-    .stat-row { display:table; width:100%; border-collapse:separate; border-spacing:8px 0; margin-bottom:10px; }
-    .stat-cell { display:table-cell; background:#fdf2f2; border:2px solid #b91c1c; padding:14px; text-align:center; width:25%; }
-    .stat-cell .label { font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:#1f2937; font-weight:700; margin-bottom:6px; }
-    .stat-cell .value { font-size:17px; font-weight:800; color:#8b0a0a; }
+    /* Cover stat boxes — tightened */
+    .stat-row { display:table; width:100%; border-collapse:separate; border-spacing:6px 0; margin-bottom:6px; }
+    .stat-cell { display:table-cell; background:#fdf2f2; border:1.5px solid #b91c1c; padding:8px 6px; text-align:center; width:25%; }
+    .stat-cell .label { font-size:8px; text-transform:uppercase; letter-spacing:.4px; color:#1f2937; font-weight:700; margin-bottom:3px; }
+    .stat-cell .value { font-size:14px; font-weight:800; color:#8b0a0a; }
 
-    .triple-row { display:table; width:100%; border-collapse:collapse; margin-bottom:18px; }
-    .triple-cell { display:table-cell; border:1px solid #d1d5db; padding:14px; text-align:center; width:33.3%; }
-    .triple-cell.head { background:#f3f4f6; font-size:11px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; padding:8px 14px; }
-    .triple-cell.value { font-size:22px; font-weight:800; color:#8b0a0a; padding:18px 14px; }
+    .triple-row { display:table; width:100%; border-collapse:collapse; margin-bottom:8px; }
+    .triple-cell { display:table-cell; border:1px solid #d1d5db; padding:8px 10px; text-align:center; width:33.3%; }
+    .triple-cell.head { background:#f3f4f6; font-size:9.5px; text-transform:uppercase; letter-spacing:.4px; font-weight:700; padding:5px 8px; }
+    .triple-cell.value { font-size:16px; font-weight:800; color:#8b0a0a; padding:10px 8px; }
 
-    .blurb-box { background:#fdf2f2; border:2px solid #b91c1c; padding:14px 18px; margin:18px 0; color:#8b0a0a; font-size:11.5px; }
+    .blurb-box { background:#fdf2f2; border:1.5px solid #b91c1c; padding:8px 12px; margin:8px 0; color:#8b0a0a; font-size:10px; }
     .blurb-box strong { color:#8b0a0a; }
 
-    .footer-info { text-align:center; font-size:11px; margin-top:22px; }
+    .footer-info { text-align:center; font-size:10px; margin-top:6px; }
     .footer-info .approved { font-weight:700; }
 
     /* Page 2: appraisal comparison — tightened so the whole table + meta fit on a single sheet */
@@ -168,9 +168,9 @@
     .page--compare .compare-subtitle { text-align:center; color:#4b5563; font-size:9.5px; margin:0 0 8px; }
 
     .compare-table { width:100%; border-collapse:collapse; }
-    .compare-table th { background:#1f2937; color:#fff; padding:7px 10px; text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:.5px; }
+    .compare-table th { background:#1f2937; color:#fff; padding:5px 10px; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.5px; }
     .compare-table th.right { text-align:right; font-family:"DejaVu Sans Mono", monospace; }
-    .compare-table td { padding:5.5px 10px; border-bottom:1px solid #e5e7eb; font-size:10.5px; line-height:1.25; }
+    .compare-table td { padding:3.5px 10px; border-bottom:1px solid #e5e7eb; font-size:10px; line-height:1.2; }
     .compare-table td.right { text-align:right; font-family:"DejaVu Sans Mono", monospace; }
     .compare-table tr.emphasis td { background:#fff4e6; font-weight:700; border-top:1.5px solid #8b0a0a; }
 
@@ -270,32 +270,8 @@
         <div class="triple-cell value">{{ $ftesRequired }}</div>
     </div>
 
-    <div class="blurb-box">
-        <strong>Our outsourced cost calculations are equal to or less than what it would cost to perform the security function in-house.</strong><br>
-        This security capital recovery report is independent and designed to help you budget with confidence – no obligation, no commitment required.
-    </div>
-
-    <div class="footer-info">
-        <div class="approved">"CFO Tested. CFO Approved"</div>
-        <div>(470) 633-2816 | info@getasecurityquote.com | getasecurityquotenow.com</div>
-    </div>
-</div>
-
-{{-- ============ PAGE 2: APPRAISAL COMPARISON SUMMARY (single-page) ============ --}}
-<div class="page page--compare">
-    <div class="brand-bar">
-        @if($logoData)
-            <img src="{{ $logoData }}" alt="GASQ">
-        @else
-            <div style="font-size:18px;font-weight:900;letter-spacing:2px;color:#1f2937;">GASQ</div>
-        @endif
-    </div>
-
-    <h1 class="title">Workforce-to-Post™ Appraisal Comparison</h1>
-    <div class="compare-meta">Vendor ID: V{{ (int) ($vendorId ?? 0) }} · Report #: {{ $reportNumber }}</div>
-    <p class="compare-subtitle">Side-by-side comparison of internal TCO vs vendor TCO at the buyer's selected scope.</p>
-
-    <table class="compare-table">
+    {{-- Side-by-side Appraisal Comparison directly under the cover stats --}}
+    <table class="compare-table" style="margin-top:6px;">
         <thead>
             <tr>
                 <th>Description</th>
@@ -377,14 +353,15 @@
         </tbody>
     </table>
 
-    <p class="legal">
-        All price calculations include the full cost of workforce staffing and support services, including livable base wages,
-        employer-paid payroll taxes (FICA, FUTA, SUTA), workers compensation, general liability insurance, unemployment insurance,
-        paid time off, healthcare and fringe benefits, uniforms and equipment, onboarding and training, site supervision, quality
-        assurance oversight, management and administrative support, 24/7 dispatch capability, compliance with local, state, and
-        federal labor laws, and all service-level guarantees, including open post protection, vendor replacement, and price lock
-        guarantees, unless otherwise specified.
-    </p>
+    <div class="blurb-box" style="margin:12px 0;padding:10px 14px;font-size:10.5px;">
+        <strong>Our outsourced cost calculations are equal to or less than what it would cost to perform the security function in-house.</strong>
+        This security capital recovery report is independent and designed to help you budget with confidence – no obligation, no commitment required.
+    </div>
+
+    <div class="footer-info" style="margin-top:8px;font-size:10px;">
+        <div class="approved">"CFO Tested. CFO Approved"</div>
+        <div>(470) 633-2816 | info@getasecurityquote.com | getasecurityquotenow.com</div>
+    </div>
 </div>
 
 {{-- ============ PAGE 3: KEY COMPONENTS EXPLAINER ============ --}}
