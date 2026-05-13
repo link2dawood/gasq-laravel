@@ -135,7 +135,12 @@
             <tr>
                 <td><strong>Prepared for:</strong> {{ $preparedFor }}</td>
                 <td style="text-align:center;"><strong>Date:</strong> {{ $reportDate }}</td>
-                <td style="text-align:right;"><strong>Report #:</strong> {{ $reportNumber }}</td>
+                <td style="text-align:right;"><strong>Vendor ID:</strong> V{{ (int) ($vendorId ?? 0) }}</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align:right;padding-top:4px;font-size:10px;color:#6b7280;">
+                    <strong>Report #:</strong> {{ $reportNumber }}
+                </td>
             </tr>
         </table>
     </div>

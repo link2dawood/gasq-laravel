@@ -613,7 +613,7 @@ function calcBudget() {
   setText('r_hours_yearly', fmtHours(annualHours));
   setText('r_hours_monthly', fmtHours(monthlyHours));
   setText('r_hours_weekly', fmtHours(weeklyHours));
-  setText('r_hours_daily', fmtHours(dailyHours));
+  setText('r_hours_daily', fmtHours(Math.ceil(dailyHours)));
 
   // Sum of all allocation groups equals the derived total — display it prominently
   // so the user can see the contract/budget value at a glance.
