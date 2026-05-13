@@ -3,18 +3,20 @@
 
     // ---------- Pull inputs from the calculator's session scenario ----------
     $meta = data_get($scenario ?? [], 'meta', []);
+    $alloc = (array) data_get($meta, 'allocations', []);
+    $totalBudget = (float) data_get($meta, 'annualBudget', 0);
     $baselineWage = (float) (data_get($meta, 'baselineWage')
         ?? data_get($meta, 'governmentShouldCostHourly')
         ?? 25.00);
 
-    // Scope inputs come from the 4 scope sliders on the calculator.
+    // Scope inputs (4 scope sliders).
     $scope = (array) data_get($meta, 'scope', []);
     $hoursPerDay = max(1, min(24, (int) (data_get($scope, 'hoursOfCoveragePerDay') ?? data_get($meta, 'hoursPerDay') ?? 24)));
     $daysPerWeek = max(1, min(7, (int) (data_get($scope, 'daysOfCoveragePerWeek') ?? data_get($meta, 'daysPerWeek') ?? 7)));
     $weeksPerYear = max(1, min(52, (int) (data_get($scope, 'weeksOfCoverage') ?? data_get($meta, 'weeksPerYear') ?? 52)));
     $staffPerShift = max(1, min(100, (int) (data_get($scope, 'staffPerShift') ?? data_get($meta, 'staffPerShift') ?? 1)));
 
-    // ---------- GASQ side-by-side TCO formula (mirrors budget.blade.php refreshAppraisal()) ----------
+    // ---------- GASQ TCO formula ----------
     $EMPLOYER_FRINGE_FACTOR = 0.70;
     $PAID_HOURS_PER_FTE = 3744;
     $BILLABLE_HOURS_PER_FTE = 1456;
@@ -25,34 +27,68 @@
     $annualWorkforceCost = $loadedWage * $PAID_HOURS_PER_FTE;
     $internalTcoHourly = $annualWorkforceCost / $BILLABLE_HOURS_PER_FTE;
     $vendorTcoHourly = $internalTcoHourly * $VENDOR_DISCOUNT_FACTOR;
-    $capitalRecoveryPerHour = $internalTcoHourly - $vendorTcoHourly;
 
-    // Coverage hours
+    // Coverage
     $weeklyCoverageHours = $hoursPerDay * $daysPerWeek;
     $monthlyCoverageHours = (int) round(($weeklyCoverageHours * $weeksPerYear) / 12);
     $annualCoverageHours = $hoursPerDay * $daysPerWeek * $weeksPerYear * $staffPerShift;
     $ftesRequired = max(1, (int) ceil($annualCoverageHours / $BILLABLE_HOURS_PER_FTE));
 
-    // Per-FTE figures
+    // Per-FTE
     $annualPerInt = $internalTcoHourly * $BILLABLE_HOURS_PER_FTE;
     $annualPerVend = $vendorTcoHourly * $BILLABLE_HOURS_PER_FTE;
     $internalOt = $internalTcoHourly * $OT_MULTIPLIER;
     $vendorOt = $vendorTcoHourly * $OT_MULTIPLIER;
 
-    // Coverage-cost figures
+    // Coverage cost
     $totalAnnualInt = $internalTcoHourly * $annualCoverageHours;
     $totalAnnualVend = $vendorTcoHourly * $annualCoverageHours;
     $totalWeeklyInt = $totalAnnualInt / 52;
     $totalWeeklyVend = $totalAnnualVend / 52;
     $totalMonthlyInt = $totalAnnualInt / 12;
     $totalMonthlyVend = $totalAnnualVend / 12;
-
-    // Recovery
     $annualCapitalRecovery = $totalAnnualInt - $totalAnnualVend;
     $recoveryPct = $totalAnnualInt > 0 ? round(100 * $annualCapitalRecovery / $totalAnnualInt) : 0;
     $paybackMonths = $totalMonthlyInt > 0.01 ? round($totalAnnualVend / $totalMonthlyInt, 1) : 0;
 
-    // Branding
+    // ---------- Allocation group totals (for cover-page stats) ----------
+    // Keys mirror config/budget_calculator.php exactly.
+    $directLaborKeys = ['baseDirectLaborWage', 'localityPay', 'laborMarketAdjustment', 'hwCash', 'shiftDifferential', 'otHolidayPremium', 'donDoff'];
+    $fringeKeys = ['ficaMedicare', 'futa', 'suta', 'workersCompensation', 'healthWelfare', 'vacation', 'paidHolidays', 'sickLeave'];
+    $opsKeys = ['recruitingHiring', 'trainingCertification', 'uniformsEquipment', 'fieldSupervision', 'contractManagement', 'qualityAssurance', 'vehiclesPatrol', 'technologySystems', 'generalLiabilityInsurance', 'umbrellaOtherInsurance'];
+    $ohKeys = ['administrativeHrPayroll', 'accountingLegal', 'corporateOverhead', 'ga', 'profitFee'];
+
+    $sumGroup = static function (array $keys, array $alloc): float {
+        $sum = 0.0;
+        foreach ($keys as $k) {
+            if (isset($alloc[$k]) && is_numeric($alloc[$k])) {
+                $sum += (float) $alloc[$k];
+            }
+        }
+        return $sum;
+    };
+
+    $directLaborPct = $sumGroup($directLaborKeys, $alloc);
+    $fringePct = $sumGroup($fringeKeys, $alloc);
+    $opsPct = $sumGroup($opsKeys, $alloc);
+    $ohPct = $sumGroup($ohKeys, $alloc);
+
+    $totalKnownPct = $directLaborPct + $fringePct + $opsPct + $ohPct;
+    if ($totalKnownPct > 0 && abs(100 - $totalKnownPct) > 0.1) {
+        // Rebalance proportionally so cover stats add up to 100%
+        $factor = 100 / $totalKnownPct;
+        $directLaborPct *= $factor;
+        $fringePct *= $factor;
+        $opsPct *= $factor;
+        $ohPct *= $factor;
+    }
+
+    $directLaborAmt = $totalBudget * $directLaborPct / 100;
+    $fringeAmt = $totalBudget * $fringePct / 100;
+    $opsAmt = $totalBudget * $opsPct / 100;
+    $ohAmt = $totalBudget * $ohPct / 100;
+
+    // ---------- Branding / identity ----------
     $logoPath = public_path('images/site-logo.png');
     $logoData = file_exists($logoPath)
         ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
@@ -80,55 +116,89 @@
     $reportNumber = $reportNumber ?? ('GASQ-' . now()->format('Ymd-His') . '-V' . ((int) ($vendorId ?? 0)));
 
     $money = fn ($v) => '$' . number_format((float) $v, 2);
+    $pct = fn ($v) => number_format((float) $v, 2) . '%';
     $num = fn ($v) => number_format((float) $v);
 @endphp
 <!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>Workforce-to-Post Appraisal Comparison</title>
+<title>Workforce-to-Post Bill Rate Breakdown Report</title>
 <style>
     @page { margin: 28px; }
     body { font-family: DejaVu Sans, Arial, sans-serif; color:#1f2937; font-size:11px; line-height:1.45; }
-    .page { border: 1.5px solid #111827; padding: 24px 28px; box-sizing:border-box; }
-    .brand-bar { text-align:center; margin-bottom:4px; }
-    .brand-bar img { height:56px; }
-    h1.title { text-align:center; font-size:20px; color:#8b0a0a; margin:14px 0 18px; text-transform:uppercase; letter-spacing:.5px; }
+    .page { border:1.5px solid #111827; padding:24px 28px; page-break-after:always; box-sizing:border-box; }
+    .page:last-child { page-break-after:auto; }
 
-    .meta-bar { background:#f3f4f6; border:1px solid #d1d5db; padding:10px 14px; margin-bottom:14px; font-size:11px; }
+    .brand-bar { text-align:center; margin-bottom:4px; }
+    .brand-bar img { height:64px; }
+
+    h1.title { text-align:center; font-size:22px; color:#8b0a0a; margin:14px 0 18px; text-transform:uppercase; letter-spacing:.5px; }
+
+    .meta-bar { background:#f3f4f6; border:1px solid #d1d5db; padding:12px 16px; margin-bottom:14px; font-size:12px; }
     .meta-bar table { width:100%; border-collapse:collapse; }
     .meta-bar td { padding:2px 0; border:0; }
 
     .preparedby { width:100%; border-collapse:collapse; margin:6px 0 16px; border:1px solid #d1d5db; background:#fafbfd; }
     .preparedby td { border:0; padding:8px 12px; vertical-align:middle; font-size:10.5px; }
 
+    /* Cover stat boxes */
+    .stat-row { display:table; width:100%; border-collapse:separate; border-spacing:8px 0; margin-bottom:10px; }
+    .stat-cell { display:table-cell; background:#fdf2f2; border:2px solid #b91c1c; padding:14px; text-align:center; width:25%; }
+    .stat-cell .label { font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:#1f2937; font-weight:700; margin-bottom:6px; }
+    .stat-cell .value { font-size:17px; font-weight:800; color:#8b0a0a; }
+
+    .triple-row { display:table; width:100%; border-collapse:collapse; margin-bottom:18px; }
+    .triple-cell { display:table-cell; border:1px solid #d1d5db; padding:14px; text-align:center; width:33.3%; }
+    .triple-cell.head { background:#f3f4f6; font-size:11px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; padding:8px 14px; }
+    .triple-cell.value { font-size:22px; font-weight:800; color:#8b0a0a; padding:18px 14px; }
+
+    .blurb-box { background:#fdf2f2; border:2px solid #b91c1c; padding:14px 18px; margin:18px 0; color:#8b0a0a; font-size:11.5px; }
+    .blurb-box strong { color:#8b0a0a; }
+
+    .footer-info { text-align:center; font-size:11px; margin-top:22px; }
+    .footer-info .approved { font-weight:700; }
+
+    /* Page 2: appraisal comparison — tightened so the whole table + meta fit on a single sheet */
+    .page--compare { padding:16px 22px; }
+    .page--compare .brand-bar { margin-bottom:0; }
+    .page--compare .brand-bar img { height:36px; }
+    .page--compare h1.title { font-size:15px; margin:6px 0 6px; }
+    .page--compare .compare-meta { text-align:center; color:#8b0a0a; font-weight:700; font-size:10px; margin-bottom:2px; }
+    .page--compare .compare-subtitle { text-align:center; color:#4b5563; font-size:9.5px; margin:0 0 8px; }
+
     .compare-table { width:100%; border-collapse:collapse; }
-    .compare-table th {
-        background:#1f2937; color:#fff; padding:10px 12px; text-align:left; font-size:10px;
-        text-transform:uppercase; letter-spacing:.5px;
-    }
-    .compare-table th.right { text-align:right; font-family: "DejaVu Sans Mono", monospace; }
-    .compare-table td { padding:9px 12px; border-bottom:1px solid #e5e7eb; font-size:11px; }
-    .compare-table td.right { text-align:right; font-family: "DejaVu Sans Mono", monospace; }
+    .compare-table th { background:#1f2937; color:#fff; padding:7px 10px; text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:.5px; }
+    .compare-table th.right { text-align:right; font-family:"DejaVu Sans Mono", monospace; }
+    .compare-table td { padding:5.5px 10px; border-bottom:1px solid #e5e7eb; font-size:10.5px; line-height:1.25; }
+    .compare-table td.right { text-align:right; font-family:"DejaVu Sans Mono", monospace; }
     .compare-table tr.emphasis td { background:#fff4e6; font-weight:700; border-top:1.5px solid #8b0a0a; }
 
-    .legal { font-size:9.5px; color:#4b5563; margin-top:14px; line-height:1.5; }
-    .footer-line { text-align:center; font-size:10px; color:#374151; margin-top:14px; }
-    .footer-line .approved { font-weight:700; }
+    .legal { font-size:8.5px; color:#4b5563; margin-top:8px; line-height:1.4; }
+
+    /* Page 3 components */
+    .components-grid { display:table; width:100%; border-spacing:18px 0; }
+    .components-col { display:table-cell; width:50%; vertical-align:top; }
+    .component-block { margin-bottom:14px; }
+    .component-block .title-line { font-weight:800; font-size:13px; color:#1f2937; margin-bottom:6px; }
+    .component-block .body { font-size:11px; color:#374151; }
+    .component-block .body strong { color:#1f2937; }
+    .components-footer { margin-top:28px; text-align:center; font-weight:700; font-size:12px; }
 </style>
 </head>
 <body>
 
+{{-- ============ PAGE 1: COVER ============ --}}
 <div class="page">
     <div class="brand-bar">
         @if($logoData)
             <img src="{{ $logoData }}" alt="GASQ">
         @else
-            <div style="font-size:24px;font-weight:900;letter-spacing:2px;">GASQ</div>
+            <div style="font-size:28px;font-weight:900;letter-spacing:2px;color:#1f2937;">GASQ</div>
         @endif
     </div>
 
-    <h1 class="title">Workforce-to-Post™ Appraisal Comparison</h1>
+    <h1 class="title">Workforce-to-Post™ Bill Rate Breakdown Report</h1>
 
     <div class="meta-bar">
         <table>
@@ -145,13 +215,12 @@
         </table>
     </div>
 
-    {{-- Prepared-by calling card --}}
     @if($vendorName || $vendorCompany || $vendorEmail || $vendorPhone || $vendorLogoData)
     <table class="preparedby">
         <tr>
             <td style="width:130px;">
                 @if($vendorLogoData)
-                    <img src="{{ $vendorLogoData }}" alt="{{ $vendorCompany ?? 'Vendor' }}" style="max-height:50px;max-width:120px;">
+                    <img src="{{ $vendorLogoData }}" alt="{{ $vendorCompany ?? 'Vendor' }}" style="max-height:54px;max-width:120px;">
                 @else
                     <div style="font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;">No logo</div>
                 @endif
@@ -171,7 +240,61 @@
     </table>
     @endif
 
-    {{-- Appraisal Comparison Summary — mirrors the calculator's right-column table 1:1. --}}
+    <div class="stat-row">
+        <div class="stat-cell">
+            <div class="label">Direct Labor Cost</div>
+            <div class="value">{{ $money($directLaborAmt) }}</div>
+        </div>
+        <div class="stat-cell">
+            <div class="label">Fringe &amp; Employer Burden</div>
+            <div class="value">{{ $money($fringeAmt) }}</div>
+        </div>
+        <div class="stat-cell">
+            <div class="label">Operations &amp; Contract Support</div>
+            <div class="value">{{ $money($opsAmt) }}</div>
+        </div>
+        <div class="stat-cell">
+            <div class="label">OH, G&amp;A, &amp; Profit</div>
+            <div class="value">{{ $money($ohAmt) }}</div>
+        </div>
+    </div>
+
+    <div class="triple-row">
+        <div class="triple-cell head">Total Contract / Budget Value</div>
+        <div class="triple-cell head">Total Annual Hours</div>
+        <div class="triple-cell head">Total Staff Required</div>
+    </div>
+    <div class="triple-row">
+        <div class="triple-cell value">{{ $money($totalBudget) }}</div>
+        <div class="triple-cell value">{{ number_format($annualCoverageHours) }}</div>
+        <div class="triple-cell value">{{ $ftesRequired }}</div>
+    </div>
+
+    <div class="blurb-box">
+        <strong>Our outsourced cost calculations are equal to or less than what it would cost to perform the security function in-house.</strong><br>
+        This security capital recovery report is independent and designed to help you budget with confidence – no obligation, no commitment required.
+    </div>
+
+    <div class="footer-info">
+        <div class="approved">"CFO Tested. CFO Approved"</div>
+        <div>(470) 633-2816 | info@getasecurityquote.com | getasecurityquotenow.com</div>
+    </div>
+</div>
+
+{{-- ============ PAGE 2: APPRAISAL COMPARISON SUMMARY (single-page) ============ --}}
+<div class="page page--compare">
+    <div class="brand-bar">
+        @if($logoData)
+            <img src="{{ $logoData }}" alt="GASQ">
+        @else
+            <div style="font-size:18px;font-weight:900;letter-spacing:2px;color:#1f2937;">GASQ</div>
+        @endif
+    </div>
+
+    <h1 class="title">Workforce-to-Post™ Appraisal Comparison</h1>
+    <div class="compare-meta">Vendor ID: V{{ (int) ($vendorId ?? 0) }} · Report #: {{ $reportNumber }}</div>
+    <p class="compare-subtitle">Side-by-side comparison of internal TCO vs vendor TCO at the buyer's selected scope.</p>
+
     <table class="compare-table">
         <thead>
             <tr>
@@ -262,10 +385,92 @@
         federal labor laws, and all service-level guarantees, including open post protection, vendor replacement, and price lock
         guarantees, unless otherwise specified.
     </p>
+</div>
 
-    <div class="footer-line">
-        <div class="approved">"CFO Tested. CFO Approved"</div>
-        <div>(470) 633-2816 | info@getasecurityquote.com | getasecurityquotenow.com</div>
+{{-- ============ PAGE 3: KEY COMPONENTS EXPLAINER ============ --}}
+<div class="page">
+    <div class="brand-bar">
+        @if($logoData)
+            <img src="{{ $logoData }}" alt="GASQ" style="height:50px;">
+        @else
+            <div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#1f2937;">GASQ</div>
+        @endif
+    </div>
+
+    <h1 class="title" style="font-size:18px; color:#1f2937;">
+        Key Components of the GetASecurityQuote Security Capital Recovery Report
+    </h1>
+    <div style="text-align:center; color:#4b5563; font-size:13px; margin-bottom:24px;">
+        Comparison of Internal In-House -vs- Outsourced Security Services
+    </div>
+
+    <div class="components-grid">
+        <div class="components-col">
+            <div class="component-block">
+                <div class="title-line">1. Direct Labor Costs</div>
+                <div class="body">
+                    <strong>Wages:</strong> Hourly pay for each guard based on market, union scale, or livable wage rates.<br>
+                    <strong>Overtime:</strong> If scheduling exceeds 40 hours/week per guard or during holidays.<br>
+                    <strong>Paid Non-Worked Hours:</strong> Includes holidays, sick leave, vacation, training.
+                </div>
+            </div>
+            <div class="component-block">
+                <div class="title-line">2. Mandatory Payroll Burden</div>
+                <div class="body">
+                    <strong>Employer Taxes:</strong> FICA, FUTA, SUTA, Medicare.<br>
+                    <strong>Workers Compensation Insurance:</strong> Risk-rated by job classification (high for security).<br>
+                    <strong>Unemployment Insurance General</strong><br>
+                    <strong>Liability Insurance</strong>
+                </div>
+            </div>
+            <div class="component-block">
+                <div class="title-line">3. Employee Benefits</div>
+                <div class="body">
+                    Health Insurance<br>
+                    Retirement Contributions (401k, pensions) Life &amp; Disability Insurance<br>
+                    Uniforms &amp; Equipment<br>
+                    Background Checks, Drug Screening, Licensing Fees
+                </div>
+            </div>
+            <div class="component-block">
+                <div class="title-line">4. Mandatory Insurance &amp; Statutory Coverage</div>
+                <div class="body">
+                    Workmans Compensation Insurance Paid<br>
+                    sick leave<br>
+                    General liability insurance
+                </div>
+            </div>
+        </div>
+        <div class="components-col">
+            <div class="component-block">
+                <div class="title-line">5. Supervision &amp; Management</div>
+                <div class="body">
+                    Field Supervisors or Account Managers<br>
+                    Scheduling &amp; Admin Staff<br>
+                    On-call Management Support
+                </div>
+            </div>
+            <div class="component-block">
+                <div class="title-line">6. Workforce Maintenance Cost</div>
+                <div class="body">
+                    Recruiting, Hiring, and Turnover Costs<br>
+                    Training (initial + recurring)<br>
+                    Vehicles (if patrol is required)<br>
+                    Office Space, Software, Timekeeping Systems
+                </div>
+            </div>
+            <div class="component-block">
+                <div class="title-line">7. Risk &amp; Liability Exposure</div>
+                <div class="body">
+                    Legal &amp; HR Costs for employee discipline or claims<br>
+                    Potential for coverage gaps or untrained guards on post
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="components-footer">
+        Created by GASQ | CFO Tested. CFO Approved.
     </div>
 </div>
 
