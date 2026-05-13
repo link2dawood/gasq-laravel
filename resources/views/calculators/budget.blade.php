@@ -345,7 +345,7 @@
       <h5 class="card-title mb-0 fw-semibold d-flex align-items-center gap-2">
         <i class="fa fa-balance-scale text-primary"></i> Appraisal Comparison Summary
       </h5>
-      <div class="text-gasq-muted small">Side-by-side comparison of internal should-cost vs vendor TCO. Updates live with the inputs above.</div>
+      <div class="text-gasq-muted small">Side-by-side comparison of internal TCO vs vendor TCO. Updates live with the inputs above.</div>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -353,7 +353,7 @@
           <thead class="table-light">
             <tr>
               <th>Description</th>
-              <th class="text-end font-monospace">Internal should-cost</th>
+              <th class="text-end font-monospace">Internal TCO</th>
               <th class="text-end font-monospace">Vendor TCO</th>
             </tr>
           </thead>
@@ -473,12 +473,12 @@ function initSliderSync() {
   });
 }
 
-function queueBudgetSync(total, allocations, governmentShouldCost, annualHours) {
+function queueBudgetSync(total, allocations, governmentShouldCost, annualHours, scopeInputs, baselineWage) {
   window.clearTimeout(syncTimer);
-  syncTimer = window.setTimeout(() => syncBudget(total, allocations, governmentShouldCost, annualHours), 300);
+  syncTimer = window.setTimeout(() => syncBudget(total, allocations, governmentShouldCost, annualHours, scopeInputs, baselineWage), 300);
 }
 
-async function syncBudget(total, allocations, governmentShouldCost, annualHours) {
+async function syncBudget(total, allocations, governmentShouldCost, annualHours, scopeInputs, baselineWage) {
   try {
     const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'budget-calculator']) }}', {
       method: 'POST',
@@ -491,10 +491,19 @@ async function syncBudget(total, allocations, governmentShouldCost, annualHours)
         version: 'v24',
         scenario: {
           meta: {
+            // baselineWage drives the GASQ TCO formula on the PDF side.
+            baselineWage: baselineWage,
             governmentShouldCostHourly: governmentShouldCost,
             annualBillableHours: annualHours,
             annualBudget: total,
-            allocations
+            allocations,
+            // Send the 4 scope inputs as both nested scope.* and flat fields
+            // so the PDF view can read either shape.
+            scope: scopeInputs,
+            hoursPerDay: scopeInputs?.hoursOfCoveragePerDay,
+            daysPerWeek: scopeInputs?.daysOfCoveragePerWeek,
+            weeksPerYear: scopeInputs?.weeksOfCoverage,
+            staffPerShift: scopeInputs?.staffPerShift,
           }
         }
       })
@@ -676,7 +685,12 @@ function calcBudget() {
     laborStatus.className = 'fw-medium text-success';
   }
 
-  queueBudgetSync(total, allocationsPayload, governmentShouldCost, annualHours);
+  queueBudgetSync(total, allocationsPayload, governmentShouldCost, annualHours, {
+    hoursOfCoveragePerDay: hoursPerDay,
+    daysOfCoveragePerWeek: daysPerWeek,
+    weeksOfCoverage: weeksPerYear,
+    staffPerShift: staffPerShift,
+  }, baselineWage);
   queueAppraisalRefresh();
 }
 
