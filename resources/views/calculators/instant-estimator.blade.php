@@ -271,13 +271,10 @@
                                     <input id="selectedRate" type="number" min="0" step="0.01" class="form-control">
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="coverageModel">Coverage model</label>
-                                <select id="coverageModel" class="form-select">
-                                    <option value="hours">Budget by coverage hours</option>
-                                    <option value="checks">Budget by weekly checks</option>
-                                </select>
-                            </div>
+                            {{-- Coverage model is locked to "hours" — UI hidden, JS still reads value='hours' --}}
+                            <select id="coverageModel" style="display:none;" aria-hidden="true">
+                                <option value="hours" selected>Budget by coverage hours</option>
+                            </select>
 
                             {{-- Hours model --}}
                             <div id="hoursCoverageGroup" class="col-12">
@@ -298,39 +295,19 @@
                                 </div>
                             </div>
 
-                            {{-- Checks model --}}
-                            <div id="checksCoverageGroup" class="col-12 d-none">
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        <label class="form-label fw-semibold" for="weeklyChecks">Weekly checks</label>
-                                        <select id="weeklyChecks" class="form-select">
-                                            <option value="21">21 weekly checks</option>
-                                            <option value="28">28 weekly checks</option>
-                                            <option value="42">42 weekly checks</option>
-                                            <option value="56">56 weekly checks</option>
-                                            <option value="84">84 weekly checks</option>
-                                        </select>
-                                        <div class="form-text" id="weeklyChecksDefinition"></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label fw-semibold" for="minutesPerCheck">Minutes per check</label>
-                                        <input id="minutesPerCheck" type="number" min="8" max="60" class="form-control" value="15">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label fw-semibold" for="staffPerCheck">Staff per check</label>
-                                        <input id="staffPerCheck" type="number" min="1" max="1000" class="form-control" value="1">
-                                    </div>
-                                </div>
+                            {{-- Checks model — hidden fallback inputs so coverageModel === 'checks' code paths
+                                 in the existing JS keep referencing valid DOM nodes if anything ever flips back. --}}
+                            <div id="checksCoverageGroup" class="d-none" aria-hidden="true">
+                                <select id="weeklyChecks"><option value="21" selected>21</option></select>
+                                <input id="minutesPerCheck" type="hidden" value="15">
+                                <input id="staffPerCheck" type="hidden" value="1">
+                                <div id="weeklyChecksDefinition"></div>
                             </div>
 
                             <div class="col-12">
                                 <label class="form-label fw-semibold" for="weeks">Weeks covered by this budget</label>
                                 <input id="weeks" type="number" min="1" max="52" class="form-control" value="52">
                             </div>
-                        </div>
-
-                        <div class="est-method-note mt-3">
-                            Direct labor → employer cost (÷0.70) → annualized (×3,744 hrs) → internal true hourly (÷1,456 productive hrs) → outsourced rate (×0.70 absorption).
                         </div>
 
                         <div class="d-flex justify-content-end mt-4 pt-3" style="border-top:1px solid rgba(6,45,121,.08)">
