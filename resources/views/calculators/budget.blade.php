@@ -82,39 +82,66 @@
         <div class="card-body d-flex flex-column gap-3">
 
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label fw-medium">Baseline Absorbed Rate ($/hr)</label>
-              <div class="small text-gasq-muted mb-1">Internal should-cost benchmark per hour</div>
+            <div class="col-12">
+              <label class="form-label fw-medium">Baseline Wage ($/hr)</label>
+              <div class="small text-gasq-muted mb-1">Raw hourly wage paid to the security professional</div>
               <div class="d-flex align-items-center gap-2">
-                <input type="number" id="bg_govShouldCost" class="form-control fs-6 fw-semibold" value="{{ number_format($defaultGovernmentShouldCost, 2, '.', '') }}" step="0.01" min="0" oninput="calcBudget()">
-                <input type="range" id="bg_govShouldCost_range" class="form-range mb-0" min="0" max="250" step="0.01" value="{{ number_format($defaultGovernmentShouldCost, 2, '.', '') }}" data-sync="bg_govShouldCost">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-medium">Vendor TCO ($/hr)</label>
-              <div class="small text-gasq-muted mb-1">Vendor total cost of ownership per hour</div>
-              <div class="d-flex align-items-center gap-2">
-                <input type="number" id="bg_vendorTco" class="form-control fs-6 fw-semibold" value="54.78" step="0.01" min="0" oninput="calcBudget()">
-                <input type="range" id="bg_vendorTco_range" class="form-range mb-0" min="0" max="250" step="0.01" value="54.78" data-sync="bg_vendorTco">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-medium">Annual Billable Hours</label>
-              <div class="small text-gasq-muted mb-1">Hours basis from Workforce Appraisal</div>
-              <div class="d-flex align-items-center gap-2">
-                <input type="number" id="bg_annualHours" class="form-control fs-6 fw-semibold" value="{{ number_format($defaultAnnualBillableHours, 0, '.', '') }}" step="1" min="0" oninput="calcBudget()">
-                <input type="range" id="bg_annualHours_range" class="form-range mb-0" min="0" max="20000" step="1" value="{{ number_format($defaultAnnualBillableHours, 0, '.', '') }}" data-sync="bg_annualHours">
+                <input type="number" id="bg_govShouldCost" class="form-control fs-6 fw-semibold" value="25.00" step="0.01" min="0" oninput="calcBudget()">
+                <input type="range" id="bg_govShouldCost_range" class="form-range mb-0" min="0" max="100" step="0.01" value="25.00" data-sync="bg_govShouldCost">
               </div>
             </div>
           </div>
+
+          <div class="mt-1">
+            <h6 class="fw-semibold mb-1">Scope of Coverage</h6>
+            <p class="small text-gasq-muted mb-2">Annual hours auto-total from hours × days × weeks × staff per 8-hour shift.</p>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Hours per day</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="bg_hoursPerDay" class="form-control form-control-sm fw-semibold" value="24" step="1" min="1" max="24" oninput="calcBudget()">
+                <input type="range" id="bg_hoursPerDay_range" class="form-range mb-0" min="1" max="24" step="1" value="24" data-sync="bg_hoursPerDay">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Days per week</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="bg_daysPerWeek" class="form-control form-control-sm fw-semibold" value="7" step="1" min="1" max="7" oninput="calcBudget()">
+                <input type="range" id="bg_daysPerWeek_range" class="form-range mb-0" min="1" max="7" step="1" value="7" data-sync="bg_daysPerWeek">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Weeks per year</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="bg_weeksPerYear" class="form-control form-control-sm fw-semibold" value="52" step="1" min="1" max="52" oninput="calcBudget()">
+                <input type="range" id="bg_weeksPerYear_range" class="form-range mb-0" min="1" max="52" step="1" value="52" data-sync="bg_weeksPerYear">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Staff per 8-hour shift</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" id="bg_staffPerShift" class="form-control form-control-sm fw-semibold" value="1" step="1" min="1" max="100" oninput="calcBudget()">
+                <input type="range" id="bg_staffPerShift_range" class="form-range mb-0" min="1" max="100" step="1" value="1" data-sync="bg_staffPerShift">
+              </div>
+            </div>
+          </div>
+
+          {{-- Annual Coverage Hours now derived from the 4 scope inputs above. --}}
+          <input type="hidden" id="bg_annualHours" value="8736">
+          {{-- Vendor TCO hidden — now derived from Baseline Wage via the GASQ formula. --}}
+          <input type="hidden" id="bg_vendorTco" value="0">
 
           <div>
             <label class="form-label fw-medium">Derived Annual Budget ($)</label>
             <div class="input-group">
               <span class="input-group-text fs-5 fw-semibold">$</span>
-              <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="{{ number_format($defaultTotal, 2, '.', '') }}" step="1000" readonly>
+              <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="0" step="1000" readonly>
             </div>
-            <div class="small text-gasq-muted mt-1">Formula: Baseline Absorbed Rate × Annual Billable Hours</div>
+            <div class="small text-gasq-muted mt-1">
+              <strong>Formula chain:</strong> Baseline Wage ÷ 0.70 × 3,744 ÷ 1,456 × 0.70 × Annual Coverage Hours
+              <br>= Loaded Wage → Internal TCO → Vendor TCO → Total Budget
+            </div>
           </div>
 
           <hr class="my-1">
@@ -186,14 +213,30 @@
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Budget Summary</h5></div>
         <div class="card-body">
           <div class="budget-benchmark-card mb-4">
-            <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Baseline Absorbed Rate</div>
-            <div class="h3 fw-bold text-primary mb-1" id="r_govShouldCost">$0.00</div>
-            <div class="small text-gasq-muted mb-2">Current internal benchmark per hour</div>
-            <div class="d-flex justify-content-between align-items-center small gap-3">
-              <span class="text-gasq-muted">Annual billable hours</span>
-              <span class="fw-semibold" id="r_hours">0</span>
+            <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Buyer's Total Cost of Ownership ($/hr)</div>
+            <div class="h3 fw-bold text-primary mb-1" id="r_internalTco">$0.00</div>
+            <div class="small text-gasq-muted mb-3">Derived from Baseline Wage via GASQ formula — drives the annual budget</div>
+
+            <div class="row g-2 small">
+              <div class="col-6">
+                <div class="text-gasq-muted">Loaded Wage</div>
+                <div class="fw-semibold" id="r_loadedWage">$0.00</div>
+              </div>
+              <div class="col-6">
+                <div class="text-gasq-muted">Vendor Offer Rate</div>
+                <div class="fw-semibold text-success" id="r_govShouldCost">$0.00</div>
+              </div>
+              <div class="col-6">
+                <div class="text-gasq-muted">Capital Recovery / hr</div>
+                <div class="fw-semibold text-success" id="r_recoveryPerHr">$0.00</div>
+              </div>
+              <div class="col-6">
+                <div class="text-gasq-muted">Annual Coverage</div>
+                <div class="fw-semibold" id="r_hours">0</div>
+              </div>
             </div>
-            <div class="mt-2">
+
+            <div class="mt-3">
               <a href="{{ url('/workforce-appraisal-report') }}" class="small fw-semibold text-decoration-none">Open Workforce Appraisal Report</a>
             </div>
           </div>
@@ -449,13 +492,50 @@ async function syncBudget(total, allocations, governmentShouldCost, annualHours)
   }
 }
 
+// GASQ Workforce-to-Post™ formula constants — shared by calcBudget() and refreshAppraisal()
+// so the entire right column moves in lockstep with the Baseline Wage slider.
+const EMPLOYER_FRINGE_FACTOR = 0.70;
+const PAID_HOURS_PER_FTE = 3744;
+const BILLABLE_HOURS_PER_FTE = 1456;
+const VENDOR_DISCOUNT_FACTOR = 0.70;
+
 function calcBudget() {
-  const governmentShouldCost = g('bg_govShouldCost');
-  const annualHours = g('bg_annualHours');
+  const baselineWage = g('bg_govShouldCost');
+
+  // Annual coverage hours derived from the 4 scope inputs (matches the standard
+  // GASQ calculator: hoursPerDay × daysPerWeek × weeksPerYear × staffPerShift).
+  const hoursPerDay = Math.min(24, Math.max(1, g('bg_hoursPerDay') || 24));
+  const daysPerWeek = Math.min(7, Math.max(1, g('bg_daysPerWeek') || 7));
+  const weeksPerYear = Math.min(52, Math.max(1, g('bg_weeksPerYear') || 52));
+  const staffPerShift = Math.min(100, Math.max(1, g('bg_staffPerShift') || 1));
+  const annualHours = hoursPerDay * daysPerWeek * weeksPerYear * staffPerShift;
+
+  // Mirror to the hidden annualHours field so the appraisal block and any
+  // downstream consumer reads a consistent value.
+  const annualHoursEl = document.getElementById('bg_annualHours');
+  if (annualHoursEl) annualHoursEl.value = annualHours;
+
   const monthlyHours = annualHours / 12;
   const weeklyHours = annualHours / 52;
   const dailyHours = annualHours / 365;
-  const total = governmentShouldCost * annualHours;
+
+  // Baseline Wage → Loaded Wage → Buyer's TCO → Vendor TCO.
+  // The buyer's Total Cost of Ownership ($91.83/hr from a $25 baseline) is the budget basis;
+  // outsourcing at Vendor TCO ($64.28/hr) recovers the difference.
+  const loadedWage = baselineWage > 0 ? baselineWage / EMPLOYER_FRINGE_FACTOR : 0;
+  const internalTcoHourly = loadedWage > 0 ? (loadedWage * PAID_HOURS_PER_FTE) / BILLABLE_HOURS_PER_FTE : 0;
+  const vendorTcoHourly = internalTcoHourly * VENDOR_DISCOUNT_FACTOR;
+  // Total Budget reflects the BUYER'S TCO × coverage hours — what they'd spend in-house.
+  const total = internalTcoHourly * annualHours;
+  const vendorOfferTotal = vendorTcoHourly * annualHours;
+  const capitalRecoveryAnnual = total - vendorOfferTotal;
+
+  // Mirror to the hidden vendor-TCO input so any other consumer reads the derived value.
+  const vendorTcoEl = document.getElementById('bg_vendorTco');
+  if (vendorTcoEl) vendorTcoEl.value = vendorTcoHourly.toFixed(2);
+
+  // For backward compatibility with downstream sync payload.
+  const governmentShouldCost = vendorTcoHourly;
   const itemStates = ALL_ITEMS.map((item) => ({ ...item, pct: g(item.id) }));
   const allocationsPayload = Object.fromEntries(itemStates.map((item) => [item.key, item.pct]));
   const sumPct = itemStates.reduce((sum, item) => sum + item.pct, 0);
@@ -490,7 +570,13 @@ function calcBudget() {
   const totalEl = document.getElementById('bg_total');
   if (totalEl) totalEl.value = total.toFixed(2);
 
-  setText('r_govShouldCost', fmt(governmentShouldCost));
+  // Right-side benchmark card: lead with the BUYER's TCO (which drives the annual budget),
+  // and show the vendor offer rate + capital recovery as secondary metrics.
+  const capitalRecoveryPerHour = internalTcoHourly - vendorTcoHourly;
+  setText('r_internalTco', fmt(internalTcoHourly));    // big number — Buyer's TCO / hr
+  setText('r_govShouldCost', fmt(vendorTcoHourly));    // vendor offer rate
+  setText('r_loadedWage', fmt(loadedWage));
+  setText('r_recoveryPerHr', fmt(capitalRecoveryPerHour));
   setText('r_hours', Math.round(annualHours).toLocaleString('en-US'));
   setText('r_annual', fmt(total));
   setText('r_monthly', fmt(total / 12));
@@ -584,46 +670,62 @@ function queueAppraisalRefresh() {
 }
 
 function refreshAppraisal() {
-  const internalHourly = g('bg_govShouldCost');
-  const vendorHourly = g('bg_vendorTco');
+  // ---------- GASQ side-by-side TCO formula ----------
+  // 1. Loaded wage           = baselineWage / 0.70
+  // 2. Annual workforce cost = loadedWage × 3,744  (paid hours per FTE inc. PTO/burden)
+  // 3. Internal TCO/hr       = annualWorkforceCost / 1,456  (billable hours per FTE)
+  // 4. Vendor TCO/hr         = internalTCO × 0.70  (vendor delivers same scope at 70% of internal)
+  // 5. Capital recovery/hr   = internalTCO − vendorTCO
+  // 6. Annual capital recovery = capitalRecovery/hr × annualCoverageHours
+  // Constants are defined globally so calcBudget() and refreshAppraisal() share them.
+  const baselineWage = g('bg_govShouldCost');
   const annualHours = g('bg_annualHours') || 8736;
-  const masterInputs = window.__gasqMasterInputs || {};
 
-  const hoursPerProf = parseFloat(masterInputs.annualPaidHoursPerFte
-    ?? masterInputs.annualPaidHoursPerFTE
-    ?? 1456) || 1456;
-  const ftesRequired = Math.max(1, Math.ceil(annualHours / Math.max(hoursPerProf, 1)));
+  const loadedWage = baselineWage > 0 ? baselineWage / EMPLOYER_FRINGE_FACTOR : 0;
+  const annualWorkforceCost = loadedWage * PAID_HOURS_PER_FTE;
+  const internalTcoHourly = annualWorkforceCost / BILLABLE_HOURS_PER_FTE;
+  const vendorTcoHourly = internalTcoHourly * VENDOR_DISCOUNT_FACTOR;
+  const capitalRecoveryPerHour = internalTcoHourly - vendorTcoHourly;
+  const annualCapitalRecovery = capitalRecoveryPerHour * annualHours;
+
+  // Keep hidden Vendor TCO field in sync (some pieces of the page read it).
+  const vendorTcoEl = document.getElementById('bg_vendorTco');
+  if (vendorTcoEl) vendorTcoEl.value = vendorTcoHourly.toFixed(2);
+
+  // Annual cost projection for the full contract
+  const totalAnnualInt = internalTcoHourly * annualHours;
+  const totalAnnualVend = vendorTcoHourly * annualHours;
+  const totalMonthlyInt = totalAnnualInt / 12;
+  const totalMonthlyVend = totalAnnualVend / 12;
+  const totalWeeklyInt = totalAnnualInt / 52;
+  const totalWeeklyVend = totalAnnualVend / 52;
+
+  const ftesRequired = annualHours > 0 ? Math.max(1, Math.ceil(annualHours / BILLABLE_HOURS_PER_FTE)) : 0;
   const weeklyHours = annualHours / 52;
   const monthlyHours = annualHours / 12;
-  const baselineLaborRate = parseFloat(masterInputs.directLaborWage
-    ?? masterInputs.in_wage
-    ?? 30.43) || 30.43;
 
-  const otMult = 1.5;
-  const internalOt = internalHourly * otMult;
-  const vendorOt = vendorHourly * otMult;
-  const annualPerInt = internalHourly * hoursPerProf;
-  const annualPerVend = vendorHourly * hoursPerProf;
-  const totalWeeklyInt = internalHourly * weeklyHours;
-  const totalWeeklyVend = vendorHourly * weeklyHours;
-  const totalMonthlyInt = internalHourly * monthlyHours;
-  const totalMonthlyVend = vendorHourly * monthlyHours;
-  const totalAnnualInt = internalHourly * annualHours;
-  const totalAnnualVend = vendorHourly * annualHours;
-  const operationalCapital = totalAnnualInt - totalAnnualVend;
   const operationalCapitalPct = totalAnnualInt > 0
-    ? Math.round(100 * operationalCapital / totalAnnualInt)
+    ? Math.round(100 * annualCapitalRecovery / totalAnnualInt)
     : 0;
   const monthlySavings = totalMonthlyInt - totalMonthlyVend;
   const paybackMonths = monthlySavings > 0.01
-    ? Math.ceil(operationalCapital / monthlySavings)
+    ? Math.ceil(annualCapitalRecovery / monthlySavings)
     : 0;
 
-  // Rows: each row's hour/FTE fields render as plain numbers; cost fields render as money.
+  const otMult = 1.5;
+  const internalOt = internalTcoHourly * otMult;
+  const vendorOt = vendorTcoHourly * otMult;
+
+  // Annual cost per security professional (single FTE) — billable hours basis.
+  const annualPerInt = internalTcoHourly * BILLABLE_HOURS_PER_FTE;
+  const annualPerVend = vendorTcoHourly * BILLABLE_HOURS_PER_FTE;
+
+  // Rows: kind controls formatting (money vs hours/count).
+  // Row 1 "Workforce Baseline Assumption Labor Rate" shows the user's baseline-wage
+  // input directly — same on both columns since it's the shared starting point.
   const rows = [
-    { description: 'Workforce Baseline Assumption Labor Rate', internal: baselineLaborRate, vendor: baselineLaborRate, kind: 'money' },
-    { description: 'Workforce Hourly Cost Per Security Professional', internal: internalHourly, vendor: vendorHourly, kind: 'money' },
-    { description: 'Overtime/Holiday Rate', internal: internalOt, vendor: vendorOt, kind: 'money' },
+    { description: 'Workforce Baseline Assumption Labor Rate', internal: baselineWage, vendor: baselineWage, kind: 'money' },
+    { description: 'Overtime / Holiday Rate', internal: internalOt, vendor: vendorOt, kind: 'money' },
     { description: 'Workforce Annual Cost per Security Professional', internal: annualPerInt, vendor: annualPerVend, kind: 'money' },
     { description: 'Total Weekly Hours of Coverage', internal: weeklyHours, vendor: weeklyHours, kind: 'hours' },
     { description: 'Total Monthly Hours of Coverage', internal: monthlyHours, vendor: monthlyHours, kind: 'hours' },
@@ -635,7 +737,7 @@ function refreshAppraisal() {
   ];
 
   const footerRows = [
-    { description: 'Operational Capital Recovered', vendor: operationalCapital, kind: 'money' },
+    { description: 'Operational Capital Recovered', vendor: annualCapitalRecovery, kind: 'money' },
     { description: 'Operational Capital Recovered (%)', vendor: operationalCapitalPct, kind: 'percent' },
     { description: 'Payback & Recovery Period', vendor: paybackMonths, kind: 'months' },
   ];

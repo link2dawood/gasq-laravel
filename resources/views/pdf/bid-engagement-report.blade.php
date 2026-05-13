@@ -18,13 +18,44 @@
     if ($hoursPerDay > 0 && $daysPerWeek > 0 && $weeksPerYear > 0) {
         $annualHours = $hoursPerDay * $daysPerWeek * $weeksPerYear;
     }
-
-    // Internal should-cost benchmark (use buyer's confirmed budget if present, otherwise vendor TCO × markup).
-    $internalShouldCost = (float) ($opportunity?->estimated_annual_contract_value ?? 0);
-    if ($internalShouldCost <= 0 && $annualPrice > 0) {
-        $internalShouldCost = $annualPrice * 1.42; // typical internal markup vs vendor TCO
+    if ($annualHours <= 0) {
+        $annualHours = 8736; // 24/7 default
     }
-    $savings = max(0, $internalShouldCost - $annualPrice);
+
+    // ---------- GASQ Side-by-side TCO formula ----------
+    //   1. Loaded wage           = baselineWage / 0.70
+    //   2. Annual workforce cost = loadedWage × 3,744 (paid hrs per FTE)
+    //   3. Internal TCO / hr     = annualWorkforceCost / 1,456 (billable hrs per FTE)
+    //   4. Vendor TCO / hr       = internalTCO × 0.70
+    //   5. Capital recovery / hr = internalTCO − vendorTCO
+    //   6. Annual capital recovery = capitalRecovery/hr × annualCoverageHours
+    $EMPLOYER_FRINGE_FACTOR = 0.70;
+    $PAID_HOURS_PER_FTE = 3744;
+    $BILLABLE_HOURS_PER_FTE = 1456;
+    $VENDOR_DISCOUNT_FACTOR = 0.70;
+
+    // Baseline wage source: the vendor's bid hourly rate is treated as the vendor TCO at submission time,
+    // so we back-derive the baseline wage when needed. Fall back to a $25 industry baseline.
+    $baselineWage = (float) data_get($questionnaire, 'baseline_wage', 0);
+    if ($baselineWage <= 0 && $hourlyRate > 0) {
+        // Reverse the formula: vendorTCO = (baseline/0.70) * 3744/1456 * 0.70 = baseline * 3744 / 1456
+        // So baseline = vendorTCO * 1456 / 3744
+        $baselineWage = $hourlyRate * $BILLABLE_HOURS_PER_FTE / $PAID_HOURS_PER_FTE;
+    }
+    if ($baselineWage <= 0) {
+        $baselineWage = 25.00;
+    }
+
+    $loadedWage = $baselineWage / $EMPLOYER_FRINGE_FACTOR;
+    $annualWorkforceCost = $loadedWage * $PAID_HOURS_PER_FTE;
+    $internalTcoHourly = $annualWorkforceCost / $BILLABLE_HOURS_PER_FTE;
+    $vendorTcoHourly = $internalTcoHourly * $VENDOR_DISCOUNT_FACTOR;
+    $capitalRecoveryPerHour = $internalTcoHourly - $vendorTcoHourly;
+    $annualCapitalRecovery = $capitalRecoveryPerHour * $annualHours;
+
+    // Cover-page headline figures
+    $internalShouldCost = $internalTcoHourly * $annualHours;
+    $savings = $annualCapitalRecovery;
     $savingsPct = $internalShouldCost > 0 ? round(100 * $savings / $internalShouldCost) : 0;
     $monthlySavings = $savings / 12;
     $paybackMonths = $monthlySavings > 0.01 ? (int) ceil($savings / $monthlySavings) : 0;
@@ -111,8 +142,60 @@
     </tbody>
 </table>
 
-<h2>Workforce Appraisal Comparison</h2>
-<p class="small muted">Side-by-side view of internal should-cost vs. the vendor's quoted TCO, derived from the GASQ Workforce Absorbed Rate model.</p>
+<h2>GASQ Workforce-to-Post™ Capital Recovery Formula</h2>
+<p class="small muted">Each step shows how the side-by-side comparison is derived from the baseline wage. The same chain runs in your GASQ dashboard calculator.</p>
+<table>
+    <thead>
+        <tr>
+            <th>Step</th>
+            <th class="right">Calculation</th>
+            <th class="right">Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Baseline Wage (input)</td>
+            <td class="right mono">—</td>
+            <td class="right mono">${{ number_format($baselineWage, 2) }}/hr</td>
+        </tr>
+        <tr>
+            <td>1. Loaded Wage</td>
+            <td class="right mono">${{ number_format($baselineWage, 2) }} ÷ 0.70</td>
+            <td class="right mono">${{ number_format($loadedWage, 2) }}/hr</td>
+        </tr>
+        <tr>
+            <td>2. Annual Workforce Availability Cost</td>
+            <td class="right mono">${{ number_format($loadedWage, 2) }} × 3,744</td>
+            <td class="right mono">${{ number_format($annualWorkforceCost, 2) }}</td>
+        </tr>
+        <tr>
+            <td>3. Internal True Cost of Ownership</td>
+            <td class="right mono">${{ number_format($annualWorkforceCost, 2) }} ÷ 1,456</td>
+            <td class="right mono">${{ number_format($internalTcoHourly, 2) }}/hr</td>
+        </tr>
+        <tr>
+            <td>4. Vendor TCO / Outsourced Rate</td>
+            <td class="right mono">${{ number_format($internalTcoHourly, 2) }} × 0.70</td>
+            <td class="right mono">${{ number_format($vendorTcoHourly, 2) }}/hr</td>
+        </tr>
+        <tr class="emphasis">
+            <td>5. Capital Recovery Opportunity / hr</td>
+            <td class="right mono">${{ number_format($internalTcoHourly, 2) }} − ${{ number_format($vendorTcoHourly, 2) }}</td>
+            <td class="right mono"><strong>${{ number_format($capitalRecoveryPerHour, 2) }}/hr</strong></td>
+        </tr>
+        <tr class="emphasis">
+            <td>6. Annual Capital Recovery</td>
+            <td class="right mono">${{ number_format($capitalRecoveryPerHour, 2) }} × {{ number_format($annualHours, 0) }}</td>
+            <td class="right mono"><strong>{{ LeadFormatting::moneyFull($annualCapitalRecovery) }}</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+<p style="background:#f0f9ff;border:1px solid #bae6fd;padding:12px 14px;border-radius:4px;margin-top:14px;color:#0c4a6e;font-size:11px;">
+    <strong>What this means:</strong> By outsourcing at the vendor TCO rate of <strong>${{ number_format($vendorTcoHourly, 2) }}/hr</strong>, the buyer creates a capital recovery opportunity of approximately <strong>${{ number_format($capitalRecoveryPerHour, 2) }} per service hour</strong>, or <strong>{{ LeadFormatting::moneyFull($annualCapitalRecovery) }} annually</strong> for a {{ number_format($annualHours, 0) }}-hour post.
+</p>
+
+<h2>Side-by-Side Annual Comparison</h2>
 <table>
     <thead>
         <tr>
@@ -122,23 +205,9 @@
         </tr>
     </thead>
     <tbody>
-        <tr>
-            <td>Annual Contract Value</td>
-            <td class="right mono">{{ LeadFormatting::moneyFull($internalShouldCost) }}</td>
-            <td class="right mono">{{ LeadFormatting::moneyFull($annualPrice) }}</td>
-        </tr>
-        @if($annualHours > 0)
-        <tr>
-            <td>Total Annual Hours of Coverage</td>
-            <td class="right mono">{{ number_format($annualHours, 0) }}</td>
-            <td class="right mono">{{ number_format($annualHours, 0) }}</td>
-        </tr>
-        <tr>
-            <td>Implied Internal Hourly Rate</td>
-            <td class="right mono">${{ number_format($annualHours > 0 ? $internalShouldCost / $annualHours : 0, 2) }}</td>
-            <td class="right mono">${{ number_format($hourlyRate, 2) }}</td>
-        </tr>
-        @endif
+        <tr><td>Hourly Rate</td><td class="right mono">${{ number_format($internalTcoHourly, 2) }}</td><td class="right mono">${{ number_format($vendorTcoHourly, 2) }}</td></tr>
+        <tr><td>Total Annual Hours of Coverage</td><td class="right mono">{{ number_format($annualHours, 0) }}</td><td class="right mono">{{ number_format($annualHours, 0) }}</td></tr>
+        <tr><td>Annual Cost</td><td class="right mono">{{ LeadFormatting::moneyFull($internalShouldCost) }}</td><td class="right mono">{{ LeadFormatting::moneyFull($vendorTcoHourly * $annualHours) }}</td></tr>
     </tbody>
     <tfoot>
         <tr class="emphasis"><td>Operational Capital Recovered</td><td class="right mono">—</td><td class="right mono">{{ LeadFormatting::moneyFull($savings) }}</td></tr>
