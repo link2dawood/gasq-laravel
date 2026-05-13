@@ -212,33 +212,54 @@
       <div class="card gasq-card mb-4">
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Budget Summary</h5></div>
         <div class="card-body">
-          <div class="budget-benchmark-card mb-4">
-            <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Buyer's Total Cost of Ownership ($/hr)</div>
-            <div class="h3 fw-bold text-primary mb-1" id="r_internalTco">$0.00</div>
-            <div class="small text-gasq-muted mb-3">Derived from Baseline Wage via GASQ formula — drives the annual budget</div>
-
-            <div class="row g-2 small">
-              <div class="col-6">
-                <div class="text-gasq-muted">Loaded Wage</div>
-                <div class="fw-semibold" id="r_loadedWage">$0.00</div>
-              </div>
-              <div class="col-6">
-                <div class="text-gasq-muted">Vendor Offer Rate</div>
-                <div class="fw-semibold text-success" id="r_govShouldCost">$0.00</div>
-              </div>
-              <div class="col-6">
-                <div class="text-gasq-muted">Capital Recovery / hr</div>
-                <div class="fw-semibold text-success" id="r_recoveryPerHr">$0.00</div>
-              </div>
-              <div class="col-6">
-                <div class="text-gasq-muted">Annual Coverage</div>
-                <div class="fw-semibold" id="r_hours">0</div>
+          {{-- Side-by-side comparison: Buyer Cost (left) vs Vendor Cost (right) --}}
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="p-3 rounded text-center" style="background:#fdf2f2; border:2px solid #b91c1c;">
+                <div class="text-uppercase small fw-semibold mb-1" style="color:#7f1d1d;">Buyer Cost</div>
+                <div class="h4 fw-bold mb-0" style="color:#7f1d1d;" id="r_internalTco">$0.00</div>
+                <div class="small text-gasq-muted mt-1">per hour (TCO)</div>
+                <hr class="my-2" style="border-color:#fecaca;">
+                <div class="text-uppercase small fw-semibold mb-1" style="color:#7f1d1d;">Annual</div>
+                <div class="fw-bold" style="color:#7f1d1d;" id="r_buyerAnnual">$0.00</div>
               </div>
             </div>
-
-            <div class="mt-3">
-              <a href="{{ url('/workforce-appraisal-report') }}" class="small fw-semibold text-decoration-none">Open Workforce Appraisal Report</a>
+            <div class="col-6">
+              <div class="p-3 rounded text-center" style="background:#d1e7dd; border:2px solid #198754;">
+                <div class="text-uppercase small fw-semibold mb-1" style="color:#0a3622;">Vendor Cost</div>
+                <div class="h4 fw-bold mb-0" style="color:#0a3622;" id="r_govShouldCost">$0.00</div>
+                <div class="small text-gasq-muted mt-1">per hour (Vendor TCO)</div>
+                <hr class="my-2" style="border-color:#a3cfbb;">
+                <div class="text-uppercase small fw-semibold mb-1" style="color:#0a3622;">Annual</div>
+                <div class="fw-bold" style="color:#0a3622;" id="r_vendorAnnual">$0.00</div>
+              </div>
             </div>
+          </div>
+
+          {{-- Capital Recovery callout on the right-side stream --}}
+          <div class="p-3 rounded text-center mb-4" style="background:#fff3cd; border:2px solid #f59f00;">
+            <div class="text-uppercase small fw-semibold mb-1" style="color:#664d03;">💰 Capital Recovery Opportunity</div>
+            <div class="row g-2 mt-1">
+              <div class="col-6">
+                <div class="small text-gasq-muted">Per hour</div>
+                <div class="h5 fw-bold mb-0" style="color:#664d03;" id="r_recoveryPerHr">$0.00</div>
+              </div>
+              <div class="col-6">
+                <div class="small text-gasq-muted">Annual</div>
+                <div class="h5 fw-bold mb-0" style="color:#664d03;" id="r_recoveryAnnual">$0.00</div>
+              </div>
+            </div>
+            <div class="small mt-2" style="color:#664d03;">
+              Saved by outsourcing at Vendor TCO instead of in-house TCO
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between small text-gasq-muted mb-3 px-1">
+            <span>Loaded Wage: <strong id="r_loadedWage">$0.00</strong></span>
+            <span>Annual Coverage: <strong id="r_hours">0</strong> hrs</span>
+          </div>
+          <div class="text-center small mb-4">
+            <a href="{{ url('/workforce-appraisal-report') }}" class="fw-semibold text-decoration-none">Open Workforce Appraisal Report →</a>
           </div>
 
           <div class="row g-3 mb-4">
@@ -570,13 +591,15 @@ function calcBudget() {
   const totalEl = document.getElementById('bg_total');
   if (totalEl) totalEl.value = total.toFixed(2);
 
-  // Right-side benchmark card: lead with the BUYER's TCO (which drives the annual budget),
-  // and show the vendor offer rate + capital recovery as secondary metrics.
+  // Side-by-side comparison: Buyer (left, red) vs Vendor (right, green) + Capital Recovery callout.
   const capitalRecoveryPerHour = internalTcoHourly - vendorTcoHourly;
-  setText('r_internalTco', fmt(internalTcoHourly));    // big number — Buyer's TCO / hr
-  setText('r_govShouldCost', fmt(vendorTcoHourly));    // vendor offer rate
-  setText('r_loadedWage', fmt(loadedWage));
+  setText('r_internalTco', fmt(internalTcoHourly));      // Buyer Cost / hr (left card)
+  setText('r_buyerAnnual', fmt(total));                  // Buyer annual (left card)
+  setText('r_govShouldCost', fmt(vendorTcoHourly));      // Vendor Cost / hr (right card)
+  setText('r_vendorAnnual', fmt(vendorOfferTotal));      // Vendor annual (right card)
   setText('r_recoveryPerHr', fmt(capitalRecoveryPerHour));
+  setText('r_recoveryAnnual', fmt(capitalRecoveryAnnual));
+  setText('r_loadedWage', fmt(loadedWage));
   setText('r_hours', Math.round(annualHours).toLocaleString('en-US'));
   setText('r_annual', fmt(total));
   setText('r_monthly', fmt(total / 12));
