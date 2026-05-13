@@ -25,19 +25,24 @@ class VendorOpportunityInvitedMail extends Mailable
         $job = $opportunity?->jobPosting;
         $buyer = $job?->user;
 
-        $value = LeadFormatting::moneyShort($opportunity?->estimated_annual_contract_value ?? 0);
-        $location = LeadFormatting::locationShort($job?->location);
+        // Subject per spec: "ALERT! New Security Project in [City], [State] – Contract Value: $X"
+        $contractValue = (float) ($opportunity?->estimated_annual_contract_value ?? 0);
+        $valueStr = $contractValue > 0 ? '$' . number_format($contractValue, 2) : 'TBD';
 
-        // Build a slash-joined verification tag from whichever of the three flags are set.
-        // e.g. "Decision Maker/Budget/Phone # Verified" when all three pass.
-        $parts = [];
-        if ($opportunity?->decision_maker_verified) $parts[] = 'Decision Maker';
-        if ($opportunity?->budget_confirmed) $parts[] = 'Budget';
-        if ($buyer?->phone_verified) $parts[] = 'Phone #';
-        $tag = $parts === [] ? 'Pending Verification' : implode('/', $parts) . ' Verified';
+        $city = $buyer?->city ?? '';
+        $state = $buyer?->state ?? '';
+        if (($city === '' || $state === '') && $job?->location
+            && preg_match('/,\s*([^,]+),\s*([A-Z]{2})/', $job->location, $m)) {
+            $city = $city ?: trim($m[1]);
+            $state = $state ?: trim($m[2]);
+        }
+        $location = trim($city . ($state ? ', ' . $state : ''));
+        if ($location === '') {
+            $location = LeadFormatting::locationShort($job?->location);
+        }
 
         return new Envelope(
-            subject: "GASQ ALERT: {$value} Security Contract – {$location} ({$tag})",
+            subject: "ALERT! New Security Project in {$location} – Contract Value: {$valueStr}",
         );
     }
 

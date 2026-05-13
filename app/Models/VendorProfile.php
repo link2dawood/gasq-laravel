@@ -13,6 +13,7 @@ class VendorProfile extends Model
         'description',
         'phone',
         'address',
+        'logo_path',
         'capabilities',
         'is_verified',
     ];

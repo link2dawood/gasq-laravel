@@ -100,7 +100,7 @@
             </div>
         @endif
 
-        <form action="{{ route('profile.update') }}" method="POST" id="profileForm">
+        <form action="{{ route('profile.update') }}" method="POST" id="profileForm" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -146,6 +146,21 @@
                             <input type="text" class="form-control @error('company_name') is-invalid @enderror" name="company_name" value="{{ old('company_name', $profile?->company_name ?? $user->company) }}" placeholder="Get A Security Quote">
                             @error('company_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             <input type="hidden" name="company" value="{{ old('company', $user->company) }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Company Logo <span class="text-gasq-muted small">(appears on buyer-facing reports)</span></label>
+                            @if($profile?->logo_path)
+                                <div class="d-flex align-items-center gap-3 mb-2 p-2 rounded" style="background:#f8fafc;border:1px solid #e5e7eb;">
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($profile->logo_path) }}" alt="Current logo" style="max-height:60px;max-width:160px;">
+                                    <div class="small text-gasq-muted">Current logo — upload a new one to replace.</div>
+                                    <label class="form-check-label ms-auto small">
+                                        <input type="checkbox" name="remove_logo" value="1"> Remove logo
+                                    </label>
+                                </div>
+                            @endif
+                            <input type="file" class="form-control @error('vendor_logo') is-invalid @enderror" name="vendor_logo" accept="image/png,image/jpeg,image/gif,image/webp">
+                            <div class="form-text">PNG/JPG/GIF/WEBP, max 2 MB. Will appear on every PDF report you generate.</div>
+                            @error('vendor_logo')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12">
                             @include('partials.address-autocomplete', [

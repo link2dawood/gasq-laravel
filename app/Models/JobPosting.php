@@ -38,6 +38,12 @@ class JobPosting extends Model
         'hired_external_name',
         'last_activity_at',
         'inactivity_survey_sent_at',
+        'offer_status',
+        'interviews_scheduled',
+        'interviews_completed',
+        'risk_assessment_scheduled',
+        'risk_assessment_completed',
+        'final_verifications_complete',
     ];
 
     protected $casts = [
@@ -54,6 +60,11 @@ class JobPosting extends Model
         'longitude' => 'float',
         'special_requirements' => 'array',
         'questionnaire_data' => 'array',
+        'interviews_scheduled' => 'boolean',
+        'interviews_completed' => 'boolean',
+        'risk_assessment_scheduled' => 'boolean',
+        'risk_assessment_completed' => 'boolean',
+        'final_verifications_complete' => 'boolean',
     ];
 
     public function questionnaire(string $key, mixed $default = null): mixed

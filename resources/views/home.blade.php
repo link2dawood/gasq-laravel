@@ -110,29 +110,104 @@
     </div>
   @endif
 
-  {{-- Active Jobs list --}}
+  {{-- Active Job Offer Summary cards (unredacted) + status checklist + hired vendor picker --}}
   @if(isset($buyerActiveJobs) && $buyerActiveJobs->isNotEmpty())
-    <div class="card gasq-card mb-4">
-      <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center">
-        <div>
-          <h2 class="gasq-card-title-lg mb-0">Your active jobs</h2>
-          <p class="text-gasq-muted small mb-0">Quick links and vendor activity per job.</p>
+    @foreach($buyerActiveJobs as $job)
+      <div class="mb-4">
+        @include('partials.lead-summary', [
+            'job' => $job,
+            'opportunity' => $job->vendorOpportunity,
+            'redacted' => false,
+            'showScope' => true,
+        ])
+
+        @php
+            $acceptedInvites = $job->vendorOpportunity?->invitations
+                ?->whereIn('status', ['accepted', 'bid_submitted']) ?? collect();
+        @endphp
+
+        <div class="card border-secondary mb-3">
+          <div class="card-header bg-light fw-bold">Job Offer Status</div>
+          <div class="card-body">
+            <form method="POST" action="{{ route('jobs.workflow-status', $job) }}">
+              @csrf
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Offer status</label>
+                  <select name="offer_status" class="form-select form-select-sm">
+                    <option value="open" @selected($job->offer_status === 'open')>Open</option>
+                    <option value="hired" @selected($job->offer_status === 'hired')>Close — I hired someone</option>
+                    <option value="closed_no_hire" @selected($job->offer_status === 'closed_no_hire')>Close — I did not hire anyone</option>
+                  </select>
+                </div>
+
+                @foreach([
+                    'interviews_scheduled' => 'Interviews scheduled?',
+                    'interviews_completed' => 'All vendors who accepted the job offer were interviewed?',
+                    'risk_assessment_scheduled' => 'On-site Risk Assessment scheduled?',
+                    'risk_assessment_completed' => 'On-site Risk Assessment conducted?',
+                    'final_verifications_complete' => 'All required insurances, licenses and certifications verified before final offer?',
+                ] as $field => $label)
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold small">{{ $label }}</label>
+                    <select name="{{ $field }}" class="form-select form-select-sm">
+                      <option value="">—</option>
+                      <option value="yes" @selected($job->{$field} === true)>Yes</option>
+                      <option value="no" @selected($job->{$field} === false)>No</option>
+                    </select>
+                  </div>
+                @endforeach
+              </div>
+
+              @if($acceptedInvites->isNotEmpty())
+                <hr class="my-3">
+                <div>
+                  <div class="fw-semibold mb-2">Vendors that accepted the job offer:</div>
+                  <ul class="mb-3">
+                    @foreach($acceptedInvites as $inv)
+                      <li>{{ $inv->vendor?->name }}{{ $inv->vendor?->company ? ' — ' . $inv->vendor->company : '' }}</li>
+                    @endforeach
+                  </ul>
+
+                  <label class="form-label fw-semibold">Which vendor did you hire?</label>
+                  <div class="d-flex flex-column gap-2">
+                    @foreach($acceptedInvites as $inv)
+                      @php $bidId = $inv->bid?->id; @endphp
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hired_bid_id" id="bid_{{ $inv->id }}" value="{{ $bidId }}" @disabled(! $bidId) @checked($job->hired_bid_id === $bidId)>
+                        <label class="form-check-label" for="bid_{{ $inv->id }}">
+                          {{ $inv->vendor?->name }}{{ $inv->vendor?->company ? ' — ' . $inv->vendor->company : '' }}
+                        </label>
+                      </div>
+                    @endforeach
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="hired_bid_id" id="bid_none_{{ $job->id }}" value="" @checked(! $job->hired_bid_id)>
+                      <label class="form-check-label" for="bid_none_{{ $job->id }}">I didn't hire anyone yet</label>
+                    </div>
+                  </div>
+                </div>
+              @endif
+
+              <div class="d-flex justify-content-between mt-3">
+                <a href="{{ route('jobs.show', $job) }}" class="btn btn-link btn-sm text-decoration-none">Open job details</a>
+                <button type="submit" class="btn btn-primary btn-sm">Save status</button>
+              </div>
+            </form>
+          </div>
         </div>
-        <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary btn-sm">View all</a>
       </div>
-      <div class="list-group list-group-flush">
-        @foreach($buyerActiveJobs as $job)
-          <a href="{{ route('jobs.show', $job) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-            <div>
-              <div class="fw-semibold">{{ $job->title }}</div>
-              <div class="text-gasq-muted small">{{ $job->location ?? 'Location TBD' }} · Posted {{ $job->created_at?->diffForHumans() }}</div>
-            </div>
-            <div class="text-end">
-              <span class="badge bg-light text-dark border">{{ ucfirst((string) $job->status) }}</span>
-            </div>
-          </a>
-        @endforeach
-      </div>
+    @endforeach
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary btn-sm">View all my jobs</a>
+      <a href="{{ route('post-job.index') }}" class="btn btn-primary">
+        <i class="fa fa-plus me-1"></i> Submit another job offer
+      </a>
+    </div>
+  @else
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+      <span>No active job offers yet. Submit one to receive qualified vendor responses.</span>
+      <a href="{{ route('post-job.index') }}" class="btn btn-primary btn-sm">Submit a job offer</a>
     </div>
   @endif
 

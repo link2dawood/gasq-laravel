@@ -71,12 +71,35 @@
     $money = fn ($v) => '$' . number_format((float) $v, 2);
     $pct = fn ($v) => number_format((float) $v, 2) . '%';
 
-    // Embed the logo as a base64 data URI so dompdf renders it reliably
+    // Embed the GASQ logo as a base64 data URI so dompdf renders it reliably
     // regardless of the public asset URL or filesystem path at render time.
     $logoPath = public_path('images/site-logo.png');
     $logoData = file_exists($logoPath)
         ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
         : null;
+
+    // Vendor's own uploaded logo (appears in the "Prepared by" block on the cover).
+    $vendorLogoData = null;
+    $vendorLogoPath = $user?->vendorProfile?->logo_path;
+    if ($vendorLogoPath) {
+        $abs = storage_path('app/public/' . $vendorLogoPath);
+        if (file_exists($abs)) {
+            $ext = strtolower(pathinfo($abs, PATHINFO_EXTENSION));
+            $mime = match ($ext) {
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                default => 'image/jpeg',
+            };
+            $vendorLogoData = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($abs));
+        }
+    }
+
+    // Prepared-by contact info pulled from the vendor's user/profile records.
+    $vendorName = $user?->name ?? null;
+    $vendorCompany = $user?->company ?? ($user?->vendorProfile?->company_name ?? null);
+    $vendorEmail = $user?->email ?? null;
+    $vendorPhone = $user?->phone ?? ($user?->vendorProfile?->phone ?? null);
 @endphp
 <!doctype html>
 <html>
@@ -257,6 +280,32 @@
             </tr>
         </table>
     </div>
+
+    {{-- Prepared by — vendor calling card. Logo on the left, contact details on the right. --}}
+    @if($vendorName || $vendorCompany || $vendorEmail || $vendorPhone || $vendorLogoData)
+    <table style="width:100%;border-collapse:collapse;margin:8px 0 14px;border:1px solid #d1d5db;background:#fafbfd;">
+        <tr>
+            <td style="width:130px;padding:10px 14px;vertical-align:middle;border:0;">
+                @if($vendorLogoData)
+                    <img src="{{ $vendorLogoData }}" alt="{{ $vendorCompany ?? 'Vendor' }}" style="max-height:54px;max-width:120px;">
+                @else
+                    <div style="font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;">No logo</div>
+                @endif
+            </td>
+            <td style="padding:8px 14px;vertical-align:middle;border:0;font-size:10.5px;">
+                <div style="font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;margin-bottom:3px;">Prepared by</div>
+                @if($vendorName)<div><strong>{{ $vendorName }}</strong>@if($vendorCompany) · {{ $vendorCompany }}@endif</div>@endif
+                @if($vendorEmail || $vendorPhone)
+                    <div style="color:#4b5563;">
+                        @if($vendorEmail){{ $vendorEmail }}@endif
+                        @if($vendorEmail && $vendorPhone) · @endif
+                        @if($vendorPhone){{ $vendorPhone }}@endif
+                    </div>
+                @endif
+            </td>
+        </tr>
+    </table>
+    @endif
 
     <div class="stat-row">
         <div class="stat-cell">

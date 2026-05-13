@@ -38,6 +38,13 @@
         </div>
     @endif
 
+    {{-- Job Offer Summary card — same data layout as vendor email + buyer/admin dashboards. --}}
+    @include('partials.lead-summary', [
+        'invitation' => $invitation,
+        'redacted' => ! $showUnlockedDetails,
+        'showScope' => true,
+    ])
+
     <div class="card gasq-card mb-4">
         <div class="card-body">
             <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">

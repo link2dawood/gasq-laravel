@@ -151,6 +151,8 @@ class ProfileController extends Controller
             'company_name' => ['nullable', 'string', 'max:255'],
             'street_address' => ['nullable', 'string', 'max:500'],
             'street_address_place_id' => ['nullable', 'string', 'max:255'],
+            'vendor_logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048', 'dimensions:max_width=2000,max_height=2000'],
+            'remove_logo' => ['nullable', 'in:1,true,on'],
             'city' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'zip_code' => ['nullable', 'string', 'max:20'],
@@ -257,6 +259,27 @@ class ProfileController extends Controller
                     : ($normalizedSubmittedPhone === $normalizedCurrentPhone ? (bool) $user->phone_verified : true),
             ]);
 
+            // Handle vendor logo: keep existing path unless a new file is uploaded
+            // or the "remove_logo" checkbox is set.
+            $existingProfile = $user->vendorProfile;
+            $logoPath = $existingProfile?->logo_path;
+
+            if ($request->boolean('remove_logo') && $logoPath && Storage::disk('public')->exists($logoPath)) {
+                Storage::disk('public')->delete($logoPath);
+                $logoPath = null;
+            }
+
+            if ($request->hasFile('vendor_logo')) {
+                $file = $request->file('vendor_logo');
+                $filename = 'vendor-' . $user->id . '-' . time() . '.' . $file->getClientOriginalExtension();
+                $newPath = $file->storeAs('vendor-logos', $filename, 'public');
+                // Replace any previously-stored logo
+                if ($logoPath && Storage::disk('public')->exists($logoPath)) {
+                    Storage::disk('public')->delete($logoPath);
+                }
+                $logoPath = $newPath;
+            }
+
             $profile = $user->vendorProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 [
@@ -264,6 +287,7 @@ class ProfileController extends Controller
                     'description' => $request->input('profile_description'),
                     'phone' => $submittedPhone !== '' ? $normalizedSubmittedPhone : null,
                     'address' => $request->input('street_address'),
+                    'logo_path' => $logoPath,
                     'capabilities' => $serviceCapabilities,
                 ]
             );

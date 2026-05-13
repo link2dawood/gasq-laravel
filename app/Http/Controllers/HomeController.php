@@ -213,6 +213,9 @@ class HomeController extends Controller
     {
         $jobs = JobPosting::query()
             ->where('user_id', $user->id)
+            ->with([
+                'vendorOpportunity.invitations' => fn ($q) => $q->whereIn('status', ['accepted', 'bid_submitted'])->with('vendor'),
+            ])
             ->latest('created_at')
             ->take(10)
             ->get();

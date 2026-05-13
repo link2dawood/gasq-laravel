@@ -138,10 +138,6 @@
               <span class="input-group-text fs-5 fw-semibold">$</span>
               <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="0" step="1000" readonly>
             </div>
-            <div class="small text-gasq-muted mt-1">
-              <strong>Formula chain:</strong> Baseline Wage ÷ 0.70 × 3,744 ÷ 1,456 × 0.70 × Annual Coverage Hours
-              <br>= Loaded Wage → Internal TCO → Vendor TCO → Total Budget
-            </div>
           </div>
 
           <hr class="my-1">
@@ -730,9 +726,10 @@ function refreshAppraisal() {
   const operationalCapitalPct = totalAnnualInt > 0
     ? Math.round(100 * annualCapitalRecovery / totalAnnualInt)
     : 0;
-  const monthlySavings = totalMonthlyInt - totalMonthlyVend;
-  const paybackMonths = monthlySavings > 0.01
-    ? Math.ceil(annualCapitalRecovery / monthlySavings)
+  // Payback formula: Vendor annual cost ÷ Buyer monthly cost.
+  // i.e. "how many months of buyer's monthly internal spend equals one full year of vendor cost"
+  const paybackMonths = totalMonthlyInt > 0.01
+    ? Number((totalAnnualVend / totalMonthlyInt).toFixed(1))
     : 0;
 
   const otMult = 1.5;
@@ -748,6 +745,7 @@ function refreshAppraisal() {
   // input directly — same on both columns since it's the shared starting point.
   const rows = [
     { description: 'Workforce Baseline Assumption Labor Rate', internal: baselineWage, vendor: baselineWage, kind: 'money' },
+    { description: 'Direct Labor + Full Burden Hourly Rate', internal: internalTcoHourly, vendor: vendorTcoHourly, kind: 'money' },
     { description: 'Overtime / Holiday Rate', internal: internalOt, vendor: vendorOt, kind: 'money' },
     { description: 'Workforce Annual Cost per Security Professional', internal: annualPerInt, vendor: annualPerVend, kind: 'money' },
     { description: 'Total Weekly Hours of Coverage', internal: weeklyHours, vendor: weeklyHours, kind: 'hours' },
@@ -773,7 +771,7 @@ function refreshAppraisal() {
     if (value === null || value === undefined) return '—';
     if (kind === 'money') return fmt(value);
     if (kind === 'percent') return `${Number(value).toFixed(0)}%`;
-    if (kind === 'months') return `${value} months`;
+    if (kind === 'months') return `${Number(value).toFixed(1)} months`;
     if (kind === 'hours' || kind === 'count') return fmtHours(value);
     return String(value);
   };

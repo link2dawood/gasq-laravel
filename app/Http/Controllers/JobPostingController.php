@@ -478,6 +478,61 @@ class JobPostingController extends Controller
         return redirect()->route('jobs.show', $job)->with('success', 'Job closed. Thanks for the feedback.');
     }
 
+    /**
+     * Persist the buyer-side workflow checklist (interviews scheduled/completed,
+     * risk assessment scheduled/completed, final verifications, offer status).
+     * Called from the Active Job Offer Summary card on the buyer dashboard.
+     */
+    public function updateWorkflowStatus(Request $request, JobPosting $job): RedirectResponse
+    {
+        if ($job->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'offer_status' => ['nullable', 'in:open,hired,closed_no_hire'],
+            'interviews_scheduled' => ['nullable', 'in:0,1,yes,no'],
+            'interviews_completed' => ['nullable', 'in:0,1,yes,no'],
+            'risk_assessment_scheduled' => ['nullable', 'in:0,1,yes,no'],
+            'risk_assessment_completed' => ['nullable', 'in:0,1,yes,no'],
+            'final_verifications_complete' => ['nullable', 'in:0,1,yes,no'],
+            'hired_bid_id' => ['nullable', 'integer', 'exists:bids,id'],
+        ]);
+
+        $toBool = fn ($v) => in_array((string) $v, ['1', 'yes'], true);
+
+        $payload = [];
+        foreach ([
+            'interviews_scheduled',
+            'interviews_completed',
+            'risk_assessment_scheduled',
+            'risk_assessment_completed',
+            'final_verifications_complete',
+        ] as $f) {
+            if ($request->has($f)) {
+                $payload[$f] = $toBool($data[$f] ?? null);
+            }
+        }
+
+        if (! empty($data['offer_status'])) {
+            $payload['offer_status'] = $data['offer_status'];
+            if ($data['offer_status'] === 'hired' && ! empty($data['hired_bid_id'])) {
+                $payload['hired_bid_id'] = $data['hired_bid_id'];
+                $payload['hired_at'] = now();
+                $payload['status'] = 'hired';
+            } elseif ($data['offer_status'] === 'closed_no_hire') {
+                $payload['status'] = 'closed';
+                $payload['closed_at'] = now();
+                $payload['close_reason'] = 'no_hire';
+            }
+        }
+
+        $payload['last_activity_at'] = now();
+        $job->update($payload);
+
+        return back()->with('success', 'Job status updated.');
+    }
+
     public function bidsFragment(Request $request, JobPosting $job): JsonResponse
     {
         $job->load(['bids.user:id,name,company', 'hiredBid.user:id,name,company']);

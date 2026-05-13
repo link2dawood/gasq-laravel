@@ -106,6 +106,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/jobs/publish', [App\Http\Controllers\JobPostingController::class, 'publish'])->name('jobs.publish');
     Route::post('/jobs/{job}/hire', [App\Http\Controllers\JobPostingController::class, 'hire'])->name('jobs.hire');
     Route::post('/jobs/{job}/close', [App\Http\Controllers\JobPostingController::class, 'close'])->name('jobs.close');
+    Route::post('/jobs/{job}/workflow-status', [App\Http\Controllers\JobPostingController::class, 'updateWorkflowStatus'])->name('jobs.workflow-status');
     Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
     Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
     Route::post('/jobs/{job}/offer-response', [App\Http\Controllers\BidController::class, 'offerResponse'])->name('bids.offer-response');
