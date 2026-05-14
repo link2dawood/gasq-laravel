@@ -88,6 +88,36 @@
     $opsAmt = $totalBudget * $opsPct / 100;
     $ohAmt = $totalBudget * $ohPct / 100;
 
+    // ---------- Line-Item Breakdown rows for the dedicated breakdown page ----------
+    // Walks config/budget_calculator.php and renders each item with its $ and %.
+    $budgetConfig = (array) config('budget_calculator', []);
+    $lineGroups = [];
+    foreach (($budgetConfig['groups'] ?? []) as $cfgGroup) {
+        $items = [];
+        $groupPct = 0.0;
+        foreach (($cfgGroup['items'] ?? []) as $item) {
+            $key = $item['key'] ?? null;
+            if (! $key) continue;
+            $itemPct = isset($alloc[$key]) && is_numeric($alloc[$key]) ? (float) $alloc[$key] : 0.0;
+            $itemAmount = $totalBudget * $itemPct / 100;
+            $items[] = [
+                'label' => $item['label'] ?? $key,
+                'color' => $item['color'] ?? '#94a3b8',
+                'pct' => $itemPct,
+                'amount' => $itemAmount,
+            ];
+            $groupPct += $itemPct;
+        }
+        $lineGroups[] = [
+            'key' => $cfgGroup['key'] ?? '',
+            'label' => $cfgGroup['label'] ?? '',
+            'description' => $cfgGroup['description'] ?? '',
+            'pct' => $groupPct,
+            'amount' => $totalBudget * $groupPct / 100,
+            'items' => $items,
+        ];
+    }
+
     // ---------- Branding / identity ----------
     $logoPath = public_path('images/site-logo.png');
     $logoData = file_exists($logoPath)
@@ -175,6 +205,33 @@
     .compare-table tr.emphasis td { background:#fff4e6; font-weight:700; border-top:1.5px solid #8b0a0a; }
 
     .legal { font-size:8.5px; color:#4b5563; margin-top:8px; line-height:1.4; }
+
+    /* Allocation Group Totals summary block (above Line-Item Breakdown) */
+    .alloc-totals { width:100%; border-collapse:collapse; margin-bottom:14px; border:1px solid #e5e7eb; border-radius:4px; overflow:hidden; }
+    .alloc-totals th { background:#1f2937; color:#fff; padding:8px 12px; font-size:10px; text-align:left; text-transform:uppercase; letter-spacing:.4px; }
+    .alloc-totals th.right { text-align:right; }
+    .alloc-totals td { padding:9px 12px; border-bottom:1px solid #f1f5f9; font-size:10.5px; vertical-align:top; }
+    .alloc-totals td.amount { text-align:right; font-family:"DejaVu Sans Mono", monospace; white-space:nowrap; width:120px; }
+    .alloc-totals td.pct { text-align:right; font-family:"DejaVu Sans Mono", monospace; color:#6b7280; white-space:nowrap; width:70px; }
+    .alloc-totals .group-name { font-weight:700; color:#1f2937; }
+    .alloc-totals .group-desc { display:block; font-size:9.5px; color:#6b7280; font-weight:400; margin-top:1px; }
+    .alloc-totals tr.total td { background:#eef2ff; font-weight:800; border-top:1.5px solid #1f2937; border-bottom:0; color:#1f2937; }
+    .alloc-totals tr.total td.amount { color:#1d4ed8; font-size:13px; }
+
+    /* Line-Item Breakdown */
+    .line-group { margin-bottom:14px; border:1px solid #e5e7eb; border-radius:4px; overflow:hidden; }
+    .line-group-head {
+        background:#1f2937; color:#fff; padding:8px 12px; font-size:11px; font-weight:700;
+    }
+    .line-group-head .group-totals { float:right; font-weight:600; opacity:.9; }
+    .line-group-head .group-desc { display:block; font-size:9px; opacity:.7; font-weight:400; margin-top:2px; }
+    .line-table { width:100%; border-collapse:collapse; }
+    .line-table td { padding:5px 12px; border-bottom:1px solid #f1f5f9; font-size:10.5px; }
+    .line-table tr:last-child td { border-bottom:0; }
+    .line-table td.dot { width:14px; }
+    .line-table td.amount { text-align:right; font-family:"DejaVu Sans Mono", monospace; width:120px; }
+    .line-table td.pct { text-align:right; font-family:"DejaVu Sans Mono", monospace; color:#6b7280; width:70px; }
+    .line-dot { display:inline-block; width:10px; height:10px; border-radius:50%; }
 
     /* Page 3 components */
     .components-grid { display:table; width:100%; border-spacing:18px 0; }
@@ -359,6 +416,86 @@
     </div>
 
     <div class="footer-info" style="margin-top:8px;font-size:10px;">
+        <div class="approved">"CFO Tested. CFO Approved"</div>
+        <div>(470) 633-2816 | info@getasecurityquote.com | getasecurityquotenow.com</div>
+    </div>
+</div>
+
+{{-- ============ PAGE 2: LINE-ITEM BILL RATE BREAKDOWN ============ --}}
+<div class="page">
+    <div class="brand-bar">
+        @if($logoData)
+            <img src="{{ $logoData }}" alt="GASQ" style="height:36px;">
+        @else
+            <div style="font-size:18px;font-weight:900;letter-spacing:2px;color:#1f2937;">GASQ</div>
+        @endif
+    </div>
+
+    <h1 class="title" style="font-size:15px;margin:6px 0 4px;">Bill Rate — Allocation &amp; Line-Item Breakdown</h1>
+    <div style="text-align:center;color:#8b0a0a;font-weight:700;font-size:10px;margin-bottom:2px;">
+        Vendor ID: V{{ (int) ($vendorId ?? 0) }} · Report #: {{ $reportNumber }}
+    </div>
+    <p style="text-align:center;color:#4b5563;font-size:9.5px;margin:0 0 10px;">
+        Every cost component contributing to the {{ $money($totalBudget) }} total contract value.
+    </p>
+
+    {{-- Allocation Group Totals — 4 groups with description + $ + % --}}
+    <table class="alloc-totals">
+        <thead>
+            <tr>
+                <th>Allocation Group Totals</th>
+                <th class="right">Amount</th>
+                <th class="right">% of Budget</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($lineGroups as $group)
+                <tr>
+                    <td>
+                        <span class="group-name">{{ $group['label'] }}</span>
+                        @if(! empty($group['description']))
+                            <span class="group-desc">{{ $group['description'] }}</span>
+                        @endif
+                    </td>
+                    <td class="amount">{{ $money($group['amount']) }}</td>
+                    <td class="pct">{{ number_format($group['pct'], 2) }}%</td>
+                </tr>
+            @endforeach
+            <tr class="total">
+                <td>Total Contract / Budget Value <span class="group-desc">Sum of all allocation groups · auto-calculated</span></td>
+                <td class="amount">{{ $money($totalBudget) }}</td>
+                <td class="pct">100%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#1f2937;margin:14px 0 8px;border-bottom:1.5px solid #1f2937;padding-bottom:3px;">
+        Line-Item Breakdown
+    </h2>
+
+    @foreach($lineGroups as $group)
+        <div class="line-group">
+            <div class="line-group-head">
+                {{ $group['label'] }}
+                <span class="group-totals">{{ $money($group['amount']) }} · {{ number_format($group['pct'], 2) }}%</span>
+                @if(! empty($group['description']))
+                    <span class="group-desc">{{ $group['description'] }}</span>
+                @endif
+            </div>
+            <table class="line-table">
+                @foreach($group['items'] as $item)
+                    <tr>
+                        <td class="dot"><span class="line-dot" style="background:{{ $item['color'] }};"></span></td>
+                        <td>{{ $item['label'] }}</td>
+                        <td class="amount">{{ $money($item['amount']) }}</td>
+                        <td class="pct">{{ number_format($item['pct'], 2) }}%</td>
+                    </tr>
+                @endforeach
+            </table>
+        </div>
+    @endforeach
+
+    <div class="footer-info" style="margin-top:8px;">
         <div class="approved">"CFO Tested. CFO Approved"</div>
         <div>(470) 633-2816 | info@getasecurityquote.com | getasecurityquotenow.com</div>
     </div>

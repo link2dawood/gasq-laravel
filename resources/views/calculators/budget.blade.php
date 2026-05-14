@@ -136,7 +136,7 @@
             <label class="form-label fw-medium">Derived Annual Budget ($)</label>
             <div class="input-group">
               <span class="input-group-text fs-5 fw-semibold">$</span>
-              <input type="number" id="bg_total" class="form-control fs-5 fw-semibold" value="0" step="1000" readonly>
+              <input type="text" id="bg_total" class="form-control fs-5 fw-semibold" value="0.00" readonly>
             </div>
           </div>
 
@@ -594,7 +594,10 @@ function calcBudget() {
   });
 
   const totalEl = document.getElementById('bg_total');
-  if (totalEl) totalEl.value = total.toFixed(2);
+  if (totalEl) {
+    // Format with comma thousands separators — e.g. 962742.86 → "962,742.86"
+    totalEl.value = total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   // Side-by-side comparison: Buyer (left, red) vs Vendor (right, green) + Capital Recovery callout.
   const capitalRecoveryPerHour = internalTcoHourly - vendorTcoHourly;
@@ -836,7 +839,9 @@ function resetBudget() {
   if (hoursEl) hoursEl.value = DEFAULT_ANNUAL_BILLABLE_HOURS;
 
   const totalEl = document.getElementById('bg_total');
-  if (totalEl) totalEl.value = DEFAULT_TOTAL.toFixed(2);
+  if (totalEl) {
+    totalEl.value = Number(DEFAULT_TOTAL).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   Object.entries(DEFAULTS).forEach(([id, value]) => {
     const el = document.getElementById(id);

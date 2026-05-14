@@ -16,20 +16,25 @@
             <li><hr class="dropdown-divider my-0"></li>
             <li class="px-3 py-3 small text-gasq-muted">Buyers start in the Instant Estimator. The rest of the calculator suite is reserved for vendor access.</li>
         @else
-            <li><hr class="dropdown-divider my-0"></li>
-            <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Core (V24 tools)</h6></li>
-            <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Main Menu Calculator</a></li>
-            <li><a class="dropdown-item" href="{{ route('master-inputs.index') }}"><i class="fa fa-sliders me-2"></i>Master Inputs</a></li>
+            {{-- Beta: only the four vendor-facing calculators below are exposed.
+                 The rest are intentionally hidden until after beta — un-comment to restore. --}}
 
             <li><hr class="dropdown-divider my-0"></li>
             <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Rates &amp; labor</h6></li>
-            <li><a class="dropdown-item" href="{{ route('economic-justification.index') }}"><i class="fa fa-chart-line me-2"></i>Economic Justification</a></li>
             <li><a class="dropdown-item" href="{{ route('budget-calculator.index') }}"><i class="fa fa-piggy-bank me-2"></i>Workforce Calculator</a></li>
 
             <li><hr class="dropdown-divider my-0"></li>
             <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Patrol</h6></li>
             <li><a class="dropdown-item" href="{{ route('mobile-patrol-calculator') }}"><i class="fa fa-car me-2"></i>Mobile Patrol Calculator</a></li>
             <li><a class="dropdown-item" href="{{ route('mobile-patrol-hit-calculator.index') }}"><i class="fa fa-bullseye me-2"></i>Mobile Patrol Hit Calculator</a></li>
+
+            {{-- ===== HIDDEN DURING BETA — RESTORE AFTER LAUNCH =====
+            <li><hr class="dropdown-divider my-0"></li>
+            <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Core (V24 tools)</h6></li>
+            <li><a class="dropdown-item" href="{{ route('main-menu-calculator.index') }}"><i class="fa fa-calculator me-2"></i>Main Menu Calculator</a></li>
+            <li><a class="dropdown-item" href="{{ route('master-inputs.index') }}"><i class="fa fa-sliders me-2"></i>Master Inputs</a></li>
+
+            <li><a class="dropdown-item" href="{{ route('economic-justification.index') }}"><i class="fa fa-chart-line me-2"></i>Economic Justification</a></li>
 
             <li><hr class="dropdown-divider my-0"></li>
             <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Full TCO suite (app)</h6></li>
@@ -42,9 +47,7 @@
             <li><a class="dropdown-item" href="{{ route('post-position-summary.index') }}"><i class="fa fa-user-shield me-2"></i>Post Position Summary</a></li>
             <li><a class="dropdown-item" href="{{ route('appraisal-comparison-summary.index') }}"><i class="fa fa-balance-scale me-2"></i>Appraisal Comparison Summary</a></li>
             <li><a class="dropdown-item" href="{{ route('gasq-direct-labor-build-up.index') }}"><i class="fa fa-layer-group me-2"></i>Direct Labor Build-Up</a></li>
-            <li><hr class="dropdown-divider my-0"></li>
-            <li><h6 class="dropdown-header small text-uppercase text-gasq-muted mb-0 py-2 px-3">Services &amp; pricing</h6></li>
-            <li class="px-3 py-3 small text-gasq-muted">Additional service/pricing tools are currently hidden.</li>
+            ===== END HIDDEN BLOCK ===== --}}
         @endif
     </ul>
 </li>
