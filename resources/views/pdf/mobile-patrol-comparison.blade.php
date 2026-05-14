@@ -1,31 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>GASQ Mobile Patrol Comparison Report</title>
-    <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #333; padding: 24px; }
-        h1 { font-size: 18px; margin-bottom: 4px; }
-        .meta { color: #666; margin-bottom: 20px; font-size: 10px; }
-        table { width: 100%; max-width: 360px; border-collapse: collapse; margin-top: 16px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
-        th { font-weight: bold; }
-        .footer { margin-top: 32px; font-size: 10px; color: #888; }
-    </style>
-</head>
-<body>
-    <h1>GASQ Mobile Patrol Comparison</h1>
-    <p class="meta">Report generated {{ $generatedAt ?? now()->format('M j, Y g:i A') }}</p>
+@php
+    $r = $result ?? [];
+    $scenarioA = (float) ($r['scenario_a_annual'] ?? 0);
+    $scenarioB = (float) ($r['scenario_b_annual'] ?? 0);
+    $savings = (float) ($r['savings'] ?? 0);
+    $savingsPct = (float) ($r['savings_percent'] ?? 0);
 
-    <h2 style="font-size: 14px; margin-top: 16px;">Comparison result</h2>
-    @php $r = $result ?? []; @endphp
-    <table>
-        <tr><th>Scenario A annual</th><td>${{ number_format($r['scenario_a_annual'] ?? 0, 2) }}</td></tr>
-        <tr><th>Scenario B annual</th><td>${{ number_format($r['scenario_b_annual'] ?? 0, 2) }}</td></tr>
-        <tr><th>Savings (B vs A)</th><td>${{ number_format($r['savings'] ?? 0, 2) }}</td></tr>
-        <tr><th>Savings %</th><td>{{ number_format($r['savings_percent'] ?? 0, 1) }}%</td></tr>
-    </table>
+    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-MPC' . str_pad((string) (rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
+    $money = fn ($v) => '$' . number_format((float) $v, 2);
+    $moneyK = fn ($v) => '$' . number_format((float) $v, 0);
+@endphp
 
-    <p class="footer">GASQ Security Calculator – Mobile Patrol Comparison Report</p>
-</body>
-</html>
+@extends('pdf.layouts.gasq-report', [
+    'title' => 'GASQ Mobile Patrol Comparison',
+    'subtitle' => 'Scenario A vs Scenario B · Annual Cost',
+    'reportNumber' => $reportNumber,
+    'reportType' => 'Vendor — Comparison Report',
+    'contactName' => $user?->name ?? null,
+    'contactCompany' => $user?->company ?? null,
+    'contactEmail' => $user?->email ?? null,
+    'contactPhone' => $user?->phone ?? null,
+])
+
+@section('stat_grid')
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="33%" class="stat-grid-label"><p>Scenario A — Annual</p></td>
+    <td width="34%" class="stat-grid-label"><p>Scenario B — Annual</p></td>
+    <td width="33%" class="stat-grid-label last"><p>Savings (B vs A)</p></td>
+  </tr>
+  <tr>
+    <td class="stat-grid-value bg-blue">
+      <p class="num">{{ $moneyK($scenarioA) }}</p>
+      <p class="sub">baseline scenario</p>
+    </td>
+    <td class="stat-grid-value bg-purple">
+      <p class="num">{{ $moneyK($scenarioB) }}</p>
+      <p class="sub">alternative scenario</p>
+    </td>
+    <td class="stat-grid-value bg-green last">
+      <p class="num">{{ $moneyK($savings) }}</p>
+      <p class="sub">{{ number_format($savingsPct, 1) }}% improvement</p>
+    </td>
+  </tr>
+</table>
+@endsection
+
+@section('content')
+
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Comparison Result</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  <tr><td>Scenario A Annual Cost</td><td class="v">{{ $money($scenarioA) }}</td></tr>
+  <tr class="alt"><td>Scenario B Annual Cost</td><td class="v">{{ $money($scenarioB) }}</td></tr>
+  <tr><td>Savings (B vs A)</td><td class="v">{{ $money($savings) }}</td></tr>
+  <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Savings %</td><td class="v" style="color:#1e3558;">{{ number_format($savingsPct, 1) }}%</td></tr>
+</table>
+
+@endsection

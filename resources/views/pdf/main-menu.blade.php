@@ -1,33 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>GASQ Main Menu Calculator Report</title>
-    <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #333; padding: 24px; }
-        h1 { font-size: 18px; margin-bottom: 4px; }
-        .meta { color: #666; margin-bottom: 20px; font-size: 10px; }
-        table { width: 100%; max-width: 360px; border-collapse: collapse; margin-top: 16px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
-        th { font-weight: bold; }
-        .footer { margin-top: 32px; font-size: 10px; color: #888; }
-    </style>
-</head>
-<body>
-    <h1>GASQ Main Menu Calculator</h1>
-    <p class="meta">Report generated {{ isset($generatedAt) ? $generatedAt : now()->format('M j, Y g:i A') }}</p>
+@php
+    $res = $result ?? [];
+    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-MM' . str_pad((string) (rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
+@endphp
 
-    <h2 style="font-size: 14px; margin-top: 16px;">Result</h2>
-    <table>
-        @php $res = $result ?? []; @endphp
-        @foreach($res as $key => $val)
-        <tr>
-            <th>{{ str_replace('_', ' ', ucfirst($key)) }}</th>
-            <td>@if(is_numeric($val) && str_contains((string)$val, '.')){{ number_format((float)$val, 2) }}@else{{ $val }}@endif</td>
-        </tr>
-        @endforeach
-    </table>
+@extends('pdf.layouts.gasq-report', [
+    'title' => 'GASQ Main Menu Calculator Report',
+    'subtitle' => 'Workforce + Cost Snapshot',
+    'reportNumber' => $reportNumber,
+    'reportType' => 'Vendor — Main Menu Report',
+    'contactName' => $user?->name ?? null,
+    'contactCompany' => $user?->company ?? null,
+    'contactEmail' => $user?->email ?? null,
+    'contactPhone' => $user?->phone ?? null,
+])
 
-    <p class="footer">GASQ Security Calculator – Main Menu Report</p>
-</body>
-</html>
+@section('content')
+
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Result Summary</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  @foreach($res as $key => $val)
+    <tr class="{{ $loop->iteration % 2 === 0 ? 'alt' : '' }}">
+      <td>{{ str_replace('_', ' ', ucfirst((string) $key)) }}</td>
+      <td class="v">
+        @if(is_array($val))
+          {{ implode(', ', array_map(fn($v) => (string) $v, $val)) }}
+        @elseif(is_numeric($val) && str_contains((string) $val, '.'))
+          {{ number_format((float) $val, 2) }}
+        @else
+          {{ $val }}
+        @endif
+      </td>
+    </tr>
+  @endforeach
+</table>
+
+@endsection

@@ -5,7 +5,7 @@
     $buyer = $job?->user;
 
     $sections = [
-        'Part 1 — Section A: Vendor Submission Compliance' => [
+        'Part 1 — Vendor Submission Compliance' => [
             'p1_q1_legal_name' => 'Company Legal Name',
             'p1_q1_address' => 'Business Physical Address',
             'p1_q2_dba' => 'DBA',
@@ -28,12 +28,12 @@
             'p1_q16_scope_reviewed' => 'Scope reviewed',
             'p1_q17_terms_agreed' => 'Terms agreed',
         ],
-        'Part 1 — Section B: Pricing Responsiveness' => [
+        'Part 1 — Pricing Responsiveness' => [
             'p1_q18_pricing_accepted' => 'Accepts proposed pricing',
             'p1_q19_schedule_accepted' => 'Accepts proposed schedule',
             'p1_q20_pricing_sustainable' => 'Pricing sustainable',
         ],
-        'Part 2 — Section A: Operational Capacity' => [
+        'Part 2 — Operational Capacity' => [
             'p2_q1_active_personnel' => 'Active security personnel',
             'p2_q2_supervisors' => 'Supervisors',
             'p2_q3_active_accounts' => 'Active accounts',
@@ -45,7 +45,7 @@
             'p2_q9_after_hours_supervisors' => 'After-hours supervisors',
             'p2_q10_emergency_replacement' => 'Emergency replacement personnel',
         ],
-        'Part 2 — Section B: Workforce Sustainment' => [
+        'Part 2 — Workforce Sustainment' => [
             'p2_q11_no_excessive_overtime' => 'No excessive OT',
             'p2_q12_turnover_pct' => 'Turnover (%)',
             'p2_q13_retention_months' => 'Retention (months)',
@@ -54,7 +54,7 @@
             'p2_q16_background_checks' => 'Background checks',
             'p2_q17_sops_post_orders' => 'SOPs / post orders',
         ],
-        'Part 2 — Section C: Financial Responsibility' => [
+        'Part 2 — Financial Responsibility' => [
             'p2_q18_payroll_30_45' => 'Payroll sustainable 30–45 days',
             'p2_q19_failed_payroll' => 'Ever failed payroll',
             'p2_q20_lost_contract_staffing' => 'Ever lost contract for staffing',
@@ -62,7 +62,7 @@
             'p2_q22_negligent_security_litigation' => 'Negligent security litigation',
             'p2_q23_license_suspended' => 'License suspended/revoked',
         ],
-        'Part 2 — Section D: Performance & Integrity' => [
+        'Part 2 — Performance & Integrity' => [
             'p2_q24_three_references' => '3 client references',
             'p2_q25_past_performance' => 'Proof of past performance',
         ],
@@ -73,104 +73,93 @@
         if ($val === null || $val === '') return '—';
         return $val;
     };
+
+    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-VQ' . str_pad((string) $questionnaire->id, 4, '0', STR_PAD_LEFT);
 @endphp
 
-@extends('pdf.layouts.gasq-base', [
-    'title' => 'Vendor Qualification Packet',
-    'subtitle' => 'GASQ Responsive & Responsible Vendor Verification',
-    'preparedFor' => $buyer?->name . ($buyer?->company ? ' — ' . $buyer->company : ''),
-    'preparedBy' => $vendor?->name . ($vendor?->company ? ' — ' . $vendor->company : ''),
-    'reportDate' => $questionnaire->submitted_at?->format('F j, Y'),
-    'referenceNumber' => 'VQ-' . str_pad((string) $questionnaire->id, 6, '0', STR_PAD_LEFT),
+@extends('pdf.layouts.gasq-report', [
+    'title' => 'GASQ Vendor Qualification Packet',
+    'subtitle' => 'Responsive & Responsible Vendor Verification',
+    'reportNumber' => $reportNumber,
+    'reportType' => 'Buyer-Facing Qualification',
+    'contactName' => $vendor?->name,
+    'contactCompany' => $vendor?->company ?? $vendor?->vendorProfile?->company_name,
+    'contactEmail' => $vendor?->email,
+    'contactPhone' => $vendor?->phone,
 ])
 
-@section('cover_summary')
-    <div class="badge-row">
-        <span class="badge {{ $questionnaire->is_responsive ? 'ok' : 'warn' }}">
-            {{ $questionnaire->is_responsive ? '✓ RESPONSIVE' : 'NON-RESPONSIVE' }}
-        </span>
-        <span class="badge {{ $questionnaire->is_responsible ? 'ok' : 'warn' }}">
-            {{ $questionnaire->is_responsible ? '✓ RESPONSIBLE' : 'NON-RESPONSIBLE' }}
-        </span>
-    </div>
-
-    <p style="margin-top:18px;">
-        <strong>{{ $vendor?->name ?? 'The vendor' }}</strong>@if($vendor?->company) ({{ $vendor->company }})@endif has completed the GASQ Vendor Qualification Questionnaire for
-        <strong>"{{ $job?->title ?? 'this engagement' }}"</strong>{{ $job?->location ? ' in ' . $job->location : '' }}.
-    </p>
-
-    <p>
-        This packet contains the vendor's full set of compliance, operational capacity, workforce sustainment, financial responsibility, and performance responses, along with their uploaded supporting documents.
-    </p>
-
-    <h3 style="margin-top:24px;">At a glance</h3>
-    <table class="kv-table" style="margin-top:6px;">
-        <tr>
-            <td class="label">Years in business</td>
-            <td><strong>{{ $fmt($r['p2_q7_years_in_business'] ?? null) }}</strong></td>
-        </tr>
-        <tr>
-            <td class="label">Active security personnel</td>
-            <td><strong>{{ $fmt($r['p2_q1_active_personnel'] ?? null) }}</strong></td>
-        </tr>
-        <tr>
-            <td class="label">Active client accounts</td>
-            <td><strong>{{ $fmt($r['p2_q3_active_accounts'] ?? null) }}</strong></td>
-        </tr>
-        <tr>
-            <td class="label">24/7 dispatch</td>
-            <td><strong>{{ strtoupper((string) ($r['p2_q8_dispatch_24_7'] ?? '—')) }}</strong></td>
-        </tr>
-        <tr>
-            <td class="label">Insurances on file</td>
-            <td>
-                @php $ins = is_array($r['p2_q21_insurances'] ?? null) ? $r['p2_q21_insurances'] : []; @endphp
-                {{ count($ins) > 0 ? implode(', ', $ins) : '—' }}
-            </td>
-        </tr>
-        <tr>
-            <td class="label">Documents uploaded</td>
-            <td><strong>{{ $questionnaire->documents->count() }} of {{ count($documentTypes) }}</strong></td>
-        </tr>
-    </table>
-
-    <div class="gasq-protection-block">
-        <h3>GASQ Protections</h3>
-        <p class="small" style="margin:0;">
-            This engagement is backed by the GASQ <strong>Price Lock Guarantee</strong> — your approved pricing is locked through the engagement — and the <strong>Vendor Replacement Guarantee</strong> — if the selected vendor fails to perform, GASQ steps in to replace them at the same or higher service level.
-        </p>
-    </div>
+@section('stat_grid')
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="33%" class="stat-grid-label"><p>Responsive Status</p></td>
+    <td width="34%" class="stat-grid-label"><p>Responsible Status</p></td>
+    <td width="33%" class="stat-grid-label last"><p>Documents Uploaded</p></td>
+  </tr>
+  <tr>
+    <td class="stat-grid-value {{ $questionnaire->is_responsive ? 'bg-green' : 'bg-pink' }}">
+      <p class="num" style="font-size:24px;">{{ $questionnaire->is_responsive ? '✓ Responsive' : 'Non-Responsive' }}</p>
+      <p class="sub">Submission compliance + pricing</p>
+    </td>
+    <td class="stat-grid-value {{ $questionnaire->is_responsible ? 'bg-green' : 'bg-pink' }}">
+      <p class="num" style="font-size:24px;">{{ $questionnaire->is_responsible ? '✓ Responsible' : 'Non-Responsible' }}</p>
+      <p class="sub">Capacity, financial, performance</p>
+    </td>
+    <td class="stat-grid-value bg-blue last">
+      <p class="num">{{ $questionnaire->documents->count() }} / {{ count($documentTypes) }}</p>
+      <p class="sub">required documents on file</p>
+    </td>
+  </tr>
+</table>
 @endsection
 
 @section('content')
 
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Engagement Context</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  <tr><td>Buyer / Job</td><td class="v">{{ $buyer?->name ?? '—' }} · {{ $job?->title ?? '—' }}</td></tr>
+  <tr class="alt"><td>Years in Business</td><td class="v">{{ $fmt($r['p2_q7_years_in_business'] ?? null) }}</td></tr>
+  <tr><td>Active Security Personnel</td><td class="v">{{ $fmt($r['p2_q1_active_personnel'] ?? null) }}</td></tr>
+  <tr class="alt"><td>Active Client Accounts</td><td class="v">{{ $fmt($r['p2_q3_active_accounts'] ?? null) }}</td></tr>
+  <tr><td>24/7 Dispatch</td><td class="v">{{ strtoupper((string) ($r['p2_q8_dispatch_24_7'] ?? '—')) }}</td></tr>
+  <tr class="alt">
+    <td>Insurances on File</td>
+    <td class="v">@php $ins = is_array($r['p2_q21_insurances'] ?? null) ? $r['p2_q21_insurances'] : []; @endphp{{ count($ins) > 0 ? implode(', ', $ins) : '—' }}</td>
+  </tr>
+  <tr><td>Submitted</td><td class="v">{{ $questionnaire->submitted_at?->format('M j, Y g:i A') ?? '—' }}</td></tr>
+</table>
+
 @foreach($sections as $heading => $fields)
-    <h2>{{ $heading }}</h2>
-    <table>
-        @foreach($fields as $key => $label)
-            <tr>
-                <td class="label">{{ $label }}</td>
-                <td><strong>{{ $fmt($r[$key] ?? null) }}</strong></td>
-            </tr>
-        @endforeach
-    </table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>{{ $heading }}</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  @foreach($fields as $key => $label)
+    <tr class="{{ $loop->iteration % 2 === 0 ? 'alt' : '' }}">
+      <td>{{ $label }}</td>
+      <td class="v">{{ $fmt($r[$key] ?? null) }}</td>
+    </tr>
+  @endforeach
+</table>
 @endforeach
 
-<h2>Uploaded Documents</h2>
-<table>
-    <thead>
-        <tr><th>Document type</th><th>File</th></tr>
-    </thead>
-    <tbody>
-        @forelse($questionnaire->documents as $doc)
-            <tr>
-                <td class="label">{{ $documentTypes[$doc->document_type] ?? $doc->document_type }}</td>
-                <td>{{ $doc->fileUpload?->filename ?? '—' }}</td>
-            </tr>
-        @empty
-            <tr><td colspan="2" class="muted">No documents uploaded.</td></tr>
-        @endforelse
-    </tbody>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Uploaded Documents</p></td></tr>
 </table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  @forelse($questionnaire->documents as $doc)
+    <tr class="{{ $loop->iteration % 2 === 0 ? 'alt' : '' }}">
+      <td>{{ $documentTypes[$doc->document_type] ?? $doc->document_type }}</td>
+      <td class="v" style="font-weight:normal; color:#374151;">{{ $doc->fileUpload?->filename ?? '—' }}</td>
+    </tr>
+  @empty
+    <tr><td colspan="2" style="color:#6b7280;">No documents uploaded.</td></tr>
+  @endforelse
+</table>
+
+<p class="gasq-note">
+    This packet is generated by the GASQ Workforce-to-Post™ Qualification System. All figures, qualifications, and verifications reflect the data captured at the time of submission. Backed by the GASQ Price Lock Guarantee and Vendor Replacement Guarantee.
+</p>
 
 @endsection

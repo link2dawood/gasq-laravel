@@ -8,103 +8,101 @@
     $serviceLabel = $snap['service_label'] ?? ($job?->category ?? 'Security services');
     $location = $snap['location'] ?? ($job?->location ?? '');
 
-    // Surface a headline number for the cover (best-effort).
+    // Headline total
     $headlineLabel = null;
     $headlineValue = null;
     foreach ($totals as $row) {
         if (in_array(strtolower($row['label'] ?? ''), ['total', 'annual total', 'total annual cost', 'grand total'], true)) {
-            $headlineLabel = $row['label'];
-            $headlineValue = $row['value'];
-            break;
+            $headlineLabel = $row['label']; $headlineValue = $row['value']; break;
         }
     }
     if ($headlineValue === null && ! empty($totals)) {
-        $headlineLabel = $totals[count($totals) - 1]['label'] ?? null;
-        $headlineValue = $totals[count($totals) - 1]['value'] ?? null;
+        $last = end($totals);
+        $headlineLabel = $last['label'] ?? null;
+        $headlineValue = $last['value'] ?? null;
     }
+
+    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-VE' . str_pad((string) $submission->id, 4, '0', STR_PAD_LEFT);
 @endphp
 
-@extends('pdf.layouts.gasq-base', [
-    'title' => 'Vendor Estimate',
+@extends('pdf.layouts.gasq-report', [
+    'title' => 'GASQ Vendor Estimate',
     'subtitle' => $serviceLabel . ($location ? ' · ' . $location : ''),
-    'preparedFor' => ($buyer?->name ?? '') . ($buyer?->company ? ' — ' . $buyer->company : ''),
-    'preparedBy' => ($vendor?->name ?? '') . ($vendor?->company ? ' — ' . $vendor->company : ''),
-    'reportDate' => $submission->created_at?->format('F j, Y'),
-    'referenceNumber' => 'VE-' . str_pad((string) $submission->id, 6, '0', STR_PAD_LEFT),
+    'reportNumber' => $reportNumber,
+    'reportType' => 'Buyer-Facing Estimate',
+    'contactName' => $vendor?->name,
+    'contactCompany' => $vendor?->company ?? $vendor?->vendorProfile?->company_name,
+    'contactEmail' => $vendor?->email,
+    'contactPhone' => $vendor?->phone,
 ])
 
-@section('cover_summary')
-
+@section('stat_grid')
 @if($headlineValue !== null)
-    <div class="exec-grid">
-        <div class="exec-cell" style="width:100%;">
-            <div class="label">{{ $headlineLabel ?? 'Estimate Total' }}</div>
-            <div class="value">{{ $headlineValue }}</div>
-        </div>
-    </div>
-@endif
-
-<p style="margin-top:18px;">
-    <strong>{{ $vendor?->name ?? 'The vendor' }}</strong>@if($vendor?->company) ({{ $vendor->company }})@endif has prepared the following estimate for <strong>"{{ $job?->title ?? 'your project' }}"</strong>.
-</p>
-
-@if(!empty($totals))
-<h3 style="margin-top:22px;">Summary totals</h3>
-<table class="kv-table">
-    @foreach($totals as $row)
-        <tr>
-            <td class="label">{{ $row['label'] ?? '' }}</td>
-            <td><strong>{{ $row['value'] ?? '' }}</strong></td>
-        </tr>
-    @endforeach
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td class="stat-grid-label last"><p>{{ $headlineLabel ?? 'Estimate Total' }}</p></td>
+  </tr>
+  <tr>
+    <td class="stat-grid-value bg-blue last">
+      <p class="num">{{ $headlineValue }}</p>
+      <p class="sub">submitted {{ $submission->created_at?->format('M j, Y') }}</p>
+    </td>
+  </tr>
 </table>
 @endif
-
-<div class="gasq-protection-block">
-    <h3>GASQ Protections</h3>
-    <p class="small" style="margin:0;">
-        All estimates routed through GASQ are backed by the <strong>Price Lock Guarantee</strong> and <strong>Vendor Replacement Guarantee</strong>. Pricing here reflects the vendor's good-faith proposal at the time of submission.
-    </p>
-</div>
-
 @endsection
 
 @section('content')
 
-<h2>Cost breakdown</h2>
-@if(!empty($rows))
-    <table>
-        <thead>
-            <tr><th>Line item</th><th class="right">Amount</th></tr>
-        </thead>
-        <tbody>
-            @foreach($rows as $row)
-                <tr>
-                    <td>{{ $row['label'] ?? '' }}</td>
-                    <td class="right mono">{{ $row['value'] ?? '' }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-@else
-    <p class="muted">No line items captured.</p>
-@endif
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Engagement</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  <tr><td>Prepared for</td><td class="v">{{ $buyer?->name ?? '—' }}{{ $buyer?->company ? ' · ' . $buyer->company : '' }}</td></tr>
+  <tr class="alt"><td>Job</td><td class="v">{{ $job?->title ?? '—' }}</td></tr>
+  @if($location)<tr><td>Location</td><td class="v">{{ $location }}</td></tr>@endif
+  <tr class="alt"><td>Service</td><td class="v">{{ $serviceLabel }}</td></tr>
+</table>
 
 @if(!empty($totals))
-<h2>Totals</h2>
-<table>
-    @foreach($totals as $row)
-        <tr class="emphasis">
-            <td>{{ $row['label'] ?? '' }}</td>
-            <td class="right mono"><strong>{{ $row['value'] ?? '' }}</strong></td>
-        </tr>
-    @endforeach
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Summary Totals</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  @foreach($totals as $i => $row)
+    <tr class="{{ $i % 2 === 1 ? 'alt' : '' }}">
+      <td>{{ $row['label'] ?? '' }}</td>
+      <td class="v">{{ $row['value'] ?? '' }}</td>
+    </tr>
+  @endforeach
+</table>
+@endif
+
+@if(!empty($rows))
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Cost Breakdown</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  @foreach($rows as $i => $row)
+    <tr class="{{ $i % 2 === 1 ? 'alt' : '' }}">
+      <td>{{ $row['label'] ?? '' }}</td>
+      <td class="v">{{ $row['value'] ?? '' }}</td>
+    </tr>
+  @endforeach
 </table>
 @endif
 
 @if(!empty($snap['notes']))
-<h2>Vendor notes</h2>
-<p>{{ $snap['notes'] }}</p>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Vendor Notes</p></td></tr>
+</table>
+<div style="border:1px solid #d8dff0; border-top:none; padding:11px 16px; font-size:10.5px; color:#374151; line-height:1.5;">
+  {{ $snap['notes'] }}
+</div>
 @endif
+
+<p class="gasq-note">
+    All estimates routed through GASQ are backed by the <strong>Price Lock Guarantee</strong> and <strong>Vendor Replacement Guarantee</strong>. Pricing here reflects the vendor's good-faith proposal at the time of submission.
+</p>
 
 @endsection
