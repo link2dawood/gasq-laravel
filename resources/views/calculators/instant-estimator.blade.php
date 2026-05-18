@@ -2068,6 +2068,10 @@ function unlockResults(choice, messageOverride = null, showContinueToJob = choic
 
 async function prepareJobDraftFromEstimator() {
     const state = collectState();
+    const calcResults = computeResults(state);
+    const calculatedAnnual = Number.isFinite(calcResults.outsourcedAnnual) ? Math.round(calcResults.outsourcedAnnual * 100) / 100 : 0;
+    const calculatedMonthly = Number.isFinite(calcResults.outsourcedMonthly) ? Math.round(calcResults.outsourcedMonthly * 100) / 100 : 0;
+    const calculatedHourly = Number.isFinite(calcResults.outsourcedHourly) ? Math.round(calcResults.outsourcedHourly * 100) / 100 : 0;
     const response = await fetch(PREPARE_JOB_URL, {
         method: 'POST',
         headers: {
@@ -2096,7 +2100,10 @@ async function prepareJobDraftFromEstimator() {
             service_start_timeline: state.serviceStartTimeline,
             primary_reason: state.notes,
             notes: state.notes,
-            budget_amount_range: state.budgetAmount,
+            budget_amount_range: calculatedAnnual > 0 ? ('$' + calculatedAnnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : state.budgetAmount,
+            annual_budget: calculatedAnnual,
+            monthly_budget: calculatedMonthly,
+            hourly_budget: calculatedHourly,
             hours_per_day: state.hoursPerDay,
             days_per_week: state.daysPerWeek,
             weeks_per_year: state.weeks,

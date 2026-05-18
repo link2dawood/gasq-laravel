@@ -83,7 +83,11 @@ class JobPostingController extends Controller
         'service_package_expectation',
         'supporting_documents',
         'known_site_risks',
-        // Section 7: Budget and Offer Terms
+        // Section 7: Budget and Offer Terms (auto-filled from calculator prefill)
+        'hourly_budget',
+        'monthly_budget',
+        'annual_budget',
+        'budget_amount_range',
         // Section 8: Compliance Requirements
         'insurance_minimums_required',
         'compliance_terms',
@@ -164,6 +168,9 @@ class JobPostingController extends Controller
             'primary_reason' => ['nullable', 'string', 'max:4000'],
             'notes' => ['nullable', 'string', 'max:4000'],
             'budget_amount_range' => ['nullable', 'string', 'max:255'],
+            'annual_budget' => ['nullable', 'numeric', 'min:0'],
+            'monthly_budget' => ['nullable', 'numeric', 'min:0'],
+            'hourly_budget' => ['nullable', 'numeric', 'min:0'],
             'hours_per_day' => ['nullable', 'numeric', 'min:1', 'max:24'],
             'days_per_week' => ['nullable', 'integer', 'min:1', 'max:7'],
             'weeks_per_year' => ['nullable', 'integer', 'min:1', 'max:53'],
@@ -194,6 +201,9 @@ class JobPostingController extends Controller
             'service_start_timeline' => $data['service_start_timeline'] ?? null,
             'primary_reason' => $data['primary_reason'] ?? $data['notes'] ?? null,
             'budget_amount_range' => $data['budget_amount_range'] ?? null,
+            'annual_budget' => $data['annual_budget'] ?? null,
+            'monthly_budget' => $data['monthly_budget'] ?? null,
+            'hourly_budget' => $data['hourly_budget'] ?? null,
             'hours_per_day' => $data['hours_per_day'] ?? null,
             'days_per_week' => $data['days_per_week'] ?? null,
             'weeks_per_year' => $data['weeks_per_year'] ?? null,
@@ -599,6 +609,36 @@ class JobPostingController extends Controller
     {
         $payload = $data;
         $payload['user_id'] = $request->user()->id;
+
+        // Pull calculator-derived budget values from the estimator prefill so
+        // the buyer never has to re-enter them on the questionnaire.
+        $prefill = $this->estimatorPrefillSessionData();
+        foreach (['annual_budget', 'monthly_budget', 'hourly_budget', 'budget_amount_range'] as $budgetKey) {
+            if (! isset($payload[$budgetKey]) && isset($prefill[$budgetKey])) {
+                $payload[$budgetKey] = $prefill[$budgetKey];
+            }
+        }
+
+        $annualBudget = is_numeric($payload['annual_budget'] ?? null) ? (float) $payload['annual_budget'] : 0.0;
+        $monthlyBudget = is_numeric($payload['monthly_budget'] ?? null) ? (float) $payload['monthly_budget'] : 0.0;
+        $hourlyBudget = is_numeric($payload['hourly_budget'] ?? null) ? (float) $payload['hourly_budget'] : 0.0;
+
+        if ($annualBudget > 0) {
+            $payload['budget_min'] = $annualBudget;
+            $payload['budget_max'] = $annualBudget;
+        } elseif ($monthlyBudget > 0) {
+            $payload['budget_min'] = $monthlyBudget * 12;
+            $payload['budget_max'] = $monthlyBudget * 12;
+        } elseif ($hourlyBudget > 0 && is_numeric($payload['hours_per_day'] ?? null)
+            && is_numeric($payload['days_per_week'] ?? null)
+            && is_numeric($payload['weeks_per_year'] ?? null)) {
+            $annualHours = (float) $payload['hours_per_day'] * (float) $payload['days_per_week'] * (float) $payload['weeks_per_year'];
+            if ($annualHours > 0) {
+                $payload['budget_min'] = $hourlyBudget * $annualHours;
+                $payload['budget_max'] = $hourlyBudget * $annualHours;
+            }
+        }
+
         $payload['questionnaire_data'] = $this->buildQuestionnaireData($payload, $request);
         $payload['status'] = 'open';
 

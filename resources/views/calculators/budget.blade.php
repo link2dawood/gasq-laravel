@@ -51,6 +51,9 @@
 @endphp
 
 @section('content')
+@php
+    $isBuyerView = auth()->check() && method_exists(auth()->user(), 'isBuyer') && auth()->user()->isBuyer();
+@endphp
 <div class="min-vh-100 py-4 px-3 px-md-4" style="background:var(--gasq-background)">
 <div class="container-xl">
 
@@ -140,6 +143,7 @@
             </div>
           </div>
 
+          @unless($isBuyerView)
           <hr class="my-1">
           <div>
             <h6 class="fw-semibold mb-1">Allocation Percentages</h6>
@@ -199,6 +203,7 @@
           <div class="alert alert-warning d-none py-2 mb-0" id="bg_warning" role="alert">
             <i class="fa fa-triangle-exclamation me-1"></i> Percentages should total 100%
           </div>
+          @endunless
 
         </div>
       </div>
@@ -313,6 +318,7 @@
             </div>
           </div>
 
+          @unless($isBuyerView)
           <h6 class="fw-semibold mb-3">Allocation Group Totals</h6>
           <div id="bg_group_summary" class="d-flex flex-column gap-2 mb-3"></div>
           <div class="d-flex justify-content-between align-items-center p-3 rounded mb-4"
@@ -335,6 +341,7 @@
             <div class="d-flex justify-content-between small mb-1"><span class="text-gasq-muted">Industry benchmark (labor)</span><span class="text-gasq-muted">55–70%</span></div>
             <div class="d-flex justify-content-between small"><span class="text-gasq-muted">Labor status</span><span id="ins_laborStatus" class="fw-medium">—</span></div>
           </div>
+          @endunless
         </div>
       </div>
     </div>
@@ -624,7 +631,7 @@ function calcBudget() {
   setText('bg_contract_total', fmt(groupSum));
 
   const groupSummary = document.getElementById('bg_group_summary');
-  groupSummary.innerHTML = groupStates.map((group) => `
+  if (groupSummary) groupSummary.innerHTML = groupStates.map((group) => `
     <div class="budget-group-summary-card d-flex justify-content-between align-items-center gap-3">
       <div>
         <div class="fw-semibold small">${group.label}</div>
@@ -638,7 +645,7 @@ function calcBudget() {
   `).join('');
 
   const breakdown = document.getElementById('bg_breakdown');
-  breakdown.innerHTML = groupStates.map((group) => {
+  if (breakdown) breakdown.innerHTML = groupStates.map((group) => {
     const visibleItems = group.items.filter((item) => item.pct > 0);
     const rows = visibleItems.length > 0
       ? visibleItems.map((item) => {
@@ -677,15 +684,17 @@ function calcBudget() {
   setText('ins_laborPct', fmtPct(laborPct));
 
   const laborStatus = document.getElementById('ins_laborStatus');
-  if (laborPct < 55) {
-    laborStatus.textContent = 'Below benchmark';
-    laborStatus.className = 'fw-medium text-warning';
-  } else if (laborPct > 70) {
-    laborStatus.textContent = 'Above benchmark';
-    laborStatus.className = 'fw-medium text-danger';
-  } else {
-    laborStatus.textContent = 'Within benchmark';
-    laborStatus.className = 'fw-medium text-success';
+  if (laborStatus) {
+    if (laborPct < 55) {
+      laborStatus.textContent = 'Below benchmark';
+      laborStatus.className = 'fw-medium text-warning';
+    } else if (laborPct > 70) {
+      laborStatus.textContent = 'Above benchmark';
+      laborStatus.className = 'fw-medium text-danger';
+    } else {
+      laborStatus.textContent = 'Within benchmark';
+      laborStatus.className = 'fw-medium text-success';
+    }
   }
 
   queueBudgetSync(total, allocationsPayload, governmentShouldCost, annualHours, {
