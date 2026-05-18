@@ -119,10 +119,6 @@ class StoreJobPostingRequest extends FormRequest
             'known_site_risks' => ['nullable', 'string', 'max:4000'],
 
             // SECTION 7: Budget and Offer Terms
-            'budget_format' => ['required', 'in:hourly_budget,monthly_budget,annual_budget,need_gasq_estimate'],
-            'hourly_budget' => ['nullable', 'numeric', 'min:0'],
-            'monthly_budget' => ['nullable', 'numeric', 'min:0'],
-            'annual_budget' => ['nullable', 'numeric', 'min:0'],
 
             // SECTION 8: Compliance Requirements
             'insurance_minimums_required' => ['required', 'array', 'min:1'],
@@ -171,19 +167,7 @@ class StoreJobPostingRequest extends FormRequest
                 $validator->errors()->add('locations_count', 'Please enter the number of locations requiring coverage.');
             }
 
-            $budgetFormat = $this->input('budget_format');
-            $budgetField = match ($budgetFormat) {
-                'hourly_budget' => 'hourly_budget',
-                'monthly_budget' => 'monthly_budget',
-                'annual_budget' => 'annual_budget',
-                default => null,
-            };
-
-            if ($budgetField !== null && ! $this->filled($budgetField)) {
-                $validator->errors()->add($budgetField, 'Enter a budget amount for the selected budget format.');
-            }
-
-            if ($this->input('property_type') === 'Other' && blank($this->input('property_type_other'))) {
+if ($this->input('property_type') === 'Other' && blank($this->input('property_type_other'))) {
                 $validator->errors()->add('property_type_other', 'Please specify the property type.');
             }
 

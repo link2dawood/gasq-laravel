@@ -84,10 +84,6 @@ class JobPostingController extends Controller
         'supporting_documents',
         'known_site_risks',
         // Section 7: Budget and Offer Terms
-        'budget_format',
-        'hourly_budget',
-        'monthly_budget',
-        'annual_budget',
         // Section 8: Compliance Requirements
         'insurance_minimums_required',
         'compliance_terms',
@@ -605,18 +601,6 @@ class JobPostingController extends Controller
         $payload['user_id'] = $request->user()->id;
         $payload['questionnaire_data'] = $this->buildQuestionnaireData($payload, $request);
         $payload['status'] = 'open';
-
-        $budgetFormat = (string) ($payload['budget_format'] ?? '');
-        if ($budgetFormat === 'hourly_budget') {
-            $payload['budget_min'] = $payload['hourly_budget'] ?? null;
-            $payload['budget_max'] = $payload['hourly_budget'] ?? null;
-        } elseif ($budgetFormat === 'monthly_budget') {
-            $payload['budget_min'] = $payload['monthly_budget'] ?? null;
-            $payload['budget_max'] = $payload['monthly_budget'] ?? null;
-        } elseif ($budgetFormat === 'annual_budget') {
-            $payload['budget_min'] = $payload['annual_budget'] ?? null;
-            $payload['budget_max'] = $payload['annual_budget'] ?? null;
-        }
 
         $payload['description'] = implode("\n", array_filter([
             'Primary reason: ' . ($payload['primary_reason'] ?? 'N/A'),

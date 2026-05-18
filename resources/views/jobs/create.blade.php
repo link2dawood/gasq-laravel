@@ -485,37 +485,6 @@
 
             <hr class="my-4">
 
-            <h5 class="mb-3">Section 7: Budget and Offer Terms</h5>
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Which budget format would you like to enter? <span class="text-danger">*</span></label>
-                    <select name="budget_format" id="budget_format" class="form-select @error('budget_format') is-invalid @enderror" required>
-                        <option value="hourly_budget" @selected(old('budget_format') === 'hourly_budget')>Hourly Budget</option>
-                        <option value="monthly_budget" @selected(old('budget_format') === 'monthly_budget')>Monthly Budget</option>
-                        <option value="annual_budget" @selected(old('budget_format') === 'annual_budget')>Annual Budget</option>
-                        <option value="need_gasq_estimate" @selected(old('budget_format') === 'need_gasq_estimate')>Need GASQ to help estimate</option>
-                    </select>
-                    @error('budget_format')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-3 mb-3" id="hourly_budget_wrap">
-                    <label class="form-label">Enter your target baseline hourly bill rate</label>
-                    <input type="number" step="0.01" min="0" name="hourly_budget" class="form-control @error('hourly_budget') is-invalid @enderror" value="{{ old('hourly_budget') }}">
-                    @error('hourly_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-3 mb-3" id="monthly_budget_wrap">
-                    <label class="form-label">Enter your approved monthly workforce budget</label>
-                    <input type="number" step="0.01" min="0" name="monthly_budget" class="form-control @error('monthly_budget') is-invalid @enderror" value="{{ old('monthly_budget') }}">
-                    @error('monthly_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-3 mb-3" id="annual_budget_wrap">
-                    <label class="form-label">Enter your approved annual workforce budget</label>
-                    <input type="number" step="0.01" min="0" name="annual_budget" class="form-control @error('annual_budget') is-invalid @enderror" value="{{ old('annual_budget') }}">
-                    @error('annual_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-            </div>
-
-            <hr class="my-4">
-
             <h5 class="mb-3">Section 8: Compliance Requirements</h5>
             <div class="row">
                 <div class="col-12 mb-3">
@@ -764,7 +733,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const finalDecisionMaker = document.getElementById('final_decision_maker');
         const multipleLocations = document.getElementById('multiple_locations');
         const propertyType = document.getElementById('property_type');
-        const budgetFormat = document.getElementById('budget_format');
 
         showWhen(starterServiceType && starterServiceType.value === 'Other', 'starter_service_type_other_wrap');
         showWhen(finalDecisionMaker && ['no', 'authorized_representative'].includes(finalDecisionMaker.value), 'final_approver_wrap');
@@ -772,13 +740,9 @@ document.addEventListener('DOMContentLoaded', function () {
         showWhen(propertyType && propertyType.value === 'Other', 'property_type_other_wrap');
         showWhen(selectedCheckboxValues('.service-type-checkbox').includes('Other'), 'service_type_other_wrap');
         showWhen(selectedCheckboxValues('.duty-checkbox').includes('Other'), 'duties_other_wrap');
-
-        showWhen(budgetFormat && budgetFormat.value === 'hourly_budget', 'hourly_budget_wrap');
-        showWhen(budgetFormat && budgetFormat.value === 'monthly_budget', 'monthly_budget_wrap');
-        showWhen(budgetFormat && budgetFormat.value === 'annual_budget', 'annual_budget_wrap');
     }
 
-    ['starter_service_type', 'final_decision_maker', 'multiple_locations', 'property_type', 'budget_format'].forEach(function (id) {
+    ['starter_service_type', 'final_decision_maker', 'multiple_locations', 'property_type'].forEach(function (id) {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener('change', syncVisibility);

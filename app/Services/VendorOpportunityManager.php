@@ -59,9 +59,8 @@ class VendorOpportunityManager
             ]
         );
 
-        if ($opportunity->lead_tier === 'a') {
-            $this->sendInvitations($opportunity);
-        } else {
+        $this->sendInvitations($opportunity);
+        if ($opportunity->lead_tier !== 'a') {
             $this->buyerVendorMatchNotifier->notifyPendingQualification($opportunity);
         }
 
@@ -121,9 +120,6 @@ class VendorOpportunityManager
         $opportunity->loadMissing('jobPosting.user');
         $wasOpportunityUnsent = $opportunity->sent_at === null;
 
-        if ($opportunity->lead_tier === 'c') {
-            return $opportunity;
-        }
 
         $matches = $this->matchingService->match(
             $opportunity->jobPosting,
@@ -131,18 +127,47 @@ class VendorOpportunityManager
             $opportunity->vendor_target_count
         );
 
+        // Broadcast: every verified vendor receives the lead, with contact info
+        // hidden until they pay credits to unlock. Matched vendors keep their
+        // score/reasons; everyone else gets a baseline entry.
+        $matchedById = [];
+        foreach ($matches as $match) {
+            $matchedById[$match['vendor']->id] = $match;
+        }
+
+        $allVendors = User::query()
+            ->where('user_type', 'vendor')
+            ->whereNotNull('email_verified_at')
+            ->get();
+
+        $recipients = [];
+        foreach ($allVendors as $vendor) {
+            $recipients[] = $matchedById[$vendor->id] ?? [
+                'vendor' => $vendor,
+                'score' => 0.0,
+                'reasons' => ['Broadcast notification — all verified vendors'],
+            ];
+        }
+        // Include any matched vendors that somehow weren't in the all-vendors query
+        // (e.g. unverified email but still surfaced by matching).
+        foreach ($matchedById as $vendorId => $match) {
+            if (! $allVendors->contains('id', $vendorId)) {
+                $recipients[] = $match;
+            }
+        }
+
         $credits = $this->creditPricingService->creditsFor(
             (float) $opportunity->estimated_annual_contract_value,
             $opportunity->lead_tier
         );
         $newlySentInvitationIds = [];
 
-        DB::transaction(function () use ($opportunity, $matches, $credits, &$newlySentInvitationIds): void {
-            /** @var array{vendor: User, score: float, reasons: list<string>} $match */
-            foreach ($matches as $match) {
+        DB::transaction(function () use ($opportunity, $recipients, $credits, &$newlySentInvitationIds): void {
+            /** @var array{vendor: User, score: float, reasons: list<string>} $recipient */
+            foreach ($recipients as $recipient) {
                 $invitation = VendorOpportunityInvitation::query()->firstOrNew([
                     'vendor_opportunity_id' => $opportunity->id,
-                    'vendor_id' => $match['vendor']->id,
+                    'vendor_id' => $recipient['vendor']->id,
                 ]);
                 $wasUnsent = $invitation->sent_at === null;
 
@@ -151,8 +176,8 @@ class VendorOpportunityManager
                         'invite_key' => (string) Str::uuid(),
                         'status' => VendorOpportunityInvitation::STATUS_NEW,
                         'credits_to_unlock' => $credits,
-                        'match_score' => $match['score'],
-                        'match_reasons' => $match['reasons'],
+                        'match_score' => $recipient['score'],
+                        'match_reasons' => $recipient['reasons'],
                     ]);
                 }
 

@@ -177,6 +177,80 @@
             }
         });
     </script>
+    @auth
+    <form id="auto-logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+        @csrf
+    </form>
+    <script>
+        (function () {
+            const lifetimeMs = {{ (int) config('session.lifetime') * 60 * 1000 }};
+            if (lifetimeMs <= 0) return;
+
+            let timeoutId = null;
+            const storageKey = 'gasq_last_activity';
+
+            function submitLogout() {
+                try { localStorage.removeItem(storageKey); } catch (e) {}
+                const form = document.getElementById('auto-logout-form');
+                if (form) {
+                    form.submit();
+                } else {
+                    window.location.href = "{{ route('login') }}";
+                }
+            }
+
+            function readLastActivity() {
+                try {
+                    const raw = localStorage.getItem(storageKey);
+                    const parsed = raw ? parseInt(raw, 10) : NaN;
+                    return Number.isFinite(parsed) ? parsed : Date.now();
+                } catch (e) {
+                    return Date.now();
+                }
+            }
+
+            function writeLastActivity(ts) {
+                try { localStorage.setItem(storageKey, String(ts)); } catch (e) {}
+            }
+
+            function scheduleCheck() {
+                if (timeoutId !== null) clearTimeout(timeoutId);
+                const elapsed = Date.now() - readLastActivity();
+                const remaining = lifetimeMs - elapsed;
+                if (remaining <= 0) {
+                    submitLogout();
+                    return;
+                }
+                timeoutId = setTimeout(scheduleCheck, Math.min(remaining, 30000));
+            }
+
+            function bumpActivity() {
+                writeLastActivity(Date.now());
+                scheduleCheck();
+            }
+
+            ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(function (evt) {
+                document.addEventListener(evt, function () {
+                    const now = Date.now();
+                    if (now - readLastActivity() > 30000) {
+                        writeLastActivity(now);
+                    }
+                }, { passive: true });
+            });
+
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) scheduleCheck();
+            });
+
+            window.addEventListener('storage', function (e) {
+                if (e.key === storageKey) scheduleCheck();
+            });
+
+            bumpActivity();
+        })();
+    </script>
+    @endauth
+
     @stack('scripts')
 </body>
 </html>
