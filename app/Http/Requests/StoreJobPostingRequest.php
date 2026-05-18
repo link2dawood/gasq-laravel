@@ -106,7 +106,6 @@ class StoreJobPostingRequest extends FormRequest
             'staff_per_shift' => ['required', 'integer', 'min:1', 'max:100'],
             'shifts_needed' => ['required', 'array', 'min:1'],
             'shifts_needed.*' => ['string', 'max:50'],
-            'assignment_type' => ['required', 'in:dedicated_post,patrol_route,hybrid'],
             'patrol_types' => ['nullable', 'array'],
             'patrol_types.*' => ['in:Foot Patrol,Vehicle Patrol,Golf Cart Patrol,Bike Patrol'],
 
@@ -115,8 +114,6 @@ class StoreJobPostingRequest extends FormRequest
             'duties_required.*' => ['string', 'max:120'],
             'duties_other' => ['nullable', 'string', 'max:255'],
             'service_package_expectation' => ['required', 'in:observe_and_report_only,detect_delay_assess_respond'],
-            'hands_off_expected' => ['required', 'in:yes,no,not_sure'],
-            'has_written_post_orders' => ['required', 'in:yes,no,in_progress'],
             'supporting_documents' => ['nullable', 'array'],
             'supporting_documents.*' => ['file', 'mimes:pdf,doc,docx,png,jpg,jpeg,webp', 'max:5120'],
             'known_site_risks' => ['nullable', 'string', 'max:4000'],
@@ -126,22 +123,13 @@ class StoreJobPostingRequest extends FormRequest
             'hourly_budget' => ['nullable', 'numeric', 'min:0'],
             'monthly_budget' => ['nullable', 'numeric', 'min:0'],
             'annual_budget' => ['nullable', 'numeric', 'min:0'],
-            'willing_post_offer' => ['required', 'in:yes,no'],
-            'allow_scope_adjustment' => ['required', 'in:yes,no,maybe_after_review'],
-            'cost_comparison_requested' => ['nullable', 'in:yes,no'],
 
             // SECTION 8: Compliance Requirements
-            'officer_licensing_required' => ['required', 'in:yes,no,depends_on_assignment'],
-            'background_checks_required' => ['required', 'in:yes,no'],
-            'drug_testing_required' => ['required', 'in:yes,no'],
-            'uniformed_officers_required' => ['required', 'in:yes,no'],
             'insurance_minimums_required' => ['required', 'array', 'min:1'],
             'insurance_minimums_required.*' => ['in:General Liability,Workers Compensation,Auto Liability,Umbrella / Excess Liability,Not sure'],
             'compliance_terms' => ['nullable', 'string', 'max:4000'],
 
             // SECTION 9: Posting Terms and Submission
-            'multiple_vendors_required' => ['required', 'in:yes,no'],
-            'vendor_response_deadline' => ['required', 'date', 'after_or_equal:today'],
             'additional_notes_to_vendors' => ['nullable', 'string', 'max:4000'],
             'buyer_certification' => ['required', 'accepted'],
             'consent_to_contact' => ['required', 'accepted'],
@@ -203,12 +191,7 @@ class StoreJobPostingRequest extends FormRequest
                 $validator->errors()->add('service_type_other', 'Please specify the additional service type.');
             }
 
-            if (in_array($this->input('assignment_type'), ['patrol_route', 'hybrid'], true)
-                && count((array) $this->input('patrol_types', [])) === 0) {
-                $validator->errors()->add('patrol_types', 'Select at least one patrol type when patrol coverage is required.');
-            }
-
-            if (in_array('Other', (array) $this->input('duties_required', []), true) && blank($this->input('duties_other'))) {
+if (in_array('Other', (array) $this->input('duties_required', []), true) && blank($this->input('duties_other'))) {
                 $validator->errors()->add('duties_other', 'Please specify the additional duty requirement.');
             }
         });

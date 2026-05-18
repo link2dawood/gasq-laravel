@@ -177,15 +177,6 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="currentSecuritySetup">Current security setup</label>
-                                <select id="currentSecuritySetup" class="form-select">
-                                    <option value="">Choose...</option>
-                                    <option value="in_house">In-house</option>
-                                    <option value="outsourced">Outsourced</option>
-                                    <option value="none">None</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
                                 <label class="form-label fw-semibold" for="serviceStartTimeline">Service start timeline</label>
                                 <select id="serviceStartTimeline" class="form-select">
                                     <option value="">Choose...</option>
@@ -1305,7 +1296,7 @@ function collectState() {
         location: byId('location').value.trim(),
         companyWebsite: byId('companyWebsite').value.trim(),
         propertyType: byId('propertyType').value || '',
-        currentSecuritySetup: byId('currentSecuritySetup').value || '',
+        currentSecuritySetup: '',
         serviceStartTimeline: byId('serviceStartTimeline').value || '',
         serviceType: byId('serviceType').value || 'unarmed',
         selectedRate: clamp(toNumber(byId('selectedRate').value, 0), 0, 100000),
@@ -1773,7 +1764,6 @@ function applyDraft(draft) {
     byId('location').value = draft.location || draft.locationState || '';
     byId('companyWebsite').value = draft.companyWebsite || '';
     byId('propertyType').value = draft.propertyType || '';
-    byId('currentSecuritySetup').value = draft.currentSecuritySetup || '';
     byId('serviceStartTimeline').value = draft.serviceStartTimeline || '';
     byId('serviceType').value = safeServiceType;
     byId('coverageModel').value = draft.coverageModel || 'hours';
@@ -2020,7 +2010,6 @@ function validateStepOne() {
         'phone',
         'location',
         'propertyType',
-        'currentSecuritySetup',
         'serviceStartTimeline',
         'decisionMaker',
         'approvedBudget',

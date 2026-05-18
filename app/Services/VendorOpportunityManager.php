@@ -17,6 +17,7 @@ use App\Notifications\VendorOpportunityNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -30,6 +31,8 @@ class VendorOpportunityManager
         private readonly WalletService $walletService,
         private readonly VendorOpportunityBidScoringService $bidScoringService,
         private readonly BuyerVendorMatchNotifier $buyerVendorMatchNotifier,
+        private readonly PhoneOtpService $phoneOtpService,
+        private readonly TwilioSmsService $smsService,
     ) {}
 
     public function createForPublishedJob(JobPosting $job): VendorOpportunity
@@ -177,6 +180,7 @@ class VendorOpportunityManager
                 $this->tracker->track('vendor_opportunity_email_sent', $invitation, $invitation->vendor, [
                     'notification_type' => 'new',
                 ]);
+                $this->dispatchVendorInvitationSms($invitation, $opportunity);
             }
         }
 
@@ -185,6 +189,49 @@ class VendorOpportunityManager
         }
 
         return $opportunity;
+    }
+
+    private function dispatchVendorInvitationSms(VendorOpportunityInvitation $invitation, VendorOpportunity $opportunity): void
+    {
+        $vendor = $invitation->vendor;
+        if (! $vendor) {
+            return;
+        }
+
+        $normalized = $this->phoneOtpService->normalizePhoneToE164((string) $vendor->phone);
+        if (! is_string($normalized) || $normalized === '') {
+            return;
+        }
+
+        $job = $opportunity->jobPosting;
+        $city = trim((string) ($job->city ?? ''));
+        $state = trim((string) ($job->state ?? ''));
+        $location = trim($city . ($state !== '' ? ', ' . $state : ''));
+        if ($location === '') {
+            $location = trim((string) ($job->location ?? $job->title ?? 'your area'));
+        }
+
+        $value = (float) ($opportunity->estimated_annual_contract_value ?? 0);
+        $valueLabel = $value >= 1000
+            ? '$' . number_format($value / 1000, 0) . 'K'
+            : '$' . number_format($value, 0);
+
+        $url = URL::temporarySignedRoute(
+            'vendor-opportunities.show',
+            now()->addDays(14),
+            ['invitation' => $invitation]
+        );
+
+        $body = "GASQ ALERT: New {$valueLabel} security contract in {$location}. Accept/decline: {$url}";
+
+        try {
+            $this->smsService->send($normalized, $body);
+            $this->tracker->track('vendor_opportunity_sms_sent', $invitation, $vendor, [
+                'notification_type' => 'new',
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     public function markInvitationOpened(VendorOpportunityInvitation $invitation): void

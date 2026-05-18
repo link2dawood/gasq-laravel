@@ -72,13 +72,40 @@
     $city = $buyer?->city ?? '';
     $state = $buyer?->state ?? '';
     $zip = $job?->zip_code ?? '';
+    $rawLocation = trim((string) ($job?->location ?? ''));
     if ($city === '' || $state === '') {
         // Try to parse from location string like "..., Atlanta, GA 30331, USA"
-        if ($job?->location && preg_match('/,\s*([^,]+),\s*([A-Z]{2})\s*(\d{5})?/', $job->location, $m)) {
+        if ($rawLocation !== '' && preg_match('/,\s*([^,]+),\s*([A-Z]{2})\s*(\d{5})?/', $rawLocation, $m)) {
             $city = $city ?: trim($m[1]);
             $state = $state ?: trim($m[2]);
             $zip = $zip ?: ($m[3] ?? '');
         }
+    }
+    $usStates = [
+        'ALABAMA' => 'AL','ALASKA' => 'AK','ARIZONA' => 'AZ','ARKANSAS' => 'AR','CALIFORNIA' => 'CA',
+        'COLORADO' => 'CO','CONNECTICUT' => 'CT','DELAWARE' => 'DE','FLORIDA' => 'FL','GEORGIA' => 'GA',
+        'HAWAII' => 'HI','IDAHO' => 'ID','ILLINOIS' => 'IL','INDIANA' => 'IN','IOWA' => 'IA',
+        'KANSAS' => 'KS','KENTUCKY' => 'KY','LOUISIANA' => 'LA','MAINE' => 'ME','MARYLAND' => 'MD',
+        'MASSACHUSETTS' => 'MA','MICHIGAN' => 'MI','MINNESOTA' => 'MN','MISSISSIPPI' => 'MS','MISSOURI' => 'MO',
+        'MONTANA' => 'MT','NEBRASKA' => 'NE','NEVADA' => 'NV','NEW HAMPSHIRE' => 'NH','NEW JERSEY' => 'NJ',
+        'NEW MEXICO' => 'NM','NEW YORK' => 'NY','NORTH CAROLINA' => 'NC','NORTH DAKOTA' => 'ND','OHIO' => 'OH',
+        'OKLAHOMA' => 'OK','OREGON' => 'OR','PENNSYLVANIA' => 'PA','RHODE ISLAND' => 'RI','SOUTH CAROLINA' => 'SC',
+        'SOUTH DAKOTA' => 'SD','TENNESSEE' => 'TN','TEXAS' => 'TX','UTAH' => 'UT','VERMONT' => 'VT',
+        'VIRGINIA' => 'VA','WASHINGTON' => 'WA','WEST VIRGINIA' => 'WV','WISCONSIN' => 'WI','WYOMING' => 'WY',
+        'DISTRICT OF COLUMBIA' => 'DC',
+    ];
+    $upperLocation = strtoupper($rawLocation);
+    $locationIsStateOnly = isset($usStates[$upperLocation]) || in_array($upperLocation, $usStates, true);
+    if ($state === '' && $rawLocation !== '') {
+        if (isset($usStates[$upperLocation])) {
+            $state = $usStates[$upperLocation];
+        } elseif (in_array($upperLocation, $usStates, true)) {
+            $state = $upperLocation;
+        }
+    }
+    if ($city === '' && $rawLocation !== '' && ! $locationIsStateOnly) {
+        // location wasn't just a state name — use it as the city fallback
+        $city = $rawLocation;
     }
 
     // Scope: hours, days, weeks, staff
@@ -102,7 +129,11 @@
 
     // Dates
     $startDate = $job?->service_start_date?->format('m/d/y') ?? '—';
-    $closeOutDate = $job?->service_end_date?->format('m/d/y') ?? '—';
+    $closeOutCarbon = $job?->service_end_date;
+    if (! $closeOutCarbon && $job?->service_start_date && $weeksPerYear > 0) {
+        $closeOutCarbon = $job->service_start_date->copy()->addWeeks((int) $weeksPerYear);
+    }
+    $closeOutDate = $closeOutCarbon?->format('m/d/y') ?? '—';
 
     // Acceptance progress
     $maxAccepts = max(1, (int) ($opportunity?->max_accepts ?? 5));

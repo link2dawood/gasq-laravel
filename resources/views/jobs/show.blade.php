@@ -175,8 +175,17 @@
             @if($job->category)
                 <p class="mb-1"><strong>Category:</strong> {{ $job->category }}</p>
             @endif
-            @if($job->service_start_date || $job->service_end_date)
-                <p class="mb-1"><strong>Period:</strong> {{ $job->service_start_date?->format('M j, Y') }} – {{ $job->service_end_date?->format('M j, Y') }}</p>
+            @php
+                $minValidYear = 2000;
+                $validStart = $job->service_start_date instanceof \Carbon\Carbon && $job->service_start_date->year >= $minValidYear;
+                $validEnd = $job->service_end_date instanceof \Carbon\Carbon && $job->service_end_date->year >= $minValidYear;
+            @endphp
+            @if($validStart || $validEnd)
+                <p class="mb-1"><strong>Period:</strong>
+                    @if($validStart){{ $job->service_start_date->format('M j, Y') }}@endif
+                    @if($validStart && $validEnd) – @endif
+                    @if($validEnd){{ $job->service_end_date->format('M j, Y') }}@endif
+                </p>
             @endif
             @if($job->budget_min || $job->budget_max)
                 <p class="mb-1"><strong>Budget:</strong> ${{ number_format($job->budget_min ?? 0) }} – ${{ number_format($job->budget_max ?? 0) }}</p>
@@ -184,9 +193,18 @@
             @if($job->guards_per_shift)
                 <p class="mb-1"><strong>Guards per shift:</strong> {{ $job->guards_per_shift }}</p>
             @endif
-            @if($job->description)
+            @php
+                $descLines = array_filter(
+                    preg_split('/\r?\n/', (string) $job->description),
+                    function ($line) {
+                        $value = trim(preg_replace('/^[^:]+:\s*/', '', $line));
+                        return $value !== '' && ! in_array(strtolower($value), ['n/a', 'not provided', 'none', 'none provided', 'not applicable'], true);
+                    }
+                );
+            @endphp
+            @if(! empty($descLines))
                 <hr>
-                <div>{!! nl2br(e($job->description)) !!}</div>
+                <div>{!! nl2br(e(implode("\n", $descLines))) !!}</div>
             @endif
             @if($job->property_type)
                 <p class="mb-0 mt-2"><strong>Property type:</strong> {{ $job->property_type }}</p>

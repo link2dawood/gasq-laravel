@@ -426,16 +426,7 @@
                     </div>
                     @error('shifts_needed')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Is this a dedicated post, patrol route, or hybrid assignment? <span class="text-danger">*</span></label>
-                    <select name="assignment_type" id="assignment_type" class="form-select @error('assignment_type') is-invalid @enderror" required>
-                        <option value="dedicated_post" @selected(old('assignment_type') === 'dedicated_post')>Dedicated Post</option>
-                        <option value="patrol_route" @selected(old('assignment_type') === 'patrol_route')>Patrol Route</option>
-                        <option value="hybrid" @selected(old('assignment_type') === 'hybrid')>Hybrid</option>
-                    </select>
-                    @error('assignment_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-8 mb-3" id="patrol_types_wrap">
+                <div class="col-12 mb-3" id="patrol_types_wrap">
                     <label class="form-label">If patrol is required, what patrol type is needed?</label>
                     <div class="d-flex flex-wrap gap-3">
                         @foreach(['Foot Patrol', 'Vehicle Patrol', 'Golf Cart Patrol', 'Bike Patrol'] as $patrolType)
@@ -477,26 +468,6 @@
                         <option value="detect_delay_assess_respond" @selected(old('service_package_expectation') === 'detect_delay_assess_respond')>Detect, Delay, Assess, and Respond within site policy</option>
                     </select>
                     @error('service_package_expectation')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Are officers expected to remain hands-off unless required by law or emergency policy? <span class="text-danger">*</span></label>
-                    <select name="hands_off_expected" class="form-select @error('hands_off_expected') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('hands_off_expected') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('hands_off_expected') === 'no')>No</option>
-                        <option value="not_sure" @selected(old('hands_off_expected') === 'not_sure')>Not Sure</option>
-                    </select>
-                    @error('hands_off_expected')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Do you currently have written post orders or site instructions? <span class="text-danger">*</span></label>
-                    <select name="has_written_post_orders" class="form-select @error('has_written_post_orders') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('has_written_post_orders') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('has_written_post_orders') === 'no')>No</option>
-                        <option value="in_progress" @selected(old('has_written_post_orders') === 'in_progress')>In progress</option>
-                    </select>
-                    @error('has_written_post_orders')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Upload post orders, site maps, or special instructions</label>
@@ -541,77 +512,12 @@
                     <input type="number" step="0.01" min="0" name="annual_budget" class="form-control @error('annual_budget') is-invalid @enderror" value="{{ old('annual_budget') }}">
                     @error('annual_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Are you willing to post a buyer-established offer for vendors to accept or decline? <span class="text-danger">*</span></label>
-                    <select name="willing_post_offer" class="form-select @error('willing_post_offer') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('willing_post_offer') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('willing_post_offer') === 'no')>No</option>
-                    </select>
-                    @error('willing_post_offer')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">If no vendor accepts your initial offer, will you allow a scope adjustment or pricing revision? <span class="text-danger">*</span></label>
-                    <select name="allow_scope_adjustment" class="form-select @error('allow_scope_adjustment') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('allow_scope_adjustment') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('allow_scope_adjustment') === 'no')>No</option>
-                        <option value="maybe_after_review" @selected(old('allow_scope_adjustment') === 'maybe_after_review')>Maybe after review</option>
-                    </select>
-                    @error('allow_scope_adjustment')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Would you like GASQ to show a side-by-side comparison of in-house versus outsourced cost?</label>
-                    <select name="cost_comparison_requested" class="form-select @error('cost_comparison_requested') is-invalid @enderror">
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('cost_comparison_requested', $prefill['cost_comparison_requested'] ?? '') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('cost_comparison_requested', $prefill['cost_comparison_requested'] ?? '') === 'no')>No</option>
-                    </select>
-                    @error('cost_comparison_requested')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
             </div>
 
             <hr class="my-4">
 
             <h5 class="mb-3">Section 8: Compliance Requirements</h5>
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Officer licensing required? <span class="text-danger">*</span></label>
-                    <select name="officer_licensing_required" class="form-select @error('officer_licensing_required') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('officer_licensing_required') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('officer_licensing_required') === 'no')>No</option>
-                        <option value="depends_on_assignment" @selected(old('officer_licensing_required') === 'depends_on_assignment')>Depends on assignment</option>
-                    </select>
-                    @error('officer_licensing_required')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Background checks required? <span class="text-danger">*</span></label>
-                    <select name="background_checks_required" class="form-select @error('background_checks_required') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('background_checks_required') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('background_checks_required') === 'no')>No</option>
-                    </select>
-                    @error('background_checks_required')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Drug testing required? <span class="text-danger">*</span></label>
-                    <select name="drug_testing_required" class="form-select @error('drug_testing_required') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('drug_testing_required') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('drug_testing_required') === 'no')>No</option>
-                    </select>
-                    @error('drug_testing_required')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Uniformed officers required? <span class="text-danger">*</span></label>
-                    <select name="uniformed_officers_required" class="form-select @error('uniformed_officers_required') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('uniformed_officers_required') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('uniformed_officers_required') === 'no')>No</option>
-                    </select>
-                    @error('uniformed_officers_required')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Insurance minimums required?</label>
                     <div class="d-flex flex-wrap gap-3">
@@ -635,20 +541,6 @@
 
             <h5 class="mb-3">Section 9: Posting Terms and Submission</h5>
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Do you want this posting sent to multiple qualified vendors for response? <span class="text-danger">*</span></label>
-                    <select name="multiple_vendors_required" class="form-select @error('multiple_vendors_required') is-invalid @enderror" required>
-                        <option value="">Choose...</option>
-                        <option value="yes" @selected(old('multiple_vendors_required') === 'yes')>Yes</option>
-                        <option value="no" @selected(old('multiple_vendors_required') === 'no')>No</option>
-                    </select>
-                    @error('multiple_vendors_required')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Preferred vendor response deadline <span class="text-danger">*</span></label>
-                    <input type="date" name="vendor_response_deadline" class="form-control @error('vendor_response_deadline') is-invalid @enderror" value="{{ old('vendor_response_deadline') }}" required>
-                    @error('vendor_response_deadline')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Additional notes to vendors</label>
                     <textarea name="additional_notes_to_vendors" class="form-control @error('additional_notes_to_vendors') is-invalid @enderror" rows="3">{{ old('additional_notes_to_vendors') }}</textarea>
@@ -872,14 +764,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const finalDecisionMaker = document.getElementById('final_decision_maker');
         const multipleLocations = document.getElementById('multiple_locations');
         const propertyType = document.getElementById('property_type');
-        const assignmentType = document.getElementById('assignment_type');
         const budgetFormat = document.getElementById('budget_format');
 
         showWhen(starterServiceType && starterServiceType.value === 'Other', 'starter_service_type_other_wrap');
         showWhen(finalDecisionMaker && ['no', 'authorized_representative'].includes(finalDecisionMaker.value), 'final_approver_wrap');
         showWhen(multipleLocations && multipleLocations.value === 'yes', 'locations_count_wrap');
         showWhen(propertyType && propertyType.value === 'Other', 'property_type_other_wrap');
-        showWhen(assignmentType && ['patrol_route', 'hybrid'].includes(assignmentType.value), 'patrol_types_wrap');
         showWhen(selectedCheckboxValues('.service-type-checkbox').includes('Other'), 'service_type_other_wrap');
         showWhen(selectedCheckboxValues('.duty-checkbox').includes('Other'), 'duties_other_wrap');
 
@@ -888,7 +778,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showWhen(budgetFormat && budgetFormat.value === 'annual_budget', 'annual_budget_wrap');
     }
 
-    ['starter_service_type', 'final_decision_maker', 'multiple_locations', 'property_type', 'assignment_type', 'budget_format'].forEach(function (id) {
+    ['starter_service_type', 'final_decision_maker', 'multiple_locations', 'property_type', 'budget_format'].forEach(function (id) {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener('change', syncVisibility);
