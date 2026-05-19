@@ -48,7 +48,9 @@ Route::get('/post-job', function () {
 
 Route::get('/calculator', function () {
     return view('calculators.index');
-})->name('calculator.index');
+})
+    ->middleware(['auth', 'calc.credits:calculator_hub_access'])
+    ->name('calculator.index');
 
 Route::match(['get', 'post'], '/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])
     ->middleware(['auth', 'calc.credits:instant_estimator_access'])
