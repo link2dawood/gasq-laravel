@@ -13,8 +13,9 @@
         @if($isBuyer)
             <li><a class="dropdown-item" href="{{ route('jobs.create') }}"><i class="fa fa-briefcase me-2"></i>Post a Job</a></li>
             <li><a class="dropdown-item" href="{{ route('calculator.index') }}"><i class="fa fa-window-maximize me-2"></i>Buyer Estimator Hub</a></li>
+            <li><a class="dropdown-item" href="{{ route('budget-calculator.index') }}"><i class="fa fa-piggy-bank me-2"></i>Workforce Calculator</a></li>
             <li><hr class="dropdown-divider my-0"></li>
-            <li class="px-3 py-3 small text-gasq-muted">Buyers start in the Instant Estimator. The rest of the calculator suite is reserved for vendor access.</li>
+            <li class="px-3 py-3 small text-gasq-muted">Buyers can use the Instant Estimator and Workforce Calculator. The remaining calculator suite is reserved for vendor access.</li>
         @else
             {{-- Beta: only the four vendor-facing calculators below are exposed.
                  The rest are intentionally hidden until after beta — un-comment to restore. --}}
