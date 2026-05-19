@@ -10,7 +10,13 @@
     $userBid           = $isVendorViewer ? $job->bids->firstWhere('user_id', auth()->id()) : null;
     $offerOpen         = $job->isOfferOpen();
     $mapsKey           = config('services.google.maps_api_key');
-    $showMap           = $job->hasGeoPoint() && $mapsKey;
+    $hasGeo            = $job->hasGeoPoint();
+    $showInteractiveMap = $hasGeo && $mapsKey;
+    $mapQueryString    = trim((string) ($job->location ?? ''));
+    $mapEmbedUrl       = (! $showInteractiveMap && $mapQueryString !== '')
+        ? 'https://www.google.com/maps?q=' . rawurlencode($mapQueryString) . '&output=embed'
+        : null;
+    $showMap           = $showInteractiveMap || $mapEmbedUrl !== null;
     $responseTarget    = 5;
     $respondedCount    = $job->bids->filter(fn($b) => $b->hasVendorResponded())->count();
     $acceptedCount     = $job->bids->filter(fn($b) => $b->vendorAccepted())->count();
@@ -227,21 +233,33 @@
                 <h5 class="card-title mb-0">Job site map</h5>
             </div>
             <div class="card-body">
-                <div id="job-show-map" class="rounded border" style="height: 280px; min-height: 200px; border-color: var(--gasq-border);"></div>
+                @if($showInteractiveMap)
+                    <div id="job-show-map" class="rounded border" style="height: 280px; min-height: 200px; border-color: var(--gasq-border);"></div>
+                @else
+                    <iframe
+                        src="{{ $mapEmbedUrl }}"
+                        class="rounded border w-100"
+                        style="height: 280px; min-height: 200px; border-color: var(--gasq-border);"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        allowfullscreen></iframe>
+                @endif
             </div>
         </div>
-        @push('scripts')
-            <script>
-                window.initJobShowMap = function () {
-                    var el = document.getElementById('job-show-map');
-                    if (!el || !window.google || !google.maps) { return; }
-                    var center = { lat: {{ (float) $job->latitude }}, lng: {{ (float) $job->longitude }} };
-                    var map = new google.maps.Map(el, { zoom: 14, center: center, mapTypeControl: true });
-                    new google.maps.Marker({ position: center, map: map, title: @json(Str::limit($job->title, 80)) });
-                };
-            </script>
-            <script src="https://maps.googleapis.com/maps/api/js?key={{ $mapsKey }}&callback=initJobShowMap" async defer></script>
-        @endpush
+        @if($showInteractiveMap)
+            @push('scripts')
+                <script>
+                    window.initJobShowMap = function () {
+                        var el = document.getElementById('job-show-map');
+                        if (!el || !window.google || !google.maps) { return; }
+                        var center = { lat: {{ (float) $job->latitude }}, lng: {{ (float) $job->longitude }} };
+                        var map = new google.maps.Map(el, { zoom: 14, center: center, mapTypeControl: true });
+                        new google.maps.Marker({ position: center, map: map, title: @json(Str::limit($job->title, 80)) });
+                    };
+                </script>
+                <script src="https://maps.googleapis.com/maps/api/js?key={{ $mapsKey }}&callback=initJobShowMap" async defer></script>
+            @endpush
+        @endif
     @endif
 
     {{-- Vendor responses list --}}

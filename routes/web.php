@@ -96,18 +96,20 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/vendor-estimate-submissions', [VendorEstimateSubmissionController::class, 'store'])
         ->name('vendor-estimate-submissions.store');
 
-    // Jobs (create, edit, delete) and bids.
-    // Buyers can reach the job flow before phone verification because the job form
-    // itself now handles inline SMS verification for the contact phone.
-    Route::post('/jobs/create/start', [App\Http\Controllers\JobPostingController::class, 'start'])->name('jobs.create.start');
-    Route::post('/jobs/preview', [App\Http\Controllers\JobPostingController::class, 'preview'])->name('jobs.preview');
-    Route::get('/jobs/review', [App\Http\Controllers\JobPostingController::class, 'review'])->name('jobs.review');
-    Route::post('/jobs/review/edit', [App\Http\Controllers\JobPostingController::class, 'editReview'])->name('jobs.review.edit');
-    Route::post('/jobs/publish', [App\Http\Controllers\JobPostingController::class, 'publish'])->name('jobs.publish');
-    Route::post('/jobs/{job}/hire', [App\Http\Controllers\JobPostingController::class, 'hire'])->name('jobs.hire');
-    Route::post('/jobs/{job}/close', [App\Http\Controllers\JobPostingController::class, 'close'])->name('jobs.close');
-    Route::post('/jobs/{job}/workflow-status', [App\Http\Controllers\JobPostingController::class, 'updateWorkflowStatus'])->name('jobs.workflow-status');
-    Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
+    // Jobs (create, edit, delete) and bids — phone verification is required before
+    // a buyer can post a job. Unverified users are redirected to /phone/verify by
+    // the phone.verified middleware.
+    Route::middleware(['phone.verified'])->group(function () {
+        Route::post('/jobs/create/start', [App\Http\Controllers\JobPostingController::class, 'start'])->name('jobs.create.start');
+        Route::post('/jobs/preview', [App\Http\Controllers\JobPostingController::class, 'preview'])->name('jobs.preview');
+        Route::get('/jobs/review', [App\Http\Controllers\JobPostingController::class, 'review'])->name('jobs.review');
+        Route::post('/jobs/review/edit', [App\Http\Controllers\JobPostingController::class, 'editReview'])->name('jobs.review.edit');
+        Route::post('/jobs/publish', [App\Http\Controllers\JobPostingController::class, 'publish'])->name('jobs.publish');
+        Route::post('/jobs/{job}/hire', [App\Http\Controllers\JobPostingController::class, 'hire'])->name('jobs.hire');
+        Route::post('/jobs/{job}/close', [App\Http\Controllers\JobPostingController::class, 'close'])->name('jobs.close');
+        Route::post('/jobs/{job}/workflow-status', [App\Http\Controllers\JobPostingController::class, 'updateWorkflowStatus'])->name('jobs.workflow-status');
+        Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
+    });
     Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
     Route::post('/jobs/{job}/offer-response', [App\Http\Controllers\BidController::class, 'offerResponse'])->name('bids.offer-response');
     Route::put('/bids/{bid}', [App\Http\Controllers\BidController::class, 'update'])->name('bids.update');
@@ -138,8 +140,10 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/buyer-review/vendor-questionnaire/{token}', [VendorQuestionnaireController::class, 'buyerReview'])
     ->name('vendor-questionnaires.buyer-review');
 
-// Vendor-only calculator suite.
-Route::middleware(['auth', 'phone.verified', 'has.credits', 'buyer.has_job', 'master.inputs'])->group(function () {
+// Budget calculator — open to any authenticated user (buyers and vendors).
+// Buyers see a simplified view (sensitive allocation breakdowns are hidden in
+// the blade via $isBuyerView); vendors still see the full breakdown.
+Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/budget-calculator', function () { return view('calculators.budget'); })->name('budget-calculator.index');
 });
 

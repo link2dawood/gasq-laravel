@@ -202,10 +202,6 @@
                                     <option value="considering">Considering it</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="budgetAmount">Budget amount</label>
-                                <input id="budgetAmount" class="form-control" placeholder="$0.00">
-                            </div>
                             <div class="col-12">
                                 <label class="form-label fw-semibold" for="notes">Notes and scope comments</label>
                                 <textarea id="notes" class="form-control" rows="2" placeholder="Post duties, special instructions, or scope context"></textarea>
@@ -1311,7 +1307,7 @@ function collectState() {
         wantsComparison: byId('wantsComparison').checked,
         decisionMaker: byId('decisionMaker').value || 'yes',
         approvedBudget: byId('approvedBudget').value || 'yes',
-        budgetAmount: byId('budgetAmount').value.trim(),
+        budgetAmount: '',
         notes: byId('notes').value.trim(),
         additionalEmails: byId('additionalEmails').value.trim(),
         ccEmails: byId('ccEmails').value.trim(),
@@ -1451,7 +1447,7 @@ function buildSummaryText(state, results) {
         `Payback: ${fmtNumber(results.breakevenMonths)} months`,
         `Decision Maker: ${state.decisionMaker}`,
         `Budget Approved: ${state.approvedBudget}`,
-        `Budget Amount: ${state.budgetAmount || '-'}`,
+        `Budget Amount (calculated annual): ${fmtCurrency(results.outsourcedAnnual)}`,
         `Notes: ${state.notes || '-'}`,
         `Attachments: ${state.attachments.join(', ') || '-'}`,
         `Send to Vendor Network: ${state.sendToVendorNetwork ? 'Yes' : 'No'}`,
@@ -1727,7 +1723,7 @@ function render() {
     byId('reportLocation').textContent = state.location || '-';
     byId('reportService').textContent = results.serviceMeta.label;
     byId('reportRate').textContent = `${fmtCurrency(state.selectedRate)}/hr`;
-    byId('reportBudget').textContent = state.budgetAmount || '-';
+    byId('reportBudget').textContent = results.outsourcedAnnual > 0 ? fmtCurrency(results.outsourcedAnnual) : '-';
     byId('reportAttachments').textContent = state.attachments.join(', ') || '-';
 
     renderAttachmentList(state);
@@ -1777,7 +1773,6 @@ function applyDraft(draft) {
     byId('wantsComparison').checked = draft.wantsComparison !== false;
     byId('decisionMaker').value = draft.decisionMaker || 'yes';
     byId('approvedBudget').value = draft.approvedBudget || 'yes';
-    byId('budgetAmount').value = draft.budgetAmount || '';
     byId('notes').value = draft.notes || '';
     byId('additionalEmails').value = draft.additionalEmails || '';
     byId('ccEmails').value = draft.ccEmails || '';

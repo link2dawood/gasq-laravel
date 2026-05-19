@@ -21,14 +21,15 @@ class EnsurePhoneVerified
         }
 
         $isVerified = (bool) ($user->phone_verified ?? false);
-        $hasPhone = is_string($user->phone) && trim($user->phone) !== '';
 
-        if ($hasPhone && ! $isVerified) {
+        if (! $isVerified) {
             if ($request->routeIs('phone.verify.show', 'phone.verify.send', 'phone.verify.check', 'logout')) {
                 return $next($request);
             }
 
-            return redirect()->route('phone.verify.show');
+            return redirect()
+                ->route('phone.verify.show')
+                ->with('error', 'Verify your phone number to continue.');
         }
 
         return $next($request);
