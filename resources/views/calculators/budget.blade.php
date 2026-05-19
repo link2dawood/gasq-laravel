@@ -209,7 +209,7 @@
       </div>
     </div>
 
-    <div class="col-lg-5">
+    <div class="col-lg-5 budget-print-area">
       <div class="card gasq-card mb-4">
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Budget Summary</h5></div>
         <div class="card-body">
@@ -381,6 +381,23 @@
 
 @push('scripts')
 <style>
+  @media print {
+    body * { visibility: hidden !important; }
+    .budget-print-area, .budget-print-area * { visibility: visible !important; }
+    .budget-print-area {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: 0 0 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .budget-print-area .card { border: none !important; box-shadow: none !important; }
+    .budget-print-area a { color: inherit !important; text-decoration: none !important; }
+    @page { margin: 0.5in; }
+  }
   .budget-line-item .form-range { margin-bottom: 0.35rem; }
   .budget-group-summary-card {
     border: 1px solid rgba(15, 23, 42, 0.08);
@@ -578,9 +595,11 @@ function calcBudget() {
   const pctEl = document.getElementById('bg_totalPct');
   const offTarget = Math.abs(sumPct - 100) > TOTAL_TOLERANCE;
 
-  pctEl.textContent = fmtPct(sumPct);
-  pctEl.className = `fw-bold ${offTarget ? 'text-danger' : 'text-success'}`;
-  warning.classList.toggle('d-none', !offTarget);
+  if (pctEl) {
+    pctEl.textContent = fmtPct(sumPct);
+    pctEl.className = `fw-bold ${offTarget ? 'text-danger' : 'text-success'}`;
+  }
+  if (warning) warning.classList.toggle('d-none', !offTarget);
 
   itemStates.forEach((item) => {
     const amount = total * item.pct / 100;
