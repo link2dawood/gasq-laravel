@@ -17,6 +17,7 @@ class VendorOpportunityInvitedMail extends Mailable
 
     public function __construct(
         public VendorOpportunityInvitation $invitation,
+        public string $vendorName = 'Vendor',
     ) {}
 
     public function envelope(): Envelope
@@ -42,7 +43,7 @@ class VendorOpportunityInvitedMail extends Mailable
         }
 
         return new Envelope(
-            subject: "ALERT! New Security Project in {$location} – Contract Value: {$valueStr}",
+            subject: "ALERT! New Security Opportunity Project in {$location} – Contract Value: {$valueStr}",
         );
     }
 
@@ -64,6 +65,7 @@ class VendorOpportunityInvitedMail extends Mailable
         return new Content(
             view: 'emails.vendor-opportunity-invited',
             with: [
+                'vendorName' => $this->vendorName,
                 'invitation' => $this->invitation,
                 'opportunity' => $opportunity,
                 'job' => $job,

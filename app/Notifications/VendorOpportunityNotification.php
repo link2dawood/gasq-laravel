@@ -29,7 +29,7 @@ class VendorOpportunityNotification extends Notification implements ShouldQueue
     {
         // Branded HTML invitation for the "new" type.
         if ($this->type === 'new') {
-            return (new VendorOpportunityInvitedMail($this->invitation))
+            return (new VendorOpportunityInvitedMail($this->invitation, (string) ($notifiable->name ?? 'Vendor')))
                 ->to($notifiable->email);
         }
 

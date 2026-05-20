@@ -297,6 +297,22 @@
                             </div>
                         </div>
 
+                        {{-- Live outsourcing-cost preview: updates as the buyer adjusts inputs above
+                             so they can fine-tune their budget before unlocking Step 3. --}}
+                        <div class="mt-4 p-3 rounded text-center"
+                             id="step2EstimateCard"
+                             style="background:#fdf2f2; border:2px solid #b91c1c;">
+                            <div class="text-uppercase small fw-bold mb-1" style="color:#7f1d1d; letter-spacing:.08em;">
+                                Estimated Outsourcing Cost
+                            </div>
+                            <div class="h2 fw-bold mb-1" style="color:#7f1d1d;" id="step2EstimateTotal">$0.00</div>
+                            <div class="small" style="color:#7f1d1d;">
+                                <span id="step2EstimateWeeks">52</span> weeks ·
+                                <span id="step2EstimateHourly">$0.00</span>/hr ·
+                                <span id="step2EstimateAnnual">$0.00</span> annual
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-end mt-4 pt-3" style="border-top:1px solid rgba(6,45,121,.08)">
                             <button type="button" class="btn btn-primary btn-lg px-5" id="viewResultsBtn">
                                 <i class="fa fa-lock me-2"></i> View My Results
@@ -1687,6 +1703,17 @@ function render() {
         ? 'Outsourced rate, internal true cost, and recovered capital'
         : 'Directional outsourced pricing based on your selected pay baseline';
     byId('outsourcedTermHeadline').textContent = fmtCurrency(results.outsourcedTerm);
+
+    // Step 2 live preview — lets the buyer see the projected outsourced cost
+    // as they adjust the inputs above, before unlocking Step 3.
+    const step2Total = document.getElementById('step2EstimateTotal');
+    if (step2Total) step2Total.textContent = fmtCurrency(results.outsourcedTerm);
+    const step2Weeks = document.getElementById('step2EstimateWeeks');
+    if (step2Weeks) step2Weeks.textContent = String(results.weeksCoveredRounded);
+    const step2Hourly = document.getElementById('step2EstimateHourly');
+    if (step2Hourly) step2Hourly.textContent = fmtCurrency(results.outsourcedHourly);
+    const step2Annual = document.getElementById('step2EstimateAnnual');
+    if (step2Annual) step2Annual.textContent = fmtCurrency(results.outsourcedAnnual);
     byId('coverageHeadline').textContent = `${results.weeksCoveredRounded} wks · ${results.monthsOfCoverageRounded} mo · ${fmtNumber(results.termCoverageHours, 0)} hrs`;
     byId('statOutsourcedHourly').textContent = fmtCurrency(results.outsourcedHourly);
     byId('statInternalHourly').textContent = fmtCurrency(results.internalTrueHourly);

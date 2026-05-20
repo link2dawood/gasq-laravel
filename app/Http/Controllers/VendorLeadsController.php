@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Bid;
 use App\Models\User;
 use App\Models\VendorOpportunityInvitation;
+use App\Support\LeadFormatting;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -88,16 +89,30 @@ class VendorLeadsController extends Controller
         $acceptedCount = $opportunity ? (int) $opportunity->acceptedInvitations()->count() : 0;
         $serviceType = $this->serviceTypeSummary($job?->category, $questionnaire, $job?->title);
         $buyerName = $buyer?->name ?: 'Buyer';
+        $detailsUnlocked = $invitation->buyerDetailsUnlocked();
+        $displayName = $detailsUnlocked ? $buyerName : LeadFormatting::redactName($buyerName);
+        $displayEmail = $detailsUnlocked
+            ? ($buyer?->email ?: 'Not provided')
+            : LeadFormatting::redactEmail($buyer?->email);
+        $displayPhone = $detailsUnlocked
+            ? ($buyer?->phone ?: 'Not provided')
+            : LeadFormatting::redactPhone($buyer?->phone);
 
         return [
             'key' => 'opportunity:' . $invitation->invite_key,
             'type' => 'opportunity',
+            'invitation_id' => $invitation->id,
             'title' => $serviceType,
-            'subtitle' => $buyerName,
-            'buyer_name' => $buyerName,
-            'buyer_email' => $buyer?->email ?: 'Not provided',
-            'buyer_phone' => $buyer?->phone ?: 'Not provided',
-            'buyer_contact_action' => $invitation->buyerDetailsUnlocked() ? ('Contact ' . $buyerName) : 'Review lead',
+            'subtitle' => $displayName,
+            'buyer_name' => $displayName,
+            'buyer_email' => $displayEmail,
+            'buyer_phone' => $displayPhone,
+            'buyer_contact_action' => $detailsUnlocked ? ('Contact ' . $buyerName) : 'Review lead',
+            'details_unlocked' => $detailsUnlocked,
+            'accept_url' => route('vendor-opportunities.accept', $invitation),
+            'decline_url' => route('vendor-opportunities.decline', $invitation),
+            'is_declined' => $invitation->status === 'declined',
+            'is_accepted' => $detailsUnlocked,
             'location' => $job?->location ?: 'Not provided',
             'zip_code' => $job?->zip_code,
             'latitude' => $job?->latitude,
@@ -137,16 +152,30 @@ class VendorLeadsController extends Controller
         $serviceType = $this->serviceTypeSummary($job?->category, $questionnaire, $job?->title);
         $acceptedCount = $job ? (int) $job->bids()->where('status', 'accepted')->count() : 0;
         $buyerName = $buyer?->name ?: 'Buyer';
+        $legacyUnlocked = in_array($bid->status, ['accepted', 'won', 'completed'], true);
+        $displayName = $legacyUnlocked ? $buyerName : LeadFormatting::redactName($buyerName);
+        $displayEmail = $legacyUnlocked
+            ? ($buyer?->email ?: 'Not provided')
+            : LeadFormatting::redactEmail($buyer?->email);
+        $displayPhone = $legacyUnlocked
+            ? ($buyer?->phone ?: 'Not provided')
+            : LeadFormatting::redactPhone($buyer?->phone);
 
         return [
             'key' => 'legacy:' . $bid->id,
             'type' => 'legacy',
+            'invitation_id' => null,
             'title' => $serviceType,
-            'subtitle' => $buyerName,
-            'buyer_name' => $buyerName,
-            'buyer_email' => $buyer?->email ?: 'Not provided',
-            'buyer_phone' => $buyer?->phone ?: 'Not provided',
+            'subtitle' => $displayName,
+            'buyer_name' => $displayName,
+            'buyer_email' => $displayEmail,
+            'buyer_phone' => $displayPhone,
             'buyer_contact_action' => 'Open classic lead',
+            'details_unlocked' => $legacyUnlocked,
+            'accept_url' => null,
+            'decline_url' => null,
+            'is_declined' => $bid->status === 'rejected',
+            'is_accepted' => $legacyUnlocked,
             'location' => $job?->location ?: 'Not provided',
             'zip_code' => $job?->zip_code,
             'latitude' => $job?->latitude,

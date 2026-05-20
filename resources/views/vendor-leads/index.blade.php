@@ -188,6 +188,8 @@
         font-size: .98rem;
     }
     .lead-primary-btn:hover { color: #fff; background: #f36e47; }
+    .lead-primary-btn.lead-secondary-btn { background: #fff; color: #6b7280; border: 2px solid #d1d5db; padding: calc(.82rem - 2px) calc(1.3rem - 2px); }
+    .lead-primary-btn.lead-secondary-btn:hover { background: #f3f4f6; color: #1f2937; }
     .lead-location {
         font-size: 1rem;
         line-height: 1.45;
@@ -345,8 +347,28 @@
                                 <span class="fs-5">{{ $selected['response_label'] }}</span>
                             </div>
 
-                            <div class="mb-3">
-                                <a href="{{ $selected['action_url'] }}" class="lead-primary-btn">{{ $selected['buyer_contact_action'] }}</a>
+                            <div class="mb-3 d-flex flex-wrap gap-2">
+                                @if(($selected['type'] ?? null) === 'opportunity' && ! ($selected['is_accepted'] ?? false) && ! ($selected['is_declined'] ?? false))
+                                    <form action="{{ $selected['accept_url'] }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="lead-primary-btn">
+                                            <i class="fa fa-check me-2"></i>Accept Lead
+                                        </button>
+                                    </form>
+                                    <form action="{{ $selected['decline_url'] }}" method="POST" class="d-inline" onsubmit="return confirm('Reject this lead?');">
+                                        @csrf
+                                        <input type="hidden" name="decline_reason" value="not_interested">
+                                        <button type="submit" class="lead-primary-btn lead-secondary-btn">
+                                            <i class="fa fa-xmark me-2"></i>Reject Lead
+                                        </button>
+                                    </form>
+                                @elseif($selected['is_accepted'] ?? false)
+                                    <a href="{{ $selected['action_url'] }}" class="lead-primary-btn">{{ $selected['buyer_contact_action'] }}</a>
+                                @elseif($selected['is_declined'] ?? false)
+                                    <span class="text-gasq-muted"><i class="fa fa-circle-xmark me-2"></i>You declined this lead.</span>
+                                @else
+                                    <a href="{{ $selected['action_url'] }}" class="lead-primary-btn">{{ $selected['buyer_contact_action'] }}</a>
+                                @endif
                             </div>
 
                             <div class="lead-location mb-1"><i class="fa fa-location-dot me-2"></i>{{ $selected['location'] }}</div>

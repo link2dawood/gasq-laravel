@@ -159,7 +159,7 @@
     @endphp
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
         <tr><td colspan="4" style="background:#fde2e2;color:#7f1d1d;padding:10px 12px;font-size:14px;font-weight:700;border:2px solid #b91c1c;text-align:center;">
-            🚨 ALERT! New Security Project in {{ $city ?: ($job?->location ?? 'Location TBD') }}@if($state), {{ $state }}@endif – Contract Value: {{ $contractValueFormatted }}
+            🚨 ALERT! New Security Opportunity Project in {{ $city ?: ($job?->location ?? 'Location TBD') }}@if($state), {{ $state }}@endif – Contract Value: {{ $contractValueFormatted }}
         </td></tr>
         <tr>
             <td style="{{ $rowStyle }}"><span style="{{ $labelStyle }}">Type of Service Requested:</span></td>
@@ -234,7 +234,7 @@
     {{-- Bootstrap version for in-app dashboards --}}
     <div class="card border-danger mb-3">
         <div class="card-header bg-danger text-white fw-bold text-center">
-            🚨 ALERT! New Security Project in {{ $city ?: ($job?->location ?? 'Location TBD') }}@if($state), {{ $state }}@endif – Contract Value: {{ $contractValueFormatted }}
+            🚨 ALERT! New Security Opportunity Project in {{ $city ?: ($job?->location ?? 'Location TBD') }}@if($state), {{ $state }}@endif – Contract Value: {{ $contractValueFormatted }}
         </div>
         <div class="card-body p-0">
             <table class="table table-sm mb-0">
