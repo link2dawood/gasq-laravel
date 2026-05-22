@@ -426,6 +426,40 @@
                     </div>
                     @error('shifts_needed')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
+                <div class="col-12 mb-3">
+                    {{-- Estimated Contract Value: auto-computed from scope inputs using the same
+                         outsourcing formula the Instant Estimator uses. The buyer can optionally
+                         open the calculator to fine-tune the baseline wage and override the value. --}}
+                    <div class="p-3 rounded" id="estimated_budget_panel" style="background:#fdf2f2; border:2px solid #b91c1c;">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div>
+                                <div class="text-uppercase small fw-bold mb-1" style="color:#7f1d1d; letter-spacing:.08em;">
+                                    Estimated Bid Offer / Contract Value
+                                </div>
+                                <div class="h3 fw-bold mb-1" style="color:#7f1d1d;" id="estimated_budget_total">$0.00</div>
+                                <div class="small" style="color:#7f1d1d;">
+                                    <span id="estimated_budget_hourly">$0.00</span>/hr ·
+                                    <span id="estimated_budget_monthly">$0.00</span>/month ·
+                                    <span id="estimated_budget_annual_hours">0</span> annual hours ·
+                                    baseline <span id="estimated_budget_baseline">$0.00</span>/hr
+                                    <span id="estimated_budget_source_label" class="ms-2 d-none badge bg-success" style="font-weight:600;">Fine-tuned in calculator</span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                                <button type="button" id="open_budget_calculator_cta" class="btn btn-outline-danger fw-semibold" data-url="{{ route('budget-calculator.index') }}?from=questionnaire">
+                                    <i class="fa fa-sliders me-2"></i>Fine-tune in calculator
+                                </button>
+                                <button type="button" id="reset_budget_cta" class="btn btn-link text-decoration-none text-muted d-none">
+                                    Reset to auto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="annual_budget" id="annual_budget_input" value="{{ old('annual_budget', $prefill['annual_budget'] ?? '') }}">
+                    <input type="hidden" name="monthly_budget" id="monthly_budget_input" value="{{ old('monthly_budget', $prefill['monthly_budget'] ?? '') }}">
+                    <input type="hidden" name="hourly_budget" id="hourly_budget_input" value="{{ old('hourly_budget', $prefill['hourly_budget'] ?? '') }}">
+                    <input type="hidden" name="budget_amount_range" id="budget_amount_range_input" value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}">
+                </div>
                 <div class="col-12 mb-3" id="patrol_types_wrap">
                     <label class="form-label">If patrol is required, what patrol type is needed?</label>
                     <div class="d-flex flex-wrap gap-3">
@@ -771,6 +805,189 @@ document.addEventListener('DOMContentLoaded', function () {
 
     syncVisibility();
     syncJobPhoneUi();
+
+    // ===== Estimated Bid Offer / Contract Value =====
+    // Live recalculation as the buyer edits scope inputs. The user can also
+    // hop into the budget calculator to fine-tune the baseline wage — when they
+    // return, sessionStorage carries the adjusted value back.
+    const SERVICE_DEFAULT_WAGES = {
+        unarmed: 33.0,
+        armed: 46.0,
+        supervisor: 46.0,
+        mobile: 46.0,
+        mobile_patrol: 46.0,
+        patrol: 46.0,
+        loss: 46.0,
+        executive: 60.0,
+        offduty: 60.0,
+        off_duty: 60.0,
+        'off duty police officer': 60.0,
+        'roving patrol': 46.0,
+        guards: 33.0,
+    };
+    const QUESTIONNAIRE_BUDGET_KEY = 'gasq_questionnaire_budget_override';
+    const QUESTIONNAIRE_SCOPE_KEY = 'gasq_questionnaire_scope';
+    const OVERRIDE_TTL_MS = 30 * 60 * 1000; // 30 min
+
+    function pickBaselineWage() {
+        const category = (document.querySelector('input[name="category"]')?.value || '').toLowerCase().trim();
+        const serviceTypes = Array.from(document.querySelectorAll('input[name="service_types[]"]'))
+            .map(el => (el.value || '').toLowerCase().trim())
+            .filter(Boolean);
+        const candidates = [category, ...serviceTypes];
+        for (const candidate of candidates) {
+            if (!candidate) continue;
+            if (SERVICE_DEFAULT_WAGES[candidate] !== undefined) return SERVICE_DEFAULT_WAGES[candidate];
+            for (const [key, rate] of Object.entries(SERVICE_DEFAULT_WAGES)) {
+                if (candidate.includes(key)) return rate;
+            }
+        }
+        return 33.0;
+    }
+
+    function fmtMoney(value) {
+        return '$' + Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function computeEstimatedBudget() {
+        const hoursPerDay = parseFloat(document.querySelector('input[name="hours_per_day"]')?.value) || 0;
+        const daysPerWeek = parseFloat(document.querySelector('input[name="days_per_week"]')?.value) || 0;
+        const weeksPerYear = parseFloat(document.querySelector('input[name="weeks_per_year"]')?.value) || 0;
+        const staffPerShift = parseFloat(document.querySelector('input[name="guards_per_shift"]')?.value) || 1;
+
+        if (hoursPerDay <= 0 || daysPerWeek <= 0 || weeksPerYear <= 0) {
+            return null;
+        }
+
+        const baselineWage = pickBaselineWage();
+        const employerCost = baselineWage > 0 ? baselineWage / 0.70 : 0;
+        const annualEmployerCost = employerCost * 3744;
+        const internalTrueHourly = annualEmployerCost > 0 ? annualEmployerCost / 1456 : 0;
+        const outsourcedHourly = internalTrueHourly * 0.70;
+        const weeklyCoverageHours = hoursPerDay * daysPerWeek * Math.max(1, staffPerShift);
+        const annualCoverageHours = weeklyCoverageHours * 52;
+        const annualBudget = outsourcedHourly * annualCoverageHours;
+        const monthlyBudget = annualBudget / 12;
+
+        return {
+            baselineWage,
+            outsourcedHourly,
+            monthlyBudget,
+            annualBudget,
+            annualCoverageHours,
+        };
+    }
+
+    function readCalculatorOverride() {
+        try {
+            const raw = localStorage.getItem(QUESTIONNAIRE_BUDGET_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed.annualBudget !== 'number' || parsed.annualBudget <= 0) return null;
+            if (parsed.ts && (Date.now() - parsed.ts > OVERRIDE_TTL_MS)) {
+                localStorage.removeItem(QUESTIONNAIRE_BUDGET_KEY);
+                return null;
+            }
+            return parsed;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function clearCalculatorOverride() {
+        try { localStorage.removeItem(QUESTIONNAIRE_BUDGET_KEY); } catch (e) {}
+    }
+
+    function saveScopeForCalculator() {
+        const payload = {
+            hoursPerDay: parseFloat(document.querySelector('input[name="hours_per_day"]')?.value) || 0,
+            daysPerWeek: parseFloat(document.querySelector('input[name="days_per_week"]')?.value) || 0,
+            weeksPerYear: parseFloat(document.querySelector('input[name="weeks_per_year"]')?.value) || 0,
+            staffPerShift: parseFloat(document.querySelector('input[name="guards_per_shift"]')?.value) || 1,
+            baselineWage: pickBaselineWage(),
+            ts: Date.now(),
+        };
+        try { localStorage.setItem(QUESTIONNAIRE_SCOPE_KEY, JSON.stringify(payload)); } catch (e) {}
+    }
+
+    function renderEstimatedBudget() {
+        const computed = computeEstimatedBudget();
+        const override = readCalculatorOverride();
+        const sourceLabel = document.getElementById('estimated_budget_source_label');
+        const resetBtn = document.getElementById('reset_budget_cta');
+        const totalEl = document.getElementById('estimated_budget_total');
+        const hourlyEl = document.getElementById('estimated_budget_hourly');
+        const monthlyEl = document.getElementById('estimated_budget_monthly');
+        const annualHoursEl = document.getElementById('estimated_budget_annual_hours');
+        const baselineEl = document.getElementById('estimated_budget_baseline');
+        const annualInput = document.getElementById('annual_budget_input');
+        const monthlyInput = document.getElementById('monthly_budget_input');
+        const hourlyInput = document.getElementById('hourly_budget_input');
+        const rangeInput = document.getElementById('budget_amount_range_input');
+
+        const usingOverride = override !== null;
+        const annualBudget = usingOverride ? override.annualBudget : (computed ? computed.annualBudget : 0);
+        const hourlyBudget = usingOverride ? (override.hourlyBudget || (annualBudget / Math.max(1, (override.annualCoverageHours || (computed?.annualCoverageHours || 1)))))
+                                            : (computed ? computed.outsourcedHourly : 0);
+        const monthlyBudget = usingOverride ? (override.monthlyBudget || annualBudget / 12) : (computed ? computed.monthlyBudget : 0);
+        const annualHours = usingOverride ? (override.annualCoverageHours || (computed?.annualCoverageHours || 0)) : (computed?.annualCoverageHours || 0);
+        const baselineWage = usingOverride ? (override.baselineWage || (computed?.baselineWage || 0)) : (computed?.baselineWage || 0);
+
+        if (totalEl) totalEl.textContent = fmtMoney(annualBudget);
+        if (hourlyEl) hourlyEl.textContent = fmtMoney(hourlyBudget);
+        if (monthlyEl) monthlyEl.textContent = fmtMoney(monthlyBudget);
+        if (annualHoursEl) annualHoursEl.textContent = Math.round(annualHours).toLocaleString('en-US');
+        if (baselineEl) baselineEl.textContent = fmtMoney(baselineWage);
+        if (sourceLabel) sourceLabel.classList.toggle('d-none', !usingOverride);
+        if (resetBtn) resetBtn.classList.toggle('d-none', !usingOverride);
+
+        if (annualInput) annualInput.value = annualBudget > 0 ? annualBudget.toFixed(2) : '';
+        if (monthlyInput) monthlyInput.value = monthlyBudget > 0 ? monthlyBudget.toFixed(2) : '';
+        if (hourlyInput) hourlyInput.value = hourlyBudget > 0 ? hourlyBudget.toFixed(2) : '';
+        if (rangeInput) rangeInput.value = annualBudget > 0 ? fmtMoney(annualBudget) : '';
+    }
+
+    ['hours_per_day', 'days_per_week', 'weeks_per_year', 'guards_per_shift'].forEach(function (name) {
+        document.querySelectorAll(`[name="${name}"]`).forEach(function (input) {
+            input.addEventListener('input', renderEstimatedBudget);
+            input.addEventListener('change', renderEstimatedBudget);
+        });
+    });
+
+    document.getElementById('open_budget_calculator_cta')?.addEventListener('click', function (event) {
+        saveScopeForCalculator();
+        clearCalculatorOverride();
+        const url = event.currentTarget.getAttribute('data-url');
+        if (url) {
+            // window.open() (not target="_blank" anchor) gives the new tab a
+            // window.opener and lets us call window.close() from it later.
+            window.open(url, '_blank', 'noopener=no');
+        }
+    });
+
+    document.getElementById('reset_budget_cta')?.addEventListener('click', function () {
+        clearCalculatorOverride();
+        renderEstimatedBudget();
+    });
+
+    // Listen for the calculator tab writing an override back into localStorage.
+    window.addEventListener('storage', function (e) {
+        if (e.key === QUESTIONNAIRE_BUDGET_KEY) {
+            renderEstimatedBudget();
+        }
+    });
+
+    // Clear the override + scope handoff after the buyer submits so a future
+    // post doesn't inherit a stale value.
+    const questionnaireForm = document.querySelector('form[action*="jobs/preview"]') || document.querySelector('form[action*="jobs.preview"]');
+    if (questionnaireForm) {
+        questionnaireForm.addEventListener('submit', function () {
+            clearCalculatorOverride();
+            try { localStorage.removeItem(QUESTIONNAIRE_SCOPE_KEY); } catch (e) {}
+        });
+    }
+
+    renderEstimatedBudget();
 
     // Scroll to validation errors on page load
     const errorSummary = document.getElementById('validation-error-summary');

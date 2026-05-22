@@ -1,5 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Workforce Absorbed Rate Calculator')
+@php
+    $__buyerTitleViewer = auth()->check() && method_exists(auth()->user(), 'isBuyer') && auth()->user()->isBuyer();
+@endphp
+@section('title', $__buyerTitleViewer ? 'Know Before You Buy Calculator' : 'Workforce Absorbed Rate Calculator')
 @section('header_variant', 'dashboard')
 
 @php
@@ -62,15 +65,26 @@
       <a href="{{ route('main-menu-calculator.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
       <div>
         <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
-          <i class="fa fa-piggy-bank text-primary"></i> Workforce Absorbed Rate Calculator
+          <i class="fa fa-piggy-bank text-primary"></i> {{ $isBuyerView ? 'Know Before You Buy Calculator' : 'Workforce Absorbed Rate Calculator' }}
         </h1>
         <div class="text-gasq-muted small">Plan and analyze your workforce budget across detailed spreadsheet line items.</div>
       </div>
     </div>
     <div class="d-flex flex-wrap gap-2 d-print-none">
+      @if(request('from') === 'questionnaire')
+        <button type="button" class="btn btn-success btn-sm fw-semibold" id="save_and_return_to_questionnaire">
+          <i class="fa fa-check me-1"></i> Save &amp; return to questionnaire
+        </button>
+      @endif
       <button class="btn btn-outline-secondary btn-sm" onclick="resetBudget()"><i class="fa fa-rotate me-1"></i> Reset</button>
       <button class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
     </div>
+    @if(request('from') === 'questionnaire')
+      <div class="alert alert-info py-2 mb-0 small w-100 mt-2 d-print-none">
+        <i class="fa fa-circle-info me-1"></i>
+        You came from the job questionnaire. Adjust the baseline wage and scope below, then click <strong>Save &amp; return to questionnaire</strong> to send the contract value back.
+      </div>
+    @endif
   </div>
 
   <div class="row g-4">
@@ -211,7 +225,7 @@
 
     <div class="col-lg-5 budget-print-area">
       <div class="card gasq-card mb-4">
-        <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Budget Summary</h5></div>
+        <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">{{ $isBuyerView ? 'Know Before You Buy Summary' : 'Budget Summary' }}</h5></div>
         <div class="card-body">
           {{-- Side-by-side comparison: Buyer Cost (left) vs Vendor Cost (right) --}}
           <div class="row g-2 mb-3">
@@ -352,7 +366,7 @@
   <div class="card gasq-card mt-4">
     <div class="card-header py-3">
       <h5 class="card-title mb-0 fw-semibold d-flex align-items-center gap-2">
-        <i class="fa fa-balance-scale text-primary"></i> Appraisal Comparison Summary
+        <i class="fa fa-balance-scale text-primary"></i> {{ $isBuyerView ? 'Total Cost of Ownership Summary' : 'Appraisal Comparison Summary' }}
       </h5>
       <div class="text-gasq-muted small">Side-by-side comparison of internal TCO vs vendor TCO. Updates live with the inputs above.</div>
     </div>
@@ -794,7 +808,9 @@ function refreshAppraisal() {
     { description: 'Workforce Baseline Assumption Labor Rate', internal: baselineWage, vendor: baselineWage, kind: 'money' },
     { description: 'Direct Labor + Full Burden Hourly Rate', internal: internalTcoHourly, vendor: vendorTcoHourly, kind: 'money' },
     { description: 'Overtime / Holiday Rate', internal: internalOt, vendor: vendorOt, kind: 'money' },
+    @unless($isBuyerView)
     { description: 'Workforce Annual Cost per Security Professional', internal: annualPerInt, vendor: annualPerVend, kind: 'money' },
+    @endunless
     { description: 'Total Weekly Hours of Coverage', internal: weeklyHours, vendor: weeklyHours, kind: 'hours' },
     { description: 'Total Monthly Hours of Coverage', internal: monthlyHours, vendor: monthlyHours, kind: 'hours' },
     { description: 'Total Annual Hours of Coverage', internal: annualHours, vendor: annualHours, kind: 'hours' },
@@ -886,6 +902,85 @@ function resetBudget() {
 document.addEventListener('DOMContentLoaded', () => {
   hydrateSavedBudget();
   initSliderSync();
+
+  // ===== Questionnaire ↔ Calculator handoff =====
+  // When the buyer comes here from /jobs/create via the "Fine-tune in calculator"
+  // CTA, we pre-fill scope inputs from sessionStorage and offer a "Save & return"
+  // button that ships the calculator's annual budget back to the questionnaire.
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('from') !== 'questionnaire') return;
+
+    const SCOPE_KEY = 'gasq_questionnaire_scope';
+    const BUDGET_KEY = 'gasq_questionnaire_budget_override';
+
+    let scope = null;
+    try { scope = JSON.parse(localStorage.getItem(SCOPE_KEY) || 'null'); } catch (e) {}
+
+    if (scope) {
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (!el || val === undefined || val === null || val === '') return;
+        el.value = val;
+        const range = document.getElementById(id + '_range');
+        if (range) range.value = val;
+      };
+      if (scope.hoursPerDay > 0) setVal('bg_hoursPerDay', scope.hoursPerDay);
+      if (scope.daysPerWeek > 0) setVal('bg_daysPerWeek', scope.daysPerWeek);
+      if (scope.weeksPerYear > 0) setVal('bg_weeksPerYear', scope.weeksPerYear);
+      if (scope.staffPerShift > 0) setVal('bg_staffPerShift', scope.staffPerShift);
+      if (scope.baselineWage > 0) setVal('bg_govShouldCost', scope.baselineWage);
+      if (typeof calcBudget === 'function') calcBudget();
+    }
+
+    const saveBtn = document.getElementById('save_and_return_to_questionnaire');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        const baselineWage = parseFloat(document.getElementById('bg_govShouldCost')?.value) || 0;
+        const hoursPerDay = parseFloat(document.getElementById('bg_hoursPerDay')?.value) || 0;
+        const daysPerWeek = parseFloat(document.getElementById('bg_daysPerWeek')?.value) || 0;
+        const weeksPerYear = parseFloat(document.getElementById('bg_weeksPerYear')?.value) || 0;
+        const staffPerShift = parseFloat(document.getElementById('bg_staffPerShift')?.value) || 1;
+
+        const employerCost = baselineWage > 0 ? baselineWage / 0.70 : 0;
+        const annualEmployerCost = employerCost * 3744;
+        const internalTrueHourly = annualEmployerCost > 0 ? annualEmployerCost / 1456 : 0;
+        const outsourcedHourly = internalTrueHourly * 0.70;
+        const weeklyHours = hoursPerDay * daysPerWeek * Math.max(1, staffPerShift);
+        const annualCoverageHours = weeklyHours * 52;
+        const annualBudget = outsourcedHourly * annualCoverageHours;
+        const monthlyBudget = annualBudget / 12;
+
+        const override = {
+          baselineWage: baselineWage,
+          hourlyBudget: outsourcedHourly,
+          monthlyBudget: monthlyBudget,
+          annualBudget: annualBudget,
+          annualCoverageHours: annualCoverageHours,
+          hoursPerDay: hoursPerDay,
+          daysPerWeek: daysPerWeek,
+          weeksPerYear: weeksPerYear,
+          staffPerShift: staffPerShift,
+          source: 'budget-calculator',
+          ts: Date.now(),
+        };
+
+        try { localStorage.setItem(BUDGET_KEY, JSON.stringify(override)); } catch (e) {}
+
+        // If this calculator tab was opened from the questionnaire (target="_blank"),
+        // try to close it so the user lands back on the questionnaire tab that's
+        // already listening for the localStorage event. If the browser blocks
+        // window.close (no opener), fall back to redirecting in place.
+        try { window.close(); } catch (e) {}
+        setTimeout(function () {
+          if (!document.hidden) {
+            window.location.href = '{{ route('jobs.create') }}';
+          }
+        }, 250);
+      });
+    }
+  })();
+
   calcBudget();
 });
 </script>

@@ -125,6 +125,12 @@ class StoreJobPostingRequest extends FormRequest
             'insurance_minimums_required.*' => ['in:General Liability,Workers Compensation,Auto Liability,Umbrella / Excess Liability,Not sure'],
             'compliance_terms' => ['nullable', 'string', 'max:4000'],
 
+            // Auto-computed / calculator-derived contract value (hidden inputs on the form).
+            'annual_budget' => ['nullable', 'numeric', 'min:0'],
+            'monthly_budget' => ['nullable', 'numeric', 'min:0'],
+            'hourly_budget' => ['nullable', 'numeric', 'min:0'],
+            'budget_amount_range' => ['nullable', 'string', 'max:255'],
+
             // SECTION 9: Posting Terms and Submission
             'additional_notes_to_vendors' => ['nullable', 'string', 'max:4000'],
             'buyer_certification' => ['required', 'accepted'],

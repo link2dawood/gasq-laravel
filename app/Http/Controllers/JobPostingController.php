@@ -623,6 +623,36 @@ class JobPostingController extends Controller
         $monthlyBudget = is_numeric($payload['monthly_budget'] ?? null) ? (float) $payload['monthly_budget'] : 0.0;
         $hourlyBudget = is_numeric($payload['hourly_budget'] ?? null) ? (float) $payload['hourly_budget'] : 0.0;
 
+        // Fallback: if the buyer skipped the calculator and didn't provide any
+        // budget figure, derive one from the scope using the same outsourcing
+        // formula the Instant Estimator uses. Without this the Tier-A lead
+        // would show "Contract Value: —" on the dashboard and the email.
+        if ($annualBudget <= 0 && $monthlyBudget <= 0 && $hourlyBudget <= 0
+            && is_numeric($payload['hours_per_day'] ?? null)
+            && is_numeric($payload['days_per_week'] ?? null)
+            && is_numeric($payload['weeks_per_year'] ?? null)) {
+            $baselineWage = $this->defaultBaselineWageForJob($payload);
+            $employerCost = $baselineWage > 0 ? $baselineWage / 0.70 : 0.0;
+            $annualEmployerCost = $employerCost * 3744;
+            $internalTrueHourly = $annualEmployerCost > 0 ? $annualEmployerCost / 1456 : 0.0;
+            $outsourcedHourly = $internalTrueHourly * 0.70;
+            $staffPerShift = is_numeric($payload['staff_per_shift'] ?? null) ? max(1.0, (float) $payload['staff_per_shift']) : 1.0;
+            $weeklyCoverageHours = (float) $payload['hours_per_day'] * (float) $payload['days_per_week'] * $staffPerShift;
+            $weeksPerYear = max(1.0, (float) $payload['weeks_per_year']);
+            $annualCoverageHours = $weeklyCoverageHours * 52;
+            $termCoverageHours = $weeklyCoverageHours * $weeksPerYear;
+            $hourlyBudget = round($outsourcedHourly, 2);
+            $annualBudget = round($outsourcedHourly * $annualCoverageHours, 2);
+            $monthlyBudget = round($annualBudget / 12, 2);
+            $termBudget = round($outsourcedHourly * $termCoverageHours, 2);
+            $payload['hourly_budget'] = $hourlyBudget;
+            $payload['monthly_budget'] = $monthlyBudget;
+            $payload['annual_budget'] = $annualBudget;
+            if (empty($payload['budget_amount_range']) && $termBudget > 0) {
+                $payload['budget_amount_range'] = '$' . number_format($termBudget, 2);
+            }
+        }
+
         if ($annualBudget > 0) {
             $payload['budget_min'] = $annualBudget;
             $payload['budget_max'] = $annualBudget;
@@ -669,24 +699,18 @@ class JobPostingController extends Controller
             'Preferred contact method: ' . str_replace('_', ' ', (string) ($payload['preferred_contact_method'] ?? '')),
             'Final decision maker: ' . $this->humanizeFlag((string) ($payload['final_decision_maker'] ?? '')),
             'Approval authority: ' . $this->humanizeEnum((string) ($payload['approval_authority'] ?? '')),
-            'Final approver: ' . (($payload['final_approver_name'] ?? '') !== '' ? $payload['final_approver_name'] : 'Not needed'),
             'Hours/day: ' . ($payload['hours_per_day'] ?? 'N/A'),
             'Days/week: ' . ($payload['days_per_week'] ?? 'N/A'),
             'Weeks/year: ' . ($payload['weeks_per_year'] ?? 'N/A'),
-            'Shifts needed: ' . implode(', ', (array) ($payload['shifts_needed'] ?? [])),
             'Patrol types: ' . $this->implodeOrDefault((array) ($payload['patrol_types'] ?? []), 'Not applicable'),
             'Services requested: ' . implode(', ', (array) ($payload['service_types'] ?? [])),
             'Additional service detail: ' . (($payload['service_type_other'] ?? '') !== '' ? $payload['service_type_other'] : 'Not provided'),
             'Duties required: ' . implode(', ', (array) ($payload['duties_required'] ?? [])),
             'Additional duty detail: ' . (($payload['duties_other'] ?? '') !== '' ? $payload['duties_other'] : 'Not provided'),
-            'Pricing exceeds expectations: ' . $this->implodeOrDefault((array) ($payload['if_pricing_exceeds'] ?? []), 'No adjustments selected'),
             'Insurance minimums required: ' . $this->implodeOrDefault((array) ($payload['insurance_minimums_required'] ?? []), 'Not provided'),
             'Supporting documents uploaded: ' . (count((array) ($payload['supporting_documents'] ?? [])) > 0 ? (string) count((array) $payload['supporting_documents']) : 'None'),
             'Additional notes to vendors: ' . (($payload['additional_notes_to_vendors'] ?? '') !== '' ? $payload['additional_notes_to_vendors'] : 'None'),
-            'Current security setup: ' . str_replace('_', ' ', (string) ($payload['current_security_setup'] ?? '')),
             'Replacing provider: ' . (($payload['is_replacing_provider'] ?? '') === 'yes' ? 'Yes' : 'No'),
-            'Multiple bids required: ' . (($payload['multiple_bids_required'] ?? '') === 'yes' ? 'Yes' : 'No'),
-            'Willing to adjust scope to budget: ' . (($payload['willing_adjust_scope_to_budget'] ?? '') === 'yes' ? 'Yes' : 'No'),
             'Move forward if accepted: ' . $this->humanizeEnum((string) ($payload['move_forward_if_accepted'] ?? '')),
             'Risk assessment in last 12 months: ' . str_replace('_', ' ', (string) ($payload['risk_assessment_last_12_months'] ?? '')),
         ];
@@ -749,6 +773,57 @@ class JobPostingController extends Controller
         $prefill = session(self::ESTIMATOR_PREFILL_SESSION_KEY, []);
 
         return is_array($prefill) ? $prefill : [];
+    }
+
+    /**
+     * Pick a sensible default hourly baseline wage based on the job's service
+     * type / category. Mirrors the per-service defaults the Instant Estimator
+     * shows so the auto-computed bid offer lines up with what a buyer would
+     * have seen had they routed through the calculator.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function defaultBaselineWageForJob(array $payload): float
+    {
+        $serviceDefaults = [
+            'unarmed' => 33.0,
+            'armed' => 46.0,
+            'supervisor' => 46.0,
+            'mobile' => 46.0,
+            'mobile_patrol' => 46.0,
+            'patrol' => 46.0,
+            'loss' => 46.0,
+            'executive' => 60.0,
+            'offduty' => 60.0,
+            'off_duty' => 60.0,
+            'off duty police officer' => 60.0,
+            'roving patrol' => 46.0,
+            'guards' => 33.0,
+        ];
+
+        $candidates = [];
+        $candidates[] = strtolower((string) ($payload['service_type'] ?? ''));
+        $candidates[] = strtolower((string) ($payload['category'] ?? ''));
+        foreach ((array) ($payload['service_types'] ?? []) as $value) {
+            if (is_string($value)) {
+                $candidates[] = strtolower($value);
+            }
+        }
+
+        foreach ($candidates as $candidate) {
+            $candidate = trim($candidate);
+            if ($candidate === '') continue;
+            if (isset($serviceDefaults[$candidate])) {
+                return $serviceDefaults[$candidate];
+            }
+            foreach ($serviceDefaults as $key => $rate) {
+                if (str_contains($candidate, $key)) {
+                    return $rate;
+                }
+            }
+        }
+
+        return 33.0;
     }
 
     /**
