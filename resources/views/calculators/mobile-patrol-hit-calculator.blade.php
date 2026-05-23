@@ -127,10 +127,13 @@
       <a href="{{ url()->previous() }}" class="mp24-back" style="width:2.75rem;height:2.75rem;border-radius:.9rem;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(15,23,42,.12);background:rgba(255,255,255,.8);color:#062d79;text-decoration:none;">
         <i class="fa fa-arrow-left"></i>
       </a>
-      <div>
+      <div class="flex-grow-1">
         <div class="text-uppercase small fw-semibold text-gasq-muted" style="letter-spacing:.08em">Patrol Calculator</div>
         <h1 class="h2 fw-bold mb-0">Mobile Patrol Hit Service Calculator</h1>
       </div>
+      <a href="{{ route('mobile-patrol-hit-calculator.how-to') }}" class="btn btn-outline-primary btn-sm">
+        <i class="fa fa-circle-question me-1"></i> How to Use
+      </a>
     </div>
 
     <div class="mphc2-hero mb-4">
@@ -666,4 +669,5 @@ document.addEventListener('DOMContentLoaded', () => {
   $id('mphc2EmailBtn').addEventListener('click', mphc2EmailReport);
 });
 </script>
+@include('partials.calculator-protect')
 @endpush

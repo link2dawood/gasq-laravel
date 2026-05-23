@@ -160,10 +160,13 @@
       <a href="{{ url()->previous() }}" class="mp24-back">
         <i class="fa fa-arrow-left"></i>
       </a>
-      <div>
+      <div class="flex-grow-1">
         <div class="text-uppercase small fw-semibold text-gasq-muted" style="letter-spacing:.08em">Patrol Calculator</div>
         <h1 class="h2 fw-bold mb-0">Mobile Patrol Calculator</h1>
       </div>
+      <a href="{{ route('mobile-patrol-calculator.how-to') }}" class="btn btn-outline-primary btn-sm">
+        <i class="fa fa-circle-question me-1"></i> How to Use
+      </a>
     </div>
 
     <div class="mp24-hero mb-4">
@@ -675,4 +678,5 @@ document.addEventListener('DOMContentLoaded', () => {
   mp24ById('mp24EmailButton').addEventListener('click', mp24EmailReport);
 });
 </script>
+@include('partials.calculator-protect')
 @endpush

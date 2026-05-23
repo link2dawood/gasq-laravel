@@ -158,6 +158,9 @@ Route::middleware(['auth', 'phone.verified', 'vendor', 'has.credits', 'buyer.has
 
     Route::get('/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->middleware('calc.credits:mobile_patrol_calculator_access')->name('mobile-patrol-calculator');
     Route::post('/mobile-patrol-calculator', [App\Http\Controllers\MobilePatrolController::class, 'calculator'])->middleware('calc.credits:mobile_patrol_calculator_access')->name('mobile-patrol-calculator.post');
+    Route::get('/mobile-patrol-calculator/how-to', function () {
+        return view('calculators.how-to.mobile-patrol');
+    })->name('mobile-patrol-calculator.how-to');
 
     Route::get('/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('mobile-patrol-comparison');
     Route::post('/mobile-patrol-comparison', [App\Http\Controllers\MobilePatrolController::class, 'comparison'])->name('mobile-patrol-comparison.post');
@@ -169,6 +172,9 @@ Route::middleware(['auth', 'phone.verified', 'vendor', 'has.credits', 'buyer.has
     Route::get('/mobile-patrol-hit-calculator', function () {
         return view('calculators.mobile-patrol-hit-calculator');
     })->middleware('calc.credits:mobile_patrol_hit_calculator_access')->name('mobile-patrol-hit-calculator.index');
+    Route::get('/mobile-patrol-hit-calculator/how-to', function () {
+        return view('calculators.how-to.mobile-patrol-hit');
+    })->name('mobile-patrol-hit-calculator.how-to');
     Route::get('/buyer-fit-index', function () {
         return view('calculators.buyer-fit-index');
     })->name('buyer-fit-index.index');
