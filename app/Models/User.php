@@ -32,6 +32,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'state',
         'zip_code',
         'phone_verified',
+        'nda_accepted_at',
+        'nda_accepted_ip',
     ];
 
     /**
@@ -55,6 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'phone_verified' => 'boolean',
+            'nda_accepted_at' => 'datetime',
         ];
     }
 

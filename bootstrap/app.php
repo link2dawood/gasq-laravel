@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web([
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\AnalyticsLogger::class,
+            \App\Http\Middleware\EnsureNdaAccepted::class,
         ]);
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,

@@ -212,6 +212,13 @@ Route::get('/vendor-profile/{user}', [App\Http\Controllers\VendorProfileControll
 
 Auth::routes(['verify' => true]);
 
+// Beta NDA acknowledgment (one-time, per user). The EnsureNdaAccepted global
+// middleware redirects authenticated users here until they accept.
+Route::middleware('auth')->group(function () {
+    Route::get('/nda', [App\Http\Controllers\Auth\NdaController::class, 'show'])->name('nda.show');
+    Route::post('/nda', [App\Http\Controllers\Auth\NdaController::class, 'accept'])->name('nda.accept');
+});
+
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Embedded SPA: session, CSRF, wallet balance, feature rules (same-origin Laravel session)
