@@ -210,7 +210,7 @@
                     ];
                 @endphp
                 @foreach ($features as $feature)
-                    <div class="col-6 col-md-4 col-lg-{{ $loop->index < 5 ? '' : '' }}">
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                         <div class="gasq-card card h-100 p-3 p-md-4 text-center">
                             <i class="fa {{ $feature['icon'] }} text-primary fa-2x mb-3"></i>
                             <p class="small fw-semibold mb-0">{!! $feature['label'] !!}</p>
