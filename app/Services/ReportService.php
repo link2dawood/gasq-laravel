@@ -64,7 +64,36 @@ class ReportService
             'reportType' => $type,
         ]);
 
-        return $this->pdf()->loadView($view, $data)->setPaper('a4')->setWarnings(false);
+        $pdf = $this->pdf()->loadView($view, $data)->setPaper('a4')->setWarnings(false);
+
+        return $this->restrictCopyAndPrint($pdf);
+    }
+
+    /**
+     * Apply PDF permission flags that disable copying text and printing.
+     *
+     * Note: these are advisory restrictions honoured by compliant readers
+     * (Acrobat, Preview, Chrome). They are a deterrent, not true security —
+     * they can be stripped by third-party tools and never stop screenshots.
+     * A random owner password locks the permissions; recipients still open
+     * the file without any password (empty user password).
+     */
+    private function restrictCopyAndPrint(\Barryvdh\DomPDF\PDF $pdf): \Barryvdh\DomPDF\PDF
+    {
+        // The canvas only exists after rendering, so render up front; the
+        // wrapper sets its "rendered" flag, so download()/output() won't
+        // re-render and drop the encryption we apply below.
+        $pdf->render();
+
+        $canvas = $pdf->getDomPDF()->getCanvas();
+        if (method_exists($canvas, 'get_cpdf')) {
+            // Empty permissions array grants nothing beyond viewing:
+            // print, copy, modify and annotate are all denied.
+            $ownerPassword = \Illuminate\Support\Str::random(32);
+            $canvas->get_cpdf()->setEncryption('', $ownerPassword, []);
+        }
+
+        return $pdf;
     }
 
     /**

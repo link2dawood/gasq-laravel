@@ -42,7 +42,7 @@
   <tr>
     <td width="33%" class="stat-grid-label"><p>Final Price Per Check</p></td>
     <td width="34%" class="stat-grid-label"><p>Annual Revenue</p></td>
-    <td width="33%" class="stat-grid-label last"><p>Profit Margin</p></td>
+    <td width="33%" class="stat-grid-label last"><p>Annual Checks</p></td>
   </tr>
   <tr>
     <td class="stat-grid-value bg-blue">
@@ -54,8 +54,8 @@
       <p class="sub">{{ $num($annualChecks,0) }} annual checks</p>
     </td>
     <td class="stat-grid-value bg-green last">
-      <p class="num">{{ number_format($profitMarginPct * 100, 1) }}%</p>
-      <p class="sub">gross profit margin</p>
+      <p class="num">{{ $num($annualChecks, 0) }}</p>
+      <p class="sub">patrol checks per year</p>
     </td>
   </tr>
 </table>
@@ -90,8 +90,6 @@
   <tr class="alt"><td>Weekly Revenue</td><td class="v">{{ $money($weeklyRevenue) }}</td></tr>
   <tr><td>Monthly Revenue</td><td class="v">{{ $money($monthlyRevenue) }}</td></tr>
   <tr class="total"><td>Annual Revenue</td><td class="v">{{ $money($annualRevenue) }}</td></tr>
-  <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Profit Margin</td><td class="v" style="color:#1e3558;">{{ number_format($profitMarginPct * 100, 2) }}%</td></tr>
-  @if($profitPct > 0)<tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Configured Profit %</td><td class="v" style="color:#1e3558;">{{ number_format($profitPct * 100, 2) }}%</td></tr>@endif
 </table>
 
 @endsection
