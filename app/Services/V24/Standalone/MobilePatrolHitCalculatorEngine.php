@@ -49,7 +49,10 @@ class MobilePatrolHitCalculatorEngine
         $annualRevenue  = $finalPricePerCheck * $annualChecks;
 
         $grossProfitPerCheck = $finalPricePerCheck - $preMkupCostPerCheck;
-        $profitMarginPct     = $finalPricePerCheck > 0 ? $grossProfitPerCheck / $finalPricePerCheck : 0;
+        // Display the configured profit markup as the "Profit Margin" so the
+        // number shown matches what the vendor entered (e.g. 10% in → 10% shown),
+        // rather than the price-based margin (which renders 10% markup as 9.09%).
+        $profitMarginPct     = $profitPct;
 
         return [
             'checksPerDay'         => round($checksPerDay, 2),
