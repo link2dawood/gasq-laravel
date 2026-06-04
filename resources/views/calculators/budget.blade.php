@@ -984,4 +984,5 @@ document.addEventListener('DOMContentLoaded', () => {
   calcBudget();
 });
 </script>
+@include('partials.calculator-protect')
 @endpush

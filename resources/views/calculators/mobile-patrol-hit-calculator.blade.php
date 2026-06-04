@@ -242,7 +242,7 @@
             </div>
             <div class="col-sm-6">
               <label class="mphc2-label" for="mphc2-payrollBurdenPct">Payroll Burden %</label>
-              <input id="mphc2-payrollBurdenPct" type="number" class="mphc2-input" value="30" min="0" step="0.1">
+              <input id="mphc2-payrollBurdenPct" type="number" class="mphc2-input" value="42.85" min="0" step="0.1">
               <div class="mphc2-hint">Example: 30 for 30%</div>
             </div>
             <div class="col-sm-6">
@@ -415,7 +415,7 @@ const MPHC2_DEFAULTS = {
   minutesOnSite: 15,
   minutesTravel: 10,
   officerPayRate: 25,
-  payrollBurdenPct: 30,
+  payrollBurdenPct: 42.85,
   vehicleCostPerHour: 6.50,
   fuelCostPerHour: 2.25,
   equipmentCostPerHour: 1.75,

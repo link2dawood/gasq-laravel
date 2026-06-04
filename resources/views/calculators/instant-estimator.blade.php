@@ -2522,4 +2522,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 })();
 </script>
+@include('partials.calculator-protect')
 @endpush

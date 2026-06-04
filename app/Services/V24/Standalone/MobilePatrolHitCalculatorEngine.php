@@ -15,7 +15,7 @@ class MobilePatrolHitCalculatorEngine
         $minutesOnSite         = max(0, (float)  Arr::get($m, 'minutesOnSite', 15));
         $minutesTravel         = max(0, (float)  Arr::get($m, 'minutesTravel', 10));
         $officerPayRate        = max(0, (float)  Arr::get($m, 'officerPayRate', 25));
-        $payrollBurdenPct      = max(0, (float)  Arr::get($m, 'payrollBurdenPct', 30)) / 100;
+        $payrollBurdenPct      = max(0, (float)  Arr::get($m, 'payrollBurdenPct', 42.85)) / 100;
         $vehicleCostPerHour    = max(0, (float)  Arr::get($m, 'vehicleCostPerHour', 6.50));
         $fuelCostPerHour       = max(0, (float)  Arr::get($m, 'fuelCostPerHour', 2.25));
         $equipmentCostPerHour  = max(0, (float)  Arr::get($m, 'equipmentCostPerHour', 1.75));
