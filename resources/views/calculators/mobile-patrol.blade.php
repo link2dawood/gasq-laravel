@@ -272,6 +272,7 @@ const MP24_REPORT_TYPE = 'mobile-patrol';
 const MP24_REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'mobile-patrol']));
 const MP24_BUYER_REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'mobile-patrol-buyer']));
 const MP24_REPORT_PAYLOAD_URL = @json(route('backend.report-payload.store'));
+const MP24_COMPUTE_URL = @json(route('backend.mobile-patrol.compute'));
 
 const MP24_DEFAULTS = {
   baselinePayRate: 25,
@@ -326,6 +327,8 @@ const MP24_CONTACT_FIELDS = [
 let mp24Inputs = { ...MP24_DEFAULTS };
 let mp24Contact = { ...MP24_CONTACT_DEFAULTS };
 let mp24PersistTimer = null;
+let mp24RenderTimer = null;
+let mp24LastResults = null;
 
 function mp24ById(id) {
   return document.getElementById(id);
@@ -384,51 +387,28 @@ function mp24ReadInputsFromDom() {
   });
 }
 
-function mp24Calculate() {
-  const returnOnSalesRate = mp24NormalizeRosRate(mp24Inputs.returnOnSalesPct);
-  const employerCostHourly = mp24Inputs.divisor > 0
-    ? mp24Inputs.baselinePayRate / mp24Inputs.divisor
-    : 0;
+// The cost/bill-rate formula runs on the server. We post the inputs and
+// receive only the computed results, so the math never ships to the browser.
+async function mp24Compute() {
+  const res = await fetch(MP24_COMPUTE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+    },
+    body: JSON.stringify({ scenario: mp24ScenarioPayload() }),
+  });
+  if (!res.ok) throw new Error('Could not calculate right now.');
+  const data = await res.json();
+  return data.kpis || {};
+}
 
-  const annualLaborCost = employerCostHourly * mp24Inputs.annualHours;
-  const milesPerDay = mp24Inputs.mph * mp24Inputs.hoursPerDay;
-  const milesPerYear = milesPerDay * 365;
-  const gallonsPerYear = mp24Inputs.mpg > 0 ? milesPerYear / mp24Inputs.mpg : 0;
-  const annualFuelCost = gallonsPerYear * mp24Inputs.fuelCostPerGallon;
-  const oilChangesPerYear = mp24Inputs.oilChangeIntervalMiles > 0
-    ? Math.ceil(milesPerYear / mp24Inputs.oilChangeIntervalMiles)
-    : 0;
-  const annualOilCost = oilChangesPerYear * mp24Inputs.oilChangeCost;
-  const annualTireCost = mp24Inputs.tireSetsPerYear * mp24Inputs.tireCostPerSet;
-  const totalAnnualCost = annualLaborCost
-    + annualFuelCost
-    + mp24Inputs.annualMaintenance
-    + annualTireCost
-    + mp24Inputs.autoInsurance
-    + annualOilCost;
-  const returnOnSalesAmount = totalAnnualCost * returnOnSalesRate;
-  const totalAnnualCostWithReturnOnSales = totalAnnualCost + returnOnSalesAmount;
-  const costPerHour = mp24Inputs.annualHours > 0 ? totalAnnualCostWithReturnOnSales / mp24Inputs.annualHours : 0;
-  const hourlyBillRate = costPerHour;
-
-  return {
-    returnOnSalesRate,
-    returnOnSalesPercentDisplay: returnOnSalesRate * 100,
-    employerCostHourly,
-    annualLaborCost,
-    milesPerDay,
-    milesPerYear,
-    gallonsPerYear,
-    annualFuelCost,
-    oilChangesPerYear,
-    annualOilCost,
-    annualTireCost,
-    totalAnnualCost,
-    returnOnSalesAmount,
-    totalAnnualCostWithReturnOnSales,
-    costPerHour,
-    hourlyBillRate,
-  };
+async function mp24EnsureResults() {
+  if (!mp24LastResults) {
+    mp24LastResults = await mp24Compute();
+  }
+  return mp24LastResults;
 }
 
 function mp24ResultRow(label, value, className = '') {
@@ -440,8 +420,15 @@ function mp24ResultRow(label, value, className = '') {
   `;
 }
 
-function mp24RenderResults() {
-  const results = mp24Calculate();
+async function mp24RenderResults() {
+  let results;
+  try {
+    results = await mp24Compute();
+  } catch (error) {
+    mp24ShowStatus('danger', error.message || 'Could not update results right now.');
+    return;
+  }
+  mp24LastResults = results;
   const resultsEl = mp24ById('mp24Results');
 
   resultsEl.innerHTML = [
@@ -492,9 +479,8 @@ function mp24RenderInputs() {
   grid.querySelectorAll('input').forEach((input) => {
     input.addEventListener('input', () => {
       mp24ReadInputsFromDom();
-      mp24RenderResults();
       mp24PersistLocal();
-      mp24ScheduleReportPersist();
+      mp24ScheduleRender();
     });
   });
 }
@@ -580,11 +566,12 @@ function mp24ScenarioPayload() {
 
 function mp24ResultPayload() {
   return {
-    kpis: { ...mp24Calculate() },
+    kpis: { ...(mp24LastResults || {}) },
   };
 }
 
 async function mp24PersistReportPayload() {
+  await mp24EnsureResults();
   const response = await fetch(MP24_REPORT_PAYLOAD_URL, {
     method: 'POST',
     headers: {
@@ -613,6 +600,20 @@ function mp24ScheduleReportPersist() {
       console.error(error);
     }
   }, 350);
+}
+
+// Debounce the server round-trip: recompute + repaint results once typing
+// pauses, then persist the report payload from the same fresh result.
+function mp24ScheduleRender() {
+  clearTimeout(mp24RenderTimer);
+  mp24RenderTimer = setTimeout(async () => {
+    await mp24RenderResults();
+    try {
+      await mp24PersistReportPayload();
+    } catch (error) {
+      console.error(error);
+    }
+  }, 300);
 }
 
 function mp24Reset() {

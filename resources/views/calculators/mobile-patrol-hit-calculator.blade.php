@@ -406,6 +406,7 @@ const MPHC2_STORAGE_KEY = 'gasq.mobilePatrolHits.v2';
 const MPHC2_REPORT_TYPE = 'mobile-patrol-hit-calculator';
 const MPHC2_REPORT_DOWNLOAD_URL = @json(route('reports.download', ['type' => 'mobile-patrol-hit-calculator']));
 const MPHC2_REPORT_PAYLOAD_URL = @json(route('backend.report-payload.store'));
+const MPHC2_CALCULATE_URL = @json(route('backend.mobile-patrol-hit.compute'));
 
 const MPHC2_DEFAULTS = {
   siteName: '',
@@ -433,7 +434,8 @@ const MPHC2_DEFAULTS = {
 };
 
 let mphc2Inputs = { ...MPHC2_DEFAULTS };
-let mphc2PersistTimer = null;
+let mphc2RenderTimer = null;
+let mphc2LastResults = null;
 
 function $id(id) { return document.getElementById(id); }
 
@@ -458,47 +460,32 @@ function mphc2Read() {
   });
 }
 
-function mphc2Calculate() {
-  const i = mphc2Inputs;
-  const weeklyChecks = Math.max(0, parseInt(i.weeklyChecks) || 0);
-  const weeksPerYear = Math.max(1, i.weeksPerYear);
-  const checksPerDay = weeklyChecks / 7;
-  const totalMinutes = (i.minutesOnSite || 0) + (i.minutesTravel || 0);
-  const hoursPerCheck = totalMinutes / 60;
-
-  const burdenedRate = i.officerPayRate * (1 + (i.payrollBurdenPct / 100));
-  const totalOpCostPerHour = burdenedRate + i.vehicleCostPerHour + i.fuelCostPerHour + i.equipmentCostPerHour + i.supervisionCostPerHour;
-
-  const baseCostPerCheck = totalOpCostPerHour * hoursPerCheck;
-  const overheadPerCheck = baseCostPerCheck * (i.overheadPct / 100);
-  const gaPerCheck = baseCostPerCheck * (i.gaPct / 100);
-  const subtotalCostPerCheck = baseCostPerCheck + overheadPerCheck + gaPerCheck;
-  const preMkupCostPerCheck = subtotalCostPerCheck + (i.addOnCost || 0);
-  const profitAmountPerCheck = preMkupCostPerCheck * (i.profitPct / 100);
-  const calculatedPricePerCheck = preMkupCostPerCheck + profitAmountPerCheck;
-  const finalPricePerCheck = Math.max(calculatedPricePerCheck, i.minimumCharge || 0);
-
-  const monthlyChecks = weeklyChecks * (weeksPerYear / 12);
-  const annualChecks = weeklyChecks * weeksPerYear;
-  const weeklyRevenue = finalPricePerCheck * weeklyChecks;
-  const monthlyRevenue = finalPricePerCheck * monthlyChecks;
-  const annualRevenue = finalPricePerCheck * annualChecks;
-
-  const grossProfitPerCheck = finalPricePerCheck - preMkupCostPerCheck;
-  const profitMarginPct = finalPricePerCheck > 0 ? grossProfitPerCheck / finalPricePerCheck : 0;
-
-  return {
-    checksPerDay, totalMinutes, hoursPerCheck, burdenedRate, totalOpCostPerHour,
-    baseCostPerCheck, overheadPerCheck, gaPerCheck, subtotalCostPerCheck,
-    preMkupCostPerCheck, profitAmountPerCheck, calculatedPricePerCheck, finalPricePerCheck,
-    weeklyChecks, monthlyChecks, annualChecks,
-    weeklyRevenue, monthlyRevenue, annualRevenue,
-    grossProfitPerCheck, profitMarginPct,
-  };
+// The pricing formula runs on the server. We post the inputs and receive only
+// the computed results, so the cost/markup math never ships to the browser.
+async function mphc2Compute() {
+  const res = await fetch(MPHC2_CALCULATE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+    },
+    body: JSON.stringify({ scenario: mphc2ScenarioPayload() }),
+  });
+  if (!res.ok) throw new Error('Could not calculate right now.');
+  const data = await res.json();
+  return data.kpis || {};
 }
 
-function mphc2Render() {
-  const r = mphc2Calculate();
+async function mphc2Render() {
+  let r;
+  try {
+    r = await mphc2Compute();
+  } catch (e) {
+    mphc2ShowStatus('danger', e.message || 'Could not update results right now.');
+    return mphc2LastResults;
+  }
+  mphc2LastResults = r;
 
   // Auto-computed readonly fields
   const setVal = (id, v) => { const el = $id(id); if (el) el.value = v; };
@@ -617,7 +604,7 @@ async function mphc2PersistReportPayload(results) {
 
 async function mphc2Download() {
   try {
-    const results = mphc2Calculate();
+    const results = mphc2LastResults || await mphc2Compute();
     await mphc2PersistReportPayload(results);
     window.location.href = MPHC2_REPORT_DOWNLOAD_URL;
   } catch (e) {
@@ -629,7 +616,7 @@ async function mphc2EmailReport() {
   const email = $id('mphc2Email').value.trim();
   if (!email) { mphc2ShowStatus('warning', 'Enter an email address before sending.'); return; }
   try {
-    const results = mphc2Calculate();
+    const results = mphc2LastResults || await mphc2Compute();
     await mphc2PersistReportPayload(results);
     $id('mphc2EmailTarget').value = email;
     $id('mphc2EmailForm').submit();
@@ -655,12 +642,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[id^="mphc2-"]:not([readonly])').forEach(el => {
     el.addEventListener('input', () => {
       mphc2Read();
-      mphc2Render();
       mphc2PersistLocal();
-      clearTimeout(mphc2PersistTimer);
-      mphc2PersistTimer = setTimeout(async () => {
-        try { await mphc2PersistReportPayload(mphc2Calculate()); } catch {}
-      }, 400);
+      // Debounce the server round-trip so we recompute once typing pauses,
+      // not on every keystroke.
+      clearTimeout(mphc2RenderTimer);
+      mphc2RenderTimer = setTimeout(async () => {
+        await mphc2Render();
+        try { await mphc2PersistReportPayload(mphc2LastResults); } catch {}
+      }, 300);
     });
   });
 
