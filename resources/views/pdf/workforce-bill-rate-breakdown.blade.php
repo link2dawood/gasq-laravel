@@ -79,8 +79,11 @@
         foreach (($cfgGroup['items'] ?? []) as $item) {
             $key = $item['key'] ?? null; if (! $key) continue;
             $itemPct = isset($alloc[$key]) && is_numeric($alloc[$key]) ? (float) $alloc[$key] : 0.0;
-            $items[] = ['label' => $item['label'] ?? $key, 'pct' => $itemPct, 'amount' => $totalBudget * $itemPct / 100];
+            $itemAmount = $totalBudget * $itemPct / 100;
             $groupPct += $itemPct;
+            // Hide $0.00 line items — only list items that carry a real dollar value.
+            if (round($itemAmount, 2) <= 0) continue;
+            $items[] = ['label' => $item['label'] ?? $key, 'pct' => $itemPct, 'amount' => $itemAmount];
         }
         $lineGroups[] = [
             'label' => $cfgGroup['label'] ?? '',
@@ -226,6 +229,7 @@
   <tr><td class="gasq-section-band"><p>Line-Item Breakdown</p></td></tr>
 </table>
 @foreach($lineGroups as $group)
+@continue(empty($group['items']))
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px; border:1px solid #d8dff0; border-collapse:collapse;">
   <tr style="background:#1e3558;">
     <td style="padding:7px 16px; font-size:10.5px; font-weight:bold; color:#fff;">{{ $group['label'] }}</td>
