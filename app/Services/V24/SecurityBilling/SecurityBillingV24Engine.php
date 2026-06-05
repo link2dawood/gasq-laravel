@@ -42,7 +42,7 @@ class SecurityBillingV24Engine
         $uniformTotal = $uCost * $uQty;
         $trainingHr = ($hours > 0 && $weeks > 0) ? ($trainingCost / ($hours * $weeks)) : 0.0;
 
-        return [
+        $out = [
             'basePayRate' => round($basePay, 2),
             'costWithPayrollTaxes' => round($withTaxes, 2),
             'costWithOverhead' => round($withOverhead, 2),
@@ -56,6 +56,31 @@ class SecurityBillingV24Engine
             'trainingCostPerHour' => round($trainingHr, 4),
             'totalBillRate' => round($billRate, 2),
         ];
+
+        // Optional "what-if" comparison scenario (Scenario B). Same bill-rate
+        // formula and the shared payroll-tax rate; keeps that math server-side
+        // so it isn't duplicated in the browser.
+        $comparison = (array) (Arr::get($meta, 'comparison') ?? []);
+        if ($comparison !== []) {
+            $cBase = (float) (Arr::get($comparison, 'basePayRate') ?? 0.0);
+            $cHours = (float) (Arr::get($comparison, 'hoursPerWeek') ?? 0.0);
+            $cOverhead = (float) (Arr::get($comparison, 'overheadPct') ?? 0.0) / 100;
+            $cProfit = (float) (Arr::get($comparison, 'profitPct') ?? 0.0) / 100;
+
+            $cWithTaxes = $cBase * (1 + $taxRate);
+            $cWithOverhead = $cWithTaxes * (1 + $cOverhead);
+            $cBillRate = $cProfit < 1 ? ($cWithOverhead / (1 - $cProfit)) : 0.0;
+            $cWeekly = $cBillRate * $cHours;
+            $cAnnual = $cWeekly * $weeks;
+
+            $out['comparison'] = [
+                'billRate' => round($cBillRate, 2),
+                'weeklyTotal' => round($cWeekly, 2),
+                'annualTotal' => round($cAnnual, 2),
+            ];
+        }
+
+        return $out;
     }
 }
 

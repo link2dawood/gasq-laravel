@@ -366,20 +366,30 @@ function fmtN(v, dec = 0){return new Intl.NumberFormat('en-US',{minimumFractionD
 function gv(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
-function calcScenario(p){
-  const hoursPerYear = p.hoursPerDay * p.daysPerYear;
-  const annualWageCost = hoursPerYear * p.wage * (1 + p.burden/100);
-  const milesDrivenPerYear = p.miles * p.daysPerYear;
-  const fuelGallonsPerYear = p.mpg > 0 ? milesDrivenPerYear / p.mpg : 0;
-  const annualFuelCost = fuelGallonsPerYear * p.fuel;
-  const oilChangesPerYear = p.oilMiles > 0 ? milesDrivenPerYear / p.oilMiles : 0;
-  const annualOilCost = oilChangesPerYear * p.oilCost;
-  const totalPreMarkup = annualWageCost + p.vehFin + annualFuelCost + p.repairs + p.tires + annualOilCost + p.insurance;
-  const markupFrac = p.markup / 100;
-  const annualCostWithMarkup = markupFrac < 1 ? totalPreMarkup / (1 - markupFrac) : totalPreMarkup;
-  const monthlyCostWithMarkup = annualCostWithMarkup / 12;
-  const hourlyRate = hoursPerYear > 0 ? annualCostWithMarkup / hoursPerYear : 0;
-  return { hourlyRate, annualCostWithMarkup, monthlyCostWithMarkup, hoursPerYear, totalPreMarkup };
+const MPC_COMPUTE_URL = @json(route('backend.mobile-patrol-comparison.compute'));
+let mpcCalcTimer = null;
+
+// Both scenarios' cost/markup formula runs on the server. We post the raw
+// inputs and receive only the computed results, so the math never ships to
+// the browser. Credit-free endpoint — live comparison stays free.
+async function mpcCompute(){
+  const res = await fetch(MPC_COMPUTE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+    },
+    body: JSON.stringify({ scenario: { a: readScenario('a'), b: readScenario('b') } }),
+  });
+  if(!res.ok) throw new Error('Could not calculate right now.');
+  const data = await res.json();
+  return data.kpis || {};
+}
+
+function scheduleCalculate(){
+  clearTimeout(mpcCalcTimer);
+  mpcCalcTimer = setTimeout(() => { calculate(); }, 300);
 }
 
 function readScenario(prefix){
@@ -472,9 +482,15 @@ function resetComparisonDefaults(){
   calculate();
 }
 
-function calculate(){
-  const a = calcScenario(readScenario('a'));
-  const b = calcScenario(readScenario('b'));
+async function calculate(){
+  let a, b;
+  try {
+    const out = await mpcCompute();
+    a = out.a || {};
+    b = out.b || {};
+  } catch (e) {
+    return;
+  }
 
   setText('a_rate', fmt(a.hourlyRate));
   setText('a_annual', fmt(a.annualCostWithMarkup));
@@ -540,7 +556,7 @@ function calculate(){
 document.addEventListener('DOMContentLoaded', () => {
   hydrateSavedScenario('a', savedScenario?.a);
   hydrateSavedScenario('b', savedScenario?.b);
-  document.querySelectorAll('input').forEach((el) => el.addEventListener('input', calculate));
+  document.querySelectorAll('input').forEach((el) => el.addEventListener('input', scheduleCalculate));
   updateLabel('a');
   updateLabel('b');
   calculate();

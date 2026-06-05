@@ -332,19 +332,19 @@
                       <div class="row g-3 mb-3">
                         <div class="col-md-6">
                           <label class="form-label x-sm fw-medium">Base Pay $/hr</label>
-                          <input type="number" id="cmpB_basePay" class="form-control form-control-sm" value="20.00" step="0.01" oninput="calcCmp()">
+                          <input type="number" id="cmpB_basePay" class="form-control form-control-sm" value="20.00" step="0.01" oninput="scheduleSB()">
                         </div>
                         <div class="col-md-6">
                           <label class="form-label x-sm fw-medium">Hours/week</label>
-                          <input type="number" id="cmpB_hours" class="form-control form-control-sm" value="40" oninput="calcCmp()">
+                          <input type="number" id="cmpB_hours" class="form-control form-control-sm" value="40" oninput="scheduleSB()">
                         </div>
                         <div class="col-md-6">
                           <label class="form-label x-sm fw-medium">Overhead %</label>
-                          <input type="number" id="cmpB_overhead" class="form-control form-control-sm" value="35" oninput="calcCmp()">
+                          <input type="number" id="cmpB_overhead" class="form-control form-control-sm" value="35" oninput="scheduleSB()">
                         </div>
                         <div class="col-md-6">
                           <label class="form-label x-sm fw-medium">Profit %</label>
-                          <input type="number" id="cmpB_profit" class="form-control form-control-sm" value="15" oninput="calcCmp()">
+                          <input type="number" id="cmpB_profit" class="form-control form-control-sm" value="15" oninput="scheduleSB()">
                         </div>
                       </div>
                       <div class="rounded-4 p-4 text-white text-center" style="background:#16a34a">
@@ -488,26 +488,21 @@ function renderScenarioA(state, out){
 }
 
 function calcCmp(){
-  const state = window._sbState || getSharedState();
   const outA = window._sbOut || {};
 
-  const taxRate = (state.taxRatePct || 0) / 100;
-  const weeks = state.weeks || 52;
-  const basePay = g('cmpB_basePay');
-  const hours = g('cmpB_hours');
-  const overhead = g('cmpB_overhead') / 100;
-  const profitPct = g('cmpB_profit') / 100;
-
-  const withTaxes = basePay * (1 + taxRate);
-  const withOverhead = withTaxes * (1 + overhead);
-  const billRate = (1 - profitPct) > 0 ? withOverhead / (1 - profitPct) : 0;
-  const annual = billRate * hours * weeks;
+  // Scenario B bill-rate is computed server-side (see SecurityBillingV24Engine).
+  // We only read the returned values here; the diffs below are plain
+  // subtraction, not the proprietary formula.
+  const cmp = outA.comparison || {};
+  const billRate = cmp.billRate || 0;
+  const weekly = cmp.weeklyTotal || 0;
+  const annual = cmp.annualTotal || 0;
 
   setText('cmpRateB', fmt(billRate));
   setText('cmpAnnualB', fmt(annual));
 
   const diffRate = billRate - (outA.totalBillRate || 0);
-  const diffWeekly = (billRate * hours) - (outA.weeklyTotal || 0);
+  const diffWeekly = weekly - (outA.weeklyTotal || 0);
   const diffAnnual = annual - (outA.annualTotal || 0);
 
   function styleN(id, v){
