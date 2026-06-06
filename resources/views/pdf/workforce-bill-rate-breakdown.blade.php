@@ -125,7 +125,7 @@
   <tr>
     <td width="33%" class="stat-grid-label"><p>Total Contract / Budget</p></td>
     <td width="34%" class="stat-grid-label"><p>Annual Capital Recovery</p></td>
-    <td width="33%" class="stat-grid-label last"><p>Payback Period</p></td>
+    <td width="33%" class="stat-grid-label last"><p>Vendor Total Annual Cost</p></td>
   </tr>
   <tr>
     <td class="stat-grid-value bg-blue">
@@ -137,27 +137,27 @@
       <p class="sub">{{ $recoveryPct }}% recovered vs in-house</p>
     </td>
     <td class="stat-grid-value bg-pink last">
-      <p class="num">{{ number_format($paybackMonths, 1) }} mo</p>
-      <p class="sub">return on outsourcing</p>
+      <p class="num">{{ $moneyK($totalAnnualVend) }}</p>
+      <p class="sub">total annual vendor cost</p>
     </td>
   </tr>
   <tr>
     <td class="stat-grid-label"><p>Internal TCO / hr</p></td>
-    <td class="stat-grid-label"><p>Vendor TCO / hr</p></td>
-    <td class="stat-grid-label last"><p>Total Staff Required</p></td>
+    <td class="stat-grid-label"><p>Total Staff Required</p></td>
+    <td class="stat-grid-label last"><p>Vendor TCO / hr</p></td>
   </tr>
   <tr>
     <td class="stat-grid-value bg-purple">
       <p class="num">{{ $money($internalTcoHourly) }}</p>
       <p class="sub">buyer in-house cost</p>
     </td>
-    <td class="stat-grid-value bg-peach">
-      <p class="num">{{ $money($vendorTcoHourly) }}</p>
-      <p class="sub">vendor rate offered</p>
-    </td>
-    <td class="stat-grid-value bg-sky last">
+    <td class="stat-grid-value bg-sky">
       <p class="num">{{ $ftesRequired }}</p>
       <p class="sub">FTEs to deliver scope</p>
+    </td>
+    <td class="stat-grid-value bg-peach last">
+      <p class="num">{{ $money($vendorTcoHourly) }}</p>
+      <p class="sub">vendor rate offered</p>
     </td>
   </tr>
 </table>
