@@ -133,7 +133,7 @@
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-medium">Client Email</label>
-                  <input type="email" id="ej_email" class="form-control form-control-sm" placeholder="client@example.com" oninput="scheduleEJ()">
+                  <input type="text" id="ej_email" class="form-control form-control-sm" placeholder="Email(s) — separate multiple with commas" oninput="scheduleEJ()">
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-medium">Phone</label>

@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Mail;
 
 class ReportController extends Controller
 {
+    /**
+     * Internal inbox BCC'd on every estimate/report emailed from the site so
+     * GASQ retains a copy of each one sent. Change here to update globally.
+     */
+    private const ESTIMATE_BCC = 'info@getasecurityquotenow.com';
+
     public function __construct(
         private ReportService $report
     ) {}
@@ -54,8 +60,20 @@ class ReportController extends Controller
     {
         $request->validate([
             'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
-            'email' => 'required|email',
+            'email' => 'required|string',
         ]);
+
+        // Accept one or more recipients separated by comma, semicolon, space or newline.
+        $recipients = collect(preg_split('/[,;\s]+/', (string) $request->input('email'), -1, PREG_SPLIT_NO_EMPTY))
+            ->map(fn ($e) => trim($e))
+            ->unique()
+            ->values();
+        $invalid = $recipients->reject(fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL));
+        if ($recipients->isEmpty() || $invalid->isNotEmpty()) {
+            return back()->with('error', $invalid->isNotEmpty()
+                ? 'These email addresses look invalid: ' . $invalid->implode(', ')
+                : 'Enter at least one valid email address.');
+        }
 
         $type = $request->input('type');
         $payload = $this->payloadForType($request, $type);
@@ -65,14 +83,22 @@ class ReportController extends Controller
 
         $pdf = $this->report->calculatorPdf($type, $payload);
         $filename = $this->report->filenameForCalculator($type, $request->user());
+        $pdfData = $pdf->output();
+        $subject = 'Your GASQ Calculator Report – ' . str_replace('-', ' ', ucfirst($type));
 
-        Mail::to($request->input('email'))->send(new ReportPdfMail(
-            subjectLine: 'Your GASQ Calculator Report – ' . str_replace('-', ' ', ucfirst($type)),
-            pdf: $pdf->output(),
-            filename: $filename,
-        ));
+        // Send each recipient their own copy (so they don't see each other), and
+        // BCC the GASQ inbox so we keep a copy of every estimate sent.
+        foreach ($recipients as $to) {
+            Mail::to($to)
+                ->bcc(self::ESTIMATE_BCC)
+                ->send(new ReportPdfMail(
+                    subjectLine: $subject,
+                    pdf: $pdfData,
+                    filename: $filename,
+                ));
+        }
 
-        return back()->with('success', 'Report sent to ' . $request->input('email'));
+        return back()->with('success', 'Report sent to ' . $recipients->implode(', '));
     }
 
     private function payloadForType(Request $request, ?string $type): ?array

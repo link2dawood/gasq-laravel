@@ -241,10 +241,10 @@
                 <i class="fa fa-user me-1"></i> Buyer PDF
               </button>
               <input
-                type="email"
+                type="text"
                 id="mp24Email"
                 class="form-control mp24-email"
-                placeholder="Email address"
+                placeholder="Email(s) — separate multiple with commas"
                 value="{{ auth()->user()?->email }}"
               >
               <button type="button" class="btn btn-primary" id="mp24EmailButton">

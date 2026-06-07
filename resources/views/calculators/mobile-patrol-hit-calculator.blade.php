@@ -374,10 +374,10 @@
                 <i class="fa fa-download me-1"></i> Download PDF
               </button>
               <input
-                type="email"
+                type="text"
                 id="mphc2Email"
                 class="form-control mphc2-email"
-                placeholder="Email address"
+                placeholder="Email(s) — separate multiple with commas"
                 value="{{ auth()->user()?->email }}"
               >
               <button type="button" class="btn btn-primary" id="mphc2EmailBtn">
