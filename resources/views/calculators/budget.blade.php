@@ -366,7 +366,7 @@
   <div class="card gasq-card mt-4">
     <div class="card-header py-3">
       <h5 class="card-title mb-0 fw-semibold d-flex align-items-center gap-2">
-        <i class="fa fa-balance-scale text-primary"></i> {{ $isBuyerView ? 'Total Cost of Ownership Summary' : 'Appraisal Comparison Summary' }}
+        <i class="fa fa-balance-scale text-primary"></i> {{ $isBuyerView ? 'Total Cost of Ownership Summary' : 'Cost to Protect Appraisal Comparison Summary' }}
       </h5>
       <div class="text-gasq-muted small">Side-by-side comparison of internal TCO vs vendor TCO. Updates live with the inputs above.</div>
     </div>
@@ -376,8 +376,8 @@
           <thead class="table-light">
             <tr>
               <th>Description</th>
-              <th class="text-end font-monospace">Internal TCO</th>
-              <th class="text-end font-monospace">Vendor TCO</th>
+              <th class="text-end font-monospace">Buyer Internal Cost to Protect</th>
+              <th class="text-end font-monospace">Buyer Outsourcing Cost to Protect</th>
             </tr>
           </thead>
           <tbody id="bg_ap_body"></tbody>
