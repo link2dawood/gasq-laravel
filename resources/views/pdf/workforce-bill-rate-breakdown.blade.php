@@ -123,9 +123,9 @@
 @section('stat_grid')
 <table width="100%" cellpadding="0" cellspacing="0">
   <tr>
-    <td width="33%" class="stat-grid-label"><p>Total Contract / Budget</p></td>
+    <td width="33%" class="stat-grid-label"><p>Buyer Internal Cost to Protect</p></td>
     <td width="34%" class="stat-grid-label"><p>Annual Capital Recovery</p></td>
-    <td width="33%" class="stat-grid-label last"><p>Vendor Total Annual Cost</p></td>
+    <td width="33%" class="stat-grid-label last"><p>Vendor Outsourcing Cost to Protect</p></td>
   </tr>
   <tr>
     <td class="stat-grid-value bg-blue">
@@ -142,9 +142,9 @@
     </td>
   </tr>
   <tr>
-    <td class="stat-grid-label"><p>Internal TCO / hr</p></td>
+    <td class="stat-grid-label"><p>Buyer Internal Cost to Protect Hourly Rate</p></td>
     <td class="stat-grid-label"><p>Total Staff Required</p></td>
-    <td class="stat-grid-label last"><p>Vendor TCO / hr</p></td>
+    <td class="stat-grid-label last"><p>Vendor Outsourcing Cost to Protect Hourly Rate</p></td>
   </tr>
   <tr>
     <td class="stat-grid-value bg-purple">
@@ -194,8 +194,8 @@
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
   <tr style="background:#f0f4fb;">
     <td style="font-weight:bold; color:#1e3558;">Description</td>
-    <td class="v" style="color:#1e3558;">Internal TCO</td>
-    <td class="v" style="color:#1e3558;">Vendor TCO</td>
+    <td class="v" style="color:#1e3558;">Buyer Internal Cost to Protect</td>
+    <td class="v" style="color:#1e3558;">Vendor Outsourcing Cost to Protect</td>
   </tr>
   @php
     $rows = [
