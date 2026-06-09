@@ -248,4 +248,44 @@
     All price calculations include the full cost of workforce staffing and support services, including livable base wages, employer-paid payroll taxes (FICA, FUTA, SUTA), workers compensation, general liability insurance, unemployment insurance, paid time off, healthcare and fringe benefits, uniforms and equipment, onboarding and training, site supervision, quality assurance oversight, management and administrative support, 24/7 dispatch capability, compliance with local, state, and federal labor laws, and all service-level guarantees, including open post protection, vendor replacement, and price lock guarantees, unless otherwise specified.
 </p>
 
+{{-- GASQ Certified Statement — formal appendix on its own page --}}
+@php
+    $stmtHead = 'font-weight:bold; color:#1e3558; font-size:11px; letter-spacing:0.5px; margin:16px 0 4px;';
+    $stmtRule = 'border:none; border-top:1px solid #cbd5e1; margin:14px 0;';
+@endphp
+<div style="page-break-before: always;"></div>
+
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr><td class="gasq-section-band"><p>GASQ Certified™ Statement</p></td></tr>
+</table>
+
+<p style="{{ $stmtHead }} margin-top:14px;">EXECUTIVE SUMMARY</p>
+<p class="gasq-note" style="margin-top:0;">This report was prepared using the GASQ Cost to Protect™ methodology and includes a side-by-side comparison of the estimated cost to perform security services in-house versus outsourcing to a qualified security provider.</p>
+<p class="gasq-note">The purpose of this report is to establish a realistic protection budget, identify staffing requirements, evaluate workforce availability, and determine the most cost-effective method to achieve the desired level of protection.</p>
+
+<hr style="{{ $stmtRule }}">
+
+<p style="{{ $stmtHead }}">GASQ CERTIFICATION STATEMENT</p>
+<p class="gasq-note" style="margin-top:0;">This report has been generated using the GASQ Cost to Protect™ Model and has been reviewed for pricing realism, workforce availability requirements, staffing assumptions, and coverage sustainability.</p>
+<p class="gasq-note">The calculations contained within this report are derived from proprietary methodologies, benchmarks, staffing algorithms, and analytical frameworks developed by GASQ.</p>
+<p class="gasq-note">This report is intended solely for the use of the named recipient.</p>
+
+<hr style="{{ $stmtRule }}">
+
+<p style="{{ $stmtHead }}">INTELLECTUAL PROPERTY NOTICE</p>
+<p class="gasq-note" style="margin-top:0;">The concepts, methodologies, calculations, presentation formats, and analytical frameworks contained within this report constitute proprietary intellectual property of GASQ.</p>
+<p class="gasq-note">Unauthorized reproduction, reverse engineering, redistribution, resale, modification, commercial use, or creation of derivative works is prohibited without written authorization.</p>
+
+<hr style="{{ $stmtRule }}">
+
+<p style="{{ $stmtHead }}">DISCLAIMER</p>
+<p class="gasq-note" style="margin-top:0;">This report is intended for budgeting, procurement planning, staffing analysis, and cost comparison purposes only. Actual wages, benefits, insurance costs, turnover rates, supervision requirements, market conditions, and customer-specific requirements may impact final pricing.</p>
+<p class="gasq-note">GASQ makes no guarantee that any vendor will provide services at the estimated pricing levels shown within this report.</p>
+
+<p style="text-align:center; color:#1e3558; font-size:10px; font-weight:bold; margin-top:18px; line-height:1.7;">
+    © 2026 GASQ &nbsp;·&nbsp; ALL RIGHTS RESERVED<br>
+    CFO TESTED. CFO APPROVED.<br>
+    THE INDUSTRY PRICING REFEREE™
+</p>
+
 @endsection
