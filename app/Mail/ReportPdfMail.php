@@ -16,6 +16,8 @@ class ReportPdfMail extends Mailable
         public string $subjectLine,
         public string $pdf,
         public string $filename,
+        public string $bodyView = 'emails.report-pdf',
+        public array $bodyData = [],
     ) {}
 
     public function envelope(): Envelope
@@ -28,7 +30,8 @@ class ReportPdfMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.report-pdf',
+            view: $this->bodyView,
+            with: $this->bodyData,
         );
     }
 

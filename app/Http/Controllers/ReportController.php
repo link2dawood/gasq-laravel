@@ -86,6 +86,13 @@ class ReportController extends Controller
         $pdfData = $pdf->output();
         $subject = 'Your GASQ Calculator Report – ' . str_replace('-', ' ', ucfirst($type));
 
+        // The Workforce/Budget report ships the branded "Cost to Protect" cover
+        // email; everything else uses the short generic body.
+        [$bodyView, $bodyData] = $this->emailBodyFor($type, $payload);
+        if ($bodyView === 'emails.cost-to-protect') {
+            $subject = 'Your GASQ Cost to Protect™ Appraisal Report';
+        }
+
         // Send each recipient their own copy (so they don't see each other), and
         // BCC the GASQ inbox so we keep a copy of every estimate sent.
         foreach ($recipients as $to) {
@@ -95,10 +102,45 @@ class ReportController extends Controller
                     subjectLine: $subject,
                     pdf: $pdfData,
                     filename: $filename,
+                    bodyView: $bodyView,
+                    bodyData: $bodyData,
                 ));
         }
 
         return back()->with('success', 'Report sent to ' . $recipients->implode(', '));
+    }
+
+    /**
+     * Choose the email body + data for a report type. Only the Workforce/Budget
+     * report uses the branded Cost to Protect cover; the rest fall back to the
+     * short generic body. Figures are derived from the same fixed vendor-discount
+     * the PDF uses, so the email matches the attachment.
+     *
+     * @return array{0: string, 1: array<string, mixed>}
+     */
+    private function emailBodyFor(string $type, array $payload): array
+    {
+        if ($type !== 'budget-calculator') {
+            return ['emails.report-pdf', []];
+        }
+
+        // Mirror pdf.workforce-bill-rate-breakdown: vendor TCO is 70% of internal,
+        // so capital recovery is the remaining 30% and payback is a fixed 8.4 mo.
+        $vendorDiscountFactor = 0.70;
+
+        $meta = (array) data_get($payload, 'scenario.meta', []);
+        $contact = (array) data_get($payload, 'scenario.contact', []);
+        $inHouse = (float) ($meta['annualBudget'] ?? 0);
+
+        return ['emails.cost-to-protect', [
+            'clientName'     => trim((string) ($contact['contactName'] ?? $contact['companyName'] ?? '')) ?: null,
+            'propertyName'   => trim((string) ($meta['siteName'] ?? $contact['siteName'] ?? '')) ?: null,
+            'reportNumber'   => $payload['reportNumber'] ?? null,
+            'datePrepared'   => now()->format('F j, Y'),
+            'inHouseCost'    => $inHouse > 0 ? $inHouse : null,
+            'capitalRecovery' => $inHouse > 0 ? $inHouse * (1 - $vendorDiscountFactor) : null,
+            'paybackPeriod'  => $inHouse > 0 ? round($vendorDiscountFactor * 12, 1) . ' months' : null,
+        ]];
     }
 
     private function payloadForType(Request $request, ?string $type): ?array
