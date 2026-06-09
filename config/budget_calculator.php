@@ -5,6 +5,11 @@ return [
     'default_annual_billable_hours' => 8736,
     'default_total' => 757848,
 
+    // Vendor TCO is this fraction of internal TCO. Single source of truth shared
+    // by the Workforce PDF and the Cost to Protect cover email so their figures
+    // (capital recovery %, payback period) never drift apart.
+    'vendor_discount_factor' => 0.70,
+
     'groups' => [
         [
             'key' => 'directLabor',

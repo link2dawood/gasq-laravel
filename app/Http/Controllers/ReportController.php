@@ -124,16 +124,18 @@ class ReportController extends Controller
             return ['emails.report-pdf', []];
         }
 
-        // Mirror pdf.workforce-bill-rate-breakdown: vendor TCO is 70% of internal,
-        // so capital recovery is the remaining 30% and payback is a fixed 8.4 mo.
-        $vendorDiscountFactor = 0.70;
+        // Shared with pdf.workforce-bill-rate-breakdown: vendor TCO is this fraction
+        // of internal TCO, so capital recovery is the remainder and payback is
+        // (factor * 12) months. Reading the same config keeps email + PDF in sync.
+        $vendorDiscountFactor = (float) config('budget_calculator.vendor_discount_factor', 0.70);
 
         $meta = (array) data_get($payload, 'scenario.meta', []);
         $contact = (array) data_get($payload, 'scenario.contact', []);
+        $user = $payload['user'] ?? null;
         $inHouse = (float) ($meta['annualBudget'] ?? 0);
 
         return ['emails.cost-to-protect', [
-            'clientName'     => trim((string) ($contact['contactName'] ?? $contact['companyName'] ?? '')) ?: null,
+            'clientName'     => trim((string) ($user?->name ?? $contact['contactName'] ?? $contact['companyName'] ?? '')) ?: null,
             'propertyName'   => trim((string) ($meta['siteName'] ?? $contact['siteName'] ?? '')) ?: null,
             'reportNumber'   => $payload['reportNumber'] ?? null,
             'datePrepared'   => now()->format('F j, Y'),

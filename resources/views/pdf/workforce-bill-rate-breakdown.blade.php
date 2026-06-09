@@ -17,7 +17,7 @@
     $EMPLOYER_FRINGE_FACTOR = 0.70;
     $PAID_HOURS_PER_FTE = 3744;
     $BILLABLE_HOURS_PER_FTE = 1456;
-    $VENDOR_DISCOUNT_FACTOR = 0.70;
+    $VENDOR_DISCOUNT_FACTOR = (float) config('budget_calculator.vendor_discount_factor', 0.70);
     $OT_MULTIPLIER = 1.5;
 
     $loadedWage = $baselineWage / $EMPLOYER_FRINGE_FACTOR;
