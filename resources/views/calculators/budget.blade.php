@@ -231,7 +231,7 @@
           <div class="row g-2 mb-3">
             <div class="{{ $isBuyerView ? 'col-12' : 'col-6' }}">
               <div class="p-3 rounded text-center" style="background:#fdf2f2; border:2px solid #b91c1c;">
-                <div class="text-uppercase small fw-semibold mb-1" style="color:#7f1d1d;">Buyer Cost</div>
+                <div class="text-uppercase small fw-semibold mb-1" style="color:#7f1d1d;">Buyer Cost to Protect In-house</div>
                 <div class="h4 fw-bold mb-0" style="color:#7f1d1d;" id="r_internalTco">$0.00</div>
                 <div class="small text-gasq-muted mt-1">per hour (TCO)</div>
                 <hr class="my-2" style="border-color:#fecaca;">
@@ -242,7 +242,7 @@
             @unless($isBuyerView)
             <div class="col-6">
               <div class="p-3 rounded text-center" style="background:#d1e7dd; border:2px solid #198754;">
-                <div class="text-uppercase small fw-semibold mb-1" style="color:#0a3622;">Vendor Cost</div>
+                <div class="text-uppercase small fw-semibold mb-1" style="color:#0a3622;">Buyer Cost to Protect via Outsourcing</div>
                 <div class="h4 fw-bold mb-0" style="color:#0a3622;" id="r_govShouldCost">$0.00</div>
                 <div class="small text-gasq-muted mt-1">per hour (Vendor TCO)</div>
                 <hr class="my-2" style="border-color:#a3cfbb;">
