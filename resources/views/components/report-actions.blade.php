@@ -9,7 +9,7 @@
         <form action="{{ route('reports.email') }}" method="POST" class="d-inline-flex gap-2 align-items-center">
             @csrf
             <input type="hidden" name="type" value="{{ $type }}">
-            <input type="email" name="email" class="form-control form-control-sm" placeholder="Email address" value="{{ auth()->user()?->email }}" style="width: 180px;" required>
+            <input type="text" name="email" class="form-control form-control-sm" placeholder="Email(s) — separate multiple with commas" value="{{ auth()->user()?->email }}" style="width: 260px;" required>
             <button type="submit" class="btn btn-sm btn-outline-secondary">Email report</button>
         </form>
     </div>

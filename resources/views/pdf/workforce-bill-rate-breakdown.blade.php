@@ -110,7 +110,7 @@
 
 @extends('pdf.layouts.gasq-report', [
     'title' => 'GASQ Workforce-to-Post Report',
-    'subtitle' => 'Bill Rate Breakdown · Internal TCO vs Vendor TCO',
+    'subtitle' => 'Bill Rate Breakdown · Buyer Internal vs Vendor Outsourcing Cost to Protect',
     'reportNumber' => $reportNumber,
     'reportType' => 'Vendor — Full Report',
     'contactName' => $contactName,
@@ -189,7 +189,7 @@
 
 {{-- Appraisal Comparison --}}
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
-  <tr><td class="gasq-section-band"><p>Appraisal Comparison — Internal TCO vs Vendor TCO</p></td></tr>
+  <tr><td class="gasq-section-band"><p>Cost to Protect Appraisal Comparison</p></td></tr>
 </table>
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
   <tr style="background:#f0f4fb;">
