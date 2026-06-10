@@ -251,6 +251,28 @@
     </script>
     @endauth
 
+    <script>
+        // Mobile nav: start collapsed, let the user open it, and auto-close it
+        // when they tap a link or scroll the page so it doesn't linger on screen.
+        (function () {
+            var nav = document.getElementById('navbarSupportedContent');
+            var toggler = document.querySelector('.gasq-navbar .navbar-toggler');
+            if (!nav || !toggler) return;
+
+            function closeNav() {
+                if (nav.classList.contains('show')) toggler.click(); // let Bootstrap hide + keep state
+            }
+
+            // Tapping a real navigation link or dropdown item closes the menu
+            // (dropdown toggles are left alone so submenus still open).
+            nav.querySelectorAll('a.nav-link:not(.dropdown-toggle), a.dropdown-item').forEach(function (a) {
+                a.addEventListener('click', closeNav);
+            });
+
+            window.addEventListener('scroll', closeNav, { passive: true });
+        })();
+    </script>
+
     @stack('scripts')
 </body>
 </html>

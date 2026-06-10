@@ -79,6 +79,14 @@ body { background-color: var(--gasq-background); color: var(--gasq-foreground); 
   .gasq-navbar .gasq-navbar-nav-right .navbar-nav {
     width: 100%;
   }
+  /* Force Bootstrap collapse behavior over Tailwind's `.collapse` utility:
+     menu is hidden by default and only shows when toggled open (.show). */
+  .gasq-navbar .navbar-collapse.collapse:not(.show) {
+    display: none !important;
+  }
+  .gasq-navbar .navbar-collapse.collapse.show {
+    display: block !important;
+  }
 }
 .gasq-navbar .navbar-brand {
   color: var(--gasq-foreground) !important;
