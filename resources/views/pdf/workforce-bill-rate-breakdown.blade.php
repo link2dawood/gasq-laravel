@@ -95,11 +95,14 @@
     }
 
     // ---------- Identity ----------
-    $contactName    = $user?->name ?? null;
-    $contactCompany = $user?->company ?? ($user?->vendorProfile?->company_name ?? null);
-    $contactAddress = $user?->vendorProfile?->address ?? trim(implode(', ', array_filter([$user?->city, $user?->state, $user?->zip_code])));
-    $contactEmail   = $user?->email ?? null;
-    $contactPhone   = $user?->phone ?? ($user?->vendorProfile?->phone ?? null);
+    // Prefer contact details entered on the calculator; fall back to the
+    // signed-in vendor's account info when a field is left blank.
+    $c = (array) data_get($scenario ?? [], 'meta.contact', []);
+    $contactName    = trim((string) ($c['contactName'] ?? '')) ?: ($user?->name ?? null);
+    $contactCompany = trim((string) ($c['companyName'] ?? '')) ?: ($user?->company ?? ($user?->vendorProfile?->company_name ?? null));
+    $contactAddress = trim((string) ($c['contactAddress'] ?? '')) ?: ($user?->vendorProfile?->address ?? trim(implode(', ', array_filter([$user?->city, $user?->state, $user?->zip_code]))));
+    $contactEmail   = trim((string) ($c['contactEmail'] ?? '')) ?: ($user?->email ?? null);
+    $contactPhone   = trim((string) ($c['contactPhone'] ?? '')) ?: ($user?->phone ?? ($user?->vendorProfile?->phone ?? null));
 
     $reportNumber = $reportNumber ?? ('GASQ ' . now()->format('Y-m-d') . '-V' . ((int) ($vendorId ?? 0)));
 

@@ -61,10 +61,13 @@ class ReportController extends Controller
         $request->validate([
             'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
             'email' => 'required|string',
+            'email2' => 'nullable|string',
         ]);
 
-        // Accept one or more recipients separated by comma, semicolon, space or newline.
-        $recipients = collect(preg_split('/[,;\s]+/', (string) $request->input('email'), -1, PREG_SPLIT_NO_EMPTY))
+        // Combine the primary field (which may itself hold several addresses) with
+        // the optional second-email field, then split on comma/semicolon/space.
+        $rawEmails = trim((string) $request->input('email')) . ',' . trim((string) $request->input('email2'));
+        $recipients = collect(preg_split('/[,;\s]+/', $rawEmails, -1, PREG_SPLIT_NO_EMPTY))
             ->map(fn ($e) => trim($e))
             ->unique()
             ->values();
@@ -130,7 +133,7 @@ class ReportController extends Controller
         $vendorDiscountFactor = (float) config('budget_calculator.vendor_discount_factor', 0.70);
 
         $meta = (array) data_get($payload, 'scenario.meta', []);
-        $contact = (array) data_get($payload, 'scenario.contact', []);
+        $contact = (array) data_get($payload, 'scenario.meta.contact', []);
         $user = $payload['user'] ?? null;
         $inHouse = (float) ($meta['annualBudget'] ?? 0);
 

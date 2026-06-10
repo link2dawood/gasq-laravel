@@ -157,6 +157,34 @@
             </div>
           </div>
 
+          <hr class="my-2">
+          <div>
+            <h6 class="fw-semibold mb-1">Contact Information</h6>
+            <p class="small text-gasq-muted mb-2">This information will appear on the PDF report.</p>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Contact Name</label>
+              <input type="text" id="bg_contactName" class="form-control form-control-sm" placeholder="Full name" oninput="scheduleBgTcoFetch()">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Company Name</label>
+              <input type="text" id="bg_companyName" class="form-control form-control-sm" placeholder="Company" oninput="scheduleBgTcoFetch()">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Address</label>
+              <input type="text" id="bg_contactAddress" class="form-control form-control-sm" placeholder="Street address, city, state" oninput="scheduleBgTcoFetch()">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Email</label>
+              <input type="email" id="bg_contactEmail" class="form-control form-control-sm" placeholder="Email address" oninput="scheduleBgTcoFetch()">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Phone</label>
+              <input type="tel" id="bg_contactPhone" class="form-control form-control-sm" placeholder="Phone number" oninput="scheduleBgTcoFetch()">
+            </div>
+          </div>
+
           @unless($isBuyerView)
           <hr class="my-1">
           <div>
@@ -544,6 +572,9 @@ async function syncBudget(total, allocations, governmentShouldCost, annualHours,
             daysPerWeek: scopeInputs?.daysOfCoveragePerWeek,
             weeksPerYear: scopeInputs?.weeksOfCoverage,
             staffPerShift: scopeInputs?.staffPerShift,
+            // Buyer/contact details for the PDF (kept inside meta so the
+            // compute controller's validated() payload preserves them).
+            contact: bgContact(),
           }
         }
       })
@@ -602,6 +633,18 @@ async function fetchBgTco() {
 function scheduleBgTcoFetch() {
   clearTimeout(bgTcoTimer);
   bgTcoTimer = setTimeout(fetchBgTco, 300);
+}
+
+// Contact details that flow onto the PDF report. Read fresh on each sync.
+function bgContact() {
+  const v = (id) => (document.getElementById(id)?.value || '').trim();
+  return {
+    contactName: v('bg_contactName'),
+    companyName: v('bg_companyName'),
+    contactAddress: v('bg_contactAddress'),
+    contactEmail: v('bg_contactEmail'),
+    contactPhone: v('bg_contactPhone'),
+  };
 }
 
 function calcBudget() {
