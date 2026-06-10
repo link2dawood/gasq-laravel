@@ -9,7 +9,7 @@
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/gasq-theme.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/gasq-theme.css') }}?v={{ @filemtime(public_path('css/gasq-theme.css')) ?: '1' }}" rel="stylesheet">
 </head>
 <body class="bg-gasq-background min-vh-100 d-flex flex-column">
     <div class="d-flex flex-grow-1 align-items-center justify-content-center py-5 gasq-hero-bg">

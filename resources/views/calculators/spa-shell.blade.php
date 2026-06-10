@@ -15,7 +15,7 @@
 @push('styles')
 <link rel="stylesheet" crossorigin href="{{ asset('assets/index-DGzybfxK.css') }}">
 {{-- After SPA CSS: restore Bootstrap navbar + stacking (Tailwind can hide .collapse / paint over header) --}}
-<link rel="stylesheet" href="{{ asset('css/gasq-spa-shell.css') }}">
+<link rel="stylesheet" href="{{ asset('css/gasq-spa-shell.css') }}?v={{ @filemtime(public_path('css/gasq-spa-shell.css')) ?: '1' }}">
 <style>
     .calculator-spa-root { min-height: min(85vh, 920px); }
 </style>
