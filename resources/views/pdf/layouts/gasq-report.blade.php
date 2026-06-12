@@ -164,5 +164,10 @@
   </tr>
 </table>
 
+{{-- ═══════════════════════════════════════════ WATERMARK (overlays every page) --}}
+<div style="position: fixed; top: 360px; left: 60px; width: 520px; text-align: center; transform: rotate(-32deg); color: #1e3558; opacity: 0.07; font-size: 26px; font-weight: bold; line-height: 1.5; text-transform: uppercase; letter-spacing: 0.05em;">
+    GASQ Certified™<br>Confidential • Proprietary Methodology<br>Unauthorized Reproduction Prohibited
+</div>
+
 </body>
 </html>
