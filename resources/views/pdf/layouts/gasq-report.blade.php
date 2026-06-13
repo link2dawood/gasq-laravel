@@ -20,6 +20,7 @@
 --}}
 @php
     $logoPath  = 'file://' . public_path('images/site-logo.png');
+    $sealPath  = 'file://' . public_path('images/gasq-certified-seal.png');
     $title         = $title ?? 'GASQ Report';
     $subtitle      = $subtitle ?? '';
     $reportNumber  = $reportNumber ?? ('GASQ ' . now()->format('Y-m-d'));
@@ -104,6 +105,7 @@
       @endif
     </td>
     <td style="padding:14px 20px 14px 12px; vertical-align:middle; text-align:right;">
+      <img src="{{ $sealPath }}" alt="GASQ Certified" style="width:48px; height:auto; display:inline-block; margin-bottom:5px;">
       <p style="font-size:11px; font-weight:bold; color:#1e3558; margin-bottom:4px;">{{ $reportNumber }}</p>
       <p style="font-size:9px; color:#6b7280;">{{ now()->format('F j, Y') }}</p>
     </td>

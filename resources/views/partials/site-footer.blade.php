@@ -7,7 +7,9 @@
                 </a>
                 <p class="small text-gasq-muted mb-3">GetASecurityQuoteNow – Security Services. Simplified.</p>
                 <p class="small mb-1">📞 1-800-GASQ-NOW</p>
-                <p class="small mb-0">✉️ info@gasq.com</p>
+                <p class="small mb-3">✉️ info@gasq.com</p>
+                <img src="{{ asset('images/gasq-certified-seal.png') }}" alt="GASQ Certified" width="84" height="84" style="height:auto;">
+                <p class="small text-gasq-muted mb-0 mt-1">GASQ Certified™</p>
             </div>
             <div class="col-md-3">
                 <h4 class="h6 fw-semibold mb-3">For Buyers</h4>
