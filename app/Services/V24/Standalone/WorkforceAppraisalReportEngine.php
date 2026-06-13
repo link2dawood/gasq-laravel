@@ -543,7 +543,9 @@ class WorkforceAppraisalReportEngine
         $totalWeeklyHours = (float) Arr::get($reportMeta, 'totalWeeklyHours', 410);
         $totalMonthlyHours = (float) Arr::get($reportMeta, 'totalMonthlyHours', 1777);
         $totalAnnualHours = (float) Arr::get($reportMeta, 'totalAnnualHours', 21322);
-        $ftes = max(1, (int) Arr::get($reportMeta, 'ftesRequired', 15));
+        // Round UP to whole staff for coverage (matches BudgetTcoEngine / the
+        // Workforce PDF) — a partial person can't cover a post, so 40.18 -> 41.
+        $ftes = max(1, (int) ceil((float) Arr::get($reportMeta, 'ftesRequired', 15)));
         $hoursPerProfessional = (float) Arr::get($reportMeta, 'hoursPerProfessionalAnnual', 1456);
 
         $otMult = (float) Arr::get($reportMeta, 'overtimeMultiplier', 1.5);
