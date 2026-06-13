@@ -84,9 +84,7 @@ class ReportController extends Controller
             return back()->with('error', 'No report data available. Run the calculator again and use Email report.');
         }
 
-        $pdf = $this->report->calculatorPdf($type, $payload);
         $filename = $this->report->filenameForCalculator($type, $request->user());
-        $pdfData = $pdf->output();
         $subject = 'Your GASQ Calculator Report – ' . str_replace('-', ' ', ucfirst($type));
 
         // The Workforce/Budget report ships the branded "Cost to Protect" cover
@@ -96,14 +94,17 @@ class ReportController extends Controller
             $subject = 'Your GASQ Cost to Protect™ Appraisal Report';
         }
 
-        // Send each recipient their own copy (so they don't see each other), and
-        // BCC the GASQ inbox so we keep a copy of every estimate sent.
+        // Send each recipient their own copy (so they don't see each other),
+        // stamped "Prepared exclusively for <their email>" so any forwarded copy
+        // is traceable, and BCC the GASQ inbox so we keep a record of each send.
         foreach ($recipients as $to) {
+            $pdf = $this->report->calculatorPdf($type, array_merge($payload, ['preparedForEmail' => $to]));
+
             Mail::to($to)
                 ->bcc(self::ESTIMATE_BCC)
                 ->send(new ReportPdfMail(
                     subjectLine: $subject,
-                    pdf: $pdfData,
+                    pdf: $pdf->output(),
                     filename: $filename,
                     bodyView: $bodyView,
                     bodyData: $bodyData,

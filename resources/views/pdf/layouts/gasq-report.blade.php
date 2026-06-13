@@ -30,6 +30,7 @@
     $contactAddress = $contactAddress ?? '';
     $contactEmail   = $contactEmail ?? '';
     $contactPhone   = $contactPhone ?? '';
+    $preparedForEmail = $preparedForEmail ?? '';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -105,7 +106,7 @@
       @endif
     </td>
     <td style="padding:14px 20px 14px 12px; vertical-align:middle; text-align:right;">
-      <img src="{{ $sealPath }}" alt="GASQ Certified" style="width:48px; height:auto; display:inline-block; margin-bottom:5px;">
+      <img src="{{ $sealPath }}" alt="GASQ Certified" style="width:64px; height:auto; display:inline-block; margin-bottom:5px;">
       <p style="font-size:11px; font-weight:bold; color:#1e3558; margin-bottom:4px;">{{ $reportNumber }}</p>
       <p style="font-size:9px; color:#6b7280;">{{ now()->format('F j, Y') }}</p>
     </td>
@@ -159,6 +160,7 @@
     <td style="padding:10px 20px;">
       <p style="font-size:8.5px; color:#1e3558; font-weight:bold;">GASQ Security</p>
       <p style="font-size:8px; color:#6b7280; margin-top:2px;">{{ $reportNumber }} &nbsp;·&nbsp; {{ $reportType }} &nbsp;·&nbsp; Confidential — for authorized recipients only</p>
+      @if($preparedForEmail)<p style="font-size:8px; color:#1e3558; margin-top:2px; font-weight:bold;">Prepared exclusively for {{ $preparedForEmail }}</p>@endif
     </td>
     <td style="padding:10px 20px; text-align:right;">
       <p style="font-size:8px; color:#6b7280;">{{ now()->format('M j, Y') }}</p>
