@@ -847,6 +847,8 @@ function refreshAppraisal() {
   const ftesRequired = t.ftesRequired || 0;
   const weeklyHours = annualHours / 52;
   const monthlyHours = annualHours / 12;
+  const weeksOfCoverage = Math.min(52, Math.max(1, g('bg_weeksPerYear') || 52));
+  const monthsOfCoverage = Math.round(weeksOfCoverage * 12 / 52 * 10) / 10;
   const operationalCapitalPct = t.operationalCapitalPct || 0;
   const paybackMonths = t.paybackMonths || 0;
   const internalOt = t.internalOt || 0;
@@ -867,6 +869,8 @@ function refreshAppraisal() {
     { description: 'Total Weekly Hours of Coverage', internal: weeklyHours, vendor: weeklyHours, kind: 'hours' },
     { description: 'Total Monthly Hours of Coverage', internal: monthlyHours, vendor: monthlyHours, kind: 'hours' },
     { description: 'Total Annual Hours of Coverage', internal: annualHours, vendor: annualHours, kind: 'hours' },
+    { description: 'Total Weeks of Coverage', internal: weeksOfCoverage, vendor: weeksOfCoverage, kind: 'count' },
+    { description: 'Total Months of Coverage', internal: monthsOfCoverage, vendor: monthsOfCoverage, kind: 'count' },
     { description: 'Total Workforce Required for Coverage', internal: ftesRequired, vendor: ftesRequired, kind: 'count' },
     { description: 'Total Weekly Cost', internal: totalWeeklyInt, vendor: totalWeeklyVend, kind: 'money' },
     { description: 'Total Monthly Cost', internal: totalMonthlyInt, vendor: totalMonthlyVend, kind: 'money' },

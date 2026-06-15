@@ -209,6 +209,8 @@
         ['Total Weekly Hours of Coverage', $num($weeklyCoverageHours), $num($weeklyCoverageHours)],
         ['Total Monthly Hours of Coverage', $num($monthlyCoverageHours), $num($monthlyCoverageHours)],
         ['Total Annual Hours of Coverage', $num($annualCoverageHours), $num($annualCoverageHours)],
+        ['Total Weeks of Coverage', number_format($weeksPerYear, 0), number_format($weeksPerYear, 0)],
+        ['Total Months of Coverage', number_format($weeksPerYear * 12 / 52, 1), number_format($weeksPerYear * 12 / 52, 1)],
         ['Total Workforce Required for Coverage', (string) $ftesRequired, (string) $ftesRequired],
         ['Total Weekly Cost', $money($totalWeeklyInt), $money($totalWeeklyVend)],
         ['Total Monthly Cost', $money($totalMonthlyInt), $money($totalMonthlyVend)],
