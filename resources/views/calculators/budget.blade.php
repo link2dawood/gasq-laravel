@@ -117,8 +117,8 @@
             <div class="col-md-6">
               <label class="form-label fw-medium">Hours per day</label>
               <div class="d-flex align-items-center gap-2">
-                <input type="number" id="bg_hoursPerDay" class="form-control form-control-sm fw-semibold" value="24" step="1" min="1" max="24" oninput="scheduleBgTcoFetch()">
-                <input type="range" id="bg_hoursPerDay_range" class="form-range mb-0" min="1" max="24" step="1" value="24" data-sync="bg_hoursPerDay">
+                <input type="number" id="bg_hoursPerDay" class="form-control form-control-sm fw-semibold" value="24" step="0.5" min="0.5" max="24" oninput="scheduleBgTcoFetch()">
+                <input type="range" id="bg_hoursPerDay_range" class="form-range mb-0" min="0.5" max="24" step="0.5" value="24" data-sync="bg_hoursPerDay">
               </div>
             </div>
             <div class="col-md-6">

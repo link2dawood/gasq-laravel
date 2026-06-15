@@ -8,10 +8,10 @@
         ?? 25.00);
 
     $scope = (array) data_get($meta, 'scope', []);
-    $hoursPerDay = max(1, min(24, (int) (data_get($scope, 'hoursOfCoveragePerDay') ?? data_get($meta, 'hoursPerDay') ?? 24)));
-    $daysPerWeek = max(1, min(7, (int) (data_get($scope, 'daysOfCoveragePerWeek') ?? data_get($meta, 'daysPerWeek') ?? 7)));
-    $weeksPerYear = max(1, min(52, (int) (data_get($scope, 'weeksOfCoverage') ?? data_get($meta, 'weeksPerYear') ?? 52)));
-    $staffPerShift = max(1, min(100, (int) (data_get($scope, 'staffPerShift') ?? data_get($meta, 'staffPerShift') ?? 1)));
+    $hoursPerDay = max(0.5, min(24, (float) (data_get($scope, 'hoursOfCoveragePerDay') ?? data_get($meta, 'hoursPerDay') ?? 24)));
+    $daysPerWeek = max(1, min(7, (float) (data_get($scope, 'daysOfCoveragePerWeek') ?? data_get($meta, 'daysPerWeek') ?? 7)));
+    $weeksPerYear = max(1, min(52, (float) (data_get($scope, 'weeksOfCoverage') ?? data_get($meta, 'weeksPerYear') ?? 52)));
+    $staffPerShift = max(1, min(100, (float) (data_get($scope, 'staffPerShift') ?? data_get($meta, 'staffPerShift') ?? 1)));
 
     // ---------- GASQ TCO formula ----------
     $EMPLOYER_FRINGE_FACTOR = 0.70;
