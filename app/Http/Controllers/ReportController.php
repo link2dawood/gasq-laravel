@@ -60,7 +60,7 @@ class ReportController extends Controller
             null,
         );
         if (! $spent) {
-            return back()->with('error', "Not enough credits — generating this report costs {$cost} credits.");
+            return back()->with('needs_credits', $cost);
         }
 
         $paid[] = $hash;

@@ -135,6 +135,28 @@
             @if(session('error'))
                 <div class="container"><div class="alert alert-danger alert-dismissible fade show" role="alert">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div></div>
             @endif
+            @if(session('needs_credits'))
+                <button id="needsCreditsTrigger" type="button" class="d-none" data-bs-toggle="modal" data-bs-target="#needsCreditsModal"></button>
+                <div class="modal fade" id="needsCreditsModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">More credits needed</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="mb-1">Generating this report costs <strong>{{ session('needs_credits') }} credits</strong>, and your balance is too low.</p>
+                                <p class="text-muted small mb-0">Add credits to download or email your report.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Not now</button>
+                                <a href="{{ route('credits') }}" class="btn btn-primary">Add Credits</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script>document.addEventListener('DOMContentLoaded',function(){var t=document.getElementById('needsCreditsTrigger');if(t)t.click();});</script>
+            @endif
             @yield('content')
         </main>
         @hasSection('footer')
