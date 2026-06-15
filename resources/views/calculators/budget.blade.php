@@ -532,7 +532,11 @@ function initSliderSync() {
 
     rangeEl.addEventListener('input', () => {
       syncNumberFromRange();
-      calcBudget();
+      // Fire the number field's own handler so dragging behaves exactly like
+      // typing — wage/scope fields refetch the TCO from the server, allocation
+      // fields re-render. (Previously this only re-rendered the cached result,
+      // so dragging the wage/scope sliders never updated the numbers.)
+      numEl.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
     numEl.addEventListener('input', () => {
