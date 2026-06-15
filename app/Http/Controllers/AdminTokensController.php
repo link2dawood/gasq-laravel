@@ -42,9 +42,14 @@ class AdminTokensController extends Controller
     {
         $data = $request->validate([
             'user_id' => ['required', 'exists:users,id'],
-            'amount' => ['required', 'integer', 'not_in:0'],
+            // Cap within the wallet's unsigned-int column range so a huge value
+            // can't overflow the DB and 500. 1,000,000,000 credits is effectively
+            // unlimited for testing (200M reports at 5 credits each).
+            'amount' => ['required', 'integer', 'not_in:0', 'between:-1000000000,1000000000'],
             'grant_type' => ['nullable', 'string', 'in:grant,bonus,free_pool'],
             'description' => ['nullable', 'string', 'max:255'],
+        ], [
+            'amount.between' => 'Amount must be between -1,000,000,000 and 1,000,000,000 credits.',
         ]);
 
         /** @var \App\Models\User $user */
