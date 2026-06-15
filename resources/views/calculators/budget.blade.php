@@ -575,7 +575,10 @@ function queueBudgetSync(total, allocations, governmentShouldCost, annualHours, 
 
 async function syncBudget(total, allocations, governmentShouldCost, annualHours, scopeInputs, baselineWage) {
   try {
-    const res = await fetch('{{ route('backend.standalone.v24.compute', ['type' => 'budget-calculator']) }}', {
+    // FREE: just store the report payload so the downloadable report always
+    // matches the screen. Editing/fine-tuning never costs credits — the charge
+    // happens once, server-side, when a report is actually downloaded/emailed.
+    const res = await fetch('{{ route('backend.report-payload.store') }}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -583,7 +586,7 @@ async function syncBudget(total, allocations, governmentShouldCost, annualHours,
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        version: 'v24',
+        type: 'budget-calculator',
         scenario: {
           meta: {
             // baselineWage drives the GASQ TCO formula on the PDF side.
@@ -599,26 +602,20 @@ async function syncBudget(total, allocations, governmentShouldCost, annualHours,
             daysPerWeek: scopeInputs?.daysOfCoveragePerWeek,
             weeksPerYear: scopeInputs?.weeksOfCoverage,
             staffPerShift: scopeInputs?.staffPerShift,
-            // Buyer/contact details for the PDF (kept inside meta so the
-            // compute controller's validated() payload preserves them).
             contact: bgContact(),
           }
-        }
+        },
+        result: { kpis: bgTco || {} },
       })
     });
 
-    const data = await res.json().catch(() => null);
-    if (res.ok && data && data.ok) {
+    if (res.ok) {
       setReportSyncState('synced'); // report data now matches the current inputs
     } else {
-      const insufficient = (data && data.error === 'insufficient_credits') || res.status === 402 || res.status === 403;
-      setReportSyncState('stale', insufficient
-        ? '⚠️ Out of credits — add credits, then change an input to refresh the report before downloading or emailing.'
-        : '⚠️ The report could not be refreshed — change an input to try again before downloading.');
-      console.error(data);
+      setReportSyncState('stale', '⚠️ Could not save the report just now — change an input to retry before downloading.');
     }
   } catch (error) {
-    setReportSyncState('stale', '⚠️ The report could not be refreshed (connection issue) — change an input to retry.');
+    setReportSyncState('stale', '⚠️ Could not save the report (connection issue) — change an input to retry.');
     console.error(error);
   }
 }

@@ -6,6 +6,7 @@ use App\Mail\ReportPdfMail;
 use App\Models\CalculatorState;
 use App\Models\Transaction;
 use App\Services\ReportService;
+use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Mail;
@@ -19,8 +20,54 @@ class ReportController extends Controller
     private const ESTIMATE_BCC = 'info@getasecurityquotenow.com';
 
     public function __construct(
-        private ReportService $report
+        private ReportService $report,
+        private WalletService $wallet,
     ) {}
+
+    /**
+     * Calculator types billed per generated report (charge once at download/email,
+     * free to edit/preview, free to re-take the same report). Other calculators
+     * keep their existing billing.
+     */
+    private const REPORT_BILLED_TYPES = ['budget-calculator'];
+
+    /**
+     * Charge credits once per unique report version. Editing inputs produces a
+     * new version (new charge); re-downloading/emailing the same inputs is free.
+     * Returns a redirect when credits are insufficient, otherwise null.
+     */
+    private function chargeForReport(Request $request, string $type, array $payload): ?\Illuminate\Http\RedirectResponse
+    {
+        if (! in_array($type, self::REPORT_BILLED_TYPES, true)) {
+            return null;
+        }
+
+        $meta = (array) data_get($payload, 'scenario.meta', []);
+        unset($meta['contact'], $meta['inputs']); // contact/master-input tweaks aren't a new report
+        $hash = md5($type . '|' . json_encode($meta));
+
+        $paid = (array) session('paid_report_hashes', []);
+        if (in_array($hash, $paid, true)) {
+            return null; // already paid for this exact report — re-download/email is free
+        }
+
+        $cost = (int) config('credits.calculator_per_run');
+        $spent = $this->wallet->spendTokens(
+            $request->user(),
+            $cost,
+            'budget_calculator_report',
+            "GASQ report generated ({$cost} credits): {$type}",
+            null,
+        );
+        if (! $spent) {
+            return back()->with('error', "Not enough credits — generating this report costs {$cost} credits.");
+        }
+
+        $paid[] = $hash;
+        session(['paid_report_hashes' => array_slice($paid, -200)]);
+
+        return null;
+    }
 
     /**
      * Download receipt PDF for a credit purchase (user's own transaction).
@@ -47,6 +94,10 @@ class ReportController extends Controller
         $payload = $this->payloadForType($request, $type);
         if (! $type || ! $payload) {
             return back()->with('error', 'No report data available. Run the calculator again and use Download PDF.');
+        }
+
+        if ($charge = $this->chargeForReport($request, $type, $payload)) {
+            return $charge;
         }
 
         $pdf = $this->report->calculatorPdf($type, $payload);
@@ -82,6 +133,10 @@ class ReportController extends Controller
         $payload = $this->payloadForType($request, $type);
         if (! $payload) {
             return back()->with('error', 'No report data available. Run the calculator again and use Email report.');
+        }
+
+        if ($charge = $this->chargeForReport($request, $type, $payload)) {
+            return $charge;
         }
 
         $filename = $this->report->filenameForCalculator($type, $request->user());
