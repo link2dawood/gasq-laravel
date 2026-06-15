@@ -25,9 +25,12 @@
     $internalTcoHourly = $annualWorkforceCost / $BILLABLE_HOURS_PER_FTE;
     $vendorTcoHourly = $internalTcoHourly * $VENDOR_DISCOUNT_FACTOR;
 
-    $weeklyCoverageHours = $hoursPerDay * $daysPerWeek;
+    // Weekly coverage = the operating-week hours (includes all staff on post),
+    // so weekly × weeks-per-year = annual. (Previously omitted staff / divided
+    // annual by a hard-coded 52, which misreported weekly hours and costs.)
+    $weeklyCoverageHours = $hoursPerDay * $daysPerWeek * $staffPerShift;
     $monthlyCoverageHours = (int) round(($weeklyCoverageHours * $weeksPerYear) / 12);
-    $annualCoverageHours = $hoursPerDay * $daysPerWeek * $weeksPerYear * $staffPerShift;
+    $annualCoverageHours = $weeklyCoverageHours * $weeksPerYear;
     $ftesRequired = max(1, (int) ceil($annualCoverageHours / $BILLABLE_HOURS_PER_FTE));
 
     $annualPerInt = $internalTcoHourly * $BILLABLE_HOURS_PER_FTE;
@@ -37,8 +40,8 @@
 
     $totalAnnualInt = $internalTcoHourly * $annualCoverageHours;
     $totalAnnualVend = $vendorTcoHourly * $annualCoverageHours;
-    $totalWeeklyInt = $totalAnnualInt / 52;
-    $totalWeeklyVend = $totalAnnualVend / 52;
+    $totalWeeklyInt = $totalAnnualInt / $weeksPerYear;
+    $totalWeeklyVend = $totalAnnualVend / $weeksPerYear;
     $totalMonthlyInt = $totalAnnualInt / 12;
     $totalMonthlyVend = $totalAnnualVend / 12;
     $annualCapitalRecovery = $totalAnnualInt - $totalAnnualVend;

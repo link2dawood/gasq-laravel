@@ -541,7 +541,34 @@ function initSliderSync() {
   });
 }
 
+// Report download/email reflect the LAST server sync (which costs a credit).
+// The on-screen preview updates for free, so it can drift ahead of the report.
+// Guard against that: only allow Download/Email when the report data matches the
+// current inputs (status 'synced'); otherwise disable and explain why.
+function setReportSyncState(status, message) {
+  const warn = document.getElementById('reportStaleWarning');
+  const dl = document.getElementById('reportDownloadLink');
+  const emailBtn = document.getElementById('reportEmailSubmit');
+  const enabled = status === 'synced';
+  if (warn) {
+    if (status === 'stale') {
+      warn.textContent = message || '⚠️ This report is out of date — change an input to refresh it before downloading.';
+      warn.classList.remove('d-none');
+    } else {
+      warn.classList.add('d-none');
+    }
+  }
+  [dl, emailBtn].forEach((el) => {
+    if (!el) return;
+    el.classList.toggle('disabled', !enabled);
+    el.style.pointerEvents = enabled ? '' : 'none';
+    el.style.opacity = enabled ? '' : '0.5';
+    if (el.tagName === 'BUTTON') el.disabled = !enabled;
+  });
+}
+
 function queueBudgetSync(total, allocations, governmentShouldCost, annualHours, scopeInputs, baselineWage) {
+  setReportSyncState('pending'); // inputs changed; report not current until the sync confirms
   window.clearTimeout(syncTimer);
   syncTimer = window.setTimeout(() => syncBudget(total, allocations, governmentShouldCost, annualHours, scopeInputs, baselineWage), 300);
 }
@@ -580,11 +607,18 @@ async function syncBudget(total, allocations, governmentShouldCost, annualHours,
       })
     });
 
-    const data = await res.json();
-    if (!res.ok || !data || !data.ok) {
+    const data = await res.json().catch(() => null);
+    if (res.ok && data && data.ok) {
+      setReportSyncState('synced'); // report data now matches the current inputs
+    } else {
+      const insufficient = (data && data.error === 'insufficient_credits') || res.status === 402 || res.status === 403;
+      setReportSyncState('stale', insufficient
+        ? '⚠️ Out of credits — add credits, then change an input to refresh the report before downloading or emailing.'
+        : '⚠️ The report could not be refreshed — change an input to try again before downloading.');
       console.error(data);
     }
   } catch (error) {
+    setReportSyncState('stale', '⚠️ The report could not be refreshed (connection issue) — change an input to retry.');
     console.error(error);
   }
 }
@@ -674,7 +708,7 @@ function calcBudget() {
   if (vendorTcoEl) vendorTcoEl.value = vendorTcoHourly.toFixed(2);
 
   const monthlyHours = annualHours / 12;
-  const weeklyHours = annualHours / 52;
+  const weeklyHours = annualHours / weeksPerYear;
   const dailyHours = annualHours / 365;
 
   // For backward compatibility with downstream sync payload.
@@ -730,7 +764,7 @@ function calcBudget() {
   setText('r_hours', Math.round(annualHours).toLocaleString('en-US'));
   setText('r_annual', fmt(total));
   setText('r_monthly', fmt(total / 12));
-  setText('r_weekly', fmt(total / 52));
+  setText('r_weekly', fmt(total / weeksPerYear));
   setText('r_daily', fmt(total / 365));
   setText('r_hours_yearly', fmtHours(annualHours));
   setText('r_hours_monthly', fmtHours(monthlyHours));
@@ -837,17 +871,19 @@ function refreshAppraisal() {
   const vendorTcoHourly = t.vendorTcoHourly || 0;
   const annualCapitalRecovery = t.capitalRecoveryAnnual || 0;
 
+  // Operating weeks of coverage — weekly figures divide by this, not a fixed 52,
+  // so weekly = the real operating week and weekly × weeks = annual.
+  const weeksOfCoverage = Math.min(52, Math.max(1, g('bg_weeksPerYear') || 52));
   const totalAnnualInt = t.total || 0;
   const totalAnnualVend = t.vendorOfferTotal || 0;
   const totalMonthlyInt = totalAnnualInt / 12;
   const totalMonthlyVend = totalAnnualVend / 12;
-  const totalWeeklyInt = totalAnnualInt / 52;
-  const totalWeeklyVend = totalAnnualVend / 52;
+  const totalWeeklyInt = totalAnnualInt / weeksOfCoverage;
+  const totalWeeklyVend = totalAnnualVend / weeksOfCoverage;
 
   const ftesRequired = t.ftesRequired || 0;
-  const weeklyHours = annualHours / 52;
+  const weeklyHours = annualHours / weeksOfCoverage;
   const monthlyHours = annualHours / 12;
-  const weeksOfCoverage = Math.min(52, Math.max(1, g('bg_weeksPerYear') || 52));
   const monthsOfCoverage = Math.round(weeksOfCoverage * 12 / 52 * 10) / 10;
   const operationalCapitalPct = t.operationalCapitalPct || 0;
   const paybackMonths = t.paybackMonths || 0;
@@ -958,6 +994,7 @@ function resetBudget() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  setReportSyncState('pending'); // disable Download/Email until the first sync confirms
   hydrateSavedBudget();
   initSliderSync();
 
