@@ -898,7 +898,7 @@ function refreshAppraisal() {
   // input directly — same on both columns since it's the shared starting point.
   const rows = [
     { description: 'Workforce Baseline Assumption Labor Rate', internal: baselineWage, vendor: baselineWage, kind: 'money' },
-    { description: 'Direct Labor + Full Burden Hourly Rate', internal: internalTcoHourly, vendor: vendorTcoHourly, kind: 'money' },
+    { description: 'Workforce Cost to Protect Hourly Rate', internal: internalTcoHourly, vendor: vendorTcoHourly, kind: 'money' },
     { description: 'Overtime / Holiday Rate', internal: internalOt, vendor: vendorOt, kind: 'money' },
     @unless($isBuyerView)
     { description: 'Workforce Annual Cost per Security Professional', internal: annualPerInt, vendor: annualPerVend, kind: 'money' },

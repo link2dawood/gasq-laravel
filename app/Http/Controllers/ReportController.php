@@ -194,7 +194,9 @@ class ReportController extends Controller
         $inHouse = (float) ($meta['annualBudget'] ?? 0);
 
         return ['emails.cost-to-protect', [
-            'clientName'     => trim((string) ($user?->name ?? $contact['contactName'] ?? $contact['companyName'] ?? '')) ?: null,
+            // Greet the report's Contact (entered on the calculator) first; fall
+            // back to the company, then the signed-in vendor's name.
+            'clientName'     => trim((string) ($contact['contactName'] ?? $contact['companyName'] ?? $user?->name ?? '')) ?: null,
             'propertyName'   => trim((string) ($meta['siteName'] ?? $contact['siteName'] ?? '')) ?: null,
             'reportNumber'   => $payload['reportNumber'] ?? null,
             'datePrepared'   => now()->format('F j, Y'),

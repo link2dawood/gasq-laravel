@@ -206,7 +206,7 @@
   @php
     $rows = [
         ['Workforce Baseline Assumption Labor Rate', $money($baselineWage), $money($baselineWage)],
-        ['Direct Labor + Full Burden Hourly Rate', $money($internalTcoHourly), $money($vendorTcoHourly)],
+        ['Workforce Cost to Protect Hourly Rate', $money($internalTcoHourly), $money($vendorTcoHourly)],
         ['Overtime / Holiday Rate', $money($internalOt), $money($vendorOt)],
         ['Workforce Annual Cost per Security Professional', $money($annualPerInt), $money($annualPerVend)],
         ['Total Weekly Hours of Coverage', $num($weeklyCoverageHours), $num($weeklyCoverageHours)],
