@@ -67,6 +67,12 @@ return [
         'admin_alert_email' => env('GASQ_ADMIN_ALERT_EMAIL', 'info@getasecurityquote.com'),
     ],
 
+    'hubspot' => [
+        // HubSpot "Log to CRM" BCC address — emailed reports are BCC'd here so
+        // they auto-log onto the matching contact's HubSpot timeline.
+        'bcc' => env('HUBSPOT_BCC', '45427418@bcc.hubspot.com'),
+    ],
+
     'twilio' => [
         'account_sid' => env('TWILIO_ACCOUNT_SID'),
         'auth_token' => env('TWILIO_AUTH_TOKEN'),

@@ -149,14 +149,18 @@ class ReportController extends Controller
             $subject = 'Your GASQ Cost to Protect™ Appraisal Report';
         }
 
+        // BCC the GASQ inbox (record of each send) and the HubSpot "log to CRM"
+        // address (auto-logs the report onto the contact's HubSpot timeline).
+        $bcc = array_values(array_filter([self::ESTIMATE_BCC, config('services.hubspot.bcc')]));
+
         // Send each recipient their own copy (so they don't see each other),
         // stamped "Prepared exclusively for <their email>" so any forwarded copy
-        // is traceable, and BCC the GASQ inbox so we keep a record of each send.
+        // is traceable.
         foreach ($recipients as $to) {
             $pdf = $this->report->calculatorPdf($type, array_merge($payload, ['preparedForEmail' => $to]));
 
             Mail::to($to)
-                ->bcc(self::ESTIMATE_BCC)
+                ->bcc($bcc)
                 ->send(new ReportPdfMail(
                     subjectLine: $subject,
                     pdf: $pdf->output(),
