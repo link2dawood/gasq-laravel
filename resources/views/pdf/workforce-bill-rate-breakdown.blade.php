@@ -171,29 +171,13 @@
 
 @section('content')
 
-{{-- Allocation Group Totals --}}
-<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
-  <tr><td class="gasq-section-band"><p>Allocation Group Totals</p></td></tr>
-</table>
-<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
-  @foreach($lineGroups as $i => $group)
-    <tr class="{{ $i % 2 === 1 ? 'alt' : '' }}">
-      <td>
-        <span style="font-weight:bold; color:#1e3558;">{{ $group['label'] }}</span>
-        @if($group['description'])
-          <span style="display:block; font-size:9px; color:#6b7280; margin-top:1px;">{{ $group['description'] }}</span>
-        @endif
-      </td>
-      <td class="v">{{ $money($group['amount']) }}<span style="font-weight:normal; color:#6b7280; margin-left:8px;">{{ number_format($group['pct'], 2) }}%</span></td>
-    </tr>
-  @endforeach
-  <tr class="total">
-    <td>Total Contract / Budget Value</td>
-    <td class="v">{{ $money($totalBudget) }}<span style="margin-left:8px;">100%</span></td>
-  </tr>
-</table>
+<style>
+  /* Compact KV rows so the Budget Summary stat grid + the full Cost to Protect
+     Comparison fit together on page 1. */
+  .gasq-kv td { padding-top: 4px !important; padding-bottom: 4px !important; }
+</style>
 
-{{-- Appraisal Comparison --}}
+{{-- PAGE 1: Budget Summary (stat grid above) + Cost to Protect Comparison --}}
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
   <tr><td class="gasq-section-band"><p>Cost to Protect Appraisal Comparison</p></td></tr>
 </table>
@@ -232,6 +216,31 @@
   <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Payback &amp; Recovery Period</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ number_format($paybackMonths, 1) }} months</td></tr>
 </table>
 
+{{-- PAGE 2: Allocation Group Totals (percentages) — on its own page --}}
+<div style="page-break-before: always;"></div>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr><td class="gasq-section-band"><p>Allocation Group Totals</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  @foreach($lineGroups as $i => $group)
+    <tr class="{{ $i % 2 === 1 ? 'alt' : '' }}">
+      <td>
+        <span style="font-weight:bold; color:#1e3558;">{{ $group['label'] }}</span>
+        @if($group['description'])
+          <span style="display:block; font-size:9px; color:#6b7280; margin-top:1px;">{{ $group['description'] }}</span>
+        @endif
+      </td>
+      <td class="v">{{ $money($group['amount']) }}<span style="font-weight:normal; color:#6b7280; margin-left:8px;">{{ number_format($group['pct'], 2) }}%</span></td>
+    </tr>
+  @endforeach
+  <tr class="total">
+    <td>Total Contract / Budget Value</td>
+    <td class="v">{{ $money($totalBudget) }}<span style="margin-left:8px;">100%</span></td>
+  </tr>
+</table>
+
+{{-- PAGE 3: Line-Item Breakdown — on its own page --}}
+<div style="page-break-before: always;"></div>
 {{-- Line-Item Breakdown --}}
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
   <tr><td class="gasq-section-band"><p>Line-Item Breakdown</p></td></tr>
