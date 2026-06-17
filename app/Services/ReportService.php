@@ -41,7 +41,9 @@ class ReportService
             'contract-analysis' => 'pdf.contract-analysis',
             'security-billing' => 'pdf.security-billing',
             'mobile-patrol' => 'pdf.mobile-patrol',
-            'mobile-patrol-buyer' => 'pdf.mobile-patrol-buyer',
+            // Buyer report = the full vendor report with vehicle-mechanics and
+            // profit (return-on-sales) detail rows hidden (see $isBuyer in view).
+            'mobile-patrol-buyer' => 'pdf.mobile-patrol',
             'mobile-patrol-comparison' => 'pdf.mobile-patrol-comparison',
             'mobile-patrol-hit-calculator' => 'pdf.mobile-patrol-hit-calculator',
             // Workforce Absorbed Rate Calculator → branded 3-page Workforce-to-Post Bill Rate Breakdown report.
@@ -62,6 +64,7 @@ class ReportService
         $data = array_merge($payload, [
             'generatedAt' => now()->format('M j, Y g:i A'),
             'reportType' => $type,
+            'isBuyer' => $type === 'mobile-patrol-buyer',
         ]);
 
         $pdf = $this->pdf()->loadView($view, $data)->setPaper('a4')->setWarnings(false);

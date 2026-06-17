@@ -167,6 +167,11 @@
       ['Oil Change Cost',                  $money($scenarioMeta['oilChangeCost'] ?? 0)],
       ['Return on Sales %',                $num($rosPct, 2) . '%'],
     ];
+    // Buyer report hides vendor-only vehicle-mechanics and profit detail.
+    if ($isBuyer ?? false) {
+      $hideAssumptions = ['Divisor', 'Driving Speed (MPH)', 'Miles Per Gallon', 'Tire Sets Per Year', 'Oil Change Interval (Miles)', 'Return on Sales %'];
+      $assumptions = array_values(array_filter($assumptions, fn ($r) => ! in_array($r[0], $hideAssumptions, true)));
+    }
   @endphp
   @foreach($assumptions as $i => [$label, $val])
   <tr style="background:{{ $i % 2 === 0 ? '#ffffff' : '#f6f8fb' }};">
@@ -200,6 +205,20 @@
       ['13. Total Annual Cost + Return on Sales',      $money($kpis['totalAnnualCostWithReturnOnSales'] ?? 0), true, false],
       ['14. Hourly Bill Rate',                         $money($kpis['costPerHour'] ?? 0),                  false, true],
     ];
+    // Buyer report drops vehicle-mileage detail rows, then renumbers 1..N.
+    if ($isBuyer ?? false) {
+      $hideResults = ['Miles Per Day', 'Miles Per Year', 'Gallons Per Year', 'Oil Changes / Year'];
+      $results = array_values(array_filter($results, function ($r) use ($hideResults) {
+        foreach ($hideResults as $h) { if (str_contains($r[0], $h)) return false; }
+        return true;
+      }));
+      $n = 0;
+      $results = array_map(function ($r) use (&$n) {
+        $n++;
+        $r[0] = preg_replace('/^\d+\.\s*/', $n . '. ', $r[0]);
+        return $r;
+      }, $results);
+    }
   @endphp
   @foreach($results as $i => [$label, $val, $isDark, $isGreen])
   @if($isDark)
