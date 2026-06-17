@@ -88,8 +88,12 @@ class ReportService
         $canvas = $pdf->getDomPDF()->getCanvas();
         if (method_exists($canvas, 'get_cpdf')) {
             // Empty permissions array grants nothing beyond viewing:
-            // print, copy, modify and annotate are all denied.
-            $ownerPassword = \Illuminate\Support\Str::random(32);
+            // print, copy, modify and annotate are all denied for recipients
+            // (they open with no password). The OWNER password is the master
+            // override — anyone who enters it in a PDF reader can print/copy.
+            // If no master password is configured, fall back to a random one
+            // (fully locked, no override).
+            $ownerPassword = (string) (config('services.gasq.report_master_password') ?: \Illuminate\Support\Str::random(32));
             $canvas->get_cpdf()->setEncryption('', $ownerPassword, []);
         }
 

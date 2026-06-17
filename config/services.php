@@ -65,6 +65,12 @@ return [
     'gasq' => [
         // Address that receives admin lead alerts when new buyer leads land.
         'admin_alert_email' => env('GASQ_ADMIN_ALERT_EMAIL', 'info@getasecurityquote.com'),
+
+        // Master "owner" password for report PDFs. Recipients open with no
+        // password and cannot print/copy; entering this password in a PDF
+        // reader unlocks printing/copying. Leave unset to lock fully (random
+        // owner password, no override). Keep this secret — set it in .env.
+        'report_master_password' => env('REPORT_MASTER_PASSWORD'),
     ],
 
     'hubspot' => [
