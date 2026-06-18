@@ -20,12 +20,10 @@
     $VENDOR_DISCOUNT_FACTOR = (float) config('budget_calculator.vendor_discount_factor', 0.70);
     $OT_MULTIPLIER = 1.5;
 
-    // Round at each step so the displayed loaded wage / rates reconcile exactly.
-    $loadedWage = round($baselineWage / $EMPLOYER_FRINGE_FACTOR, 2);
+    $loadedWage = $baselineWage / $EMPLOYER_FRINGE_FACTOR;
     $annualWorkforceCost = $loadedWage * $PAID_HOURS_PER_FTE;
-    // Vendor True Cost to Deliver Protection, then Buyer True Cost to Protect.
-    $vendorTcoHourly = round($annualWorkforceCost / $BILLABLE_HOURS_PER_FTE, 2);
-    $internalTcoHourly = round($vendorTcoHourly / $VENDOR_DISCOUNT_FACTOR, 2);
+    $internalTcoHourly = $annualWorkforceCost / $BILLABLE_HOURS_PER_FTE;
+    $vendorTcoHourly = $internalTcoHourly * $VENDOR_DISCOUNT_FACTOR;
 
     // Weekly coverage = the operating-week hours (includes all staff on post),
     // so weekly × weeks-per-year = annual. (Previously omitted staff / divided
