@@ -146,9 +146,11 @@
 
 {{-- ═══════════════════════════════════════════════════════ STAT GRID --}}
 @hasSection('stat_grid')
+@if($showStatGrid ?? true)
 <div style="border-top:3px solid #1e3558; margin-top:16px;">
 @yield('stat_grid')
 </div>
+@endif
 @endif
 
 {{-- ═══════════════════════════════════════════════════════ MAIN CONTENT --}}

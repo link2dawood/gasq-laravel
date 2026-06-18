@@ -112,11 +112,24 @@
     $money = fn ($v) => '$' . number_format((float) $v, 2);
     $moneyK = fn ($v) => '$' . number_format((float) $v, 0);
     $num = fn ($v) => number_format((float) $v);
+
+    // Two reports off the same data:
+    //   'main'       → Budget Summary (stat grid) + Cost to Protect Comparison
+    //   'allocation' → Allocation Group Totals + Line-Item Breakdown
+    // Both end with the GASQ Certified Statement.
+    $reportScope    = $reportScope ?? 'main';
+    $showStatGrid   = $reportScope === 'main';
+    $showComparison = $reportScope === 'main';
+    $showAllocation = $reportScope === 'allocation';
+    $showLineItem   = $reportScope === 'allocation';
+    $reportSubtitle = $reportScope === 'allocation'
+        ? 'Allocation Group Totals · Line-Item Breakdown'
+        : 'Bill Rate Breakdown · Buyer Internal vs Vendor Outsourcing Cost to Protect';
 @endphp
 
 @extends('pdf.layouts.gasq-report', [
     'title' => 'GASQ Workforce-to-Post Report',
-    'subtitle' => 'Bill Rate Breakdown · Buyer Internal vs Vendor Outsourcing Cost to Protect',
+    'subtitle' => $reportSubtitle,
     'reportNumber' => $reportNumber,
     'reportType' => 'Vendor — Full Report',
     'contactName' => $contactName,
@@ -124,6 +137,7 @@
     'contactAddress' => $contactAddress,
     'contactEmail' => $contactEmail,
     'contactPhone' => $contactPhone,
+    'showStatGrid' => $showStatGrid,
 ])
 
 @section('stat_grid')
@@ -177,7 +191,8 @@
   .gasq-kv td { padding-top: 4px !important; padding-bottom: 4px !important; }
 </style>
 
-{{-- PAGE 1: Budget Summary (stat grid above) + Cost to Protect Comparison --}}
+@if($showComparison)
+{{-- MAIN REPORT — Budget Summary (stat grid above) + Cost to Protect Comparison --}}
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
   <tr><td class="gasq-section-band"><p>Cost to Protect Appraisal Comparison</p></td></tr>
 </table>
@@ -215,10 +230,11 @@
   <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Operational Capital Recovered (%)</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ $recoveryPct }}%</td></tr>
   <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Payback &amp; Recovery Period</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ number_format($paybackMonths, 1) }} months</td></tr>
 </table>
+@endif
 
-{{-- PAGE 2: Allocation Group Totals (percentages) — on its own page --}}
-<div style="page-break-before: always;"></div>
-<table width="100%" cellpadding="0" cellspacing="0">
+@if($showAllocation)
+{{-- ALLOCATION REPORT — Allocation Group Totals (percentages) --}}
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
   <tr><td class="gasq-section-band"><p>Allocation Group Totals</p></td></tr>
 </table>
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
@@ -238,10 +254,11 @@
     <td class="v">{{ $money($totalBudget) }}<span style="margin-left:8px;">100%</span></td>
   </tr>
 </table>
+@endif
 
-{{-- PAGE 3: Line-Item Breakdown — on its own page --}}
+@if($showLineItem)
+{{-- ALLOCATION REPORT — Line-Item Breakdown on its own page --}}
 <div style="page-break-before: always;"></div>
-{{-- Line-Item Breakdown --}}
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
   <tr><td class="gasq-section-band"><p>Line-Item Breakdown</p></td></tr>
 </table>
@@ -260,17 +277,19 @@
   @endforeach
 </table>
 @endforeach
+@endif
 
-<p class="gasq-note">
-    All price calculations include the full cost of workforce staffing and support services, including livable base wages, employer-paid payroll taxes (FICA, FUTA, SUTA), workers compensation, general liability insurance, unemployment insurance, paid time off, healthcare and fringe benefits, uniforms and equipment, onboarding and training, site supervision, quality assurance oversight, management and administrative support, 24/7 dispatch capability, compliance with local, state, and federal labor laws, and all service-level guarantees, including open post protection, vendor replacement, and price lock guarantees, unless otherwise specified.
-</p>
-
-{{-- GASQ Certified Statement — formal appendix on its own page --}}
+{{-- GASQ Certified Statement — formal appendix on its own page (with the
+     standard pricing disclaimer note) --}}
 @php
     $stmtHead = 'font-weight:bold; color:#1e3558; font-size:11px; letter-spacing:0.5px; margin:16px 0 4px;';
     $stmtRule = 'border:none; border-top:1px solid #cbd5e1; margin:14px 0;';
 @endphp
 <div style="page-break-before: always;"></div>
+
+<p class="gasq-note">
+    All price calculations include the full cost of workforce staffing and support services, including livable base wages, employer-paid payroll taxes (FICA, FUTA, SUTA), workers compensation, general liability insurance, unemployment insurance, paid time off, healthcare and fringe benefits, uniforms and equipment, onboarding and training, site supervision, quality assurance oversight, management and administrative support, 24/7 dispatch capability, compliance with local, state, and federal labor laws, and all service-level guarantees, including open post protection, vendor replacement, and price lock guarantees, unless otherwise specified.
+</p>
 
 <table width="100%" cellpadding="0" cellspacing="0">
   <tr><td class="gasq-section-band"><p>GASQ Certified™ Statement</p></td></tr>

@@ -46,8 +46,11 @@ class ReportService
             'mobile-patrol-buyer' => 'pdf.mobile-patrol',
             'mobile-patrol-comparison' => 'pdf.mobile-patrol-comparison',
             'mobile-patrol-hit-calculator' => 'pdf.mobile-patrol-hit-calculator',
-            // Workforce Absorbed Rate Calculator → branded 3-page Workforce-to-Post Bill Rate Breakdown report.
+            // Workforce Absorbed Rate Calculator → branded Workforce-to-Post report.
+            // Two reports off the same data: 'main' (summary + comparison) and
+            // 'allocation' (allocation group totals + line-item breakdown).
             'budget-calculator' => 'pdf.workforce-bill-rate-breakdown',
+            'budget-calculator-allocation' => 'pdf.workforce-bill-rate-breakdown',
             // Generic standalone calculators (server-rendered PDF from latest session payload)
             'mobile-patrol-analysis',
             'gasq-tco-calculator',
@@ -65,6 +68,7 @@ class ReportService
             'generatedAt' => now()->format('M j, Y g:i A'),
             'reportType' => $type,
             'isBuyer' => $type === 'mobile-patrol-buyer',
+            'reportScope' => $type === 'budget-calculator-allocation' ? 'allocation' : 'main',
         ]);
 
         $pdf = $this->pdf()->loadView($view, $data)->setPaper('a4')->setWarnings(false);

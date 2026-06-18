@@ -415,7 +415,8 @@
     </div>
   </div>
 
-  <x-report-actions reportType="budget-calculator" />
+  <x-report-actions reportType="budget-calculator" label="Cost to Protect Summary report — download or email" />
+  <x-report-actions reportType="budget-calculator-allocation" label="Allocation & Line-Item Breakdown report — download or email" />
 
 </div>
 </div>
@@ -550,20 +551,16 @@ function initSliderSync() {
 // Guard against that: only allow Download/Email when the report data matches the
 // current inputs (status 'synced'); otherwise disable and explain why.
 function setReportSyncState(status, message) {
-  const warn = document.getElementById('reportStaleWarning');
-  const dl = document.getElementById('reportDownloadLink');
-  const emailBtn = document.getElementById('reportEmailSubmit');
   const enabled = status === 'synced';
-  if (warn) {
+  document.querySelectorAll('.report-stale-warning').forEach((warn) => {
     if (status === 'stale') {
       warn.textContent = message || '⚠️ This report is out of date — change an input to refresh it before downloading.';
       warn.classList.remove('d-none');
     } else {
       warn.classList.add('d-none');
     }
-  }
-  [dl, emailBtn].forEach((el) => {
-    if (!el) return;
+  });
+  document.querySelectorAll('.report-download-link, .report-email-submit').forEach((el) => {
     el.classList.toggle('disabled', !enabled);
     el.style.pointerEvents = enabled ? '' : 'none';
     el.style.opacity = enabled ? '' : '0.5';

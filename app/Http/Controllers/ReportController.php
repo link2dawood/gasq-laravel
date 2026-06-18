@@ -29,7 +29,7 @@ class ReportController extends Controller
      * free to edit/preview, free to re-take the same report). Other calculators
      * keep their existing billing.
      */
-    private const REPORT_BILLED_TYPES = ['budget-calculator'];
+    private const REPORT_BILLED_TYPES = ['budget-calculator', 'budget-calculator-allocation'];
 
     /**
      * Charge credits once per unique report version. Editing inputs produces a
@@ -110,7 +110,7 @@ class ReportController extends Controller
     public function emailReport(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
-            'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
+            'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,budget-calculator-allocation,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
             'email' => 'required|string',
             'email2' => 'nullable|string',
         ]);
@@ -217,7 +217,12 @@ class ReportController extends Controller
         }
 
         // Buyer report shares data with the base vendor report type
-        $lookupType = $type === 'mobile-patrol-buyer' ? 'mobile-patrol' : $type;
+        $lookupType = match ($type) {
+            'mobile-patrol-buyer' => 'mobile-patrol',
+            // The allocation report reuses the Workforce calculator's stored data.
+            'budget-calculator-allocation' => 'budget-calculator',
+            default => $type,
+        };
 
         $payload = session('report_payload');
         if ($payload && ($payload['type'] ?? null) === $lookupType) {
