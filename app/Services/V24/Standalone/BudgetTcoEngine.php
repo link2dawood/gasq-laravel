@@ -40,10 +40,13 @@ class BudgetTcoEngine
         $staffPerShift = min(100, max(1, ((float) Arr::get($meta, 'staffPerShift', 0)) ?: 1));
         $annualHours   = $hoursPerDay * $daysPerWeek * $weeksPerYear * $staffPerShift;
 
-        // The GASQ formula: baseline wage → loaded wage → internal TCO → vendor TCO.
-        $loadedWage = $baselineWage > 0 ? $baselineWage / self::EMPLOYER_FRINGE_FACTOR : 0;
-        $internalTcoHourly = $loadedWage > 0 ? ($loadedWage * self::PAID_HOURS_PER_FTE) / self::BILLABLE_HOURS_PER_FTE : 0;
-        $vendorTcoHourly = $internalTcoHourly * self::VENDOR_DISCOUNT_FACTOR;
+        // The GASQ formula: baseline wage → loaded wage → Vendor True Cost to
+        // Deliver Protection (annual workforce cost / billable hours), then the
+        // Buyer True Cost to Protect = vendor cost / fringe factor.
+        // Round at each step so the displayed loaded wage / rates reconcile exactly.
+        $loadedWage = $baselineWage > 0 ? round($baselineWage / self::EMPLOYER_FRINGE_FACTOR, 2) : 0;
+        $vendorTcoHourly = $loadedWage > 0 ? round(($loadedWage * self::PAID_HOURS_PER_FTE) / self::BILLABLE_HOURS_PER_FTE, 2) : 0;
+        $internalTcoHourly = $vendorTcoHourly > 0 ? round($vendorTcoHourly / self::VENDOR_DISCOUNT_FACTOR, 2) : 0;
         $capitalRecoveryPerHour = $internalTcoHourly - $vendorTcoHourly;
 
         $total = $internalTcoHourly * $annualHours;               // buyer's annual TCO
