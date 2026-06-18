@@ -75,6 +75,10 @@
         $directLaborPct *= $factor; $fringePct *= $factor; $opsPct *= $factor; $ohPct *= $factor;
     }
 
+    // Allocation 100% base = the VENDOR total (not the buyer in-house total):
+    // the line-item allocations break down the vendor's contract value.
+    $allocationBase = $totalAnnualVend;
+
     // Line items
     $budgetConfig = (array) config('budget_calculator', []);
     $lineGroups = [];
@@ -84,7 +88,7 @@
         foreach (($cfgGroup['items'] ?? []) as $item) {
             $key = $item['key'] ?? null; if (! $key) continue;
             $itemPct = isset($alloc[$key]) && is_numeric($alloc[$key]) ? (float) $alloc[$key] : 0.0;
-            $itemAmount = $totalBudget * $itemPct / 100;
+            $itemAmount = $allocationBase * $itemPct / 100;
             $groupPct += $itemPct;
             // Hide $0.00 line items — only list items that carry a real dollar value.
             if (round($itemAmount, 2) <= 0) continue;
@@ -94,7 +98,7 @@
             'label' => $cfgGroup['label'] ?? '',
             'description' => $cfgGroup['description'] ?? '',
             'pct' => $groupPct,
-            'amount' => $totalBudget * $groupPct / 100,
+            'amount' => $allocationBase * $groupPct / 100,
             'items' => $items,
         ];
     }
@@ -253,7 +257,7 @@
   @endforeach
   <tr class="total">
     <td>Total Contract / Budget Value</td>
-    <td class="v">{{ $money($totalBudget) }}<span style="margin-left:8px;">100%</span></td>
+    <td class="v">{{ $money($allocationBase) }}<span style="margin-left:8px;">100%</span></td>
   </tr>
 </table>
 @endif

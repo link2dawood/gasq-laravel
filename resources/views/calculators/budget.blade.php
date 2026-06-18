@@ -724,8 +724,12 @@ function calcBudget() {
   }
   if (warning) warning.classList.toggle('d-none', !offTarget);
 
+  // Allocation 100% base = the VENDOR total (the line-item allocations break
+  // down the vendor's contract value, not the buyer's in-house TCO).
+  const allocationBase = vendorOfferTotal;
+
   itemStates.forEach((item) => {
-    const amount = total * item.pct / 100;
+    const amount = allocationBase * item.pct / 100;
     const barEl = document.getElementById(`${item.id}_bar`);
     const amtEl = document.getElementById(`${item.id}_amt`);
     if (barEl) barEl.style.width = `${Math.min(item.pct, 100)}%`;
@@ -735,7 +739,7 @@ function calcBudget() {
   const groupStates = BUDGET_GROUPS.map((group) => {
     const items = itemStates.filter((item) => item.groupKey === group.key);
     const pct = items.reduce((sum, item) => sum + item.pct, 0);
-    const amount = total * pct / 100;
+    const amount = allocationBase * pct / 100;
     return { ...group, items, pct, amount };
   });
 
