@@ -53,8 +53,10 @@ class BudgetTcoEngine
         $vendorOfferTotal = $vendorTcoHourly * $annualHours;      // vendor annual
         $capitalRecoveryAnnual = $total - $vendorOfferTotal;
 
-        // Appraisal-table extras.
-        $ftesRequired = $annualHours > 0 ? max(1, (int) ceil($annualHours / self::BILLABLE_HOURS_PER_FTE)) : 0;
+        // Appraisal-table extras. Staff required = operating-week coverage hours
+        // ÷ a guard's weekly billable hours (1456/52 = 28), rounded UP.
+        $weeklyHours = $hoursPerDay * $daysPerWeek * $staffPerShift;
+        $ftesRequired = $weeklyHours > 0 ? max(1, (int) ceil($weeklyHours / (self::BILLABLE_HOURS_PER_FTE / 52))) : 0;
         $operationalCapitalPct = $total > 0 ? (int) round(100 * $capitalRecoveryAnnual / $total) : 0;
         $totalMonthlyInt = $total / 12;
         $paybackMonths = $totalMonthlyInt > 0.01 ? round($vendorOfferTotal / $totalMonthlyInt, 1) : 0;

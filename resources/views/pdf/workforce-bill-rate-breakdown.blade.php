@@ -31,7 +31,9 @@
     $weeklyCoverageHours = $hoursPerDay * $daysPerWeek * $staffPerShift;
     $monthlyCoverageHours = (int) round(($weeklyCoverageHours * $weeksPerYear) / 12);
     $annualCoverageHours = $weeklyCoverageHours * $weeksPerYear;
-    $ftesRequired = max(1, (int) ceil($annualCoverageHours / $BILLABLE_HOURS_PER_FTE));
+    // Staff required = operating-week coverage hours ÷ a guard's weekly billable
+    // hours (1456/52 = 28), rounded UP. e.g. 96 hrs/week ÷ 28 = 3.42 → 4 staff.
+    $ftesRequired = max(1, (int) ceil($weeklyCoverageHours / ($BILLABLE_HOURS_PER_FTE / 52)));
 
     $annualPerInt = $internalTcoHourly * $BILLABLE_HOURS_PER_FTE;
     $annualPerVend = $vendorTcoHourly * $BILLABLE_HOURS_PER_FTE;
