@@ -25,17 +25,16 @@ class JobPostingController extends Controller
      * @var list<string>
      */
     private const STARTER_SERVICE_OPTIONS = [
-        'Unarmed Security Guard',
-        'Armed Security Guard',
-        'Mobile Patrol',
-        'Foot Patrol',
-        'Roving Patrol',
-        'Concierge / Front Desk Security',
-        'Access Control',
-        'Fire Watch',
-        'Loss Prevention',
+        'Security Guard Services',
+        'Armed Security Services',
+        'Mobile Patrol Services',
+        'Executive Protection',
         'Event Security',
-        'Parking Enforcement',
+        'School Security',
+        'Hospital Security',
+        'Fire Watch Services',
+        'Loss Prevention',
+        'Access Control Officers',
         'Other',
     ];
 
