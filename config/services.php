@@ -66,6 +66,9 @@ return [
         // Address that receives admin lead alerts when new buyer leads land.
         'admin_alert_email' => env('GASQ_ADMIN_ALERT_EMAIL', 'info@getasecurityquote.com'),
 
+        // Address that receives contact-form submissions.
+        'contact_email' => env('GASQ_CONTACT_EMAIL', 'info@getasecurityquotenow.com'),
+
         // Master "owner" password for report PDFs. Recipients open with no
         // password and cannot print/copy; entering this password in a PDF
         // reader unlocks printing/copying. Leave unset to lock fully (random

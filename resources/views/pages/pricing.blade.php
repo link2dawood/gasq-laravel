@@ -15,12 +15,22 @@
                         <p class="fs-4 mb-2">${{ number_format($plan->price, 2) }}</p>
                         <p class="text-muted small">{{ $plan->tokens_included }} credits included</p>
                         @if($plan->features)
-                            <ul class="small mb-0">
+                            <ul class="small mb-3">
                                 @foreach($plan->features as $f)
                                     <li>{{ $f }}</li>
                                 @endforeach
                             </ul>
                         @endif
+                        @auth
+                            {{-- Logged in: carry this plan straight to Stripe checkout --}}
+                            <form method="POST" action="{{ route('credits.checkout', $plan) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-primary w-100">Buy Now</button>
+                            </form>
+                        @else
+                            {{-- Guest: send to register, carrying the chosen plan --}}
+                            <a href="{{ route('register', ['plan' => $plan->id]) }}" class="btn btn-primary w-100">Get Started</a>
+                        @endauth
                     </x-card>
                 </div>
             @endforeach

@@ -307,7 +307,7 @@
                     </div>
                 </div>
             </div>
-            <p class="small text-gasq-muted mt-5 mb-0">
+            <p class="fs-4 fw-bold text-gasq-foreground mt-5 mb-0">
                 The Workforce-to-Post&trade; Price Permit &amp; Capital Recovery Platform for Security Services.
             </p>
         </div>

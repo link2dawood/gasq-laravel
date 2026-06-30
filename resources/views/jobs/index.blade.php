@@ -30,7 +30,7 @@
                     <input type="text" name="location" class="form-control" placeholder="Location" value="{{ request('location') }}">
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+                    <button type="submit" class="btn btn-outline-primary w-100">Search</button>
                 </div>
             </form>
         </div>

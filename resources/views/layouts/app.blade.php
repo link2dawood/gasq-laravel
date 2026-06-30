@@ -168,8 +168,11 @@
             @endif
             @yield('content')
         </main>
+        {{-- Site footer shows on every page; a view can still override @section('footer'). --}}
         @hasSection('footer')
             @yield('footer')
+        @else
+            @include('partials.site-footer')
         @endif
     </div>
     @php
