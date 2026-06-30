@@ -15,7 +15,7 @@
           <p class="banner-sub mb-0">Manage your account and access security cost calculators.</p>
         </div>
         <div class="col-md-auto">
-          <a href="{{ url('/main-menu-calculator') }}" class="gasq-btn-banner">
+          <a href="{{ route('instant-estimator.index') }}" class="gasq-btn-banner">
             <i class="fa fa-calculator"></i> Open Calculator
           </a>
         </div>
@@ -240,25 +240,7 @@
         <i class="fa fa-plus me-1"></i> Submit another job offer
       </a>
     </div>
-  @else
-    <div class="alert alert-info d-flex justify-content-between align-items-center">
-      <span>No active job offers yet. Submit one to receive qualified vendor responses.</span>
-      <a href="{{ route('post-job.index') }}" class="btn btn-primary btn-sm">Submit a job offer</a>
-    </div>
   @endif
-
-  {{-- GASQ Protections --}}
-  <div class="card gasq-card mb-4" style="background:#f0f9ff;border:1px solid #bae6fd;">
-    <div class="card-body py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
-      <div>
-        <h3 class="h6 mb-1" style="color:#0369a1;"><i class="fa fa-shield-halved me-2"></i>Your GASQ Protections</h3>
-        <div class="text-gasq-muted small mb-0">
-          <strong>Price Lock Guarantee</strong> · <strong>Vendor Replacement Guarantee</strong> · Backed across every accepted engagement.
-        </div>
-      </div>
-      <a href="{{ route('faq') }}" class="btn btn-outline-primary btn-sm">Learn more</a>
-    </div>
-  </div>
 
   {{-- Quick Actions --}}
   <div class="card gasq-card mb-4">
@@ -285,7 +267,7 @@
         </div>
 
         <div class="col-sm-6 col-lg-4">
-          <a href="{{ url('/main-menu-calculator') }}" class="gasq-action-card">
+          <a href="{{ route('instant-estimator.index') }}" class="gasq-action-card">
             <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px">
               <i class="fa fa-calculator"></i>
             </span>
@@ -297,13 +279,13 @@
         </div>
 
         <div class="col-sm-6 col-lg-4">
-          <a href="{{ route('job-board') }}" class="gasq-action-card">
+          <a href="{{ route('faq') }}" class="gasq-action-card">
             <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px">
-              <i class="fa fa-briefcase"></i>
+              <i class="fa fa-question-circle"></i>
             </span>
             <div>
-              <div class="action-title">Job Board</div>
-              <div class="action-desc">Browse or post jobs</div>
+              <div class="action-title">FAQ</div>
+              <div class="action-desc">Buyer questions answered</div>
             </div>
           </a>
         </div>
@@ -371,66 +353,27 @@
         <div class="gasq-icon-badge"><i class="fa fa-calculator fa-sm"></i></div>
         <h2 class="gasq-card-title-lg mb-0">Security Calculators</h2>
       </div>
-      <p class="text-gasq-muted small mb-0">Professional security cost analysis and workforce planning tools.</p>
+      <p class="text-gasq-muted small mb-0">The two calculators available to buyers — the Instant Estimator and the Know Before You Buy Calculator.</p>
     </div>
     <div class="card-body p-4">
 
-      {{-- Blade Calculators Grid --}}
+      {{-- Buyers only see the two buyer-facing calculators (consistent naming everywhere). --}}
       <div class="row g-3">
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/main-menu-calculator') }}" class="gasq-action-card" style="border-color:rgba(6,45,121,0.18);background:rgba(6,45,121,0.03)">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-th-large"></i></div>
+        <div class="col-md-6">
+          <a href="{{ route('instant-estimator.index') }}" class="gasq-action-card" style="border-color:rgba(6,45,121,0.18);background:rgba(6,45,121,0.03)">
+            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-bolt"></i></div>
             <div>
-              <div class="action-title">Main Menu Calculator</div>
-              <div class="action-desc">6 tabs: Security, Manpower, ROI, Bill Rate</div>
+              <div class="action-title">Instant Estimator</div>
+              <div class="action-desc">Your fast security services cost estimate</div>
             </div>
           </a>
         </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/security-billing') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-file-invoice-dollar"></i></div>
-            <div>
-              <div class="action-title">Security Billing</div>
-              <div class="action-desc">Billing rate analysis &amp; comparison</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/mobile-patrol-calculator') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-car"></i></div>
-            <div>
-              <div class="action-title">Mobile Patrol</div>
-              <div class="action-desc">Route cost &amp; driving analysis</div>
-            </div>
-          </a>
-        </div>
-        <div class="col-md-6 col-lg-4">
-          <a href="{{ url('/budget-calculator') }}" class="gasq-action-card">
+        <div class="col-md-6">
+          <a href="{{ route('budget-calculator.index') }}" class="gasq-action-card">
             <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-piggy-bank"></i></div>
             <div>
-              <div class="action-title">Workforce Calculator</div>
-              <div class="action-desc">Annual workforce planning</div>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      {{-- Advanced calculator previews (Blade) --}}
-      <hr class="my-4" style="border-color:var(--gasq-border)">
-      <div class="d-flex align-items-center gap-2 mb-3">
-        <div class="gasq-icon-badge gasq-icon-warning"><i class="fa fa-rocket fa-sm"></i></div>
-        <div>
-          <div class="fw-semibold small">Advanced Calculators</div>
-          <div class="text-gasq-muted" style="font-size:0.75rem">Powered by the GASQ calculator engine</div>
-        </div>
-      </div>
-      <div class="row g-3">
-        <div class="col-md-6 col-lg-3">
-          <a href="{{ url('/government-contract-calculator') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-landmark"></i></div>
-            <div>
-              <div class="action-title">Gov't Contract</div>
-              <div class="action-desc">SCA/PWA compliance calculator</div>
+              <div class="action-title">Know Before You Buy Calculator</div>
+              <div class="action-desc">Estimate your annual security spend</div>
             </div>
           </a>
         </div>
