@@ -62,5 +62,11 @@
     <p>GetASecurityQuote isn't simply another quoting platform. We're building a new standard for how security services are evaluated, priced, and purchased.</p>
 
     <p class="fs-5 fw-semibold text-gasq-foreground mt-4">Know Your Cost to Protect™. Buy with Confidence.</p>
+
+    <div class="text-center border rounded-3 p-4 p-md-5 mt-5" style="background:#f4f6fb;">
+        <h3 class="h4 fw-bold mb-2">Know Your Cost to Protect™ Before You Buy</h3>
+        <p class="text-gasq-muted mb-4">Get an independent appraisal of what your security should actually cost — before you go to market.</p>
+        <a href="{{ route('instant-estimator.index') }}" class="btn btn-primary btn-lg">Get My Instant Cost to Protect™ Estimate</a>
+    </div>
 </div>
 @endsection
