@@ -10,11 +10,19 @@
     .gasq-hero-lead,
     .gasq-hero-bg .text-gasq-muted,
     .gasq-section p,
+    .gasq-section-muted p,
     .gasq-section .text-gasq-muted,
     .gasq-list-check li { color: #333444 !important; }
+    /* Larger body text everywhere on the landing page */
     .gasq-hero-lead,
     .gasq-section p,
-    .gasq-list-check li { font-size: 1.0625rem; }
+    .gasq-section-muted p,
+    .gasq-section li,
+    .gasq-section-muted li,
+    .gasq-list-check li,
+    .gasq-list-dot li,
+    .gasq-card .card-body p,
+    .gasq-card p { font-size: 1.1875rem; line-height: 1.6; }
 </style>
 @endpush
 
@@ -54,7 +62,7 @@
     <section class="gasq-section">
         <div class="container px-4">
             <div class="text-center mb-5">
-                <h2 class="gasq-section-title mb-3">Most Buyers Don&rsquo;t Know What Security Really Costs</h2>
+                <h2 class="gasq-section-title mb-3">Most Buyers Don&rsquo;t Know What Security Services Really Costs!</h2>
                 <p class="text-gasq-muted mx-auto" style="max-width: 48rem;">
                     Many buyers compare vendors against each other instead of comparing vendors against the
                     <em>actual cost of performing the service correctly.</em>
@@ -63,7 +71,7 @@
             <div class="row g-4 align-items-center">
                 <div class="col-lg-6">
                     <div class="gasq-card card p-4 p-lg-5">
-                        <h3 class="card-title gasq-card-title-lg mb-4 text-gasq-destructive">That leads to:</h3>
+                        <h3 class="card-title gasq-card-title-lg mb-4 text-gasq-destructive">Confusion leads to:</h3>
                         <ul class="gasq-list-dot mb-0 text-gasq-destructive">
                             <li>Understaffed contracts</li>
                             <li>High turnover</li>
@@ -80,9 +88,10 @@
                         <p class="text-gasq-muted mb-4">
                             We help buyers answer the one question every procurement decision really turns on:
                         </p>
-                        <blockquote class="fs-4 fw-semibold text-primary mb-0">
+                        <blockquote class="fs-4 fw-semibold text-primary mb-3">
                             &ldquo;Can I afford this service before I buy it?&rdquo;
                         </blockquote>
+                        <a href="{{ route('why-gasq-works') }}" class="btn btn-primary btn-sm">Learn How</a>
                     </div>
                 </div>
             </div>
