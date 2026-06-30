@@ -1,6 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'GetASecurityQuoteNow — Know the True Cost of Security Before You Buy')
+@section('title', 'GetASecurityQuoteNow — Know the True Cost of Security Services Before You Buy')
+
+@push('styles')
+<style>
+    /* Subtitle — larger, bold, brand navy */
+    .gasq-hero-subtitle { font-size: 1.25rem; font-weight: 700; color: #062e7a; }
+    /* Darker, more readable body copy across the landing page */
+    .gasq-hero-lead,
+    .gasq-hero-bg .text-gasq-muted,
+    .gasq-section p,
+    .gasq-section .text-gasq-muted,
+    .gasq-list-check li { color: #333444 !important; }
+    .gasq-hero-lead,
+    .gasq-section p,
+    .gasq-list-check li { font-size: 1.0625rem; }
+</style>
+@endpush
 
 @section('content')
 <div class="min-vh-100">
@@ -8,24 +24,24 @@
     {{-- HERO --}}
     <section class="gasq-hero-bg">
         <div class="container text-center px-4">
-            <h1 class="gasq-hero-title mb-4">Know the True Cost of Security Before You Buy.</h1>
+            <h1 class="gasq-hero-title mb-4">Know the True Cost of Security Services Before You Buy.</h1>
             <p class="gasq-hero-lead lead mb-4 mx-auto">
                 GetASecurityQuoteNow (GASQ) helps property owners, procurement teams, and security buyers
                 compare the <em>real total cost of ownership</em> of security services before signing a contract.
             </p>
-            <p class="text-gasq-muted mb-4 mx-auto" style="max-width: 48rem;">
+            <p class="gasq-hero-subtitle mb-4 mx-auto" style="max-width: 48rem;">
                 We don&rsquo;t just collect quotes. We help you understand:
             </p>
             <ul class="gasq-list-check mx-auto text-start mb-5" style="max-width: 36rem;">
-                <li>What security <em>should</em> cost</li>
-                <li>What hidden labor costs vendors absorb</li>
+                <li>What security services <em>should</em> cost</li>
                 <li>What your in-house cost would be</li>
+                <li>What hidden labor costs vendors absorb</li>
                 <li>What your capital recovery opportunity looks like</li>
                 <li>Whether a proposal is realistic, risky, or overpriced</li>
             </ul>
             <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center mb-3">
                 <a href="{{ route('instant-estimator.index') }}" class="btn btn-primary btn-lg px-4 py-3 shadow">
-                    <i class="fa fa-calculator me-2"></i>Get My Instant Security Cost Estimate
+                    <i class="fa fa-calculator me-2"></i>Get An Instant Security Cost Estimate
                 </a>
             </div>
             <p class="small text-gasq-muted mb-0">
@@ -107,7 +123,7 @@
     </section>
 
     {{-- HOW IT WORKS --}}
-    <section class="gasq-section">
+    <section class="gasq-section" id="how-it-works">
         <div class="container px-4">
             <div class="text-center mb-5">
                 <h2 class="gasq-section-title mb-3">How GASQ Works</h2>

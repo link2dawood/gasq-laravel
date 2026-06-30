@@ -57,7 +57,7 @@
             <div class="container px-4">
                 <nav class="navbar navbar-expand-md navbar-light py-4 align-items-center">
                     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
-                        <x-logo height="48" class="d-inline-block" />
+                        <x-logo height="68" class="d-inline-block" />
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
@@ -286,12 +286,12 @@
             }
 
             // Tapping a real navigation link or dropdown item closes the menu
-            // (dropdown toggles are left alone so submenus still open).
+            // (dropdown toggles are left alone so submenus still open). We do NOT
+            // auto-close on scroll — that made the open menu collapse as soon as
+            // the user scrolled down the page.
             nav.querySelectorAll('a.nav-link:not(.dropdown-toggle), a.dropdown-item').forEach(function (a) {
                 a.addEventListener('click', closeNav);
             });
-
-            window.addEventListener('scroll', closeNav, { passive: true });
         })();
     </script>
 

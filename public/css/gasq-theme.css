@@ -20,6 +20,8 @@
 }
 
 /* Bootstrap overrides */
+/* Offset anchor jumps so target sections aren't hidden under the sticky header. */
+html { scroll-padding-top: 90px; }
 body { background-color: var(--gasq-background); color: var(--gasq-foreground); }
 .bg-gasq-background { background-color: var(--gasq-background); }
 .bg-gasq-card { background-color: var(--gasq-card); }
