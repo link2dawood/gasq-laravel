@@ -1,8 +1,25 @@
 @extends('layouts.app')
 @section('title', 'Dashboard')
 
+@push('styles')
+<style>
+    /* Buyer dashboard uses a maroon accent (#800000) to distinguish it. */
+    .gasq-buyer-dash { --gasq-primary: #800000; }
+    .gasq-buyer-dash .gasq-welcome-banner { background: linear-gradient(135deg, #800000 0%, #a31515 100%); }
+    .gasq-buyer-dash .gasq-icon-badge { background: rgba(128,0,0,0.10); color: #800000; }
+    .gasq-buyer-dash .bg-primary { background-color: #800000 !important; }
+    .gasq-buyer-dash .text-primary { color: #800000 !important; }
+    .gasq-buyer-dash .btn-primary { background-color: #800000; border-color: #800000; }
+    .gasq-buyer-dash .btn-primary:hover { background-color: #660000; border-color: #660000; }
+    .gasq-buyer-dash .btn-outline-primary { color: #800000; border-color: #800000; }
+    .gasq-buyer-dash .btn-outline-primary:hover { background-color: #800000; border-color: #800000; color: #fff; }
+    /* Featured calculator card accent (was navy rgba) */
+    .gasq-buyer-dash .gasq-action-card[style*="6,45,121"] { border-color: rgba(128,0,0,0.18) !important; background: rgba(128,0,0,0.03) !important; }
+</style>
+@endpush
+
 @section('content')
-<div class="py-4 px-3 px-md-4" style="background:var(--gasq-background);min-height:100vh">
+<div class="py-4 px-3 px-md-4 gasq-buyer-dash" style="background:var(--gasq-background);min-height:100vh">
 <div class="container-xl">
 
   {{-- Welcome Banner --}}

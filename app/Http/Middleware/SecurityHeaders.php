@@ -34,7 +34,10 @@ class SecurityHeaders
             "frame-src https://accounts.google.com https://*.bookafy.com https://bookafy.com",
             "object-src 'none'",
             "base-uri 'self'",
-            "form-action 'self'",
+            // Allow the credits form to redirect to Stripe Checkout. Some browsers
+            // enforce form-action against the POST's redirect target, which would
+            // otherwise block the hand-off to checkout.stripe.com.
+            "form-action 'self' https://checkout.stripe.com https://*.stripe.com",
         ];
         
         $response->headers->set('Content-Security-Policy', implode('; ', $csp));
