@@ -27,5 +27,18 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // When the session/CSRF token has expired (e.g. after the auto-logout
+        // timer fires or a form sits open too long), Laravel throws a 419
+        // TokenMismatchException and renders the bare "PAGE EXPIRED" screen.
+        // Instead, send the user cleanly back to the login page.
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Your session has expired. Please refresh the page and try again.',
+                ], 419);
+            }
+
+            return redirect()->route('login')
+                ->with('status', 'Your session expired and you were signed out. Please sign in again.');
+        });
     })->create();

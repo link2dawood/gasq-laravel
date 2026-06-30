@@ -8,6 +8,12 @@
     <p class="text-gasq-muted small mb-0">Enter your email and password to access your account.</p>
 </div>
 
+@if (session('status'))
+    <div class="alert alert-info mx-auto" style="max-width: 28rem;" role="alert">
+        {{ session('status') }}
+    </div>
+@endif
+
 <div class="card gasq-card shadow-sm mx-auto" style="max-width: 28rem;">
     <div class="card-body p-4 p-lg-5">
         <form action="{{ route('login') }}" method="POST" autocomplete="off" novalidate>

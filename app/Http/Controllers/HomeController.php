@@ -268,7 +268,9 @@ class HomeController extends Controller
         if ($heldJobCount > 0) {
             $nextAction = [
                 'tone' => 'warn',
-                'message' => $heldJobCount . ' job' . ($heldJobCount === 1 ? '' : 's') . ' on Pending Qualification — update your questionnaire to release to vendors.',
+                'message' => $heldJobCount . ' job' . ($heldJobCount === 1 ? ' is' : 's are') . ' Pending Qualification — '
+                    . ($heldJobCount === 1 ? 'it is' : 'they are') . ' not yet visible to vendors. '
+                    . 'Update your questionnaire to qualify and release ' . ($heldJobCount === 1 ? 'it' : 'them') . '.',
                 'cta' => 'Update Questionnaire',
                 'href' => $activeJobs->isNotEmpty() ? route('jobs.edit', $activeJobs->first()) : route('jobs.index'),
             ];

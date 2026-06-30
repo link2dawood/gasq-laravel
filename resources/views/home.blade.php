@@ -114,6 +114,42 @@
   @if(isset($buyerActiveJobs) && $buyerActiveJobs->isNotEmpty())
     @foreach($buyerActiveJobs as $job)
       <div class="mb-4">
+        @php $jobOpp = $job->vendorOpportunity; @endphp
+        @if($jobOpp && strtolower((string) $jobOpp->lead_tier) === 'c')
+          @php
+              $qualItems = [
+                  'decision_maker_verified' => 'Decision maker verified',
+                  'budget_confirmed'        => 'Approved budget confirmed',
+                  'scope_completed'         => 'Scope of work completed',
+                  'timeline_ready'          => 'Start timeline ready (within 60 days)',
+                  'move_forward_confirmed'  => 'Ready to move forward if a vendor accepts',
+              ];
+              $missingItems = collect($qualItems)->reject(fn ($label, $field) => (bool) $jobOpp->{$field});
+          @endphp
+          <div class="alert alert-warning border-warning mb-3" role="alert">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fa fa-hourglass-half mt-1"></i>
+              <div class="flex-grow-1">
+                <div class="fw-bold mb-1">Pending Qualification — not yet visible to vendors</div>
+                <p class="mb-2 small">
+                  This job has been saved but <strong>has not been released to vendors yet</strong>.
+                  Before GASQ sends it out, your questionnaire needs to confirm a few qualification items.
+                  Once these are complete, the job is automatically released to matched vendors.
+                </p>
+                @if($missingItems->isNotEmpty())
+                  <div class="small fw-semibold mb-1">Still to confirm:</div>
+                  <ul class="small mb-2">
+                    @foreach($missingItems as $label)
+                      <li>{{ $label }}</li>
+                    @endforeach
+                  </ul>
+                @endif
+                <a href="{{ route('jobs.edit', $job) }}" class="btn btn-sm btn-warning fw-semibold">Update Questionnaire</a>
+              </div>
+            </div>
+          </div>
+        @endif
+
         @include('partials.lead-summary', [
             'job' => $job,
             'opportunity' => $job->vendorOpportunity,
