@@ -70,7 +70,12 @@
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('why-gasq-works') }}">Why GASQ Works</a></li>
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('about') }}">About</a></li>
                             @endguest
-                            <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('job-board') }}">Job Board</a></li>
+                            @if(auth()->check() && auth()->user()->isBuyer())
+                                {{-- Buyers get their own posted jobs, not the open vendor board --}}
+                                <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('jobs.index') }}">My Jobs</a></li>
+                            @else
+                                <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('job-board') }}">Job Board</a></li>
+                            @endif
                             @include('partials.nav-calculators-dropdown', ['toggleId' => 'navbarCalculatorsSite'])
                             @guest
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('login') }}">Login</a></li>

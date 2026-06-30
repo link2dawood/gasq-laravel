@@ -16,6 +16,7 @@
         <p class="text-muted small mb-0 mt-2">Each calculator run uses {{ config('credits.calculator_per_run') }} credits (deducted when results are calculated).</p>
         <a href="{{ route('account-balance') }}" class="btn btn-sm btn-outline-primary mt-2">View history</a>
     </x-card>
+    @if($hasRedeemableCoupons ?? false)
     <x-card title="Redeem coupon" class="mb-4">
         <p class="text-muted small">Enter a valid coupon code to add credits to your account.</p>
         <form method="POST" action="{{ route('credits.redeem') }}" class="row g-3 align-items-end">
@@ -30,6 +31,7 @@
             </div>
         </form>
     </x-card>
+    @endif
     <h2 class="h5 mb-3">Purchase credits</h2>
     @if($plans->isEmpty())
         <p class="text-muted">No credit packages available at the moment. Contact support to add credits.</p>
@@ -42,7 +44,7 @@
                         <p class="text-muted small">{{ $plan->tokens_included }} credits</p>
                         <form method="POST" action="{{ route('credits.checkout', $plan) }}">
                             @csrf
-                            <button type="submit" class="btn btn-primary w-100">Purchase with Stripe</button>
+                            <button type="submit" class="btn btn-primary w-100">Buy Now</button>
                         </form>
                     </x-card>
                 </div>

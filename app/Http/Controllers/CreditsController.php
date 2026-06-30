@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Coupon;
 use App\Models\JobPosting;
 use App\Models\PricingPlan;
 use App\Services\CouponRedemptionService;
@@ -23,9 +24,18 @@ class CreditsController extends Controller
         $balance = $this->walletService->getBalance($user);
         $plans = PricingPlan::where('is_active', true)->orderBy('sort_order')->get();
 
+        // Only surface the "Redeem coupon" block when there is at least one
+        // active, unexpired coupon to redeem.
+        $hasRedeemableCoupons = Coupon::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->exists();
+
         return view('credits.index', [
             'balance' => $balance,
             'plans' => $plans,
+            'hasRedeemableCoupons' => $hasRedeemableCoupons,
         ]);
     }
 

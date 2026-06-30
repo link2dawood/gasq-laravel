@@ -31,7 +31,7 @@ class SecurityHeaders
             "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
             "img-src 'self' data: https: blob:",
             "connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://*.googleapis.com https://*.gstatic.com",
-            "frame-src https://accounts.google.com",
+            "frame-src https://accounts.google.com https://*.bookafy.com https://bookafy.com",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
