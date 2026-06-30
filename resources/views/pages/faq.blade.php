@@ -17,7 +17,14 @@
                         </button>
                     </h2>
                     <div id="faq-{{ $faq->id }}" class="accordion-collapse collapse {{ $i === 0 ? 'show' : '' }}" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">{{ $faq->answer }}</div>
+                        <div class="accordion-body">
+                            {{ $faq->answer }}
+                            @if(!empty($faq->cta_url))
+                                <div class="mt-3">
+                                    <a href="{{ $faq->cta_url }}" class="btn btn-sm btn-outline-primary">{{ $faq->cta_label ?: 'Learn more' }}</a>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @endforeach

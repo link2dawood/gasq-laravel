@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContentSection;
 use App\Models\Faq;
 use App\Models\PricingPlan;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class PageController extends Controller
@@ -27,7 +28,20 @@ class PageController extends Controller
 
     public function faq(): View
     {
-        $faqs = Faq::where('is_active', true)->orderBy('order')->get();
+        $query = Faq::where('is_active', true);
+
+        // Inside a user dashboard, only surface FAQs relevant to that role.
+        // Guests and admins see the full list.
+        if (Schema::hasColumn('faqs', 'audience')) {
+            $user = auth()->user();
+            if ($user && $user->isBuyer()) {
+                $query->whereIn('audience', ['all', 'buyer']);
+            } elseif ($user && $user->isVendor()) {
+                $query->whereIn('audience', ['all', 'vendor']);
+            }
+        }
+
+        $faqs = $query->orderBy('order')->get();
         return view('pages.faq', compact('faqs'));
     }
 

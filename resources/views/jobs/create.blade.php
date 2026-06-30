@@ -36,6 +36,22 @@
         Start with your service and site details, then complete the buyer questionnaire so GASQ can build your security job offer announcement and invite qualified vendors to respond.
     </p>
 
+    {{-- Process step indicator: 1) Service & Site  2) Questionnaire  3) Review & Publish --}}
+    @php $currentStep = $showDetailsStep ? 2 : 1; @endphp
+    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-4">
+        @foreach(['Service & Job Site', 'Buyer Questionnaire', 'Review & Publish'] as $i => $stepLabel)
+            @php $n = $i + 1; @endphp
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-circle {{ $n === $currentStep ? 'bg-primary' : ($n < $currentStep ? 'bg-success' : 'bg-secondary') }}"
+                      style="width:1.75rem;height:1.75rem;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;">
+                    @if($n < $currentStep)<i class="fa fa-check"></i>@else{{ $n }}@endif
+                </span>
+                <span class="small fw-semibold {{ $n === $currentStep ? 'text-primary' : 'text-gasq-muted' }}">Step {{ $n }}: {{ $stepLabel }}</span>
+            </div>
+            @if(! $loop->last)<span class="text-gasq-muted d-none d-md-inline">&rarr;</span>@endif
+        @endforeach
+    </div>
+
     @if(! $showDetailsStep)
         <x-card title="Step 1: Service and Job Site">
             <p class="text-gasq-muted mb-4">
