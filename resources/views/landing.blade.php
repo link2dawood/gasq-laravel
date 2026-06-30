@@ -169,7 +169,7 @@
                             <li>Direct labor</li>
                             <li>Employer burden</li>
                             <li>Workforce maintenance cost</li>
-                            <li>True total cost of ownership (TCO)</li>
+                            <li>True total cost of ownership</li>
                             <li>Vendor absorbed costs</li>
                         </ul>
                     </div>
@@ -211,33 +211,60 @@
     </section>
 
     {{-- WHAT YOU GET --}}
-    <section class="gasq-section-muted">
+    {{-- WHAT BUYERS GET — maroon theme, carries to the buyer dashboard --}}
+    <section class="gasq-section" id="buyers" style="background:#800000;">
         <div class="container px-4">
             <div class="text-center mb-5">
-                <h2 class="gasq-section-title mb-3">What You Get With GASQ</h2>
-                <p class="text-gasq-muted mx-auto" style="max-width: 48rem;">
-                    A complete pricing intelligence toolkit purpose-built for security procurement.
+                <h2 class="gasq-section-title mb-3 text-white">What Buyers Get With GASQ</h2>
+                <p class="mx-auto text-white-50" style="max-width: 48rem;">
+                    Independent pricing intelligence so you know your true Cost to Protect&trade; before you buy.
                 </p>
             </div>
-            <div class="row g-3">
+            <div class="row g-3 justify-content-center">
                 @php
-                    $features = [
-                        ['icon' => 'fa-calculator',      'label' => 'Instant Security Cost Estimator'],
-                        ['icon' => 'fa-users',           'label' => 'Workforce-to-Post™ Analysis'],
-                        ['icon' => 'fa-coins',           'label' => 'Capital Recovery Report'],
-                        ['icon' => 'fa-balance-scale',   'label' => 'Price Realism Review'],
-                        ['icon' => 'fa-network-wired',   'label' => 'Vendor Acceptance Network'],
-                        ['icon' => 'fa-check-double',    'label' => 'Budget Validation Tools'],
-                        ['icon' => 'fa-chart-line',      'label' => 'Security ROI Analysis'],
-                        ['icon' => 'fa-door-open',       'label' => 'Cost Per Door Models'],
-                        ['icon' => 'fa-route',           'label' => 'Mobile Patrol Cost Modeling'],
+                    $buyerFeatures = [
+                        ['icon' => 'fa-calculator',          'label' => 'Instant Security Cost Estimator'],
+                        ['icon' => 'fa-check-double',        'label' => 'Budget Validation Tools'],
+                        ['icon' => 'fa-balance-scale',       'label' => 'Price Realism Review'],
+                        ['icon' => 'fa-coins',               'label' => 'Capital Recovery Report'],
+                        ['icon' => 'fa-chart-line',          'label' => 'Security ROI Analysis'],
                         ['icon' => 'fa-file-invoice-dollar', 'label' => 'CFO-Style Pricing Reports'],
                     ];
                 @endphp
-                @foreach ($features as $feature)
+                @foreach ($buyerFeatures as $feature)
                     <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                         <div class="gasq-card card h-100 p-3 p-md-4 text-center">
-                            <i class="fa {{ $feature['icon'] }} text-primary fa-2x mb-3"></i>
+                            <i class="fa {{ $feature['icon'] }} fa-2x mb-3" style="color:#800000;"></i>
+                            <p class="small fw-semibold mb-0">{!! $feature['label'] !!}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- WHAT VENDORS GET — navy theme, carries to the vendor dashboard --}}
+    <section class="gasq-section" id="vendors" style="background:#153a81;">
+        <div class="container px-4">
+            <div class="text-center mb-5">
+                <h2 class="gasq-section-title mb-3 text-white">What Vendors Get With GASQ</h2>
+                <p class="mx-auto text-white-50" style="max-width: 48rem;">
+                    Qualified, buyer-controlled job offers and the tools to price your work realistically.
+                </p>
+            </div>
+            <div class="row g-3 justify-content-center">
+                @php
+                    $vendorFeatures = [
+                        ['icon' => 'fa-network-wired', 'label' => 'Vendor Acceptance Network'],
+                        ['icon' => 'fa-users',         'label' => 'Workforce-to-Post™ Analysis'],
+                        ['icon' => 'fa-route',         'label' => 'Mobile Patrol Cost Modeling'],
+                        ['icon' => 'fa-door-open',     'label' => 'Cost Per Door Models'],
+                    ];
+                @endphp
+                @foreach ($vendorFeatures as $feature)
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                        <div class="gasq-card card h-100 p-3 p-md-4 text-center">
+                            <i class="fa {{ $feature['icon'] }} fa-2x mb-3" style="color:#153a81;"></i>
                             <p class="small fw-semibold mb-0">{!! $feature['label'] !!}</p>
                         </div>
                     </div>
@@ -289,10 +316,10 @@
                 <div class="col-md-4">
                     <div class="gasq-card card p-4 p-lg-5 h-100">
                         <i class="fa fa-file-upload text-primary fa-2x mb-3"></i>
-                        <h3 class="gasq-card-title-lg mb-2">Upload My Scope of Work</h3>
-                        <p class="text-gasq-muted small mb-4">Post your scope and let prequalified vendors respond on your terms.</p>
-                        <a href="{{ route('jobs.create') }}" class="btn btn-outline-primary w-100 py-3 mt-auto">
-                            Post Scope &rarr;
+                        <h3 class="gasq-card-title-lg mb-2">Add A Job Post</h3>
+                        <p class="text-gasq-muted small mb-4">Post your job and let prequalified vendors respond on your terms.</p>
+                        <a href="{{ route('jobs.create') }}" class="btn btn-primary w-100 py-3 mt-auto">
+                            Post Job &rarr;
                         </a>
                     </div>
                 </div>
@@ -301,7 +328,7 @@
                         <i class="fa fa-calendar-check text-primary fa-2x mb-3"></i>
                         <h3 class="gasq-card-title-lg mb-2">Schedule a Pricing Review</h3>
                         <p class="text-gasq-muted small mb-4">Walk through your numbers with the GASQ team before you commit.</p>
-                        <a href="{{ route('discovery-call.index') }}" class="btn btn-outline-primary w-100 py-3 mt-auto">
+                        <a href="https://getasecurityquote.bookafy.com/" target="_blank" rel="noopener" class="btn btn-primary w-100 py-3 mt-auto">
                             Book Review &rarr;
                         </a>
                     </div>
