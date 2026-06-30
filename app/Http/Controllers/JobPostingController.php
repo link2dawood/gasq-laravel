@@ -860,11 +860,15 @@ class JobPostingController extends Controller
 
     private function estimatorStarterServiceType(string $serviceType): string
     {
+        // Map estimator service codes to the canonical buyer service labels
+        // (STARTER_SERVICE_OPTIONS) so a job prefilled from the estimator uses
+        // the same wording as the rest of the site.
         return match ($serviceType) {
-            'unarmed' => 'Unarmed Security Guard',
-            'armed' => 'Armed Security Guard',
-            'mobile' => 'Mobile Patrol',
+            'unarmed' => 'Security Guard Services',
+            'armed' => 'Armed Security Services',
+            'mobile' => 'Mobile Patrol Services',
             'loss' => 'Loss Prevention',
+            'executive' => 'Executive Protection',
             default => 'Other',
         };
     }

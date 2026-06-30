@@ -41,7 +41,7 @@
                 <div class="est-hero-panel h-100">
                     <div class="small text-uppercase opacity-75">Recommended range</div>
                     <div class="display-6 fw-bold mb-1 mt-1" id="heroRecommendedRange">$28.00 – $39.00</div>
-                    <div class="small opacity-75 mb-2" id="heroServiceLabel">Unarmed Security Services</div>
+                    <div class="small opacity-75 mb-2" id="heroServiceLabel">Security Guard Services</div>
                     <span class="est-chip est-chip-accent" id="heroRateBand">Within recommended band</span>
                 </div>
             </div>
@@ -242,12 +242,12 @@
                             <div class="col-12">
                                 <label class="form-label fw-semibold" for="serviceType">Security service type</label>
                                 <select id="serviceType" class="form-select">
-                                    <option value="unarmed">Unarmed Security Services</option>
+                                    <option value="unarmed">Security Guard Services</option>
                                     <option value="armed">Armed Security Services</option>
                                     <option value="supervisor">Security Site Supervisor</option>
                                     <option value="mobile">Mobile Patrol Services</option>
-                                    <option value="loss">Loss / Crime Prevention Services</option>
-                                    <option value="executive">Executive Protection Agent</option>
+                                    <option value="loss">Loss Prevention</option>
+                                    <option value="executive">Executive Protection</option>
                                     <option value="offduty">Off Duty Police Officer</option>
                                 </select>
                             </div>
@@ -538,7 +538,7 @@
                         <div class="col-md-6">
                             <div class="est-library-item">
                                 <div>
-                                    <div class="fw-semibold">Unarmed Security Services</div>
+                                    <div class="fw-semibold">Security Guard Services</div>
                                     <div class="small text-gasq-muted">$28.00 – $39.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
@@ -586,7 +586,7 @@
                         <div class="col-md-6">
                             <div class="est-library-item">
                                 <div>
-                                    <div class="fw-semibold">Loss / Crime Prevention Services</div>
+                                    <div class="fw-semibold">Loss Prevention</div>
                                     <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
@@ -598,7 +598,7 @@
                         <div class="col-md-6">
                             <div class="est-library-item">
                                 <div>
-                                    <div class="fw-semibold">Executive Protection Agent</div>
+                                    <div class="fw-semibold">Executive Protection</div>
                                     <div class="small text-gasq-muted">$53.00 – $68.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
@@ -1114,12 +1114,12 @@ const VENDOR_NETWORK_RECIPIENTS = [
 ];
 
 const SERVICE_TYPES = {
-    unarmed: { label: 'Unarmed Security Services', min: 28, max: 39 },
+    unarmed: { label: 'Security Guard Services', min: 28, max: 39 },
     armed: { label: 'Armed Security Services', min: 40, max: 52 },
     supervisor: { label: 'Security Site Supervisor', min: 40, max: 52 },
     mobile: { label: 'Mobile Patrol Services', min: 40, max: 52 },
-    loss: { label: 'Loss / Crime Prevention Services', min: 40, max: 52 },
-    executive: { label: 'Executive Protection Agent', min: 53, max: 68 },
+    loss: { label: 'Loss Prevention', min: 40, max: 52 },
+    executive: { label: 'Executive Protection', min: 53, max: 68 },
     offduty: { label: 'Off Duty Police Officer', min: 53, max: 68 },
 };
 
