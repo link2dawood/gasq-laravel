@@ -23,6 +23,8 @@ Route::view('/about', 'pages.about')->name('about');
 Route::view('/why-gasq-works', 'pages.why-gasq-works')->name('why-gasq-works');
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'submit'])->name('contact.submit');
+Route::view('/security-services', 'pages.security-services')->name('security-services');
+Route::view('/industries-served', 'pages.industries-served')->name('industries-served');
 Route::view('/license/buyer', 'pages.license-buyer')->name('license.buyer');
 Route::view('/license/seller', 'pages.license-seller')->name('license.seller');
 // Vendor-only standalone calculators.

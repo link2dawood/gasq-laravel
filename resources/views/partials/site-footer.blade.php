@@ -26,6 +26,7 @@
                 <h4 class="h6 fw-semibold mb-3">For Buyers</h4>
                 <ul class="list-unstyled small">
                     <li><a href="{{ route('pricing') }}" class="text-gasq-muted text-decoration-none">Know Before You Buy</a></li>
+                    <li><a href="{{ route('security-services') }}" class="text-gasq-muted text-decoration-none">Security Services</a></li>
                     <li><a href="{{ route('jobs.create') }}" class="text-gasq-muted text-decoration-none">Post Your Job</a></li>
                     <li><a href="{{ route('register.buyer.index') }}" class="text-gasq-muted text-decoration-none">Register as Buyer</a></li>
                     <li><a href="{{ route('login') }}" class="text-gasq-muted text-decoration-none">Buyer Login</a></li>
@@ -36,6 +37,7 @@
                 <h4 class="h6 fw-semibold mb-3">For Vendors</h4>
                 <ul class="list-unstyled small">
                     <li><a href="{{ route('job-board') }}" class="text-gasq-muted text-decoration-none">Browse Jobs</a></li>
+                    <li><a href="{{ route('industries-served') }}" class="text-gasq-muted text-decoration-none">Industries We Serve</a></li>
                     <li><a href="{{ route('register.vendor.index') }}" class="text-gasq-muted text-decoration-none">Register as Vendor</a></li>
                     <li><a href="{{ route('credits') }}" class="text-gasq-muted text-decoration-none">Buy Credits</a></li>
                 </ul>
