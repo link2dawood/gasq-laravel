@@ -142,7 +142,7 @@
                 <input type="hidden" name="longitude" value="{{ old('longitude', $starter['longitude'] ?? '') }}">
                 <input type="hidden" name="google_place_id" value="{{ old('google_place_id', $starter['google_place_id'] ?? '') }}">
 
-                <h5 class="mb-3">Section 1: Contact Information</h5>
+                <h5 class="mb-3 fw-bold text-dark">Section 1: Contact Information</h5>
                 <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
@@ -231,7 +231,7 @@
 
             <hr class="my-4">
 
-            <h5 class="mb-3">Section 2: Decision Authority</h5>
+            <h5 class="mb-3 fw-bold text-dark">Section 2: Decision Authority</h5>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Are you the final decision maker for this security service request? <span class="text-danger">*</span></label>
@@ -244,7 +244,7 @@
                     @error('final_decision_maker')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">What is your authority to approve without additional approval? <span class="text-danger">*</span></label>
+                    <label class="form-label">What is your budget approval authority (the amount you can approve without additional sign-off)? <span class="text-danger">*</span></label>
                     <select name="approval_authority" class="form-select @error('approval_authority') is-invalid @enderror" required>
                         <option value="">Choose...</option>
                         <option value="under_1000" @selected(old('approval_authority') === 'under_1000')>Under $1,000</option>
@@ -286,7 +286,7 @@
 
             <hr class="my-4">
 
-            <h5 class="mb-3">Section 3: Service Location</h5>
+            <h5 class="mb-3 fw-bold text-dark">Section 3: Service Location</h5>
             <div class="row">
                 <div class="col-12 mb-3">
                     <div class="rounded border bg-light px-3 py-3">
@@ -335,7 +335,7 @@
 
             <hr class="my-4">
 
-            <h5 class="mb-3">Section 4: Service Request Details</h5>
+            <h5 class="mb-3 fw-bold text-dark">Section 4: Service Request Details</h5>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Posting Title <span class="text-danger">*</span></label>
@@ -390,7 +390,7 @@
 
             <hr class="my-4">
 
-            <h5 class="mb-3">Section 5: Schedule and Staffing</h5>
+            <h5 class="mb-3 fw-bold text-dark">Section 5: Schedule and Staffing</h5>
             <div class="row">
                 <div class="col-md-3 mb-3">
                     <label class="form-label">Hours per day requiring coverage <span class="text-danger">*</span></label>
@@ -426,40 +426,7 @@
                     </div>
                     @error('shifts_needed')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-12 mb-3">
-                    {{-- Estimated Contract Value: auto-computed from scope inputs using the same
-                         outsourcing formula the Instant Estimator uses. The buyer can optionally
-                         open the calculator to fine-tune the baseline wage and override the value. --}}
-                    <div class="p-3 rounded" id="estimated_budget_panel" style="background:#fdf2f2; border:2px solid #b91c1c;">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <div>
-                                <div class="text-uppercase small fw-bold mb-1" style="color:#7f1d1d; letter-spacing:.08em;">
-                                    Estimated Bid Offer / Contract Value
-                                </div>
-                                <div class="h3 fw-bold mb-1" style="color:#7f1d1d;" id="estimated_budget_total">$0.00</div>
-                                <div class="small" style="color:#7f1d1d;">
-                                    <span id="estimated_budget_hourly">$0.00</span>/hr ·
-                                    <span id="estimated_budget_monthly">$0.00</span>/month ·
-                                    <span id="estimated_budget_annual_hours">0</span> annual hours ·
-                                    baseline <span id="estimated_budget_baseline">$0.00</span>/hr
-                                    <span id="estimated_budget_source_label" class="ms-2 d-none badge bg-success" style="font-weight:600;">Fine-tuned in calculator</span>
-                                </div>
-                            </div>
-                            <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
-                                <button type="button" id="open_budget_calculator_cta" class="btn btn-outline-danger fw-semibold" data-url="{{ route('budget-calculator.index') }}?from=questionnaire">
-                                    <i class="fa fa-sliders me-2"></i>Fine-tune in calculator
-                                </button>
-                                <button type="button" id="reset_budget_cta" class="btn btn-link text-decoration-none text-muted d-none">
-                                    Reset to auto
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <input type="hidden" name="annual_budget" id="annual_budget_input" value="{{ old('annual_budget', $prefill['annual_budget'] ?? '') }}">
-                    <input type="hidden" name="monthly_budget" id="monthly_budget_input" value="{{ old('monthly_budget', $prefill['monthly_budget'] ?? '') }}">
-                    <input type="hidden" name="hourly_budget" id="hourly_budget_input" value="{{ old('hourly_budget', $prefill['hourly_budget'] ?? '') }}">
-                    <input type="hidden" name="budget_amount_range" id="budget_amount_range_input" value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}">
-                </div>
+                {{-- Estimated Bid Offer / Contract Value lives in Section 7: Budget and Offer Terms --}}
                 <div class="col-12 mb-3" id="patrol_types_wrap">
                     <label class="form-label">If patrol is required, what patrol type is needed?</label>
                     <div class="d-flex flex-wrap gap-3">
@@ -476,7 +443,7 @@
 
             <hr class="my-4">
 
-            <h5 class="mb-3">Section 6: Duties and Site Conditions</h5>
+            <h5 class="mb-3 fw-bold text-dark">Section 6: Duties and Site Conditions</h5>
             <div class="row">
                 <div class="col-12 mb-3">
                     <label class="form-label">Select all duties required <span class="text-danger">*</span></label>
@@ -519,7 +486,47 @@
 
             <hr class="my-4">
 
-            <h5 class="mb-3">Section 8: Compliance Requirements</h5>
+            <h5 class="mb-3 fw-bold text-dark">Section 7: Budget and Offer Terms</h5>
+            <div class="row">
+                <div class="col-12 mb-3">
+                    {{-- Estimated Contract Value: auto-computed from scope inputs using the same
+                         outsourcing formula the Instant Estimator uses. The buyer can optionally
+                         open the calculator to fine-tune the baseline wage and override the value. --}}
+                    <div class="p-3 rounded" id="estimated_budget_panel" style="background:#fdf2f2; border:2px solid #b91c1c;">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div>
+                                <div class="text-uppercase small fw-bold mb-1" style="color:#7f1d1d; letter-spacing:.08em;">
+                                    Estimated Bid Offer / Contract Value
+                                </div>
+                                <div class="h3 fw-bold mb-1" style="color:#7f1d1d;" id="estimated_budget_total">$0.00</div>
+                                <div class="small" style="color:#7f1d1d;">
+                                    <span id="estimated_budget_hourly">$0.00</span>/hr ·
+                                    <span id="estimated_budget_monthly">$0.00</span>/month ·
+                                    <span id="estimated_budget_annual_hours">0</span> annual hours ·
+                                    baseline <span id="estimated_budget_baseline">$0.00</span>/hr
+                                    <span id="estimated_budget_source_label" class="ms-2 d-none badge bg-success" style="font-weight:600;">Fine-tuned in calculator</span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                                <button type="button" id="open_budget_calculator_cta" class="btn btn-outline-danger fw-semibold" data-url="{{ route('budget-calculator.index') }}?from=questionnaire">
+                                    <i class="fa fa-sliders me-2"></i>Fine-tune in calculator
+                                </button>
+                                <button type="button" id="reset_budget_cta" class="btn btn-link text-decoration-none text-muted d-none">
+                                    Reset to auto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="annual_budget" id="annual_budget_input" value="{{ old('annual_budget', $prefill['annual_budget'] ?? '') }}">
+                    <input type="hidden" name="monthly_budget" id="monthly_budget_input" value="{{ old('monthly_budget', $prefill['monthly_budget'] ?? '') }}">
+                    <input type="hidden" name="hourly_budget" id="hourly_budget_input" value="{{ old('hourly_budget', $prefill['hourly_budget'] ?? '') }}">
+                    <input type="hidden" name="budget_amount_range" id="budget_amount_range_input" value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}">
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <h5 class="mb-3 fw-bold text-dark">Section 8: Compliance Requirements</h5>
             <div class="row">
                 <div class="col-12 mb-3">
                     <label class="form-label">Insurance minimums required?</label>
@@ -542,7 +549,7 @@
 
             <hr class="my-4">
 
-            <h5 class="mb-3">Section 9: Posting Terms and Submission</h5>
+            <h5 class="mb-3 fw-bold text-dark">Section 9: Posting Terms and Submission</h5>
             <div class="row">
                 <div class="col-12 mb-3">
                     <label class="form-label">Additional notes to vendors</label>
@@ -865,7 +872,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const internalTrueHourly = annualEmployerCost > 0 ? annualEmployerCost / 1456 : 0;
         const outsourcedHourly = internalTrueHourly * 0.70;
         const weeklyCoverageHours = hoursPerDay * daysPerWeek * Math.max(1, staffPerShift);
-        const annualCoverageHours = weeklyCoverageHours * 52;
+        // Use the buyer's actual weeks-per-year (operating-week basis) rather than
+        // assuming a full 52-week year — otherwise a short / one-off engagement
+        // (e.g. a single 4-hour event) is wildly over-estimated.
+        const annualCoverageHours = weeklyCoverageHours * weeksPerYear;
         const annualBudget = outsourcedHourly * annualCoverageHours;
         const monthlyBudget = annualBudget / 12;
 
