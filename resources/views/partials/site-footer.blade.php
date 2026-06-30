@@ -30,6 +30,7 @@
             <div class="col-md-3">
                 <h4 class="h6 fw-semibold mb-3">Company</h4>
                 <ul class="list-unstyled small">
+                    <li><a href="{{ route('about') }}" class="text-gasq-muted text-decoration-none">About</a></li>
                     <li><a href="{{ url('/#how-it-works') }}" class="text-gasq-muted text-decoration-none">How It Works</a></li>
                     <li><a href="{{ route('terms') }}" class="text-gasq-muted text-decoration-none">Terms & Conditions</a></li>
                     <li><a href="{{ route('privacy-policy') }}" class="text-gasq-muted text-decoration-none">Privacy Policy</a></li>

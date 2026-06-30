@@ -19,6 +19,7 @@ Route::get('/payscale', [PageController::class, 'payScale'])->name('payscale');
 Route::get('/payment-model', [PageController::class, 'paymentPolicy'])->name('payment-policy');
 Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('terms');
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy-policy');
+Route::view('/about', 'pages.about')->name('about');
 Route::view('/license/buyer', 'pages.license-buyer')->name('license.buyer');
 Route::view('/license/seller', 'pages.license-seller')->name('license.seller');
 // Vendor-only standalone calculators.
