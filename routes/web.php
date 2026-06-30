@@ -254,6 +254,7 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/credits/success', [App\Http\Controllers\CreditsController::class, 'success'])->name('credits.success');
     Route::post('/credits/redeem', [App\Http\Controllers\CreditsController::class, 'redeem'])->name('credits.redeem');
     Route::post('/credits/checkout/{plan}', [StripeCreditsController::class, 'checkout'])->name('credits.checkout');
+    Route::post('/credits/subscribe/{plan}', [StripeCreditsController::class, 'subscribe'])->name('credits.subscribe');
 
     // Discovery call
     Route::get('/discovery-call', [App\Http\Controllers\DiscoveryCallController::class, 'index'])->name('discovery-call.index');

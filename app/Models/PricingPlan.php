@@ -9,6 +9,7 @@ class PricingPlan extends Model
     protected $fillable = [
         'name',
         'price',
+        'monthly_price',
         'tokens_included',
         'features',
         'is_active',
@@ -17,6 +18,7 @@ class PricingPlan extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'monthly_price' => 'decimal:2',
         'tokens_included' => 'integer',
         'features' => 'array',
         'is_active' => 'boolean',

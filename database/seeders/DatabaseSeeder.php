@@ -427,9 +427,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Pricing plans (credit packages) — use create() so features array is cast to JSON
-        PricingPlan::create(['name' => 'Starter', 'price' => 29.00, 'tokens_included' => 30, 'features' => ['Instant estimator', 'Email support'], 'is_active' => true, 'sort_order' => 1]);
-        PricingPlan::create(['name' => 'Professional', 'price' => 79.00, 'tokens_included' => 100, 'features' => ['All calculators', 'Contract analysis', 'Priority support'], 'is_active' => true, 'sort_order' => 2]);
-        PricingPlan::create(['name' => 'Enterprise', 'price' => 199.00, 'tokens_included' => 300, 'features' => ['Everything in Pro', 'Discovery call', 'Dedicated support'], 'is_active' => true, 'sort_order' => 3]);
+        PricingPlan::create(['name' => 'Starter', 'price' => 29.00, 'monthly_price' => 29.00, 'tokens_included' => 30, 'features' => ['Instant estimator', 'Email support'], 'is_active' => true, 'sort_order' => 1]);
+        PricingPlan::create(['name' => 'Professional', 'price' => 79.00, 'monthly_price' => 79.00, 'tokens_included' => 100, 'features' => ['All calculators', 'Contract analysis', 'Priority support'], 'is_active' => true, 'sort_order' => 2]);
+        PricingPlan::create(['name' => 'Enterprise', 'price' => 199.00, 'monthly_price' => 199.00, 'tokens_included' => 300, 'features' => ['Everything in Pro', 'Discovery call', 'Dedicated support'], 'is_active' => true, 'sort_order' => 3]);
 
         // App settings
         Setting::insert([
