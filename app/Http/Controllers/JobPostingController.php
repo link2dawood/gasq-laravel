@@ -98,7 +98,16 @@ class JobPostingController extends Controller
 
     public function index(Request $request): View
     {
+        $user = $request->user();
+        // Buyers see only their own posted jobs (this is their "My Jobs" page,
+        // not the public vendor board). Vendors/admins/guests see the open board.
+        $isBuyerView = $user && $user->isBuyer();
+
         $query = JobPosting::with(['user:id,name', 'bids' => fn ($q) => $q->with('user:id,name,company')]);
+
+        if ($isBuyerView) {
+            $query->where('user_id', $user->id);
+        }
 
         if ($request->filled('category')) {
             $query->where('category', $request->category);
@@ -113,13 +122,17 @@ class JobPostingController extends Controller
             });
         }
 
-        $query->where(function ($q) {
-            $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-        });
+        // The public board hides expired listings; a buyer should still see all
+        // of their own jobs (active, expired and closed) for follow-up.
+        if (! $isBuyerView) {
+            $query->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            });
+        }
 
         $jobs = $query->latest()->paginate(15)->withQueryString();
 
-        return view('jobs.index', compact('jobs'));
+        return view('jobs.index', compact('jobs', 'isBuyerView'));
     }
 
     public function create(): View|RedirectResponse

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Job Board')
+@section('title', ($isBuyerView ?? false) ? 'My Jobs' : 'Job Board')
 
 @section('content')
 <div class="container py-4 px-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-        <h1 class="gasq-page-title mb-0">Job Board</h1>
+        <h1 class="gasq-page-title mb-0">{{ ($isBuyerView ?? false) ? 'My Jobs' : 'Job Board' }}</h1>
         @auth
             @if(auth()->user()->isBuyer())
                 <a href="{{ route('jobs.create') }}" class="btn btn-primary">Post a Job</a>
@@ -13,6 +13,7 @@
         @endauth
     </div>
 
+    @unless($isBuyerView ?? false)
     <div class="card gasq-card mb-4">
         <div class="card-body p-4">
             <form action="{{ route('job-board') }}" method="get" class="row g-3 mb-0">
@@ -34,13 +35,9 @@
             </form>
         </div>
     </div>
+    @endunless
 
-    @if(session('success'))
-        <x-alert type="success" dismissible>{{ session('success') }}</x-alert>
-    @endif
-    @if(session('error'))
-        <x-alert type="danger" dismissible>{{ session('error') }}</x-alert>
-    @endif
+    {{-- Flash messages (success/error) are rendered globally in layouts.app --}}
 
     @if($jobs->isEmpty())
         <div class="card gasq-card">

@@ -43,19 +43,7 @@
         </ol>
     </nav>
 
-    {{-- Flash messages --}}
-    @if(session('success'))
-        <div class="alert alert-success" role="alert">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            {{ session('success') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger" role="alert">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            {{ session('error') }}
-        </div>
-    @endif
+    {{-- Flash messages (success/error) are rendered globally in layouts.app --}}
 
     {{-- Title row --}}
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
