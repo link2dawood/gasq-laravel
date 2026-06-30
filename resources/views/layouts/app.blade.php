@@ -73,6 +73,7 @@
                             @if(auth()->check() && auth()->user()->isBuyer())
                                 {{-- Buyers get their own posted jobs, not the open vendor board --}}
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('jobs.index') }}">My Jobs</a></li>
+                                <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('jobs.create') }}">Post a Job</a></li>
                             @else
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('job-board') }}">Job Board</a></li>
                             @endif

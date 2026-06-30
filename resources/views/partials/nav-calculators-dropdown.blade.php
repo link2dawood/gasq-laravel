@@ -11,8 +11,7 @@
     <ul class="dropdown-menu dropdown-menu-end py-0 gasq-calculators-nav" aria-labelledby="{{ $toggleId }}" style="max-height: min(70vh, 28rem); overflow-y: auto; min-width: 16.5rem;">
         <li><a class="dropdown-item fw-semibold" href="{{ route('instant-estimator.index') }}"><i class="fa fa-bolt me-2"></i>Instant Estimator</a></li>
         @if($isBuyer)
-            <li><a class="dropdown-item" href="{{ route('jobs.create') }}"><i class="fa fa-briefcase me-2"></i>Post a Job</a></li>
-            <li><a class="dropdown-item" href="{{ route('calculator.index') }}"><i class="fa fa-window-maximize me-2"></i>Buyer Estimator Hub</a></li>
+            {{-- "Post a Job" now lives in the main nav; "Buyer Estimator Hub" removed per buyer feedback. --}}
             <li><a class="dropdown-item" href="{{ route('budget-calculator.index') }}"><i class="fa fa-piggy-bank me-2"></i>Know Before You Buy Calculator</a></li>
             <li><hr class="dropdown-divider my-0"></li>
             <li class="px-3 py-3 small text-gasq-muted">Buyers can use the Instant Estimator and Know Before You Buy Calculator. The remaining calculator suite is reserved for vendor access.</li>
