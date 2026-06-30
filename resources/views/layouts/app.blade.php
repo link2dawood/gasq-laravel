@@ -64,8 +64,6 @@
                     </button>
                     <div class="collapse navbar-collapse gasq-navbar-nav-right" id="navbarSupportedContent">
                         <ul class="navbar-nav ms-auto align-items-center">
-                            <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ url('/#buyers') }}">For Buyers</a></li>
-                            <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ url('/#sellers') }}">For Sellers</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ url('/#how-it-works') }}">How It Works</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('why-gasq-works') }}">Why GASQ Works</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('about') }}">About</a></li>
