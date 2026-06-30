@@ -23,6 +23,11 @@
     .gasq-list-dot li,
     .gasq-card .card-body p,
     .gasq-card p { font-size: 1.1875rem; line-height: 1.6; }
+    /* Buyer (#800000) and Vendor (#153a81) sections sit on dark backgrounds:
+       keep the heading + intro text light (override the dark global body color).
+       Card labels stay dark because they live inside white .gasq-card boxes. */
+    #buyers .gasq-section-title, #vendors .gasq-section-title { color: #fff !important; }
+    #buyers .text-center p, #vendors .text-center p { color: rgba(255,255,255,0.9) !important; }
 </style>
 @endpush
 
