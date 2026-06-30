@@ -27,7 +27,9 @@
        keep the heading + intro text light (override the dark global body color).
        Card labels stay dark because they live inside white .gasq-card boxes. */
     #buyers .gasq-section-title, #vendors .gasq-section-title { color: #fff !important; }
-    #buyers .text-center p, #vendors .text-center p { color: rgba(255,255,255,0.9) !important; }
+    /* Only the intro paragraphs (they carry .text-white-50) go light — NOT the
+       card labels, which also live in .text-center boxes but must stay dark. */
+    #buyers p.text-white-50, #vendors p.text-white-50 { color: rgba(255,255,255,0.9) !important; }
 </style>
 @endpush
 
