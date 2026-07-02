@@ -7,6 +7,7 @@
     $starter = $starter ?? [];
     $prefill = $prefill ?? [];
     $showDetailsStep = $showDetailsStep ?? false;
+    $editingJob = $editingJob ?? null;
     $jobPhoneVerification = session('auth_phone_verification', ['phone' => '', 'verified' => false]);
     $verifiedAccountPhone = (string) (auth()->user()->phone ?? '');
     $isVerifiedAccountPhone = (bool) auth()->user()->phone_verified;
@@ -21,13 +22,13 @@
         'Compliance Requirements',
         'Posting Terms and Submission',
     ];
-    $selectedReadinessReasons = old('project_readiness_reasons', []);
-    $selectedServices = old('service_types', $starter['service_types'] ?? []);
-    $selectedShifts = old('shifts_needed', []);
-    $selectedPatrolTypes = old('patrol_types', []);
-    $selectedDuties = old('duties_required', []);
-    $selectedPricingActions = old('if_pricing_exceeds', []);
-    $selectedInsuranceMinimums = old('insurance_minimums_required', []);
+    $selectedReadinessReasons = old('project_readiness_reasons', $prefill['project_readiness_reasons'] ?? []);
+    $selectedServices = old('service_types', $starter['service_types'] ?? ($prefill['service_types'] ?? []));
+    $selectedShifts = old('shifts_needed', $prefill['shifts_needed'] ?? []);
+    $selectedPatrolTypes = old('patrol_types', $prefill['patrol_types'] ?? []);
+    $selectedDuties = old('duties_required', $prefill['duties_required'] ?? []);
+    $selectedPricingActions = old('if_pricing_exceeds', $prefill['if_pricing_exceeds'] ?? []);
+    $selectedInsuranceMinimums = old('insurance_minimums_required', $prefill['insurance_minimums_required'] ?? []);
 @endphp
 
 <div class="container py-4">
@@ -142,7 +143,8 @@
         </div>
 
         <x-card title="Buyer Online Posting Form">
-            <form action="{{ route('jobs.preview') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ $editingJob ? route('jobs.update', $editingJob) : route('jobs.preview') }}" method="POST" enctype="multipart/form-data" id="buyer-questionnaire-form">
+                @if($editingJob) @method('PUT') @endif
                 @csrf
 
                 <input type="hidden" name="category" value="{{ old('category', $starter['category'] ?? '') }}">
@@ -593,8 +595,8 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary" id="job_preview_submit">Generate Job Announcement Preview</button>
-                <a href="{{ route('job-board') }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="job_preview_submit">{{ $editingJob ? 'Save Changes' : 'Generate Job Announcement Preview' }}</button>
+                <a href="{{ $editingJob ? route('jobs.show', $editingJob) : route('job-board') }}" class="btn btn-outline-secondary">Cancel</a>
             </div>
         </form>
     </x-card>
@@ -1015,10 +1017,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     renderEstimatedBudget();
 
-    // Scroll to validation errors on page load
-    const errorSummary = document.getElementById('validation-error-summary');
-    if (errorSummary) {
-        errorSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // On page load, take the buyer straight to the first field that needs fixing
+    // (a server-side validation error) instead of just the error summary.
+    const questionnaireForm = document.getElementById('buyer-questionnaire-form');
+    const firstInvalid = questionnaireForm
+        ? questionnaireForm.querySelector('.is-invalid')
+        : document.querySelector('.is-invalid');
+    if (firstInvalid) {
+        setTimeout(function () {
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            try { firstInvalid.focus({ preventScroll: true }); } catch (e) {}
+        }, 200);
+    } else {
+        const errorSummary = document.getElementById('validation-error-summary');
+        if (errorSummary) {
+            errorSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    // Client-side: when the browser flags a missing required field on submit,
+    // smooth-scroll straight to it (fires once per invalid field; the first wins).
+    if (questionnaireForm) {
+        questionnaireForm.addEventListener('invalid', function (e) {
+            if (e.target && typeof e.target.scrollIntoView === 'function') {
+                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, true);
     }
 });
 </script>

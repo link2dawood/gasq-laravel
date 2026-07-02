@@ -366,10 +366,48 @@ class JobPostingController extends Controller
         if ($job->user_id !== auth()->id()) {
             abort(403);
         }
-        return view('jobs.edit', compact('job'));
+
+        // Re-open the full buyer questionnaire (same UI as create), pre-filled with
+        // the job's saved answers, so buyers can complete or correct every question.
+        $q = is_array($job->questionnaire_data) ? $job->questionnaire_data : [];
+
+        $prefill = array_merge($q, array_filter([
+            'title' => $job->title,
+            'category' => $job->category,
+            'location' => $job->location,
+            'zip_code' => $job->zip_code,
+            'latitude' => $job->latitude,
+            'longitude' => $job->longitude,
+            'property_type' => $job->property_type,
+            'guards_per_shift' => $job->guards_per_shift,
+            'budget_min' => $job->budget_min,
+            'budget_max' => $job->budget_max,
+            'service_start_date' => $job->service_start_date?->format('Y-m-d'),
+            'service_end_date' => $job->service_end_date?->format('Y-m-d'),
+        ], fn ($v) => $v !== null && $v !== ''));
+
+        $starter = [
+            'starter_service_type' => $job->category,
+            'service_label' => $q['service_label'] ?? $job->category,
+            'category' => $job->category,
+            'location' => $job->location,
+            'zip_code' => $job->zip_code,
+            'latitude' => $job->latitude,
+            'longitude' => $job->longitude,
+            'google_place_id' => $q['google_place_id'] ?? '',
+            'service_types' => $q['service_types'] ?? [],
+        ];
+
+        return view('jobs.create', [
+            'starter' => $starter,
+            'prefill' => $prefill,
+            'showDetailsStep' => true,
+            'starterServiceOptions' => self::STARTER_SERVICE_OPTIONS,
+            'editingJob' => $job,
+        ]);
     }
 
-    public function update(StoreJobPostingRequest $request, JobPosting $job): RedirectResponse
+    public function update(StoreJobPostingRequest $request, JobPosting $job, VendorOpportunityManager $vendorOpportunityManager): RedirectResponse
     {
         if ($job->user_id !== $request->user()->id) {
             abort(403);
@@ -379,8 +417,31 @@ class JobPostingController extends Controller
         $data['special_requirements'] = $request->filled('special_requirements')
             ? array_filter(array_map('trim', explode("\n", $request->special_requirements)))
             : null;
-        $job->update($data);
-        return redirect()->route('jobs.show', $job)->with('success', 'Job updated.');
+
+        if ($request->hasFile('supporting_documents')) {
+            $data['supporting_documents'] = $this->storeSupportingDocuments($request);
+        }
+
+        // Rebuild the full payload (budgets + questionnaire snapshot) exactly like
+        // a new post, but preserve the original owner, lifecycle status and any
+        // previously-uploaded documents.
+        $payload = $this->buildJobPostingPayload($data, $request);
+        unset($payload['user_id'], $payload['status']);
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('job_postings', 'questionnaire_data')) {
+            unset($payload['questionnaire_data']);
+        }
+        if (! $request->hasFile('supporting_documents')) {
+            unset($payload['supporting_documents']);
+        }
+
+        $job->update($payload);
+
+        // Re-qualify: a corrected questionnaire can move the job out of
+        // "Pending Qualification" (Tier C) and release it to vendors.
+        $vendorOpportunityManager->createForPublishedJob($job);
+
+        return redirect()->route('jobs.show', $job)
+            ->with('success', 'Job updated. Your questionnaire has been re-checked.');
     }
 
     public function hire(Request $request, JobPosting $job): RedirectResponse
