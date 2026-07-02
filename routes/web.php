@@ -347,6 +347,7 @@ Route::post('/stripe/webhook', [StripeCreditsController::class, 'webhook'])->nam
 // Admin
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/analytics', [App\Http\Controllers\AnalyticsController::class, 'index'])->name('admin.analytics');
+    Route::get('/admin/activity', [App\Http\Controllers\AdminActivityController::class, 'index'])->name('admin.activity');
     Route::get('/admin/vendor-opportunities', [AdminVendorOpportunityController::class, 'index'])->name('admin.vendor-opportunities.index');
     Route::get('/admin/vendor-opportunities/{opportunity}', [AdminVendorOpportunityController::class, 'show'])->name('admin.vendor-opportunities.show');
     Route::post('/admin/vendor-opportunities/{opportunity}/approve', [AdminVendorOpportunityController::class, 'approve'])->name('admin.vendor-opportunities.approve');

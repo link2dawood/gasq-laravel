@@ -120,7 +120,8 @@
                                             <li><a class="dropdown-item" href="{{ route('admin.coupons.index') }}"><i class="fa fa-ticket-alt me-2"></i>Coupons</a></li>
                                             <li><a class="dropdown-item" href="{{ route('admin.faqs.index') }}"><i class="fa fa-question-circle me-2"></i>FAQs</a></li>
                                             <li><a class="dropdown-item" href="{{ route('admin.content-sections.index') }}"><i class="fa fa-file-alt me-2"></i>Page Content</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('admin.analytics') }}">Analytics</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('admin.analytics') }}"><i class="fa fa-chart-simple me-2"></i>Analytics</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('admin.activity') }}"><i class="fa fa-list-check me-2"></i>Activity Log</a></li>
                                         @endif
                                         <li><hr class="dropdown-divider"></li>
                                         <li>

@@ -17,19 +17,34 @@ class AnalyticsLogger
         $response = $next($request);
 
         try {
-            // Only log GET page views for now
-            if ($request->method() === 'GET') {
+            $method = $request->method();
+            $isWrite = in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true);
+
+            // Log GET page views AND every write action (create/update/delete) so
+            // admins have a full activity trail of what happens on the platform.
+            if ($method === 'GET' || $isWrite) {
                 $route = $request->route();
-                $eventType = $route?->getName() ?: 'page_view';
+                $eventType = $route?->getName() ?: ($isWrite ? strtolower($method) . '_action' : 'page_view');
+
+                $data = [
+                    'method' => $method,
+                    'path' => $request->path(),
+                ];
+
+                if ($method === 'GET') {
+                    $data['query'] = $request->query();
+                } else {
+                    // URL route parameters only (e.g. the job id) — never the request
+                    // body, so passwords / card details are never persisted.
+                    $data['params'] = $route?->originalParameters() ?? [];
+                    $data['status'] = $response->getStatusCode();
+                }
 
                 AnalyticsEvent::create([
                     'event_type' => $eventType,
                     'user_id' => $request->user()?->id,
-                    'event_data' => [
-                        'path' => $request->path(),
-                        'query' => $request->query(),
-                    ],
-                    'session_id' => $request->session()->getId(),
+                    'event_data' => $data,
+                    'session_id' => $request->hasSession() ? $request->session()->getId() : null,
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                 ]);
