@@ -222,7 +222,7 @@
     <section class="gasq-section" id="buyers" style="background:#800000;">
         <div class="container px-4">
             <div class="text-center mb-5">
-                <h2 class="gasq-section-title mb-3 text-white">What Buyers Get With GASQ</h2>
+                <h2 class="gasq-section-title mb-3 text-white text-uppercase">What Buyers Get With GASQ</h2>
                 <p class="mx-auto text-white-50" style="max-width: 48rem;">
                     Independent pricing intelligence so you know your true Cost to Protect&trade; before you buy.
                 </p>
@@ -254,7 +254,7 @@
     <section class="gasq-section" id="vendors" style="background:#153a81;">
         <div class="container px-4">
             <div class="text-center mb-5">
-                <h2 class="gasq-section-title mb-3 text-white">What Vendors Get With GASQ</h2>
+                <h2 class="gasq-section-title mb-3 text-white text-uppercase">What Vendors Get With GASQ</h2>
                 <p class="mx-auto text-white-50" style="max-width: 48rem;">
                     Qualified, buyer-controlled job offers and the tools to price your work realistically.
                 </p>
