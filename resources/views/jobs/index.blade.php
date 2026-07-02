@@ -16,7 +16,7 @@
     @unless($isBuyerView ?? false)
     <div class="card gasq-card mb-4">
         <div class="card-body p-4">
-            <form action="{{ route('job-board') }}" method="get" class="row g-3 mb-0">
+            <form action="{{ route('jobs.index') }}" method="get" class="row g-3 mb-0">
                 <div class="col-md-3">
                     <label class="form-label small text-gasq-muted">Search</label>
                     <input type="text" name="search" class="form-control" placeholder="Title or description" value="{{ request('search') }}">

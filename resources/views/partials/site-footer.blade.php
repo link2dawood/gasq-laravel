@@ -39,6 +39,7 @@
                     <li><a href="{{ route('job-board') }}" class="text-gasq-muted text-decoration-none">Browse Jobs</a></li>
                     <li><a href="{{ route('industries-served') }}" class="text-gasq-muted text-decoration-none">Industries We Serve</a></li>
                     <li><a href="{{ route('register.vendor.index') }}" class="text-gasq-muted text-decoration-none">Register as Vendor</a></li>
+                    <li><a href="{{ route('login') }}" class="text-gasq-muted text-decoration-none">Vendor Login</a></li>
                     <li><a href="{{ route('credits') }}" class="text-gasq-muted text-decoration-none">Buy Credits</a></li>
                 </ul>
             </div>

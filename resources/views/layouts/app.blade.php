@@ -12,7 +12,7 @@
     <link href="{{ asset('css/gasq-theme.css') }}?v={{ @filemtime(public_path('css/gasq-theme.css')) ?: '1' }}" rel="stylesheet">
     @stack('styles')
 </head>
-<body class="bg-gasq-background">
+<body class="bg-gasq-background {{ auth()->check() && auth()->user()->isBuyer() ? 'gasq-buyer-theme' : '' }}">
     <div id="app">
         @php
             $headerVariant = trim($__env->yieldContent('header_variant'));

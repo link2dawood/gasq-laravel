@@ -208,7 +208,8 @@ Route::middleware(['auth', 'phone.verified', 'vendor', 'has.credits', 'buyer.has
 
 // Public marketplace (view only)
 Route::get('/job-board', function () {
-    return redirect()->route('jobs.index');
+    // Preserve any search/category/location filters when redirecting to the board.
+    return redirect()->route('jobs.index', request()->query());
 })->name('job-board');
 Route::get('/jobs', [App\Http\Controllers\JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job}/bids-fragment', [App\Http\Controllers\JobPostingController::class, 'bidsFragment'])->name('jobs.bids-fragment');

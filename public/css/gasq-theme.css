@@ -23,6 +23,20 @@
 /* Offset anchor jumps so target sections aren't hidden under the sticky header. */
 html { scroll-padding-top: 90px; }
 body { background-color: var(--gasq-background); color: var(--gasq-foreground); }
+
+/* Buyer theme: burgundy accent everywhere for logged-in buyers (body.gasq-buyer-theme). */
+.gasq-buyer-theme { --gasq-primary: #800000; }
+.gasq-buyer-theme .bg-primary { background-color: #800000 !important; }
+.gasq-buyer-theme .text-primary { color: #800000 !important; }
+.gasq-buyer-theme .btn-primary { background-color: #800000; border-color: #800000; }
+.gasq-buyer-theme .btn-primary:hover,
+.gasq-buyer-theme .btn-primary:focus { background-color: #660000; border-color: #660000; }
+.gasq-buyer-theme .btn-outline-primary { color: #800000; border-color: #800000; }
+.gasq-buyer-theme .btn-outline-primary:hover { background-color: #800000; border-color: #800000; color: #fff; }
+.gasq-buyer-theme a.text-primary:hover { color: #660000 !important; }
+.gasq-buyer-theme .gasq-icon-badge { background: rgba(128,0,0,0.10); color: #800000; }
+.gasq-buyer-theme .gasq-welcome-banner { background: linear-gradient(135deg, #800000 0%, #a31515 100%); }
+.gasq-buyer-theme .gasq-action-card[style*="6,45,121"] { border-color: rgba(128,0,0,0.18) !important; background: rgba(128,0,0,0.03) !important; }
 .bg-gasq-background { background-color: var(--gasq-background); }
 .bg-gasq-card { background-color: var(--gasq-card); }
 .text-gasq-muted { color: var(--gasq-muted); }

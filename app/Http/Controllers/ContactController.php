@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContactMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class ContactController extends Controller
@@ -22,6 +24,17 @@ class ContactController extends Controller
             'subject' => ['nullable', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:5000'],
         ]);
+
+        // Persist first so a submission is never lost, even if mail delivery fails.
+        if (Schema::hasTable('contact_messages')) {
+            ContactMessage::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'subject' => $data['subject'] ?? null,
+                'message' => $data['message'],
+                'user_id' => $request->user()?->id,
+            ]);
+        }
 
         $to = config('services.gasq.contact_email', 'info@getasecurityquotenow.com');
 
