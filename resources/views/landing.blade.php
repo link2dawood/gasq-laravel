@@ -109,7 +109,7 @@
     <section class="gasq-section-muted">
         <div class="container px-4">
             <div class="text-center mb-5">
-                <h2 class="gasq-section-title mb-3">The Kelly Blue Book for Security Services Pricing&trade;</h2>
+                <h2 class="gasq-section-title mb-3 text-uppercase">Why GASQ Works</h2>
                 <p class="text-gasq-muted mx-auto" style="max-width: 52rem;">
                     GASQ helps buyers make smarter security purchasing decisions using workforce-based
                     pricing analytics, cost realism modeling, and procurement intelligence.
