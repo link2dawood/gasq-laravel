@@ -142,7 +142,7 @@
     <section class="gasq-section" id="how-it-works">
         <div class="container px-4">
             <div class="text-center mb-5">
-                <h2 class="gasq-section-title mb-3">How GASQ Works</h2>
+                <h2 class="gasq-section-title mb-3 text-uppercase">How GASQ Works</h2>
                 <p class="text-gasq-muted mx-auto" style="max-width: 48rem;">
                     From your scope of work to a vetted vendor decision &mdash; in four steps.
                 </p>
