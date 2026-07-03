@@ -2,6 +2,13 @@
 
 @section('title', 'Post Your Security Service Request')
 
+@push('styles')
+<style>
+    /* Job questionnaire: fixed-height, non-resizable text areas (no drag handle). */
+    #buyer-questionnaire-form textarea.form-control { resize: none; height: 6.5rem; }
+</style>
+@endpush
+
 @section('content')
 @php
     $starter = $starter ?? [];
@@ -32,12 +39,17 @@
 @endphp
 
 <div class="container py-4">
-    <h1 class="h2 mb-2">Post Your Security Service Request</h1>
+    <h1 class="h2 mb-2">{{ $editingJob ? 'Edit Your Job Posting' : 'Post Your Security Service Request' }}</h1>
     <p class="text-gasq-muted mb-4">
-        Start with your service and site details, then complete the buyer questionnaire so GASQ can build your security job offer announcement and invite qualified vendors to respond.
+        @if($editingJob)
+            Review and update your answers below. Complete every required question (marked <span class="text-danger">*</span>), then click <strong>Save Changes</strong> — we&rsquo;ll re-check your job and release it to qualified vendors once it passes.
+        @else
+            Start with your service and site details, then complete the buyer questionnaire so GASQ can build your security job offer announcement and invite qualified vendors to respond.
+        @endif
     </p>
 
-    {{-- Process step indicator: 1) Service & Site  2) Questionnaire  3) Review & Publish --}}
+    {{-- Process step indicator: create flow only (editing is a single page). --}}
+    @unless($editingJob)
     @php $currentStep = $showDetailsStep ? 2 : 1; @endphp
     <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-4">
         @foreach(['Service & Job Site', 'Buyer Questionnaire', 'Review & Publish'] as $i => $stepLabel)
@@ -52,6 +64,7 @@
             @if(! $loop->last)<span class="text-gasq-muted d-none d-md-inline">&rarr;</span>@endif
         @endforeach
     </div>
+    @endunless
 
     @if(! $showDetailsStep)
         <x-card title="Step 1: Service and Job Site">
@@ -63,7 +76,7 @@
                 @csrf
 
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-12 mb-3">
                         <label class="form-label">What type of security service are you requesting? <span class="text-danger">*</span></label>
                         <select name="starter_service_type" id="starter_service_type" class="form-select @error('starter_service_type') is-invalid @enderror" required>
                             <option value="">Choose...</option>
@@ -73,7 +86,7 @@
                         </select>
                         @error('starter_service_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-6 mb-3" id="starter_service_type_other_wrap">
+                    <div class="col-12 mb-3" id="starter_service_type_other_wrap">
                         <label class="form-label">If Other, please specify</label>
                         <input type="text" name="starter_service_type_other" class="form-control @error('starter_service_type_other') is-invalid @enderror" value="{{ old('starter_service_type_other', $starter['starter_service_type_other'] ?? '') }}">
                         @error('starter_service_type_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -162,37 +175,37 @@
 
                 <h5 class="mb-3 fw-bold text-dark">Section 1: Contact Information</h5>
                 <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
                     <input type="text" name="contact_name" class="form-control @error('contact_name') is-invalid @enderror" value="{{ old('contact_name', $prefill['contact_name'] ?? auth()->user()->name) }}" required>
                     @error('contact_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Job Title <span class="text-danger">*</span></label>
                     <input type="text" name="contact_job_title" class="form-control @error('contact_job_title') is-invalid @enderror" value="{{ old('contact_job_title', $prefill['contact_job_title'] ?? '') }}" required>
                     @error('contact_job_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Company / Property / Organization Name <span class="text-danger">*</span></label>
                     <input type="text" name="organization_name" class="form-control @error('organization_name') is-invalid @enderror" value="{{ old('organization_name', $prefill['organization_name'] ?? auth()->user()->company) }}" required>
                     @error('organization_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Property / Site Name <span class="text-danger">*</span></label>
                     <input type="text" name="property_site_name" class="form-control @error('property_site_name') is-invalid @enderror" value="{{ old('property_site_name', $prefill['property_site_name'] ?? '') }}" required>
                     @error('property_site_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Email Address <span class="text-danger">*</span></label>
                     <input type="email" name="contact_email" class="form-control @error('contact_email') is-invalid @enderror" value="{{ old('contact_email', $prefill['contact_email'] ?? auth()->user()->email) }}" required>
                     @error('contact_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Mobile Phone Number <span class="text-danger">*</span></label>
                     <input type="text" id="job_contact_phone" name="contact_phone" class="form-control @error('contact_phone') is-invalid @enderror" value="{{ old('contact_phone', $prefill['contact_phone'] ?? auth()->user()->phone) }}" required>
                     @error('contact_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Verify Mobile Number by SMS <span class="text-muted">(optional for now)</span></label>
                     <div class="border rounded bg-light p-3">
                         <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
@@ -214,7 +227,7 @@
                     </div>
                     <div class="form-text">You can enter <code>0000000000</code>, <code>10000000000</code>, or <code>+10000000000</code>. We will format it automatically.</div>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
                     <select name="preferred_contact_method" class="form-select @error('preferred_contact_method') is-invalid @enderror" required>
                         <option value="">Choose...</option>
@@ -224,7 +237,7 @@
                     </select>
                     @error('preferred_contact_method')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Best Time to Contact You</label>
                     <select name="best_time_to_contact" class="form-select @error('best_time_to_contact') is-invalid @enderror">
                         <option value="">Choose...</option>
@@ -251,7 +264,7 @@
 
             <h5 class="mb-3 fw-bold text-dark">Section 2: Decision Authority</h5>
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Are you the final decision maker for this security service request? <span class="text-danger">*</span></label>
                     <select name="final_decision_maker" id="final_decision_maker" class="form-select @error('final_decision_maker') is-invalid @enderror" required>
                         <option value="">Choose...</option>
@@ -261,7 +274,7 @@
                     </select>
                     @error('final_decision_maker')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">What is your budget approval authority (the amount you can approve without additional sign-off)? <span class="text-danger">*</span></label>
                     <select name="approval_authority" class="form-select @error('approval_authority') is-invalid @enderror" required>
                         <option value="">Choose...</option>
@@ -275,12 +288,12 @@
                     </select>
                     @error('approval_authority')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3" id="final_approver_wrap">
+                <div class="col-12 mb-3" id="final_approver_wrap">
                     <label class="form-label">If you are not the final decision maker, who approves the final award?</label>
                     <input type="text" name="final_approver_name" class="form-control @error('final_approver_name') is-invalid @enderror" value="{{ old('final_approver_name') }}">
                     @error('final_approver_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Is your budget already approved? <span class="text-danger">*</span></label>
                     <select name="budget_approved_status" class="form-select @error('budget_approved_status') is-invalid @enderror" required>
                         <option value="">Choose...</option>
@@ -290,7 +303,7 @@
                     </select>
                     @error('budget_approved_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Are you prepared to interview and move forward if qualified vendors accept your offer? <span class="text-danger">*</span></label>
                     <select name="move_forward_if_accepted" class="form-select @error('move_forward_if_accepted') is-invalid @enderror" required>
                         <option value="">Choose...</option>
@@ -320,7 +333,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Is service needed at more than one location? <span class="text-danger">*</span></label>
                     <select name="multiple_locations" id="multiple_locations" class="form-select @error('multiple_locations') is-invalid @enderror" required>
                         <option value="">Choose...</option>
@@ -329,12 +342,12 @@
                     </select>
                     @error('multiple_locations')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4 mb-3" id="locations_count_wrap">
+                <div class="col-12 mb-3" id="locations_count_wrap">
                     <label class="form-label">If yes, how many locations require coverage?</label>
                     <input type="number" name="locations_count" class="form-control @error('locations_count') is-invalid @enderror" value="{{ old('locations_count') }}" min="1">
                     @error('locations_count')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Property Type / Industry <span class="text-danger">*</span></label>
                     <select name="property_type" id="property_type" class="form-select @error('property_type') is-invalid @enderror" required>
                         <option value="">Choose...</option>
@@ -344,7 +357,7 @@
                     </select>
                     @error('property_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3" id="property_type_other_wrap">
+                <div class="col-12 mb-3" id="property_type_other_wrap">
                     <label class="form-label">If Other, please specify</label>
                     <input type="text" name="property_type_other" class="form-control @error('property_type_other') is-invalid @enderror" value="{{ old('property_type_other') }}">
                     @error('property_type_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -355,12 +368,12 @@
 
             <h5 class="mb-3 fw-bold text-dark">Section 4: Service Request Details</h5>
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Posting Title <span class="text-danger">*</span></label>
                     <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $prefill['title'] ?? ($starter['title'] ?? '')) }}" required>
                     @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Requested Service</label>
                     <div class="form-control bg-light">{{ $starter['service_label'] ?? old('category', '') }}</div>
                     @error('category')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
@@ -375,7 +388,7 @@
                         Your requested service was collected in Step 1. Use the "Edit Service and Job Site" button above if you need to change it before submitting the full questionnaire.
                     </div>
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Is this request for a new contract, replacement service, or additional coverage? <span class="text-danger">*</span></label>
                     <select name="request_type" class="form-select @error('request_type') is-invalid @enderror" required>
                         <option value="new_service" @selected(old('request_type') === 'new_service')>New Service</option>
@@ -385,12 +398,12 @@
                     </select>
                     @error('request_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Desired Service Start Date <span class="text-danger">*</span></label>
                     <input type="date" name="service_start_date" class="form-control @error('service_start_date') is-invalid @enderror" value="{{ old('service_start_date', $prefill['service_start_date'] ?? '') }}" required>
                     @error('service_start_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Desired Contract Term <span class="text-danger">*</span></label>
                     <select name="desired_contract_term" class="form-select @error('desired_contract_term') is-invalid @enderror" required>
                         @foreach(['One-time / temporary', 'Month-to-month', '3 months', '6 months', '12 months', 'Multi-year'] as $term)
@@ -410,22 +423,22 @@
 
             <h5 class="mb-3 fw-bold text-dark">Section 5: Schedule and Staffing</h5>
             <div class="row">
-                <div class="col-md-3 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Hours per day requiring coverage <span class="text-danger">*</span></label>
                     <input type="number" step="0.1" min="1" max="24" name="hours_per_day" class="form-control @error('hours_per_day') is-invalid @enderror" value="{{ old('hours_per_day', $prefill['hours_per_day'] ?? '') }}" required>
                     @error('hours_per_day')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Days per week requiring coverage <span class="text-danger">*</span></label>
                     <input type="number" min="1" max="7" name="days_per_week" class="form-control @error('days_per_week') is-invalid @enderror" value="{{ old('days_per_week', $prefill['days_per_week'] ?? '') }}" required>
                     @error('days_per_week')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Weeks per year requiring coverage <span class="text-danger">*</span></label>
                     <input type="number" min="1" max="53" name="weeks_per_year" class="form-control @error('weeks_per_year') is-invalid @enderror" value="{{ old('weeks_per_year', $prefill['weeks_per_year'] ?? '') }}" required>
                     @error('weeks_per_year')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Number of officers required per 8-hour shift <span class="text-danger">*</span></label>
                     <input type="number" name="guards_per_shift" id="staff_per_shift_input" class="form-control @error('guards_per_shift') is-invalid @enderror" value="{{ old('guards_per_shift', $prefill['guards_per_shift'] ?? 1) }}" min="1" max="100" required onchange="document.getElementById('staff_per_shift_mirror').value=this.value">
                     {{-- Mirror to staff_per_shift so the new spec field name is captured in questionnaire_data too. --}}
@@ -475,12 +488,12 @@
                     </div>
                     @error('duties_required')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3" id="duties_other_wrap">
+                <div class="col-12 mb-3" id="duties_other_wrap">
                     <label class="form-label">If Other, please specify</label>
                     <input type="text" name="duties_other" class="form-control @error('duties_other') is-invalid @enderror" value="{{ old('duties_other') }}">
                     @error('duties_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Service package expectation <span class="text-danger">*</span></label>
                     <select name="service_package_expectation" class="form-select @error('service_package_expectation') is-invalid @enderror" required>
                         <option value="observe_and_report_only" @selected(old('service_package_expectation') === 'observe_and_report_only')>Observe and Report Only</option>
@@ -488,14 +501,14 @@
                     </select>
                     @error('service_package_expectation')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Upload post orders, site maps, or special instructions</label>
                     <input type="file" name="supporting_documents[]" class="form-control @error('supporting_documents') is-invalid @enderror @error('supporting_documents.*') is-invalid @enderror" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp">
                     <div class="form-text">Optional, but strongly encouraged when documents already exist.</div>
                     @error('supporting_documents')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     @error('supporting_documents.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label">Are there known site risks or recurring incidents that vendors should know about?</label>
                     <textarea name="known_site_risks" class="form-control @error('known_site_risks') is-invalid @enderror" rows="3">{{ old('known_site_risks') }}</textarea>
                     @error('known_site_risks')<div class="invalid-feedback">{{ $message }}</div>@enderror

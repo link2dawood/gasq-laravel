@@ -1,11 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'Pricing')
+@section('title', $pricingTitle ?? 'Pricing')
 
 @section('content')
+@php
+    $audience = $audience ?? null;
+    $pricingTitle = $pricingTitle ?? 'Pricing';
+    $registerRoute = $audience === 'vendor' ? 'register.vendor.index' : ($audience === 'buyer' ? 'register.buyer.index' : 'register');
+@endphp
 <div class="container py-5">
     <div class="text-center mb-4">
-        <h1 class="h2 mb-2">Pricing</h1>
+        <div class="d-flex justify-content-center gap-2 mb-3">
+            <a href="{{ route('pricing.buyers') }}" class="btn btn-sm {{ $audience === 'buyer' ? 'btn-primary' : 'btn-outline-primary' }}">For Buyers</a>
+            <a href="{{ route('pricing.vendors') }}" class="btn btn-sm {{ $audience === 'vendor' ? 'btn-primary' : 'btn-outline-primary' }}">For Vendors</a>
+        </div>
+        <h1 class="h2 mb-2">{{ $pricingTitle }}</h1>
         <p class="text-gasq-muted mb-3">Buy credits once, or subscribe monthly for a recurring credit allotment. Credits power the calculators and reports.</p>
 
         {{-- Billing toggle --}}
@@ -53,7 +62,7 @@
                                     <button type="submit" class="btn btn-primary w-100">Buy Now</button>
                                 </form>
                             @else
-                                <a href="{{ route('register', ['plan' => $plan->id]) }}" class="btn btn-primary w-100">Get Started</a>
+                                <a href="{{ route($registerRoute, ['plan' => $plan->id]) }}" class="btn btn-primary w-100">Get Started</a>
                             @endauth
                         </div>
 
@@ -66,7 +75,7 @@
                                         <button type="submit" class="btn btn-primary w-100">Subscribe Monthly</button>
                                     </form>
                                 @else
-                                    <a href="{{ route('register', ['plan' => $plan->id, 'interval' => 'monthly']) }}" class="btn btn-primary w-100">Get Started</a>
+                                    <a href="{{ route($registerRoute, ['plan' => $plan->id, 'interval' => 'monthly']) }}" class="btn btn-primary w-100">Get Started</a>
                                 @endauth
                             @endif
                         </div>

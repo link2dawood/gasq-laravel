@@ -1,10 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'FAQ')
+@section('title', $faqTitle ?? 'FAQ')
 
 @section('content')
 <div class="container py-5">
-    <h1 class="h2 mb-4">Frequently Asked Questions</h1>
+    <h1 class="h2 mb-4">{{ $faqTitle ?? 'Frequently Asked Questions' }}</h1>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{{ route('buyer-faq') }}" class="btn btn-sm {{ request()->routeIs('buyer-faq') ? 'btn-primary' : 'btn-outline-primary' }}">Buyer FAQ</a>
+        <a href="{{ route('vendor-faq') }}" class="btn btn-sm {{ request()->routeIs('vendor-faq') ? 'btn-primary' : 'btn-outline-primary' }}">Vendor FAQ</a>
+    </div>
     @if($faqs->isEmpty())
         <p class="text-muted">No FAQs yet.</p>
     @else

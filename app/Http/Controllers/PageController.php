@@ -22,27 +22,61 @@ class PageController extends Controller
 
     public function pricing(): View
     {
-        $plans = PricingPlan::where('is_active', true)->orderBy('sort_order')->get();
-        return view('pages.pricing', compact('plans'));
+        return $this->renderPricing(null, 'Pricing');
+    }
+
+    public function buyerPricing(): View
+    {
+        return $this->renderPricing('buyer', 'Pricing — For Buyers');
+    }
+
+    public function vendorPricing(): View
+    {
+        return $this->renderPricing('vendor', 'Pricing — For Vendors');
+    }
+
+    private function renderPricing(?string $audience, string $pricingTitle): View
+    {
+        $query = PricingPlan::where('is_active', true);
+
+        if ($audience !== null && Schema::hasColumn('pricing_plans', 'audience')) {
+            $query->whereIn('audience', ['all', $audience]);
+        }
+
+        $plans = $query->orderBy('sort_order')->get();
+
+        return view('pages.pricing', compact('plans', 'audience', 'pricingTitle'));
     }
 
     public function faq(): View
     {
+        // The generic /faq adapts to the logged-in role; guests/admins see all.
+        $user = auth()->user();
+        $audience = $user?->isBuyer() ? 'buyer' : ($user?->isVendor() ? 'vendor' : null);
+        return $this->renderFaq($audience, 'Frequently Asked Questions');
+    }
+
+    public function buyerFaq(): View
+    {
+        return $this->renderFaq('buyer', 'Buyer FAQ');
+    }
+
+    public function vendorFaq(): View
+    {
+        return $this->renderFaq('vendor', 'Vendor FAQ');
+    }
+
+    private function renderFaq(?string $audience, string $faqTitle): View
+    {
         $query = Faq::where('is_active', true);
 
-        // Inside a user dashboard, only surface FAQs relevant to that role.
-        // Guests and admins see the full list.
-        if (Schema::hasColumn('faqs', 'audience')) {
-            $user = auth()->user();
-            if ($user && $user->isBuyer()) {
-                $query->whereIn('audience', ['all', 'buyer']);
-            } elseif ($user && $user->isVendor()) {
-                $query->whereIn('audience', ['all', 'vendor']);
-            }
+        if ($audience !== null && Schema::hasColumn('faqs', 'audience')) {
+            $query->whereIn('audience', ['all', $audience]);
         }
 
         $faqs = $query->orderBy('order')->get();
-        return view('pages.faq', compact('faqs'));
+
+        return view('pages.faq', compact('faqs', 'faqTitle'));
     }
 
     public function payScale(): View
