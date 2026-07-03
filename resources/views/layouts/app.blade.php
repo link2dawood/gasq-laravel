@@ -69,6 +69,8 @@
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ url('/#how-it-works') }}">How It Works</a></li>
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('why-gasq-works') }}">Why GASQ Works</a></li>
                                 <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('about') }}">About</a></li>
+                                <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('pricing') }}">Pricing</a></li>
+                                <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('faq') }}">FAQ</a></li>
                             @endguest
                             @if(auth()->check() && auth()->user()->isBuyer())
                                 {{-- Buyers get their own posted jobs, not the open vendor board --}}

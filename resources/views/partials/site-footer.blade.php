@@ -30,6 +30,8 @@
                     <li><a href="{{ route('jobs.create') }}" class="text-gasq-muted text-decoration-none">Post Your Job</a></li>
                     <li><a href="{{ route('register.buyer.index') }}" class="text-gasq-muted text-decoration-none">Register as Buyer</a></li>
                     <li><a href="{{ route('login') }}" class="text-gasq-muted text-decoration-none">Buyer Login</a></li>
+                    <li><a href="{{ route('pricing.buyers') }}" class="text-gasq-muted text-decoration-none">Buyer Pricing</a></li>
+                    <li><a href="{{ route('buyer-faq') }}" class="text-gasq-muted text-decoration-none">Buyer FAQ</a></li>
                 </ul>
             </div>
 
@@ -41,6 +43,8 @@
                     <li><a href="{{ route('register.vendor.index') }}" class="text-gasq-muted text-decoration-none">Register as Vendor</a></li>
                     <li><a href="{{ route('login') }}" class="text-gasq-muted text-decoration-none">Vendor Login</a></li>
                     <li><a href="{{ route('credits') }}" class="text-gasq-muted text-decoration-none">Buy Credits</a></li>
+                    <li><a href="{{ route('pricing.vendors') }}" class="text-gasq-muted text-decoration-none">Vendor Pricing</a></li>
+                    <li><a href="{{ route('vendor-faq') }}" class="text-gasq-muted text-decoration-none">Vendor FAQ</a></li>
                 </ul>
             </div>
 
