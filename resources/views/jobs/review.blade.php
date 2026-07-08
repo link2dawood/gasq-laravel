@@ -120,6 +120,29 @@
                         <div class="small text-uppercase text-gasq-muted fw-semibold">Contract Term</div>
                         <div>{{ $questionnaire['desired_contract_term'] ?? 'Not provided' }}</div>
                     </div>
+                    <div class="col-sm-6">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold">Armed / Unarmed</div>
+                        <div>{{ ucwords((string) ($questionnaire['armed_status'] ?? 'Not provided')) }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold">Coverage / Deployment</div>
+                        <div>{{ ! empty($questionnaire['deployment_types']) ? implode(', ', (array) $questionnaire['deployment_types']) : 'Not provided' }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold">Approved Budget</div>
+                        <div>{{ isset($questionnaire['approved_budget_amount']) && $questionnaire['approved_budget_amount'] !== '' ? '$' . number_format((float) $questionnaire['approved_budget_amount'], 2) : 'Not provided' }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold">Selection Method</div>
+                        @php $sm = $questionnaire['selection_method'] ?? ''; @endphp
+                        <div>{{ $sm === 'accept_decline' ? 'Accept or Decline Offer' : ($sm === 'sealed_price' ? 'Submit Sealed Vendor Price' : 'Not provided') }}</div>
+                    </div>
+                    @if(($questionnaire['selection_method'] ?? '') === 'accept_decline')
+                    <div class="col-sm-6">
+                        <div class="small text-uppercase text-gasq-muted fw-semibold">GASQ Offer Price</div>
+                        <div>{{ isset($questionnaire['offer_price']) && $questionnaire['offer_price'] !== '' ? '$' . number_format((float) $questionnaire['offer_price'], 2) : 'Not provided' }}</div>
+                    </div>
+                    @endif
                 </div>
             </x-card>
         </div>

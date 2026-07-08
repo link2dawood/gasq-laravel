@@ -345,7 +345,7 @@
                                 @if(auth()->user()->isVendor())
                                     <button type="button" class="btn btn-success btn-lg px-5" id="gateSubmitToBuyerBtn" data-bs-toggle="modal" data-bs-target="#submitEstimateModal">
                                         <i class="fa fa-paper-plane me-2"></i> Submit Estimate to Customer
-                                        <span class="fw-normal opacity-75 ms-1 small">(50 credits)</span>
+                                        <span class="fw-normal opacity-75 ms-1 small" id="gateSubmitCreditCost">(credits based on project value)</span>
                                     </button>
                                 @endif
                             @endauth
@@ -707,7 +707,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="text-gasq-muted small">Pick the buyer's job. We'll spend <strong>50 credits</strong>, email them your estimate as a PDF, and unlock your Step 3 results.</p>
+                        <p class="text-gasq-muted small">Pick the buyer's job. Credits scale with the project value — this estimate costs <strong id="submitEstimateCreditCost">credits based on project value</strong>. We'll email the buyer your estimate as a PDF and unlock your Step 3 results.</p>
                         <div id="submitEstimateLoading" class="py-4 text-center text-gasq-muted">Loading open jobs…</div>
                         <div id="submitEstimateEmpty" class="d-none alert alert-info">No open buyer jobs are available right now.</div>
                         <div id="submitEstimateError" class="d-none alert alert-danger"></div>
@@ -721,7 +721,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-link text-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-success" id="submitEstimateConfirmBtn" disabled>
-                            <i class="fa fa-paper-plane me-1"></i> Send estimate (50 credits)
+                            <i class="fa fa-paper-plane me-1"></i> Send estimate<span id="submitEstimateCreditCostBtn"></span>
                         </button>
                     </div>
                 </div>
@@ -1763,6 +1763,9 @@ function render() {
         results,
         summary: buildSummaryText(state, results),
     };
+
+    // Refresh the value-based credit cost shown on the vendor submit CTA/modal.
+    if (typeof window.__gasqUpdateEstimateCredits === 'function') window.__gasqUpdateEstimateCredits();
 }
 
 function applyDraft(draft) {
@@ -2391,6 +2394,42 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedJobId = null;
     let jobsLoaded = false;
 
+    function currentProjectValue() {
+        const v = Number(window.__gasqInstantEstimator?.results?.outsourcedAnnual);
+        return Number.isFinite(v) && v > 0 ? v : 0;
+    }
+
+    // Mirror of App\Services\EstimateCreditPricingService::creditsFor — keep in sync.
+    function estimateCredits(projectValue) {
+        const v = Math.max(0, Number(projectValue) || 0);
+        if (v >= 10000000) return 60;
+        if (v >= 5000000) return 40;
+        if (v >= 2500000) return 25;
+        if (v >= 1000000) return 15;
+        if (v >= 500000) return 8;
+        if (v >= 250000) return 4;
+        if (v >= 100000) return 2;
+        if (v > 0) return 1;
+        return null; // unknown → server prices from the job budget
+    }
+
+    function creditCostSuffix() {
+        const c = estimateCredits(currentProjectValue());
+        return c ? ` (${c} credits)` : '';
+    }
+
+    function updateEstimateCreditLabels() {
+        const c = estimateCredits(currentProjectValue());
+        const inline = document.getElementById('submitEstimateCreditCost');
+        const btnSpan = document.getElementById('submitEstimateCreditCostBtn');
+        const gateSpan = document.getElementById('gateSubmitCreditCost');
+        if (inline) inline.textContent = c ? `${c} credits` : 'credits based on project value';
+        if (btnSpan) btnSpan.textContent = creditCostSuffix();
+        if (gateSpan) gateSpan.textContent = c ? `(${c} credits)` : '(credits based on project value)';
+    }
+    // Let the results-render step refresh these labels once a project value exists.
+    window.__gasqUpdateEstimateCredits = updateEstimateCreditLabels;
+
     function setError(msg) {
         if (!msg) { errorBox.classList.add('d-none'); errorBox.textContent = ''; return; }
         errorBox.classList.remove('d-none');
@@ -2455,6 +2494,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (label && value) rows.push({ label, value });
         });
         const totals = [];
+        const projectValue = currentProjectValue();
+        if (projectValue > 0) totals.push({ label: 'Total annual cost', value: projectValue });
         const recommendedRange = document.querySelector('.recommended-range, [data-recommended-range]')?.textContent?.trim();
         if (recommendedRange) totals.push({ label: 'Recommended bill rate range', value: recommendedRange });
         return {
@@ -2466,7 +2507,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    modalEl.addEventListener('shown.bs.modal', loadJobs);
+    modalEl.addEventListener('shown.bs.modal', () => { updateEstimateCreditLabels(); loadJobs(); });
 
     jobsBox.addEventListener('change', (e) => {
         if (e.target.name === 'submit_est_job') {
@@ -2517,7 +2558,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setError(e.message || 'Submission failed.');
         } finally {
             confirmBtn.disabled = false;
-            confirmBtn.innerHTML = '<i class="fa fa-paper-plane me-1"></i> Send estimate (50 credits)';
+            confirmBtn.innerHTML = '<i class="fa fa-paper-plane me-1"></i> Send estimate' + creditCostSuffix();
         }
     });
 })();

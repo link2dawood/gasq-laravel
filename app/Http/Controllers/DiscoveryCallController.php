@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SyncContactToHubSpot;
 use App\Models\DiscoveryCall;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,6 +36,9 @@ class DiscoveryCallController extends Controller
             'status' => 'requested',
             'notes' => $data['notes'] ?? null,
         ]);
+
+        // Ensure this lead is in HubSpot (no-op until the token is set).
+        SyncContactToHubSpot::dispatch($request->user()->id, $request->user()->email);
 
         return redirect()
             ->route('discovery-call.index')

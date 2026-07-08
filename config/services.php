@@ -80,6 +80,19 @@ return [
         // HubSpot "Log to CRM" BCC address — emailed reports are BCC'd here so
         // they auto-log onto the matching contact's HubSpot timeline.
         'bcc' => env('HUBSPOT_BCC', '45427418@bcc.hubspot.com'),
+
+        // Private App access token for outbound CRM contact sync. Leave unset to
+        // keep all sync dormant (no contacts are pushed).
+        'token' => env('HUBSPOT_API_TOKEN'),
+
+        // Private App client secret — verifies inbound webhook signatures (Layer 2).
+        // Until set, the /webhooks/hubspot endpoint rejects every request.
+        'client_secret' => env('HUBSPOT_CLIENT_SECRET'),
+
+        // Send gasq_* custom contact properties (role, user id, revenue). These
+        // must first be created in HubSpot; until they are, the sync auto-falls
+        // back to identity-only. Set HUBSPOT_CUSTOM_PROPERTIES=false to skip them.
+        'custom_properties' => env('HUBSPOT_CUSTOM_PROPERTIES', true),
     ],
 
     'twilio' => [

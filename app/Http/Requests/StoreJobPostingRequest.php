@@ -19,7 +19,47 @@ class StoreJobPostingRequest extends FormRequest
             'google_place_id' => $this->input('google_place_id') === '' || $this->input('google_place_id') === null
                 ? null
                 : $this->input('google_place_id'),
+            // Blank money inputs arrive as '' — normalise to null so 'numeric'
+            // doesn't reject them before 'required' can report a clean message.
+            'approved_budget_amount' => $this->blankToNull($this->input('approved_budget_amount')),
+            'offer_price' => $this->blankToNull($this->input('offer_price')),
         ]);
+    }
+
+    private function blankToNull(mixed $value): mixed
+    {
+        if ($value === '' || $value === null) {
+            return null;
+        }
+
+        // Allow buyers to type "$1,200.00" without tripping numeric validation.
+        return is_string($value) ? str_replace([',', '$', ' '], '', $value) : $value;
+    }
+
+    /**
+     * GASQ Job Posting Standard fields required on BOTH create and edit.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private function gasqStandardRules(): array
+    {
+        return [
+            // Complete Scope of Services — armed/unarmed + deployment model.
+            'armed_status' => ['required', 'in:unarmed,armed,both'],
+            'deployment_types' => ['required', 'array', 'min:1'],
+            'deployment_types.*' => ['string', 'max:100'],
+            'equipment_requirements' => ['nullable', 'string', 'max:4000'],
+            'uniform_requirements' => ['nullable', 'string', 'max:4000'],
+            'reporting_requirements' => ['nullable', 'string', 'max:4000'],
+
+            // Approved Budget Amount — GASQ does not permit "hidden budget" solicitations.
+            'approved_budget_amount' => ['required', 'numeric', 'min:0'],
+
+            // Buyer Selection Method (Option A / Option B).
+            'selection_method' => ['required', 'in:accept_decline,sealed_price'],
+            // Option A publishes a fixed GASQ Offer Price; Option B is sealed.
+            'offer_price' => ['nullable', 'required_if:selection_method,accept_decline', 'numeric', 'min:0'],
+        ];
     }
 
     public function authorize(): bool
@@ -30,7 +70,7 @@ class StoreJobPostingRequest extends FormRequest
     public function rules(): array
     {
         if (! $this->isMethod('post')) {
-            return [
+            return array_merge([
                 'title' => ['required', 'string', 'max:255'],
                 'category' => ['nullable', 'string', 'max:100'],
                 'location' => ['nullable', 'string', 'max:255'],
@@ -47,10 +87,10 @@ class StoreJobPostingRequest extends FormRequest
                 'property_type' => ['nullable', 'string', 'max:100'],
                 'special_requirements' => ['nullable', 'string'],
                 'expires_at' => ['nullable', 'date'],
-            ];
+            ], $this->gasqStandardRules());
         }
 
-        return [
+        return array_merge([
             // Top-level job fields
             'title' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:100'],
@@ -135,7 +175,7 @@ class StoreJobPostingRequest extends FormRequest
             'additional_notes_to_vendors' => ['nullable', 'string', 'max:4000'],
             'buyer_certification' => ['required', 'accepted'],
             'consent_to_contact' => ['required', 'accepted'],
-        ];
+        ], $this->gasqStandardRules());
     }
 
     public function messages(): array
@@ -144,6 +184,12 @@ class StoreJobPostingRequest extends FormRequest
             'buyer_certification.accepted' => 'Buyer certification is required.',
             'consent_to_contact.accepted' => 'Consent to contact is required.',
             'insurance_minimums_required.required' => 'Select the required insurance minimums.',
+            'armed_status.required' => 'Select whether officers must be armed or unarmed.',
+            'deployment_types.required' => 'Select at least one deployment type (dedicated officer, mobile patrol, supervisor, event security, etc.).',
+            'deployment_types.min' => 'Select at least one deployment type.',
+            'approved_budget_amount.required' => 'Enter your approved budget amount. GASQ does not permit hidden-budget solicitations.',
+            'selection_method.required' => 'Choose a buyer selection method (Accept/Decline offer, or Sealed vendor pricing).',
+            'offer_price.required_if' => 'Enter the fixed GASQ Offer Price vendors will accept or decline.',
         ];
     }
 

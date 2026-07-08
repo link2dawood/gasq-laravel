@@ -405,12 +405,16 @@
             <tr>
               <th>Description</th>
               <th class="text-end font-monospace">Buyer Internal Cost to Protect</th>
-              <th class="text-end font-monospace">Buyer Outsourcing Cost to Protect</th>
+              <th class="text-end font-monospace">Buyer Outsourcing Cost to Protect <i class="fa fa-lock small text-secondary ms-1"></i></th>
             </tr>
           </thead>
           <tbody id="bg_ap_body"></tbody>
           <tbody id="bg_ap_foot"></tbody>
         </table>
+      </div>
+      <div class="px-3 py-2 small text-gasq-muted border-top d-flex align-items-start gap-2">
+        <i class="fa fa-lock text-secondary mt-1"></i>
+        <span>The <strong>Buyer Outsourcing Cost to Protect</strong> figures are unlocked in your Cost to Protect report below — download or email it for the full outsourcing appraisal.</span>
       </div>
     </div>
   </div>
@@ -440,6 +444,15 @@
     .budget-print-area .card { border: none !important; box-shadow: none !important; }
     .budget-print-area a { color: inherit !important; text-decoration: none !important; }
     @page { margin: 0.5in; }
+  }
+  /* Gate the "Buyer Outsourcing Cost to Protect" column on screen — the real
+     figures live in the paid Cost to Protect report (server-rendered PDF). */
+  .bg-redacted {
+    filter: blur(7px);
+    -webkit-filter: blur(7px);
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: not-allowed;
   }
   .budget-line-item .form-range { margin-bottom: 0.35rem; }
   .budget-group-summary-card {
@@ -938,7 +951,7 @@ function refreshAppraisal() {
     <tr>
       <td>${r.description}</td>
       <td class="text-end font-monospace">${formatCell(r.internal, r.kind)}</td>
-      <td class="text-end font-monospace">${formatCell(r.vendor, r.kind)}</td>
+      <td class="text-end font-monospace"><span class="bg-redacted">${formatCell(r.vendor, r.kind)}</span></td>
     </tr>
   `).join('');
 
@@ -946,7 +959,7 @@ function refreshAppraisal() {
     <tr class="fw-semibold" style="background:#fff4e6;">
       <td>${r.description}</td>
       <td class="text-end font-monospace">—</td>
-      <td class="text-end font-monospace">${formatCell(r.vendor, r.kind)}</td>
+      <td class="text-end font-monospace"><span class="bg-redacted">${formatCell(r.vendor, r.kind)}</span></td>
     </tr>
   `).join('');
 }

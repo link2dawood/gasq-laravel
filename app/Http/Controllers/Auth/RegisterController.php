@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncContactToHubSpot;
 use App\Models\User;
 use App\Services\PhoneOtpService;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -48,6 +49,11 @@ class RegisterController extends Controller
      */
     protected function registered(Request $request, $user)
     {
+        // Push the new buyer/vendor into HubSpot (no-op until the token is set).
+        if ($user) {
+            SyncContactToHubSpot::dispatch($user->id, $user->email);
+        }
+
         // Enforce phone verification for signup.
         if (! $user || ! is_string($user->phone) || trim($user->phone) === '') {
             return redirect()->route('home');

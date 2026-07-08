@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SyncContactToHubSpot;
 use App\Models\PricingPlan;
 use App\Models\Transaction;
 use App\Models\User;
@@ -197,6 +198,15 @@ class StripeCreditsController extends Controller
                             referenceId: $sessionId,
                             idempotencyKey: $idempotencyKey,
                         );
+
+                        // Push the purchase revenue onto the HubSpot contact
+                        // (no-op until the token is set). Only on a real grant —
+                        // a duplicate webhook throws below and skips this.
+                        SyncContactToHubSpot::dispatch($user->id, $user->email, array_filter([
+                            'gasq_last_purchase_usd' => isset($session->amount_total)
+                                ? round(((int) $session->amount_total) / 100, 2)
+                                : null,
+                        ], fn ($v) => $v !== null));
                     } catch (QueryException $e) {
                         if ($this->isDuplicateTransactionKey($e)) {
                             Log::warning('Stripe checkout duplicate credit grant prevented by transaction idempotency key.', [

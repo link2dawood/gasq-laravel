@@ -348,6 +348,9 @@ Route::get('/jobs/{job}', [App\Http\Controllers\JobPostingController::class, 'sh
 // Stripe webhook (no auth)
 Route::post('/stripe/webhook', [StripeCreditsController::class, 'webhook'])->name('stripe.webhook');
 
+// HubSpot inbound webhook (no auth; verified by v3 signature in the controller)
+Route::post('/webhooks/hubspot', [App\Http\Controllers\HubSpotWebhookController::class, 'handle'])->name('webhooks.hubspot');
+
 // Admin
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/analytics', [App\Http\Controllers\AnalyticsController::class, 'index'])->name('admin.analytics');

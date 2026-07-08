@@ -446,6 +446,29 @@
                     @error('guards_per_shift')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-12 mb-3">
+                    <label class="form-label">Armed or unarmed officers? <span class="text-danger">*</span></label>
+                    <select name="armed_status" class="form-select @error('armed_status') is-invalid @enderror" required>
+                        <option value="">Choose...</option>
+                        <option value="unarmed" @selected(old('armed_status', $prefill['armed_status'] ?? '') === 'unarmed')>Unarmed</option>
+                        <option value="armed" @selected(old('armed_status', $prefill['armed_status'] ?? '') === 'armed')>Armed</option>
+                        <option value="both" @selected(old('armed_status', $prefill['armed_status'] ?? '') === 'both')>Both / Mixed</option>
+                    </select>
+                    @error('armed_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-12 mb-3">
+                    @php $selectedDeployment = (array) old('deployment_types', $prefill['deployment_types'] ?? []); @endphp
+                    <label class="form-label">Type of coverage / deployment <span class="text-danger">*</span></label>
+                    <div class="d-flex flex-wrap gap-3">
+                        @foreach(['Dedicated Officer (Static Post)', 'Mobile Patrol', 'Supervisor / Account Manager', 'Event Security', 'Roving / Flex Officer'] as $deployment)
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="deployment_types[]" value="{{ $deployment }}" id="deployment_{{ \Illuminate\Support\Str::slug($deployment) }}" @checked(in_array($deployment, $selectedDeployment, true))>
+                                <label class="form-check-label" for="deployment_{{ \Illuminate\Support\Str::slug($deployment) }}">{{ $deployment }}</label>
+                            </div>
+                        @endforeach
+                    </div>
+                    @error('deployment_types')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-12 mb-3">
                     <label class="form-label">Select all shifts needed <span class="text-danger">*</span></label>
                     <div class="d-flex flex-wrap gap-3">
                         @foreach(['Day Shift', 'Evening Shift', 'Overnight Shift', 'Weekend Coverage', 'Holiday Coverage'] as $shift)
@@ -513,6 +536,21 @@
                     <textarea name="known_site_risks" class="form-control @error('known_site_risks') is-invalid @enderror" rows="3">{{ old('known_site_risks') }}</textarea>
                     @error('known_site_risks')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Equipment requirements</label>
+                    <textarea name="equipment_requirements" class="form-control @error('equipment_requirements') is-invalid @enderror" rows="2" placeholder="Radios, flashlights, patrol vehicle, golf cart, metal detector, etc.">{{ old('equipment_requirements', $prefill['equipment_requirements'] ?? '') }}</textarea>
+                    @error('equipment_requirements')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Uniform requirements</label>
+                    <textarea name="uniform_requirements" class="form-control @error('uniform_requirements') is-invalid @enderror" rows="2" placeholder="Class A uniform, blazer, high-visibility vest, plain clothes, etc.">{{ old('uniform_requirements', $prefill['uniform_requirements'] ?? '') }}</textarea>
+                    @error('uniform_requirements')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Reporting requirements</label>
+                    <textarea name="reporting_requirements" class="form-control @error('reporting_requirements') is-invalid @enderror" rows="2" placeholder="Daily activity reports, incident reports, guard tour system, real-time notifications, etc.">{{ old('reporting_requirements', $prefill['reporting_requirements'] ?? '') }}</textarea>
+                    @error('reporting_requirements')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
             </div>
 
             <hr class="my-4">
@@ -552,6 +590,37 @@
                     <input type="hidden" name="monthly_budget" id="monthly_budget_input" value="{{ old('monthly_budget', $prefill['monthly_budget'] ?? '') }}">
                     <input type="hidden" name="hourly_budget" id="hourly_budget_input" value="{{ old('hourly_budget', $prefill['hourly_budget'] ?? '') }}">
                     <input type="hidden" name="budget_amount_range" id="budget_amount_range_input" value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}">
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Approved Budget Amount ($) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" min="0" name="approved_budget_amount" class="form-control @error('approved_budget_amount') is-invalid @enderror" value="{{ old('approved_budget_amount', $prefill['approved_budget_amount'] ?? '') }}" placeholder="e.g. 120000" required>
+                    <div class="form-text">Disclose your approved procurement budget. GASQ does not permit "hidden budget" solicitations.</div>
+                    @error('approved_budget_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Buyer Selection Method <span class="text-danger">*</span></label>
+                    @php $selectionMethod = old('selection_method', $prefill['selection_method'] ?? ''); @endphp
+                    <div class="form-check border rounded p-3 mb-2">
+                        <input class="form-check-input" type="radio" name="selection_method" id="selection_accept_decline" value="accept_decline" @checked($selectionMethod === 'accept_decline')>
+                        <label class="form-check-label" for="selection_accept_decline">
+                            <strong>Option A — Accept or Decline Offer</strong>
+                            <span class="d-block small text-gasq-muted">You publish a fixed GASQ Offer Price. Vendors may accept or decline. Vendors may negotiate the scope of work, but not the offered price.</span>
+                        </label>
+                    </div>
+                    <div class="form-check border rounded p-3 mb-0">
+                        <input class="form-check-input" type="radio" name="selection_method" id="selection_sealed_price" value="sealed_price" @checked($selectionMethod === 'sealed_price')>
+                        <label class="form-check-label" for="selection_sealed_price">
+                            <strong>Option B — Submit Sealed Vendor Price</strong>
+                            <span class="d-block small text-gasq-muted">Vendors submit confidential pricing that stays hidden from you and from competing vendors. Prices are revealed only after interviews are completed and you select the preferred vendor on qualifications.</span>
+                        </label>
+                    </div>
+                    @error('selection_method')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-12 mb-3" id="offer_price_wrap">
+                    <label class="form-label">GASQ Offer Price ($) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" min="0" name="offer_price" id="offer_price_input" class="form-control @error('offer_price') is-invalid @enderror" value="{{ old('offer_price', $prefill['offer_price'] ?? '') }}" placeholder="Fixed price vendors accept or decline">
+                    <div class="form-text">Required for Option A. This is the fixed price vendors accept or decline.</div>
+                    @error('offer_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 
@@ -615,6 +684,25 @@
     </x-card>
     @endif
 </div>
+
+<script>
+// Show the fixed "GASQ Offer Price" field only when Option A (Accept/Decline) is chosen.
+// For Option B (sealed pricing) the field is hidden and disabled so it isn't submitted.
+document.addEventListener('DOMContentLoaded', function () {
+    const offerWrap = document.getElementById('offer_price_wrap');
+    const offerInput = document.getElementById('offer_price_input');
+    function syncOfferPrice() {
+        const selected = document.querySelector('input[name="selection_method"]:checked');
+        const isAccept = !!selected && selected.value === 'accept_decline';
+        if (offerWrap) offerWrap.style.display = isAccept ? '' : 'none';
+        if (offerInput) offerInput.disabled = !isAccept;
+    }
+    document.querySelectorAll('input[name="selection_method"]').forEach(function (radio) {
+        radio.addEventListener('change', syncOfferPrice);
+    });
+    syncOfferPrice();
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

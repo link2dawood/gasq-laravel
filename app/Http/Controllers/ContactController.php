@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SyncContactToHubSpot;
 use App\Models\ContactMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,6 +36,14 @@ class ContactController extends Controller
                 'user_id' => $request->user()?->id,
             ]);
         }
+
+        // Capture the sender as a HubSpot contact (no-op until the token is set).
+        SyncContactToHubSpot::dispatch(
+            $request->user()?->id,
+            $data['email'],
+            [],
+            ['name' => $data['name']],
+        );
 
         $to = config('services.gasq.contact_email', 'info@getasecurityquotenow.com');
 

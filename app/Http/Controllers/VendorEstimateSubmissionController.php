@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Mail\VendorEstimateSubmittedMail;
 use App\Models\FeatureUsageRule;
 use App\Models\JobPosting;
+use App\Models\Transaction;
 use App\Models\VendorEstimateSubmission;
+use App\Services\EstimateCreditPricingService;
 use App\Services\WalletService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -19,7 +23,10 @@ class VendorEstimateSubmissionController extends Controller
 {
     public const FEATURE_KEY = 'vendor_estimate_submission';
 
-    public function __construct(private WalletService $wallet) {}
+    public function __construct(
+        private WalletService $wallet,
+        private EstimateCreditPricingService $pricing,
+    ) {}
 
     public function openJobs(Request $request): JsonResponse
     {
@@ -69,15 +76,37 @@ class VendorEstimateSubmissionController extends Controller
             'snapshot.totals' => ['nullable', 'array'],
         ]);
 
-        $rule = FeatureUsageRule::query()
-            ->where('feature_key', self::FEATURE_KEY)
-            ->where('is_active', true)
-            ->first();
+        $job = JobPosting::with('user')->findOrFail($data['job_posting_id']);
+        if (! $job->user) {
+            return response()->json(['ok' => false, 'message' => 'Buyer not found for this job.'], 422);
+        }
 
-        $cost = (int) ($rule?->tokens_required ?? 50);
-        $balance = $this->wallet->getBalance($user);
+        // Credits scale with the estimate's project value (Procurement Credit ladder).
+        // Prefer the value on the estimate snapshot; fall back to the job's budget, then
+        // to the configured flat rule if neither is available. A sub-$1k figure is a
+        // stray row (e.g. an hourly bill rate), not a real project value — ignore it.
+        $projectValue = $this->pricing->projectValueFromSnapshot($data['snapshot']);
+        if ($projectValue < 1000) {
+            $projectValue = (float) ($job->budget_max ?? $job->budget_min ?? 0);
+        }
+        $cost = $projectValue > 0
+            ? $this->pricing->creditsFor($projectValue)
+            : (int) (FeatureUsageRule::query()
+                ->where('feature_key', self::FEATURE_KEY)
+                ->where('is_active', true)
+                ->value('tokens_required') ?? 1);
 
-        if ($balance < $cost) {
+        // Idempotency: an identical estimate to the same job is charged once. A repeat
+        // POST (double-click / retry) replays the original submission without debiting.
+        $idempotencyKey = 'estimate_submission:' . $user->id . ':' . $job->id . ':' . sha1((string) json_encode($data['snapshot']));
+
+        if ($existing = $this->findChargedSubmission($idempotencyKey, $user->id, $job->id)) {
+            return $this->duplicateResponse($existing);
+        }
+
+        if ($this->wallet->getBalance($user) < $cost) {
+            $balance = $this->wallet->getBalance($user);
+
             return response()->json([
                 'ok' => false,
                 'error' => 'insufficient_balance',
@@ -88,27 +117,56 @@ class VendorEstimateSubmissionController extends Controller
             ], 402);
         }
 
-        $job = JobPosting::with('user')->findOrFail($data['job_posting_id']);
-        if (! $job->user) {
-            return response()->json(['ok' => false, 'message' => 'Buyer not found for this job.'], 422);
+        // Create the submission and charge atomically, keyed for idempotency, so a
+        // failed charge never leaves an unpaid submission behind.
+        try {
+            $submission = DB::transaction(function () use ($user, $job, $data, $cost, $idempotencyKey) {
+                $submission = VendorEstimateSubmission::create([
+                    'vendor_id' => $user->id,
+                    'job_posting_id' => $job->id,
+                    'buyer_id' => $job->user_id,
+                    'snapshot' => $data['snapshot'],
+                    'access_token' => Str::random(48),
+                    'credits_spent' => $cost,
+                ]);
+
+                $charged = $this->wallet->spendTokens(
+                    $user,
+                    $cost,
+                    self::FEATURE_KEY,
+                    "Vendor estimate submission for job #{$job->id}",
+                    (string) $submission->id,
+                    $idempotencyKey,
+                );
+
+                if (! $charged) {
+                    // Balance was spent between the check above and here.
+                    throw new \RuntimeException('insufficient_balance');
+                }
+
+                return $submission;
+            });
+        } catch (QueryException $e) {
+            // Concurrent identical submit hit the idempotency unique index → replay original.
+            if ($existing = $this->findChargedSubmission($idempotencyKey, $user->id, $job->id)) {
+                return $this->duplicateResponse($existing);
+            }
+            throw $e;
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() !== 'insufficient_balance') {
+                throw $e;
+            }
+            $balance = $this->wallet->getBalance($user);
+
+            return response()->json([
+                'ok' => false,
+                'error' => 'insufficient_balance',
+                'required' => $cost,
+                'current_balance' => $balance,
+                'redirect_url' => route('credits'),
+                'message' => "You need {$cost} credits to submit an estimate. Current balance: {$balance}.",
+            ], 402);
         }
-
-        $this->wallet->spendTokens(
-            $user,
-            $cost,
-            self::FEATURE_KEY,
-            "Vendor estimate submission for job #{$job->id}",
-            (string) $job->id,
-        );
-
-        $submission = VendorEstimateSubmission::create([
-            'vendor_id' => $user->id,
-            'job_posting_id' => $job->id,
-            'buyer_id' => $job->user_id,
-            'snapshot' => $data['snapshot'],
-            'access_token' => Str::random(48),
-            'credits_spent' => $cost,
-        ]);
 
         $submission->load(['vendor', 'buyer', 'jobPosting']);
 
@@ -138,6 +196,51 @@ class VendorEstimateSubmissionController extends Controller
             'credits_spent' => $cost,
             'balance_after' => $this->wallet->getBalance($user),
             'message' => 'Estimate sent to ' . ($job->user->name ?? 'the buyer') . '.',
+        ]);
+    }
+
+    /**
+     * Find the submission already paid for under this idempotency key, if any.
+     */
+    private function findChargedSubmission(string $idempotencyKey, int $vendorId, int $jobId): ?VendorEstimateSubmission
+    {
+        $tx = Transaction::query()->where('idempotency_key', $idempotencyKey)->first();
+        if (! $tx) {
+            return null;
+        }
+
+        $with = ['vendor', 'buyer', 'jobPosting.user'];
+
+        if (is_numeric($tx->reference_id)) {
+            $found = VendorEstimateSubmission::with($with)->whereKey((int) $tx->reference_id)->first();
+            if ($found) {
+                return $found;
+            }
+        }
+
+        return VendorEstimateSubmission::with($with)
+            ->where('vendor_id', $vendorId)
+            ->where('job_posting_id', $jobId)
+            ->latest('id')
+            ->first();
+    }
+
+    /**
+     * Success-shaped response for a replayed (already-charged) submission.
+     */
+    private function duplicateResponse(VendorEstimateSubmission $submission): JsonResponse
+    {
+        return response()->json([
+            'ok' => true,
+            'submission_id' => $submission->id,
+            'view_url' => route('vendor-estimate-submissions.show', [
+                'submission' => $submission->id,
+                'token' => $submission->access_token,
+            ]),
+            'credits_spent' => (int) $submission->credits_spent,
+            'balance_after' => $submission->vendor ? $this->wallet->getBalance($submission->vendor) : null,
+            'duplicate' => true,
+            'message' => 'This estimate was already submitted; no additional credits were charged.',
         ]);
     }
 

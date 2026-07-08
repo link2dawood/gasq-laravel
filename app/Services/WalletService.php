@@ -78,9 +78,9 @@ class WalletService
         return $wallet;
     }
 
-    public function spendTokens(User $user, int $amount, string $featureKey, ?string $description = null, ?string $referenceId = null): bool
+    public function spendTokens(User $user, int $amount, string $featureKey, ?string $description = null, ?string $referenceId = null, ?string $idempotencyKey = null): bool
     {
-        return DB::transaction(function () use ($user, $amount, $featureKey, $description, $referenceId) {
+        return DB::transaction(function () use ($user, $amount, $featureKey, $description, $referenceId, $idempotencyKey) {
             $wallet = $this->lockWallet($user);
 
             if ($wallet->balance < $amount) {
@@ -90,13 +90,17 @@ class WalletService
             $wallet->balance -= $amount;
             $wallet->save();
 
+            // When an idempotency key is supplied, the transactions.idempotency_key
+            // UNIQUE index makes a repeated charge (double-click / retry) fail with an
+            // integrity violation instead of debiting twice. Callers passing a key must
+            // handle that duplicate case. Passing null keeps the prior behaviour.
             Transaction::create([
                 'user_id' => $user->id,
                 'tokens_change' => -$amount,
                 'type' => 'spend',
                 'reference_type' => $featureKey,
                 'reference_id' => $referenceId,
-                'idempotency_key' => null,
+                'idempotency_key' => $idempotencyKey,
                 'description' => $description ?? "Spent {$amount} credits",
                 'balance_after' => $wallet->balance,
             ]);
