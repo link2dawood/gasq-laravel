@@ -100,12 +100,17 @@
 
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label fw-medium">Baseline Wage ($/hr)</label>
-              <div class="small text-gasq-muted mb-1">Raw hourly wage paid to the security professional</div>
+              <label class="form-label fw-medium">National Default Security Wage Benchmark <span class="fw-normal text-gasq-muted">· $18.00/hour</span></label>
+              <div class="small text-gasq-muted mb-1">
+                A national starting point, not a fixed rate — override it with your local market, contract-required, collective-bargaining, government wage determination, or client-selected wage.
+              </div>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" id="bg_govShouldCost" class="form-control fs-6 fw-semibold" value="18.00" step="0.01" min="0" max="1000" oninput="scheduleBgTcoFetch()">
                 <input type="range" id="bg_govShouldCost_range" class="form-range mb-0" min="0" max="1000" step="0.01" value="18.00" data-sync="bg_govShouldCost">
               </div>
+              <button type="button" class="btn btn-link btn-sm px-0 mt-1 text-decoration-none" onclick="resetWageBenchmark()">
+                <i class="fa fa-rotate-left me-1"></i>Reset to National Benchmark ($18.00)
+              </button>
             </div>
           </div>
 
@@ -483,6 +488,7 @@
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
 const BUDGET_GROUPS = @json($budgetGroupsForJs);
 const DEFAULT_GOVERNMENT_SHOULD_COST = {{ json_encode($defaultGovernmentShouldCost) }};
+const NATIONAL_WAGE_BENCHMARK = 18;
 const DEFAULT_ANNUAL_BILLABLE_HOURS = {{ json_encode($defaultAnnualBillableHours) }};
 const DEFAULT_TOTAL = {{ json_encode($defaultTotal) }};
 const DEFAULTS = @json($defaults);
@@ -985,9 +991,17 @@ function hydrateSavedBudget() {
   });
 }
 
+function resetWageBenchmark() {
+  const el = document.getElementById('bg_govShouldCost');
+  const range = document.getElementById('bg_govShouldCost_range');
+  if (el) el.value = NATIONAL_WAGE_BENCHMARK.toFixed(2);
+  if (range) range.value = NATIONAL_WAGE_BENCHMARK.toFixed(2);
+  if (typeof scheduleBgTcoFetch === 'function') scheduleBgTcoFetch();
+}
+
 function resetBudget() {
   const govEl = document.getElementById('bg_govShouldCost');
-  if (govEl) govEl.value = DEFAULT_GOVERNMENT_SHOULD_COST;
+  if (govEl) govEl.value = NATIONAL_WAGE_BENCHMARK.toFixed(2);
 
   const hoursEl = document.getElementById('bg_annualHours');
   if (hoursEl) hoursEl.value = DEFAULT_ANNUAL_BILLABLE_HOURS;
