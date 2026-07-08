@@ -118,7 +118,7 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label small fw-medium">Base wage ($/hr)</label>
-                  <input type="number" id="gc_base" class="form-control form-control-sm" value="20.76" step="0.01">
+                  <input type="number" id="gc_base" class="form-control form-control-sm" value="18.00" step="0.01">
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-medium">H&amp;W cash ($/hr)</label>

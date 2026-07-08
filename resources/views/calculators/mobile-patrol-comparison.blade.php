@@ -142,7 +142,7 @@
               <div class="row g-3 mpc-input-grid">
                 <div class="col-md-6"><label class="form-label">Hours/day</label><input type="number" id="a_hoursPerDay" class="form-control form-control-sm" value="24" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Days/year</label><input type="number" id="a_daysPerYear" class="form-control form-control-sm" value="365" oninput="calculate()"></div>
-                <div class="col-md-6"><label class="form-label">Patrolman wage $/hr</label><input type="number" id="a_wage" class="form-control form-control-sm" value="30.00" step="0.01" oninput="calculate()"></div>
+                <div class="col-md-6"><label class="form-label">Patrolman wage $/hr</label><input type="number" id="a_wage" class="form-control form-control-sm" value="18.00" step="0.01" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Payroll burden %</label><input type="number" id="a_burden" class="form-control form-control-sm" value="24" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Vehicle finance $/yr</label><input type="number" id="a_vehFin" class="form-control form-control-sm" value="7980.00" step="0.01" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Miles/day</label><input type="number" id="a_miles" class="form-control form-control-sm" value="360" oninput="calculate()"></div>
@@ -171,7 +171,7 @@
               <div class="row g-3 mpc-input-grid">
                 <div class="col-md-6"><label class="form-label">Hours/day</label><input type="number" id="b_hoursPerDay" class="form-control form-control-sm" value="12" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Days/year</label><input type="number" id="b_daysPerYear" class="form-control form-control-sm" value="365" oninput="calculate()"></div>
-                <div class="col-md-6"><label class="form-label">Patrolman wage $/hr</label><input type="number" id="b_wage" class="form-control form-control-sm" value="28.00" step="0.01" oninput="calculate()"></div>
+                <div class="col-md-6"><label class="form-label">Patrolman wage $/hr</label><input type="number" id="b_wage" class="form-control form-control-sm" value="18.00" step="0.01" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Payroll burden %</label><input type="number" id="b_burden" class="form-control form-control-sm" value="24" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Vehicle finance $/yr</label><input type="number" id="b_vehFin" class="form-control form-control-sm" value="6500.00" step="0.01" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Miles/day</label><input type="number" id="b_miles" class="form-control form-control-sm" value="200" oninput="calculate()"></div>

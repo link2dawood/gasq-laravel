@@ -251,8 +251,8 @@
             <div class="mb-2">
               <label class="form-label mb-0">Baseline labor ($/hr)</label>
               <div class="d-flex align-items-center gap-2">
-                <input type="number" id="wa_baseL" class="form-control form-control-sm gasq-wa-input" value="30.43" step="0.01" oninput="scheduleCompute()">
-                <input type="range" id="wa_baseL_range" class="form-range mb-0" min="0" max="150" step="0.01" value="30.43" data-sync="wa_baseL">
+                <input type="number" id="wa_baseL" class="form-control form-control-sm gasq-wa-input" value="18.00" step="0.01" oninput="scheduleCompute()">
+                <input type="range" id="wa_baseL_range" class="form-range mb-0" min="0" max="150" step="0.01" value="18.00" data-sync="wa_baseL">
               </div>
             </div>
             <div class="mb-2">

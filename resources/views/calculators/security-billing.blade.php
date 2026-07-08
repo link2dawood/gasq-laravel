@@ -332,7 +332,7 @@
                       <div class="row g-3 mb-3">
                         <div class="col-md-6">
                           <label class="form-label x-sm fw-medium">Base Pay $/hr</label>
-                          <input type="number" id="cmpB_basePay" class="form-control form-control-sm" value="20.00" step="0.01" oninput="scheduleSB()">
+                          <input type="number" id="cmpB_basePay" class="form-control form-control-sm" value="18.00" step="0.01" oninput="scheduleSB()">
                         </div>
                         <div class="col-md-6">
                           <label class="form-label x-sm fw-medium">Hours/week</label>

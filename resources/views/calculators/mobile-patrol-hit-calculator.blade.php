@@ -238,7 +238,7 @@
           <div class="row g-3">
             <div class="col-sm-6">
               <label class="mphc2-label" for="mphc2-officerPayRate">Officer Pay Rate / Hr</label>
-              <input id="mphc2-officerPayRate" type="number" class="mphc2-input" value="25" min="0" step="0.01">
+              <input id="mphc2-officerPayRate" type="number" class="mphc2-input" value="18" min="0" step="0.01">
             </div>
             <div class="col-sm-6">
               <label class="mphc2-label" for="mphc2-payrollBurdenPct">Payroll Burden %</label>

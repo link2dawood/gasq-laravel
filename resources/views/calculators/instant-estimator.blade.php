@@ -1157,7 +1157,7 @@ const CHECK_OPTIONS = {
 };
 
 const DEFAULT_PAY = {
-    unarmed: 33,
+    unarmed: 18,
     armed: 46,
     supervisor: 46,
     mobile: 46,

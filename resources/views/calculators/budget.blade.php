@@ -103,8 +103,8 @@
               <label class="form-label fw-medium">Baseline Wage ($/hr)</label>
               <div class="small text-gasq-muted mb-1">Raw hourly wage paid to the security professional</div>
               <div class="d-flex align-items-center gap-2">
-                <input type="number" id="bg_govShouldCost" class="form-control fs-6 fw-semibold" value="25.00" step="0.01" min="0" max="1000" oninput="scheduleBgTcoFetch()">
-                <input type="range" id="bg_govShouldCost_range" class="form-range mb-0" min="0" max="1000" step="0.01" value="25.00" data-sync="bg_govShouldCost">
+                <input type="number" id="bg_govShouldCost" class="form-control fs-6 fw-semibold" value="18.00" step="0.01" min="0" max="1000" oninput="scheduleBgTcoFetch()">
+                <input type="range" id="bg_govShouldCost_range" class="form-range mb-0" min="0" max="1000" step="0.01" value="18.00" data-sync="bg_govShouldCost">
               </div>
             </div>
           </div>
