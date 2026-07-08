@@ -505,10 +505,17 @@ class JobPostingController extends Controller
                     ]);
             }
 
+            // Freeze the contract value: the hired bid amount when present,
+            // otherwise the job's budget estimate. Powers the admin dashboard.
+            $awardedValue = ($hiredBid && (float) $hiredBid->amount > 0)
+                ? (float) $hiredBid->amount
+                : ($job->budget_max ?? $job->budget_min);
+
             $job->update([
                 'hired_bid_id' => $hiredBid?->id,
                 'hired_at' => $now,
                 'hired_external_name' => $source === 'external' ? $data['external_name'] : null,
+                'awarded_value' => $awardedValue,
                 'status' => 'awarded',
                 'last_activity_at' => $now,
             ]);

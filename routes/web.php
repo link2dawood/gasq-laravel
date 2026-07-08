@@ -353,6 +353,7 @@ Route::post('/webhooks/hubspot', [App\Http\Controllers\HubSpotWebhookController:
 
 // Admin
 Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/dashboard', [App\Http\Controllers\AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/analytics', [App\Http\Controllers\AnalyticsController::class, 'index'])->name('admin.analytics');
     Route::get('/admin/activity', [App\Http\Controllers\AdminActivityController::class, 'index'])->name('admin.activity');
     Route::get('/admin/vendor-opportunities', [AdminVendorOpportunityController::class, 'index'])->name('admin.vendor-opportunities.index');
