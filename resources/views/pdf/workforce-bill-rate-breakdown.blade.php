@@ -2,6 +2,33 @@
     // ---------- Pull inputs from the calculator's session scenario ----------
     $meta = data_get($scenario ?? [], 'meta', []);
     $alloc = (array) data_get($meta, 'allocations', []);
+
+    // Fallback: when the calculator didn't persist per-item allocation percentages,
+    // derive them from the config benchmark proportions so the allocation report
+    // never renders an all-zero breakdown against a real contract total.
+    $allocHasValues = false;
+    foreach ($alloc as $allocValue) {
+        if (is_numeric($allocValue) && (float) $allocValue != 0.0) { $allocHasValues = true; break; }
+    }
+    if (! $allocHasValues) {
+        $benchmarkGroups = (array) data_get(config('budget_calculator', []), 'groups', []);
+        $benchmarkTotal = 0.0;
+        foreach ($benchmarkGroups as $benchmarkGroup) {
+            foreach ((array) ($benchmarkGroup['items'] ?? []) as $benchmarkItem) {
+                $benchmarkTotal += (float) ($benchmarkItem['annual'] ?? 0);
+            }
+        }
+        if ($benchmarkTotal > 0) {
+            $alloc = [];
+            foreach ($benchmarkGroups as $benchmarkGroup) {
+                foreach ((array) ($benchmarkGroup['items'] ?? []) as $benchmarkItem) {
+                    if (! empty($benchmarkItem['key'])) {
+                        $alloc[$benchmarkItem['key']] = (float) ($benchmarkItem['annual'] ?? 0) / $benchmarkTotal * 100.0;
+                    }
+                }
+            }
+        }
+    }
     $totalBudget = (float) data_get($meta, 'annualBudget', 0);
     $baselineWage = (float) (data_get($meta, 'baselineWage')
         ?? data_get($meta, 'governmentShouldCostHourly')
