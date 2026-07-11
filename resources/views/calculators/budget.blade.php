@@ -56,6 +56,11 @@
 @section('content')
 @php
     $isBuyerView = auth()->check() && method_exists(auth()->user(), 'isBuyer') && auth()->user()->isBuyer();
+    // The vendor pays for the report, so vendors + admins see the outsourcing
+    // figures on screen; buyers (and guests) still see them gated to the paid report.
+    $canSeeOutsourcing = auth()->check()
+        && ((method_exists(auth()->user(), 'isVendor') && auth()->user()->isVendor())
+            || (method_exists(auth()->user(), 'isAdmin') && auth()->user()->isAdmin()));
 @endphp
 <div class="min-vh-100 py-4 px-3 px-md-4" style="background:var(--gasq-background)">
 <div class="container-xl">
@@ -410,17 +415,19 @@
             <tr>
               <th>Description</th>
               <th class="text-end font-monospace">Buyer Internal Cost to Protect</th>
-              <th class="text-end font-monospace">Buyer Outsourcing Cost to Protect <i class="fa fa-lock small text-secondary ms-1"></i></th>
+              <th class="text-end font-monospace">Vendor Cost to Deliver Protection @unless($canSeeOutsourcing)<i class="fa fa-lock small text-secondary ms-1"></i>@endunless</th>
             </tr>
           </thead>
           <tbody id="bg_ap_body"></tbody>
           <tbody id="bg_ap_foot"></tbody>
         </table>
       </div>
+      @unless($canSeeOutsourcing)
       <div class="px-3 py-2 small text-gasq-muted border-top d-flex align-items-start gap-2">
         <i class="fa fa-lock text-secondary mt-1"></i>
-        <span>The <strong>Buyer Outsourcing Cost to Protect</strong> figures are unlocked in your Cost to Protect report below — download or email it for the full outsourcing appraisal.</span>
+        <span>The <strong>Vendor Cost to Deliver Protection</strong> figures are unlocked in your Cost to Protect report below — download or email it for the full outsourcing appraisal.</span>
       </div>
+      @endunless
     </div>
   </div>
 
@@ -450,8 +457,8 @@
     .budget-print-area a { color: inherit !important; text-decoration: none !important; }
     @page { margin: 0.5in; }
   }
-  /* Gate the "Buyer Outsourcing Cost to Protect" column on screen — the real
-     figures live in the paid Cost to Protect report (server-rendered PDF). */
+  /* Gate the "Vendor Cost to Deliver Protection" column for buyers/guests on
+     screen — the real figures live in the paid Cost to Protect report (PDF). */
   .bg-redacted {
     filter: blur(7px);
     -webkit-filter: blur(7px);
@@ -489,6 +496,8 @@ const savedScenario = window.__gasqCalculatorState?.scenario || null;
 const BUDGET_GROUPS = @json($budgetGroupsForJs);
 const DEFAULT_GOVERNMENT_SHOULD_COST = {{ json_encode($defaultGovernmentShouldCost) }};
 const NATIONAL_WAGE_BENCHMARK = 18;
+// Buyers/guests see the outsourcing column blurred; vendors + admins see it in full.
+const REDACT_OUTSOURCING = @json(! $canSeeOutsourcing);
 const DEFAULT_ANNUAL_BILLABLE_HOURS = {{ json_encode($defaultAnnualBillableHours) }};
 const DEFAULT_TOTAL = {{ json_encode($defaultTotal) }};
 const DEFAULTS = @json($defaults);
@@ -957,7 +966,7 @@ function refreshAppraisal() {
     <tr>
       <td>${r.description}</td>
       <td class="text-end font-monospace">${formatCell(r.internal, r.kind)}</td>
-      <td class="text-end font-monospace"><span class="bg-redacted">${formatCell(r.vendor, r.kind)}</span></td>
+      <td class="text-end font-monospace"><span class="${REDACT_OUTSOURCING ? 'bg-redacted' : ''}">${formatCell(r.vendor, r.kind)}</span></td>
     </tr>
   `).join('');
 
@@ -965,7 +974,7 @@ function refreshAppraisal() {
     <tr class="fw-semibold" style="background:#fff4e6;">
       <td>${r.description}</td>
       <td class="text-end font-monospace">—</td>
-      <td class="text-end font-monospace"><span class="bg-redacted">${formatCell(r.vendor, r.kind)}</span></td>
+      <td class="text-end font-monospace"><span class="${REDACT_OUTSOURCING ? 'bg-redacted' : ''}">${formatCell(r.vendor, r.kind)}</span></td>
     </tr>
   `).join('');
 }
