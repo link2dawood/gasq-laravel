@@ -297,18 +297,11 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::post('/_backend/report-payload', \App\Http\Controllers\Backend\ReportPayloadController::class)
         ->name('backend.report-payload.store');
 
-    Route::post('/_backend/mobile-patrol-hit/compute', \App\Http\Controllers\Backend\MobilePatrolHitComputeController::class)
-        ->name('backend.mobile-patrol-hit.compute');
-
-    Route::post('/_backend/mobile-patrol/compute', \App\Http\Controllers\Backend\MobilePatrolComputeController::class)
-        ->name('backend.mobile-patrol.compute');
-
     Route::post('/_backend/mobile-patrol-comparison/compute', \App\Http\Controllers\Backend\MobilePatrolComparisonComputeController::class)
         ->name('backend.mobile-patrol-comparison.compute');
 
     Route::post('/_backend/budget-tco/compute', \App\Http\Controllers\Backend\BudgetTcoComputeController::class)
         ->name('backend.budget-tco.compute');
-
     Route::post('/_backend/standalone/{type}/v24/compute', \App\Http\Controllers\Backend\StandaloneV24ComputeController::class)
         ->whereIn('type', [
             'bill-rate-analysis',
