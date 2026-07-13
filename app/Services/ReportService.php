@@ -46,7 +46,7 @@ class ReportService
             'mobile-patrol-buyer' => 'pdf.mobile-patrol',
             'mobile-patrol-comparison' => 'pdf.mobile-patrol-comparison',
             'mobile-patrol-hit-calculator' => 'pdf.mobile-patrol-hit-calculator',
-            // Workforce Absorbed Rate Calculator → branded Workforce-to-Post report.
+            // Know Before You Bid Calculator → branded Workforce-to-Post report.
             // Two reports off the same data: 'main' (summary + comparison) and
             // 'allocation' (allocation group totals + line-item breakdown).
             'budget-calculator' => 'pdf.workforce-bill-rate-breakdown',

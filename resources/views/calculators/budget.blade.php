@@ -2,7 +2,7 @@
 @php
     $__buyerTitleViewer = auth()->check() && method_exists(auth()->user(), 'isBuyer') && auth()->user()->isBuyer();
 @endphp
-@section('title', $__buyerTitleViewer ? 'Know Before You Buy Calculator' : 'Workforce Absorbed Rate Calculator')
+@section('title', $__buyerTitleViewer ? 'Know Before You Buy Calculator' : 'Know Before You Bid Calculator')
 @section('header_variant', 'dashboard')
 
 @php
@@ -70,7 +70,7 @@
       <a href="{{ route('main-menu-calculator.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i></a>
       <div>
         <h1 class="h3 fw-bold mb-0 d-flex align-items-center gap-2">
-          <i class="fa fa-piggy-bank text-primary"></i> {{ $isBuyerView ? 'Know Before You Buy Calculator' : 'Workforce Absorbed Rate Calculator' }}
+          <i class="fa fa-piggy-bank text-primary"></i> {{ $isBuyerView ? 'Know Before You Buy Calculator' : 'Know Before You Bid Calculator' }}
         </h1>
         <div class="text-gasq-muted small">Plan and analyze your workforce budget across detailed spreadsheet line items.</div>
       </div>
