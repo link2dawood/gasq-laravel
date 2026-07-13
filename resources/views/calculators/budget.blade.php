@@ -76,6 +76,9 @@
       </div>
     </div>
     <div class="d-flex flex-wrap gap-2 d-print-none">
+      <a href="https://livingwage.mit.edu/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
+        <i class="fa fa-arrow-up-right-from-square me-1"></i> MIT Living Wage Calculator
+      </a>
       @if(request('from') === 'questionnaire')
         <button type="button" class="btn btn-success btn-sm fw-semibold" id="save_and_return_to_questionnaire">
           <i class="fa fa-check me-1"></i> Save &amp; return to questionnaire
