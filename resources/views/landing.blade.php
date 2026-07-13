@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'GetASecurityQuoteNow — Know the True Cost of Security Services Before You Buy')
+@section('title', 'GASQ® — The Financial Operating System for Security Procurement™')
 
 @push('styles')
 <style>
@@ -39,7 +39,8 @@
     {{-- HERO --}}
     <section class="gasq-hero-bg">
         <div class="container text-center px-4">
-            <h1 class="gasq-hero-title mb-4">Know the True Cost of Security Services Before You Buy.</h1>
+            <h1 class="gasq-hero-title mb-2">GASQ&reg; The Financial Operating System for Security Procurement&trade;</h1>
+            <p class="gasq-hero-lead h4 fw-bold mb-4">Know Before You Buy. Know Before You Bid.</p>
             <p class="gasq-hero-lead lead mb-4 mx-auto">
                 GetASecurityQuoteNow (GASQ) helps property owners, procurement teams, and security buyers
                 compare the <em>real total cost of ownership</em> of security services before signing a contract.

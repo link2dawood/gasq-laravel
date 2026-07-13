@@ -54,6 +54,7 @@
                     <li><a href="{{ route('about') }}" class="text-gasq-muted text-decoration-none">About Us</a></li>
                     <li><a href="{{ route('why-gasq-works') }}" class="text-gasq-muted text-decoration-none">Why GASQ Works</a></li>
                     <li><a href="{{ url('/#how-it-works') }}" class="text-gasq-muted text-decoration-none">How It Works</a></li>
+                    <li><a href="https://livingwage.mit.edu/" target="_blank" rel="noopener noreferrer" class="text-gasq-muted text-decoration-none">MIT Living Wage Calculator</a></li>
                     <li><a href="{{ route('terms') }}" class="text-gasq-muted text-decoration-none">Terms &amp; Conditions</a></li>
                     <li><a href="{{ route('privacy-policy') }}" class="text-gasq-muted text-decoration-none">Privacy Policy</a></li>
                     <li><a href="{{ route('contact') }}" class="text-gasq-muted text-decoration-none">Contact Us</a></li>
