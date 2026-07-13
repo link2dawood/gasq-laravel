@@ -39,8 +39,7 @@
     {{-- HERO --}}
     <section class="gasq-hero-bg">
         <div class="container text-center px-4">
-            <h1 class="gasq-hero-title mb-2">GASQ&reg; The Financial Operating System for Security Procurement&trade;</h1>
-            <p class="gasq-hero-lead h4 fw-bold mb-4">Know Before You Buy. Know Before You Bid.</p>
+            <h1 class="gasq-hero-title mb-4" style="font-size: clamp(1.85rem, 3.6vw, 3rem);">GASQ<sup style="font-size:.5em; top:-.7em;">&reg;</sup> The Financial Operating System for Security Procurement<sup style="font-size:.5em; top:-.7em;">&trade;</sup></h1>
             <p class="gasq-hero-lead lead mb-4 mx-auto">
                 GetASecurityQuoteNow (GASQ) helps property owners, procurement teams, and security buyers
                 compare the <em>real total cost of ownership</em> of security services before signing a contract.
@@ -55,6 +54,7 @@
                 <li>What your capital recovery opportunity looks like</li>
                 <li>Whether a proposal is realistic, risky, or overpriced</li>
             </ul>
+            <p class="gasq-hero-lead h3 fw-bold text-center my-4 mx-auto">Know Before You Buy. Know Before You Bid.</p>
             <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center mb-3">
                 <a href="{{ route('instant-estimator.index') }}" class="btn btn-primary btn-lg px-4 py-3 shadow">
                     <i class="fa fa-calculator me-2"></i>Get An Instant Security Cost Estimate
