@@ -293,7 +293,7 @@ const MP24_DEFAULTS = {
 
 const MP24_FIELDS = [
   ['Baseline Hourly Pay Rate', 'baselinePayRate', 'Example: 25.00'],
-  ['Divisor', 'divisor', 'Default: 0.70'],
+  // Divisor input hidden per request; the 0.70 default in MP24_DEFAULTS still drives the math.
   ['Annual Hours', 'annualHours', 'Default: 8736'],
   ['Driving Speed (MPH)', 'mph', 'Example: 25'],
   ['Hours Per Day', 'hoursPerDay', 'Default: 24'],
