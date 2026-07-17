@@ -200,7 +200,8 @@
             <div class="mp24-results" id="mp24Results"></div>
           </div>
 
-          @if(auth()->user()?->isAdmin())
+          {{-- Formula Notes card hidden per request; to restore, remove "false &&" below. --}}
+          @if(false && auth()->user()?->isAdmin())
           <div class="mp24-card p-4 p-md-5">
             <h3 class="mp24-section-title mb-3">Formula Notes</h3>
             <div class="mp24-note-list">
