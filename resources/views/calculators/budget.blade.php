@@ -108,7 +108,7 @@
 
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label fw-medium">National Default Security Wage Benchmark <span class="fw-normal text-gasq-muted">· $18.00/hour</span></label>
+              <label class="form-label fw-medium">National Default Security Wage Benchmark <span class="fw-normal text-gasq-muted">· {{ \App\Support\Currency::format(18) }}/hour</span></label>
               <div class="small text-gasq-muted mb-1">
                 A national starting point, not a fixed rate — override it with your local market, contract-required, collective-bargaining, government wage determination, or client-selected wage.
               </div>
@@ -117,7 +117,7 @@
                 <input type="range" id="bg_govShouldCost_range" class="form-range mb-0" min="0" max="1000" step="0.01" value="18.00" data-sync="bg_govShouldCost">
               </div>
               <button type="button" class="btn btn-link btn-sm px-0 mt-1 text-decoration-none" onclick="resetWageBenchmark()">
-                <i class="fa fa-rotate-left me-1"></i>Reset to National Benchmark ($18.00)
+                <i class="fa fa-rotate-left me-1"></i>Reset to National Benchmark ({{ \App\Support\Currency::format(18) }})
               </button>
             </div>
           </div>
@@ -163,9 +163,9 @@
           <input type="hidden" id="bg_vendorTco" value="0">
 
           <div>
-            <label class="form-label fw-medium">Buyer Annual Total Cost of Ownership ($)</label>
+            <label class="form-label fw-medium">Buyer Annual Total Cost of Ownership ({{ \App\Support\Currency::symbol() }})</label>
             <div class="input-group">
-              <span class="input-group-text fs-5 fw-semibold">$</span>
+              <span class="input-group-text fs-5 fw-semibold">{{ \App\Support\Currency::symbol() }}</span>
               <input type="text" id="bg_total" class="form-control fs-5 fw-semibold" value="0.00" readonly>
             </div>
           </div>

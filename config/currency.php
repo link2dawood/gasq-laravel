@@ -29,8 +29,10 @@ return [
         'CAD' => [
             'code' => 'CAD',
             'label' => 'Canada (CAD)',
-            'symbol' => '$',
-            'locale' => 'en-CA',
+            // "CA$" (not a bare "$") so flipping to Canada is visible everywhere and
+            // never looks identical to USD. locale en-US makes Intl render "CA$" too.
+            'symbol' => 'CA$',
+            'locale' => 'en-US',
         ],
     ],
 ];
