@@ -27,7 +27,7 @@
                         <input type="number" id="kdo_guards" class="form-control" value="2" min="0" step="1">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-medium">Bill rate ($/hr)</label>
+                        <label class="form-label small fw-medium">Bill rate ({{ \App\Support\Currency::symbol() }}/hr)</label>
                         <input type="number" id="kdo_rate" class="form-control" value="30.90" min="0" step="0.01">
                     </div>
                     <div class="col-4">
@@ -57,13 +57,13 @@
                     <div class="col-md-6">
                         <div class="p-3 rounded border">
                             <div class="small text-gasq-muted">Annual cost</div>
-                            <div class="h2 fw-bold font-monospace mb-0" id="kdo_annual">$0.00</div>
+                            <div class="h2 fw-bold font-monospace mb-0" id="kdo_annual">{{ \App\Support\Currency::format(0) }}</div>
                         </div>
                     </div>
                     <div class="col-12">
                         <div class="p-3 rounded border">
                             <div class="small text-gasq-muted">Cost per day</div>
-                            <div class="h2 fw-bold font-monospace mb-0" id="kdo_cpd">$0.00</div>
+                            <div class="h2 fw-bold font-monospace mb-0" id="kdo_cpd">{{ \App\Support\Currency::format(0) }}</div>
                         </div>
                     </div>
                 </div>

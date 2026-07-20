@@ -48,8 +48,8 @@
                 <th>Post / Category</th>
                 <th class="text-center">Armed</th>
                 <th>Weekly Hours</th>
-                <th>Pay Rate $/hr</th>
-                <th>Bill Rate $/hr</th>
+                <th>Pay Rate {{ \App\Support\Currency::symbol() }}/hr</th>
+                <th>Bill Rate {{ \App\Support\Currency::symbol() }}/hr</th>
                 <th>OT Hours/wk</th>
                 <th class="text-end">Weekly Revenue</th>
                 <th class="text-end">Weekly Pay Cost</th>
@@ -64,8 +64,8 @@
                 <td>—</td>
                 <td>—</td>
                 <td id="ft-otHours">0.0</td>
-                <td class="text-end font-monospace" id="ft-revenue">$0.00</td>
-                <td class="text-end font-monospace" id="ft-payCost">$0.00</td>
+                <td class="text-end font-monospace" id="ft-revenue">{{ \App\Support\Currency::format(0) }}</td>
+                <td class="text-end font-monospace" id="ft-payCost">{{ \App\Support\Currency::format(0) }}</td>
                 <td class="d-print-none"></td>
               </tr>
             </tfoot>
@@ -83,18 +83,18 @@
           <div class="col-lg-6">
             <h5 class="fw-semibold mb-3">Per-Hour Metrics</h5>
             <div class="rounded p-3 mb-3" style="background:var(--gasq-muted-bg)">
-              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Avg Bill Rate (weighted)</span><span class="fw-medium" id="ph_avgBillRate">$0.00/hr</span></div>
-              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Avg Pay Rate (weighted)</span><span class="fw-medium" id="ph_avgPayRate">$0.00/hr</span></div>
-              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Gross Margin per Hour</span><span class="fw-medium" id="ph_gphr">$0.00/hr</span></div>
+              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Avg Bill Rate (weighted)</span><span class="fw-medium" id="ph_avgBillRate">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Avg Pay Rate (weighted)</span><span class="fw-medium" id="ph_avgPayRate">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Gross Margin per Hour</span><span class="fw-medium" id="ph_gphr">{{ \App\Support\Currency::format(0) }}/hr</span></div>
               <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Direct Labor Ratio</span><span class="fw-medium" id="ph_dlr">0.0%</span></div>
             </div>
 
             <h5 class="fw-semibold mb-3">Annual Projections</h5>
             <div class="rounded p-3" style="background:var(--gasq-muted-bg)">
               <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Annual Hours</span><span class="fw-medium" id="ph_annualHrs">0</span></div>
-              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Annual Revenue</span><span class="fw-medium" id="ph_annualRev">$0.00</span></div>
-              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Annual Pay Cost</span><span class="fw-medium" id="ph_annualPay">$0.00</span></div>
-              <div class="d-flex justify-content-between"><span class="text-gasq-muted small fw-semibold">Annual Gross Margin</span><span class="fw-semibold text-primary" id="ph_annualGM">$0.00</span></div>
+              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Annual Revenue</span><span class="fw-medium" id="ph_annualRev">{{ \App\Support\Currency::format(0) }}</span></div>
+              <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Annual Pay Cost</span><span class="fw-medium" id="ph_annualPay">{{ \App\Support\Currency::format(0) }}</span></div>
+              <div class="d-flex justify-content-between"><span class="text-gasq-muted small fw-semibold">Annual Gross Margin</span><span class="fw-semibold text-primary" id="ph_annualGM">{{ \App\Support\Currency::format(0) }}</span></div>
             </div>
           </div>
           <div class="col-lg-6">
@@ -126,19 +126,19 @@
             <div class="col-md-3">
               <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
                 <div class="small text-gasq-muted mb-1">Annual Bill Revenue</div>
-                <div class="fs-5 fw-bold text-primary" id="sum_annualRev">$0.00</div>
+                <div class="fs-5 fw-bold text-primary" id="sum_annualRev">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="col-md-3">
               <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
                 <div class="small text-gasq-muted mb-1">Annual Pay Cost</div>
-                <div class="fs-5 fw-bold" id="sum_annualPay">$0.00</div>
+                <div class="fs-5 fw-bold" id="sum_annualPay">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="col-md-3">
               <div class="rounded p-3 text-center" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3)">
                 <div class="small text-gasq-muted mb-1">Gross Margin</div>
-                <div class="fs-5 fw-bold text-success" id="sum_gm">$0.00</div>
+                <div class="fs-5 fw-bold text-success" id="sum_gm">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
           </div>
@@ -177,8 +177,8 @@ function addRow(data={}){
     <td><input type="number" class="form-control form-control-sm text-end" id="pay-${id}" value="${data.pay||18}" step="0.01" oninput="recalc()"></td>
     <td><input type="number" class="form-control form-control-sm text-end" id="bill-${id}" value="${data.bill||26}" step="0.01" oninput="recalc()"></td>
     <td><input type="number" class="form-control form-control-sm text-end" id="ot-${id}" value="${data.ot||0}" step="0.5" oninput="recalc()"></td>
-    <td class="text-end font-monospace small" id="rev-${id}">$0.00</td>
-    <td class="text-end font-monospace small" id="pc-${id}">$0.00</td>
+    <td class="text-end font-monospace small" id="rev-${id}">{{ \App\Support\Currency::format(0) }}</td>
+    <td class="text-end font-monospace small" id="pc-${id}">{{ \App\Support\Currency::format(0) }}</td>
     <td class="d-print-none"><button class="btn btn-outline-danger btn-sm py-0" onclick="removeRow(${id})"><i class="fa fa-trash fa-xs"></i></button></td>`;
   document.getElementById('ca-tbody').appendChild(tr);
   recalc();

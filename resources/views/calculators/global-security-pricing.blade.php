@@ -92,7 +92,7 @@
 
         <div class="tab-pane fade" id="gsp-benefits">
           <div class="row g-3">
-            <div class="col-md-4"><label class="form-label small">H&amp;W $/hr</label><input type="number" class="form-control form-control-sm" id="gsp_hwPerHour" value="4.93" step="0.01"></div>
+            <div class="col-md-4"><label class="form-label small">H&amp;W {{ \App\Support\Currency::symbol() }}/hr</label><input type="number" class="form-control form-control-sm" id="gsp_hwPerHour" value="4.93" step="0.01"></div>
             <div class="col-md-4"><label class="form-label small">Medical</label><input type="number" class="form-control form-control-sm" id="gsp_b_med" value="0" step="0.01"></div>
             <div class="col-md-4"><label class="form-label small">Life</label><input type="number" class="form-control form-control-sm" id="gsp_b_life" value="0" step="0.01"></div>
             <div class="col-md-4"><label class="form-label small">Dental</label><input type="number" class="form-control form-control-sm" id="gsp_b_dental" value="0" step="0.01"></div>
@@ -285,7 +285,7 @@
     document.getElementById('gsp_summaryPane').innerHTML = `
       <p class="small text-gasq-muted">Static mix from React <code>de</code> memo — total ${bc.totalBillRate||''}</p>
       <div class="row g-3 mb-3">${document.getElementById('gsp_contractPane').innerHTML}</div>
-      <h6 class="fw-semibold">Bill components ($/hr)</h6>
+      <h6 class="fw-semibold">Bill components ({{ \App\Support\Currency::symbol() }}/hr)</h6>
       <div class="table-responsive"><table class="table table-sm"><thead><tr><th>Component</th><th class="text-end">$</th><th class="text-end">%</th></tr></thead><tbody>${compRows}</tbody></table></div>`;
   }
 

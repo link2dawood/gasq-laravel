@@ -121,11 +121,11 @@
                   <input type="number" id="tco_hours" class="form-control form-control-sm" value="21322" step="1" min="1">
                 </div>
                 <div class="col-12">
-                  <label class="form-label small fw-medium">Vendor TCO ($/hr)</label>
+                  <label class="form-label small fw-medium">Vendor TCO ({{ \App\Support\Currency::symbol() }}/hr)</label>
                   <input type="number" id="tco_vendor" class="form-control form-control-sm" value="54.78" step="0.01" min="0">
                 </div>
                 <div class="col-12">
-                  <label class="form-label small fw-medium">GASQ bill rate ($/hr)</label>
+                  <label class="form-label small fw-medium">GASQ bill rate ({{ \App\Support\Currency::symbol() }}/hr)</label>
                   <input type="number" id="tco_gasq" class="form-control form-control-sm" value="43.67" step="0.01" min="0">
                   <div class="form-text">Defaults align with the CFO bill rate excerpt.</div>
                 </div>
@@ -148,28 +148,28 @@
               <div class="col-md-6">
                 <div class="tco-stat">
                   <div class="tco-stat-label mb-2">GASQ Annual Total</div>
-                  <div class="tco-stat-value" id="tco_gasqAnnual">$0.00</div>
+                  <div class="tco-stat-value" id="tco_gasqAnnual">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Current should-cost annual output</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="tco-stat">
                   <div class="tco-stat-label mb-2">Vendor Annual Total</div>
-                  <div class="tco-stat-value" id="tco_vendorAnnual">$0.00</div>
+                  <div class="tco-stat-value" id="tco_vendorAnnual">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Current vendor TCO annual output</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="tco-stat">
                   <div class="tco-stat-label mb-2">Premium / Discount Per Hour</div>
-                  <div class="tco-stat-value" id="tco_premHr">$0.00</div>
+                  <div class="tco-stat-value" id="tco_premHr">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Vendor compared to GASQ</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="tco-stat">
                   <div class="tco-stat-label mb-2">Premium / Discount Annual</div>
-                  <div class="tco-stat-value" id="tco_premAnnual">$0.00</div>
+                  <div class="tco-stat-value" id="tco_premAnnual">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Annual difference at current hours</div>
                 </div>
               </div>
@@ -194,11 +194,11 @@
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">GASQ hourly</span>
-                    <span class="fw-medium tco-mono" id="tco_gasqHr">$0.00/hr</span>
+                    <span class="fw-medium tco-mono" id="tco_gasqHr">{{ \App\Support\Currency::format(0) }}/hr</span>
                   </div>
                   <div class="d-flex justify-content-between">
                     <span class="text-gasq-muted small">Vendor hourly</span>
-                    <span class="fw-medium tco-mono" id="tco_vendorHr">$0.00/hr</span>
+                    <span class="fw-medium tco-mono" id="tco_vendorHr">{{ \App\Support\Currency::format(0) }}/hr</span>
                   </div>
                 </div>
               </div>
@@ -208,19 +208,19 @@
                   <h5 class="fw-semibold mb-3">Comparison Breakdown</h5>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">GASQ should-cost annual total</span>
-                    <span class="fw-medium tco-mono" id="tco_gasqAnnual_breakdown">$0.00</span>
+                    <span class="fw-medium tco-mono" id="tco_gasqAnnual_breakdown">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Vendor TCO annual total</span>
-                    <span class="fw-medium tco-mono" id="tco_vendorAnnual_breakdown">$0.00</span>
+                    <span class="fw-medium tco-mono" id="tco_vendorAnnual_breakdown">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Hourly difference</span>
-                    <span class="fw-medium tco-mono" id="tco_premHr_breakdown">$0.00</span>
+                    <span class="fw-medium tco-mono" id="tco_premHr_breakdown">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                   <div class="d-flex justify-content-between">
                     <span class="text-gasq-muted small">Annual difference</span>
-                    <span class="fw-semibold tco-mono" id="tco_premAnnual_breakdown">$0.00</span>
+                    <span class="fw-semibold tco-mono" id="tco_premAnnual_breakdown">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                 </div>
               </div>

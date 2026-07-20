@@ -18,7 +18,7 @@
             <x-card title="Inputs" subtitle="Updates instantly">
                 <div class="row g-3">
                     <div class="col-6">
-                        <label class="form-label small fw-medium">Base pay ($/hr)</label>
+                        <label class="form-label small fw-medium">Base pay ({{ \App\Support\Currency::symbol() }}/hr)</label>
                         <input type="number" id="ar_base" class="form-control" value="18" step="0.01">
                     </div>
                     <div class="col-6">
@@ -55,24 +55,24 @@
                     <div class="col-md-6">
                         <div class="p-3 rounded border">
                             <div class="small text-gasq-muted">Absorbed rate</div>
-                            <div class="display-6 fw-bold font-monospace" id="ar_rate">$0.00/hr</div>
+                            <div class="display-6 fw-bold font-monospace" id="ar_rate">{{ \App\Support\Currency::format(0) }}/hr</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 rounded border">
                             <div class="small text-gasq-muted">Annual absorbed total</div>
-                            <div class="display-6 fw-bold font-monospace" id="ar_annual">$0.00</div>
+                            <div class="display-6 fw-bold font-monospace" id="ar_annual">{{ \App\Support\Currency::format(0) }}</div>
                         </div>
                     </div>
                 </div>
                 <div class="table-responsive mt-4">
                     <table class="table table-striped align-middle mb-0">
                         <tbody>
-                            <tr><td class="text-gasq-muted">Benefits amount</td><td class="text-end font-monospace" id="ar_bAmt">$0.00</td></tr>
-                            <tr><td class="text-gasq-muted">Burdened cost</td><td class="text-end font-monospace" id="ar_burdened">$0.00</td></tr>
-                            <tr><td class="text-gasq-muted">Ops amount</td><td class="text-end font-monospace" id="ar_oAmt">$0.00</td></tr>
-                            <tr><td class="text-gasq-muted">Overhead amount</td><td class="text-end font-monospace" id="ar_ohAmt">$0.00</td></tr>
-                            <tr class="fw-semibold"><td>Cost with support</td><td class="text-end font-monospace" id="ar_support">$0.00</td></tr>
+                            <tr><td class="text-gasq-muted">Benefits amount</td><td class="text-end font-monospace" id="ar_bAmt">{{ \App\Support\Currency::format(0) }}</td></tr>
+                            <tr><td class="text-gasq-muted">Burdened cost</td><td class="text-end font-monospace" id="ar_burdened">{{ \App\Support\Currency::format(0) }}</td></tr>
+                            <tr><td class="text-gasq-muted">Ops amount</td><td class="text-end font-monospace" id="ar_oAmt">{{ \App\Support\Currency::format(0) }}</td></tr>
+                            <tr><td class="text-gasq-muted">Overhead amount</td><td class="text-end font-monospace" id="ar_ohAmt">{{ \App\Support\Currency::format(0) }}</td></tr>
+                            <tr class="fw-semibold"><td>Cost with support</td><td class="text-end font-monospace" id="ar_support">{{ \App\Support\Currency::format(0) }}</td></tr>
                         </tbody>
                     </table>
                 </div>

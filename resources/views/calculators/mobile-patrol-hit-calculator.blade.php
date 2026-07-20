@@ -308,7 +308,7 @@
           {{-- Hero stat --}}
           <div class="mphc2-stat-hero">
             <div class="mphc2-stat-label">Final Sell Price Per Check</div>
-            <div class="mphc2-stat-value" id="mphc2-out-pricePerCheck">$0.00</div>
+            <div class="mphc2-stat-value" id="mphc2-out-pricePerCheck">{{ \App\Support\Currency::format(0) }}</div>
             <div class="mphc2-stat-sub">Includes overhead, G&amp;A, profit &amp; minimum floor</div>
           </div>
 
@@ -336,9 +336,9 @@
           <div class="mphc2-card p-4">
             <h3 class="mphc2-section-title mb-3">Revenue Summary</h3>
             <div class="mphc2-results">
-              <div class="mphc2-row"><span>Total Weekly Revenue</span><strong id="mphc2-out-weeklyRevenue">$0.00</strong></div>
-              <div class="mphc2-row"><span>Total Monthly Revenue</span><strong id="mphc2-out-monthlyRevenue">$0.00</strong></div>
-              <div class="mphc2-row mphc2-row-dark"><span>Total Annual Revenue</span><strong id="mphc2-out-annualRevenue">$0.00</strong></div>
+              <div class="mphc2-row"><span>Total Weekly Revenue</span><strong id="mphc2-out-weeklyRevenue">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row"><span>Total Monthly Revenue</span><strong id="mphc2-out-monthlyRevenue">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row mphc2-row-dark"><span>Total Annual Revenue</span><strong id="mphc2-out-annualRevenue">{{ \App\Support\Currency::format(0) }}</strong></div>
             </div>
           </div>
 
@@ -347,14 +347,14 @@
             <h3 class="mphc2-section-title mb-3">Per-Check Cost Breakdown</h3>
             <div class="mphc2-results">
               <div class="mphc2-row"><span>Hours Per Check</span><strong id="mphc2-out-hoursPerCheck">0.00</strong></div>
-              <div class="mphc2-row"><span>Base Cost Per Check</span><strong id="mphc2-out-baseCost">$0.00</strong></div>
-              <div class="mphc2-row"><span>Overhead Per Check</span><strong id="mphc2-out-overhead">$0.00</strong></div>
-              <div class="mphc2-row"><span>G&amp;A Per Check</span><strong id="mphc2-out-ga">$0.00</strong></div>
-              <div class="mphc2-row"><span>Subtotal Cost Per Check</span><strong id="mphc2-out-subtotal">$0.00</strong></div>
-              <div class="mphc2-row"><span>Add-On Per Check</span><strong id="mphc2-out-addon">$0.00</strong></div>
-              <div class="mphc2-row"><span>Pre-Markup Cost Per Check</span><strong id="mphc2-out-preMkup">$0.00</strong></div>
-              <div class="mphc2-row"><span>Profit Amount Per Check</span><strong id="mphc2-out-profitAmt">$0.00</strong></div>
-              <div class="mphc2-row mphc2-row-success"><span>Final Sell Price Per Check</span><strong id="mphc2-out-finalPrice">$0.00</strong></div>
+              <div class="mphc2-row"><span>Base Cost Per Check</span><strong id="mphc2-out-baseCost">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row"><span>Overhead Per Check</span><strong id="mphc2-out-overhead">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row"><span>G&amp;A Per Check</span><strong id="mphc2-out-ga">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row"><span>Subtotal Cost Per Check</span><strong id="mphc2-out-subtotal">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row"><span>Add-On Per Check</span><strong id="mphc2-out-addon">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row"><span>Pre-Markup Cost Per Check</span><strong id="mphc2-out-preMkup">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row"><span>Profit Amount Per Check</span><strong id="mphc2-out-profitAmt">{{ \App\Support\Currency::format(0) }}</strong></div>
+              <div class="mphc2-row mphc2-row-success"><span>Final Sell Price Per Check</span><strong id="mphc2-out-finalPrice">{{ \App\Support\Currency::format(0) }}</strong></div>
             </div>
           </div>
 

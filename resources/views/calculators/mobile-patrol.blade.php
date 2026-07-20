@@ -483,7 +483,7 @@ function mp24RenderInputs() {
         step="any"
         class="mp24-input"
         value="${mp24Inputs[key] ?? 0}"
-        placeholder="${placeholder}"
+        placeholder="{{ \App\Support\Currency::symbol() }}{placeholder}"
       />
       <div class="mp24-hint">${placeholder}</div>
     `;
@@ -509,7 +509,7 @@ function mp24RenderContactFields() {
     col.className = 'col-sm-6';
     col.innerHTML = `
       <label class="mp24-label" for="mp24c-${key}">${label}</label>
-      <input id="mp24c-${key}" type="${type}" class="mp24-input" value="${mp24Contact[key] ?? ''}" placeholder="${placeholder}" />
+      <input id="mp24c-${key}" type="${type}" class="mp24-input" value="${mp24Contact[key] ?? ''}" placeholder="{{ \App\Support\Currency::symbol() }}{placeholder}" />
     `;
     grid.appendChild(col);
   });

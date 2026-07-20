@@ -213,7 +213,7 @@
                 <p class="small text-gasq-muted mb-0">{{ $group['description'] }}</p>
               </div>
               <div class="text-end">
-                <div class="fw-semibold" id="{{ $group['amount_id'] }}">$0.00</div>
+                <div class="fw-semibold" id="{{ $group['amount_id'] }}">{{ \App\Support\Currency::format(0) }}</div>
                 <div class="small text-gasq-muted" id="{{ $group['pct_id'] }}">0%</div>
               </div>
             </div>
@@ -227,7 +227,7 @@
                     {{ $item['label'] }}
                   </label>
                   <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                    <span class="small fw-medium text-end" id="{{ $item['id'] }}_amt" style="min-width:110px">$0.00</span>
+                    <span class="small fw-medium text-end" id="{{ $item['id'] }}_amt" style="min-width:110px">{{ \App\Support\Currency::format(0) }}</span>
                     <input type="number" id="{{ $item['id'] }}" class="form-control form-control-sm text-center" style="width:88px" value="{{ number_format($item['default'], 2, '.', '') }}" min="0" max="100" step="0.1" oninput="calcBudget()">
                   </div>
                 </div>
@@ -273,22 +273,22 @@
             <div class="{{ $isBuyerView ? 'col-12' : 'col-6' }}">
               <div class="p-3 rounded text-center" style="background:#fdf2f2; border:2px solid #b91c1c;">
                 <div class="text-uppercase small fw-semibold mb-1" style="color:#7f1d1d;">Buyer Cost to Protect In-house</div>
-                <div class="h4 fw-bold mb-0" style="color:#7f1d1d;" id="r_internalTco">$0.00</div>
+                <div class="h4 fw-bold mb-0" style="color:#7f1d1d;" id="r_internalTco">{{ \App\Support\Currency::format(0) }}</div>
                 <div class="small text-gasq-muted mt-1">per hour (TCO)</div>
                 <hr class="my-2" style="border-color:#fecaca;">
                 <div class="text-uppercase small fw-semibold mb-1" style="color:#7f1d1d;">Annual</div>
-                <div class="fw-bold" style="color:#7f1d1d;" id="r_buyerAnnual">$0.00</div>
+                <div class="fw-bold" style="color:#7f1d1d;" id="r_buyerAnnual">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             @unless($isBuyerView)
             <div class="col-6">
               <div class="p-3 rounded text-center" style="background:#d1e7dd; border:2px solid #198754;">
                 <div class="text-uppercase small fw-semibold mb-1" style="color:#0a3622;">Buyer Cost to Protect via Outsourcing</div>
-                <div class="h4 fw-bold mb-0" style="color:#0a3622;" id="r_govShouldCost">$0.00</div>
+                <div class="h4 fw-bold mb-0" style="color:#0a3622;" id="r_govShouldCost">{{ \App\Support\Currency::format(0) }}</div>
                 <div class="small text-gasq-muted mt-1">per hour (Vendor TCO)</div>
                 <hr class="my-2" style="border-color:#a3cfbb;">
                 <div class="text-uppercase small fw-semibold mb-1" style="color:#0a3622;">Annual</div>
-                <div class="fw-bold" style="color:#0a3622;" id="r_vendorAnnual">$0.00</div>
+                <div class="fw-bold" style="color:#0a3622;" id="r_vendorAnnual">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             @endunless
@@ -300,11 +300,11 @@
             <div class="row g-2 mt-1">
               <div class="col-6">
                 <div class="small text-gasq-muted">Per hour</div>
-                <div class="h5 fw-bold mb-0" style="color:#664d03;" id="r_recoveryPerHr">$0.00</div>
+                <div class="h5 fw-bold mb-0" style="color:#664d03;" id="r_recoveryPerHr">{{ \App\Support\Currency::format(0) }}</div>
               </div>
               <div class="col-6">
                 <div class="small text-gasq-muted">Annual</div>
-                <div class="h5 fw-bold mb-0" style="color:#664d03;" id="r_recoveryAnnual">$0.00</div>
+                <div class="h5 fw-bold mb-0" style="color:#664d03;" id="r_recoveryAnnual">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="small mt-2" style="color:#664d03;">
@@ -313,7 +313,7 @@
           </div>
 
           <div class="d-flex justify-content-between small text-gasq-muted mb-3 px-1">
-            <span>Shared Resources Safe Zone Rate: <strong id="r_loadedWage">$0.00</strong></span>
+            <span>Shared Resources Safe Zone Rate: <strong id="r_loadedWage">{{ \App\Support\Currency::format(0) }}</strong></span>
             <span>Annual Coverage: <strong id="r_hours">0</strong> hrs</span>
           </div>
           <div class="text-center small mb-4">
@@ -324,25 +324,25 @@
             <div class="col-6">
               <div class="gasq-metric-card text-center">
                 <div class="metric-desc">Annual Budget</div>
-                <div class="metric-value text-primary" id="r_annual">$0.00</div>
+                <div class="metric-value text-primary" id="r_annual">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="col-6">
               <div class="gasq-metric-card text-center">
                 <div class="metric-desc">Monthly Budget</div>
-                <div class="metric-value" id="r_monthly">$0.00</div>
+                <div class="metric-value" id="r_monthly">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="col-6">
               <div class="gasq-metric-card text-center">
                 <div class="metric-desc">Weekly Budget</div>
-                <div class="metric-value" id="r_weekly">$0.00</div>
+                <div class="metric-value" id="r_weekly">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="col-6">
               <div class="gasq-metric-card text-center">
                 <div class="metric-desc">Daily Budget</div>
-                <div class="metric-value" id="r_daily">$0.00</div>
+                <div class="metric-value" id="r_daily">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
           </div>
@@ -384,7 +384,7 @@
               <div class="fw-semibold">Total Contract / Budget Value</div>
               <div class="text-gasq-muted small">Sum of all allocation groups · auto-calculated</div>
             </div>
-            <div class="h4 fw-bold text-primary mb-0" id="bg_contract_total">$0.00</div>
+            <div class="h4 fw-bold text-primary mb-0" id="bg_contract_total">{{ \App\Support\Currency::format(0) }}</div>
           </div>
 
           <h6 class="fw-semibold mb-3">Line-Item Breakdown</h6>
@@ -392,7 +392,7 @@
 
           <div class="rounded p-3" style="background:rgba(6,45,121,0.06);border:1px solid rgba(6,45,121,0.15)">
             <h6 class="fw-semibold mb-2 d-flex align-items-center gap-2"><i class="fa fa-lightbulb text-primary"></i> Budget Insights</h6>
-            <div class="d-flex justify-content-between small mb-1"><span class="text-gasq-muted">Government should-cost</span><span id="ins_govShouldCost" class="fw-medium">$0.00</span></div>
+            <div class="d-flex justify-content-between small mb-1"><span class="text-gasq-muted">Government should-cost</span><span id="ins_govShouldCost" class="fw-medium">{{ \App\Support\Currency::format(0) }}</span></div>
             <div class="d-flex justify-content-between small mb-1"><span class="text-gasq-muted">Annual billable hours</span><span id="ins_annualHours" class="fw-medium">0</span></div>
             <div class="d-flex justify-content-between small mb-1"><span class="text-gasq-muted">Labor & burden allocation</span><span id="ins_laborPct" class="fw-medium">0%</span></div>
             <div class="d-flex justify-content-between small mb-1"><span class="text-gasq-muted">Industry benchmark (labor)</span><span class="text-gasq-muted">55–70%</span></div>

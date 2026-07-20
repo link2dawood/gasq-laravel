@@ -114,7 +114,7 @@
               </div>
               <div class="d-flex flex-column gap-3">
                 <div>
-                  <label class="form-label fw-medium">Base Pay Rate ($/hr)</label>
+                  <label class="form-label fw-medium">Base Pay Rate ({{ \App\Support\Currency::symbol() }}/hr)</label>
                   <input type="number" id="qbr_base" class="form-control" value="18.00" step="0.01" oninput="scheduleCompute()">
                 </div>
                 <div>
@@ -170,21 +170,21 @@
               <div class="col-md-4">
                 <div class="bra-stat">
                   <div class="bra-stat-label mb-2">Quick Bill Rate</div>
-                  <div class="bra-stat-value bra-mono" id="qr_billRate_top">$0.00</div>
+                  <div class="bra-stat-value bra-mono" id="qr_billRate_top">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Base pay, benefits, overhead, profit</div>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="bra-stat">
                   <div class="bra-stat-label mb-2">Weekly at 40 Hours</div>
-                  <div class="bra-stat-value bra-mono" id="qr_weekly_top">$0.00</div>
+                  <div class="bra-stat-value bra-mono" id="qr_weekly_top">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Live from quick calculator inputs</div>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="bra-stat">
                   <div class="bra-stat-label mb-2">Component Total</div>
-                  <div class="bra-stat-value bra-mono" id="bcc_total_top">$0.00</div>
+                  <div class="bra-stat-value bra-mono" id="bcc_total_top">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">All component inputs combined</div>
                 </div>
               </div>
@@ -213,11 +213,11 @@
                   <div class="col-lg-6">
                     <div class="bra-panel p-3 h-100">
                       <h5 class="fw-semibold mb-3">Bill Rate Build-Up</h5>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Base pay rate</span><span class="fw-medium bra-mono" id="qr_base">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Payroll taxes &amp; benefits</span><span class="fw-medium bra-mono" id="qr_benefitsAmt">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Fully burdened cost</span><span class="fw-medium bra-mono" id="qr_burdened">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Overhead amount</span><span class="fw-medium bra-mono" id="qr_overheadAmt">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Cost with overhead</span><span class="fw-medium bra-mono" id="qr_withOverhead">$0.00/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Base pay rate</span><span class="fw-medium bra-mono" id="qr_base">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Payroll taxes &amp; benefits</span><span class="fw-medium bra-mono" id="qr_benefitsAmt">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Fully burdened cost</span><span class="fw-medium bra-mono" id="qr_burdened">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Overhead amount</span><span class="fw-medium bra-mono" id="qr_overheadAmt">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Cost with overhead</span><span class="fw-medium bra-mono" id="qr_withOverhead">{{ \App\Support\Currency::format(0) }}/hr</span></div>
                     </div>
                   </div>
                   <div class="col-lg-6">
@@ -225,11 +225,11 @@
                       <h5 class="fw-semibold mb-3">Quick Analysis</h5>
                       <div class="rounded-4 p-4 text-white text-center mb-3" style="background:var(--gasq-primary)">
                         <div class="small mb-1" style="opacity:.85">Final Bill Rate</div>
-                        <div class="display-5 fw-bold bra-mono" id="qr_billRate">$0.00</div>
+                        <div class="display-5 fw-bold bra-mono" id="qr_billRate">{{ \App\Support\Currency::format(0) }}</div>
                         <div class="small mt-2" style="opacity:.75">Markup: <span id="qr_markup">0.0%</span></div>
                       </div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Weekly at 40 hours</span><span class="fw-medium bra-mono" id="qr_weekly">$0.00</span></div>
-                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Burdened cost recheck</span><span class="fw-medium bra-mono" id="qr_burdened2">$0.00/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Weekly at 40 hours</span><span class="fw-medium bra-mono" id="qr_weekly">{{ \App\Support\Currency::format(0) }}</span></div>
+                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Burdened cost recheck</span><span class="fw-medium bra-mono" id="qr_burdened2">{{ \App\Support\Currency::format(0) }}/hr</span></div>
                     </div>
                   </div>
                 </div>
@@ -242,11 +242,11 @@
                       <h5 class="fw-semibold mb-3">Component Summary</h5>
                       <div class="rounded-4 p-4 text-white text-center mb-3" style="background:var(--gasq-primary)">
                         <div class="small mb-1" style="opacity:.85">Total Bill Rate</div>
-                        <div class="display-5 fw-bold bra-mono" id="bcc_total">$0.00</div>
+                        <div class="display-5 fw-bold bra-mono" id="bcc_total">{{ \App\Support\Currency::format(0) }}</div>
                         <div class="small mt-1" style="opacity:.7">per hour</div>
                       </div>
                       <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Largest component</span><span class="fw-medium bra-mono" id="bcc_largest">—</span></div>
-                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Quick calculator bill rate</span><span class="fw-medium bra-mono" id="bcc_quickMirror">$0.00</span></div>
+                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Quick calculator bill rate</span><span class="fw-medium bra-mono" id="bcc_quickMirror">{{ \App\Support\Currency::format(0) }}</span></div>
                     </div>
                   </div>
                   <div class="col-lg-7">

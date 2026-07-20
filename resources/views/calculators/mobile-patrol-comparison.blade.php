@@ -142,7 +142,7 @@
               <div class="row g-3 mpc-input-grid">
                 <div class="col-md-6"><label class="form-label">Hours/day</label><input type="number" id="a_hoursPerDay" class="form-control form-control-sm" value="24" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Days/year</label><input type="number" id="a_daysPerYear" class="form-control form-control-sm" value="365" oninput="calculate()"></div>
-                <div class="col-md-6"><label class="form-label">Patrolman wage $/hr</label><input type="number" id="a_wage" class="form-control form-control-sm" value="18.00" step="0.01" oninput="calculate()"></div>
+                <div class="col-md-6"><label class="form-label">Patrolman wage {{ \App\Support\Currency::symbol() }}/hr</label><input type="number" id="a_wage" class="form-control form-control-sm" value="18.00" step="0.01" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Payroll burden %</label><input type="number" id="a_burden" class="form-control form-control-sm" value="24" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Vehicle finance $/yr</label><input type="number" id="a_vehFin" class="form-control form-control-sm" value="7980.00" step="0.01" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Miles/day</label><input type="number" id="a_miles" class="form-control form-control-sm" value="360" oninput="calculate()"></div>
@@ -171,7 +171,7 @@
               <div class="row g-3 mpc-input-grid">
                 <div class="col-md-6"><label class="form-label">Hours/day</label><input type="number" id="b_hoursPerDay" class="form-control form-control-sm" value="12" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Days/year</label><input type="number" id="b_daysPerYear" class="form-control form-control-sm" value="365" oninput="calculate()"></div>
-                <div class="col-md-6"><label class="form-label">Patrolman wage $/hr</label><input type="number" id="b_wage" class="form-control form-control-sm" value="18.00" step="0.01" oninput="calculate()"></div>
+                <div class="col-md-6"><label class="form-label">Patrolman wage {{ \App\Support\Currency::symbol() }}/hr</label><input type="number" id="b_wage" class="form-control form-control-sm" value="18.00" step="0.01" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Payroll burden %</label><input type="number" id="b_burden" class="form-control form-control-sm" value="24" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Vehicle finance $/yr</label><input type="number" id="b_vehFin" class="form-control form-control-sm" value="6500.00" step="0.01" oninput="calculate()"></div>
                 <div class="col-md-6"><label class="form-label">Miles/day</label><input type="number" id="b_miles" class="form-control form-control-sm" value="200" oninput="calculate()"></div>
@@ -196,7 +196,7 @@
                   <div class="mpc-stat-label mb-2">Hourly Rate Difference</div>
                   <div class="d-flex align-items-center gap-2">
                     <i class="fa" id="s-hourlyIcon"></i>
-                    <div class="mpc-stat-value mpc-mono" id="s-hourlyDiff">$0.00</div>
+                    <div class="mpc-stat-value mpc-mono" id="s-hourlyDiff">{{ \App\Support\Currency::format(0) }}</div>
                   </div>
                   <div class="small mt-1" id="s-hourlyPct">0.0%</div>
                 </div>
@@ -206,7 +206,7 @@
                   <div class="mpc-stat-label mb-2">Monthly Cost Difference</div>
                   <div class="d-flex align-items-center gap-2">
                     <i class="fa" id="s-monthlyIcon"></i>
-                    <div class="mpc-stat-value mpc-mono" id="s-monthlyDiff">$0.00</div>
+                    <div class="mpc-stat-value mpc-mono" id="s-monthlyDiff">{{ \App\Support\Currency::format(0) }}</div>
                   </div>
                   <div class="small text-gasq-muted mt-1">per month</div>
                 </div>
@@ -216,7 +216,7 @@
                   <div class="mpc-stat-label mb-2">Annual Cost Difference</div>
                   <div class="d-flex align-items-center gap-2">
                     <i class="fa" id="s-annualIcon"></i>
-                    <div class="mpc-stat-value mpc-mono" id="s-annualDiff">$0.00</div>
+                    <div class="mpc-stat-value mpc-mono" id="s-annualDiff">{{ \App\Support\Currency::format(0) }}</div>
                   </div>
                   <div class="small mt-1" id="s-annualPct">0.0%</div>
                 </div>
@@ -242,7 +242,7 @@
                     </div>
                     <div class="text-end">
                       <div class="small text-gasq-muted">Annual Delta</div>
-                      <div class="fs-3 fw-bold mpc-mono" id="savingsValue">$0.00</div>
+                      <div class="fs-3 fw-bold mpc-mono" id="savingsValue">{{ \App\Support\Currency::format(0) }}</div>
                     </div>
                   </div>
                 </div>
@@ -258,16 +258,16 @@
                   </div>
                   <div class="rounded p-3 text-white text-center mb-3" style="background:var(--gasq-primary)">
                     <div class="small mb-1" style="opacity:.85">Hourly Billable Rate</div>
-                    <div class="fs-2 fw-bold mpc-mono" id="a_rate">$0.00</div>
+                    <div class="fs-2 fw-bold mpc-mono" id="a_rate">{{ \App\Support\Currency::format(0) }}</div>
                     <div class="small mt-1" style="opacity:.7">per hour</div>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Annual cost with markup</span>
-                    <span class="fw-semibold mpc-mono" id="a_annual">$0.00</span>
+                    <span class="fw-semibold mpc-mono" id="a_annual">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Monthly cost with markup</span>
-                    <span class="fw-medium mpc-mono" id="a_monthly">$0.00</span>
+                    <span class="fw-medium mpc-mono" id="a_monthly">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Hours per year</span>
@@ -275,7 +275,7 @@
                   </div>
                   <div class="d-flex justify-content-between">
                     <span class="text-gasq-muted small">Pre-markup annual cost</span>
-                    <span class="fw-medium mpc-mono" id="a_pre">$0.00</span>
+                    <span class="fw-medium mpc-mono" id="a_pre">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                 </div>
               </div>
@@ -288,16 +288,16 @@
                   </div>
                   <div class="rounded p-3 text-white text-center mb-3" style="background:#16a34a">
                     <div class="small mb-1" style="opacity:.85">Hourly Billable Rate</div>
-                    <div class="fs-2 fw-bold mpc-mono" id="b_rate">$0.00</div>
+                    <div class="fs-2 fw-bold mpc-mono" id="b_rate">{{ \App\Support\Currency::format(0) }}</div>
                     <div class="small mt-1" style="opacity:.7">per hour</div>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Annual cost with markup</span>
-                    <span class="fw-semibold mpc-mono" id="b_annual">$0.00</span>
+                    <span class="fw-semibold mpc-mono" id="b_annual">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Monthly cost with markup</span>
-                    <span class="fw-medium mpc-mono" id="b_monthly">$0.00</span>
+                    <span class="fw-medium mpc-mono" id="b_monthly">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Hours per year</span>
@@ -305,7 +305,7 @@
                   </div>
                   <div class="d-flex justify-content-between">
                     <span class="text-gasq-muted small">Pre-markup annual cost</span>
-                    <span class="fw-medium mpc-mono" id="b_pre">$0.00</span>
+                    <span class="fw-medium mpc-mono" id="b_pre">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                 </div>
               </div>

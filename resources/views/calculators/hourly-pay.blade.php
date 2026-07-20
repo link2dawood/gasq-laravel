@@ -29,7 +29,7 @@
         <div class="card-body d-flex flex-column gap-4">
 
           <div>
-            <label class="form-label fw-medium">Hourly Pay Rate ($/hr)</label>
+            <label class="form-label fw-medium">Hourly Pay Rate ({{ \App\Support\Currency::symbol() }}/hr)</label>
             <input type="number" id="hp_rate" class="form-control" value="18.00" step="0.01" oninput="calcHP()">
           </div>
 
@@ -91,47 +91,47 @@
 
           <div class="gasq-input-section">
             <h6 class="fw-semibold mb-2">Gross Pay</h6>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Regular pay (<span id="r_regHrs">40</span>hr × <span id="r_rate">$18.00</span>)</span><span class="fw-medium gasq-mono" id="r_regPay">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Overtime pay (<span id="r_otHrs">0</span>hr × 1.5x)</span><span class="fw-medium gasq-mono" id="r_otPay">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Double-time pay (<span id="r_dtHrs">0</span>hr × 2.0x)</span><span class="fw-medium gasq-mono" id="r_dtPay">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Regular pay (<span id="r_regHrs">40</span>hr × <span id="r_rate">$18.00</span>)</span><span class="fw-medium gasq-mono" id="r_regPay">{{ \App\Support\Currency::format(0) }}</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Overtime pay (<span id="r_otHrs">0</span>hr × 1.5x)</span><span class="fw-medium gasq-mono" id="r_otPay">{{ \App\Support\Currency::format(0) }}</span></div>
+            <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Double-time pay (<span id="r_dtHrs">0</span>hr × 2.0x)</span><span class="fw-medium gasq-mono" id="r_dtPay">{{ \App\Support\Currency::format(0) }}</span></div>
             <hr class="my-1">
-            <div class="d-flex justify-content-between fw-semibold"><span>Weekly Gross Pay</span><span class="gasq-mono" id="r_weeklyGross">$0.00</span></div>
+            <div class="d-flex justify-content-between fw-semibold"><span>Weekly Gross Pay</span><span class="gasq-mono" id="r_weeklyGross">{{ \App\Support\Currency::format(0) }}</span></div>
           </div>
 
           <div class="gasq-input-section">
             <h6 class="fw-semibold mb-2">Deductions</h6>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Federal tax</span><span class="fw-medium gasq-mono" id="r_fedTax">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">State tax</span><span class="fw-medium gasq-mono" id="r_stateTax">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">FICA / Social Security</span><span class="fw-medium gasq-mono" id="r_ficaAmt">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Medicare</span><span class="fw-medium gasq-mono" id="r_medicareAmt">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Health &amp; other</span><span class="fw-medium gasq-mono" id="r_otherDed">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Federal tax</span><span class="fw-medium gasq-mono" id="r_fedTax">{{ \App\Support\Currency::format(0) }}</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">State tax</span><span class="fw-medium gasq-mono" id="r_stateTax">{{ \App\Support\Currency::format(0) }}</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">FICA / Social Security</span><span class="fw-medium gasq-mono" id="r_ficaAmt">{{ \App\Support\Currency::format(0) }}</span></div>
+            <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Medicare</span><span class="fw-medium gasq-mono" id="r_medicareAmt">{{ \App\Support\Currency::format(0) }}</span></div>
+            <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Health &amp; other</span><span class="fw-medium gasq-mono" id="r_otherDed">{{ \App\Support\Currency::format(0) }}</span></div>
             <hr class="my-1">
-            <div class="d-flex justify-content-between fw-semibold"><span>Total Deductions</span><span class="gasq-mono" id="r_totalDed">$0.00</span></div>
+            <div class="d-flex justify-content-between fw-semibold"><span>Total Deductions</span><span class="gasq-mono" id="r_totalDed">{{ \App\Support\Currency::format(0) }}</span></div>
           </div>
 
           {{-- Net Pay --}}
           <div class="rounded p-4 text-white text-center" style="background:var(--gasq-primary)">
             <div class="small mb-1" style="opacity:.85">Weekly Net (Take-Home) Pay</div>
-            <div class="display-5 fw-bold" id="r_netPay">$0.00</div>
+            <div class="display-5 fw-bold" id="r_netPay">{{ \App\Support\Currency::format(0) }}</div>
           </div>
 
           <div class="row g-3">
             <div class="col-4">
               <div class="gasq-metric-card text-center">
                 <div class="metric-desc">Bi-Weekly Net</div>
-                <div class="metric-value text-primary" id="r_biweekly">$0.00</div>
+                <div class="metric-value text-primary" id="r_biweekly">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="col-4">
               <div class="gasq-metric-card text-center">
                 <div class="metric-desc">Monthly Net</div>
-                <div class="metric-value text-primary" id="r_monthly">$0.00</div>
+                <div class="metric-value text-primary" id="r_monthly">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="col-4">
               <div class="gasq-metric-card text-center">
                 <div class="metric-desc">Annual Net</div>
-                <div class="metric-value text-primary" id="r_annual">$0.00</div>
+                <div class="metric-value text-primary" id="r_annual">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
           </div>
@@ -139,7 +139,7 @@
           <div class="rounded p-3" style="background:var(--gasq-muted-bg)">
             <h6 class="fw-semibold mb-2">Effective Rates</h6>
             <div class="d-flex justify-content-between mb-1"><span class="text-gasq-muted small">Total effective tax rate</span><span class="fw-medium" id="r_effTaxRate">0.0%</span></div>
-            <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Effective hourly take-home</span><span class="fw-medium" id="r_effHourly">$0.00/hr</span></div>
+            <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Effective hourly take-home</span><span class="fw-medium" id="r_effHourly">{{ \App\Support\Currency::format(0) }}/hr</span></div>
           </div>
 
         </div>

@@ -153,7 +153,7 @@
               </div>
               <div class="d-flex flex-column gap-3">
                 <div>
-                  <label class="form-label fw-medium">Employee True Hourly Cost ($/hr)</label>
+                  <label class="form-label fw-medium">Employee True Hourly Cost ({{ \App\Support\Currency::symbol() }}/hr)</label>
                   <input type="number" id="ej_empCost" class="form-control" value="133.00" step="0.01" oninput="scheduleEJ()">
                   <div class="form-text">Includes wages, payroll taxes, benefits, HR overhead.</div>
                 </div>
@@ -182,7 +182,7 @@
               <div class="col-md-4">
                 <div class="ej-stat">
                   <div class="ej-stat-label mb-2">Annual Savings</div>
-                  <div class="ej-stat-value ej-mono" id="r_savings_top">$0.00</div>
+                  <div class="ej-stat-value ej-mono" id="r_savings_top">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">In-house cost minus vendor cost</div>
                 </div>
               </div>
@@ -222,9 +222,9 @@
                     </div>
                     <i class="fa fa-building text-danger"></i>
                   </div>
-                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Weekly cost</span><span class="fw-medium ej-mono" id="r_ihWeekly">$0.00</span></div>
-                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Monthly cost</span><span class="fw-medium ej-mono" id="r_ihMonthly">$0.00</span></div>
-                  <div class="d-flex justify-content-between fw-semibold"><span>Total in-house annual cost</span><span class="text-danger ej-mono" id="r_ihAnnual">$0.00</span></div>
+                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Weekly cost</span><span class="fw-medium ej-mono" id="r_ihWeekly">{{ \App\Support\Currency::format(0) }}</span></div>
+                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Monthly cost</span><span class="fw-medium ej-mono" id="r_ihMonthly">{{ \App\Support\Currency::format(0) }}</span></div>
+                  <div class="d-flex justify-content-between fw-semibold"><span>Total in-house annual cost</span><span class="text-danger ej-mono" id="r_ihAnnual">{{ \App\Support\Currency::format(0) }}</span></div>
                 </div>
               </div>
               <div class="col-lg-6">
@@ -236,12 +236,12 @@
                     </div>
                     <i class="fa fa-shield text-success"></i>
                   </div>
-                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Vendor hourly rate</span><span class="fw-medium ej-mono" id="r_vHourly">$0.00/hr</span></div>
-                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Recovery / replacement factor</span><span class="fw-medium ej-mono" id="r_vRecovery">$0.00/hr</span></div>
+                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Vendor hourly rate</span><span class="fw-medium ej-mono" id="r_vHourly">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Recovery / replacement factor</span><span class="fw-medium ej-mono" id="r_vRecovery">{{ \App\Support\Currency::format(0) }}/hr</span></div>
                   <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Weekly hours outsourced</span><span class="fw-medium ej-mono" id="r_vWeeklyHrs">0</span></div>
-                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Weekly cost</span><span class="fw-medium ej-mono" id="r_vWeekly">$0.00</span></div>
-                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Monthly cost</span><span class="fw-medium ej-mono" id="r_vMonthly">$0.00</span></div>
-                  <div class="d-flex justify-content-between fw-semibold"><span>Total vendor annual cost</span><span class="text-success ej-mono" id="r_vAnnual">$0.00</span></div>
+                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Weekly cost</span><span class="fw-medium ej-mono" id="r_vWeekly">{{ \App\Support\Currency::format(0) }}</span></div>
+                  <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Monthly cost</span><span class="fw-medium ej-mono" id="r_vMonthly">{{ \App\Support\Currency::format(0) }}</span></div>
+                  <div class="d-flex justify-content-between fw-semibold"><span>Total vendor annual cost</span><span class="text-success ej-mono" id="r_vAnnual">{{ \App\Support\Currency::format(0) }}</span></div>
                 </div>
               </div>
             </div>
@@ -252,7 +252,7 @@
                 <div class="col-md-3">
                   <div class="rounded p-3 text-center" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3)">
                     <div class="small text-gasq-muted mb-1">Cost Savings (&lt; 12 Months)</div>
-                    <div class="fs-5 fw-bold text-success ej-mono" id="r_savings">$0.00</div>
+                    <div class="fs-5 fw-bold text-success ej-mono" id="r_savings">{{ \App\Support\Currency::format(0) }}</div>
                   </div>
                 </div>
                 <div class="col-md-3">
@@ -270,7 +270,7 @@
                 <div class="col-md-3">
                   <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
                     <div class="small text-gasq-muted mb-1">Dollar for Dollar Return</div>
-                    <div class="fs-5 fw-bold ej-mono" id="r_dollar">$0.00</div>
+                    <div class="fs-5 fw-bold ej-mono" id="r_dollar">{{ \App\Support\Currency::format(0) }}</div>
                   </div>
                 </div>
               </div>
@@ -286,8 +286,8 @@
                   <thead><tr><th>Metric</th><th class="text-center">In-House</th><th class="text-center">Vendor</th><th class="text-center">Variance</th></tr></thead>
                   <tbody>
                     <tr><td class="small text-gasq-muted">Projected Annual Hours</td><td class="text-center ej-mono" id="p_ihHrs">0</td><td class="text-center ej-mono" id="p_vHrs">0</td><td class="text-center">—</td></tr>
-                    <tr><td class="small text-gasq-muted">Projected Annual Cost</td><td class="text-center ej-mono" id="p_ihCost">$0.00</td><td class="text-center ej-mono" id="p_vCost">$0.00</td><td class="text-center fw-semibold ej-mono" id="p_variance">$0.00</td></tr>
-                    <tr><td class="small text-gasq-muted">Per-Employee Financial Contribution</td><td class="text-center ej-mono" id="p_ihPerEmp">$0.00</td><td class="text-center ej-mono" id="p_vPerEmp">$0.00</td><td class="text-center">—</td></tr>
+                    <tr><td class="small text-gasq-muted">Projected Annual Cost</td><td class="text-center ej-mono" id="p_ihCost">{{ \App\Support\Currency::format(0) }}</td><td class="text-center ej-mono" id="p_vCost">{{ \App\Support\Currency::format(0) }}</td><td class="text-center fw-semibold ej-mono" id="p_variance">{{ \App\Support\Currency::format(0) }}</td></tr>
+                    <tr><td class="small text-gasq-muted">Per-Employee Financial Contribution</td><td class="text-center ej-mono" id="p_ihPerEmp">{{ \App\Support\Currency::format(0) }}</td><td class="text-center ej-mono" id="p_vPerEmp">{{ \App\Support\Currency::format(0) }}</td><td class="text-center">—</td></tr>
                   </tbody>
                 </table>
               </div>

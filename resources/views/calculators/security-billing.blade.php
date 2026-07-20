@@ -141,7 +141,7 @@
               </div>
               <div class="d-flex flex-column gap-3">
                 <div>
-                  <label class="form-label fw-medium">Base Pay Rate ($/hr)</label>
+                  <label class="form-label fw-medium">Base Pay Rate ({{ \App\Support\Currency::symbol() }}/hr)</label>
                   <input type="number" id="sb_basePay" class="form-control" value="18.00" step="0.01" oninput="scheduleSB()">
                 </div>
 
@@ -185,7 +185,7 @@
                   <input type="number" id="sb_profitPct" class="form-control form-control-sm" value="15" step="0.1" oninput="scheduleSB()">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium">Uniform Cost ($)</label>
+                  <label class="form-label small fw-medium">Uniform Cost ({{ \App\Support\Currency::symbol() }})</label>
                   <input type="number" id="sb_uniformCost" class="form-control form-control-sm" value="75" step="0.01" oninput="scheduleSB()">
                 </div>
                 <div class="col-md-6">
@@ -193,7 +193,7 @@
                   <input type="number" id="sb_uniformQty" class="form-control form-control-sm" value="2" oninput="scheduleSB()">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium">Training Cost per Hire ($)</label>
+                  <label class="form-label small fw-medium">Training Cost per Hire ({{ \App\Support\Currency::symbol() }})</label>
                   <input type="number" id="sb_trainingCost" class="form-control form-control-sm" value="500" oninput="scheduleSB()">
                 </div>
               </div>
@@ -207,21 +207,21 @@
               <div class="col-md-4">
                 <div class="sb-stat">
                   <div class="sb-stat-label mb-2">Total Bill Rate</div>
-                  <div class="sb-stat-value sb-mono" id="sb_r_totalBillRate">$0.00</div>
+                  <div class="sb-stat-value sb-mono" id="sb_r_totalBillRate">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Current live billing model</div>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="sb-stat">
                   <div class="sb-stat-label mb-2">Weekly Total</div>
-                  <div class="sb-stat-value sb-mono" id="sb_r_weekly">$0.00</div>
+                  <div class="sb-stat-value sb-mono" id="sb_r_weekly">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Driven by shared left-side inputs</div>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="sb-stat">
                   <div class="sb-stat-label mb-2">Annual Total</div>
-                  <div class="sb-stat-value sb-mono" id="sb_r_annual">$0.00</div>
+                  <div class="sb-stat-value sb-mono" id="sb_r_annual">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Updated instantly as inputs change</div>
                 </div>
               </div>
@@ -249,23 +249,23 @@
                   <div class="col-lg-6">
                     <div class="sb-panel p-3 h-100">
                       <h5 class="fw-semibold mb-3">Hourly Rates</h5>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Base Pay Rate</span><span class="fw-medium sb-mono" id="sb_r_basePay">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Cost with Payroll Taxes</span><span class="fw-medium sb-mono" id="sb_r_withTaxes">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Cost with Overhead</span><span class="fw-medium sb-mono" id="sb_r_withOverhead">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">OT Bill Rate (1.5x)</span><span class="fw-medium sb-mono" id="sb_r_otRate">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Holiday Bill Rate (1.5x)</span><span class="fw-medium sb-mono" id="sb_r_holidayRate">$0.00/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Base Pay Rate</span><span class="fw-medium sb-mono" id="sb_r_basePay">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Cost with Payroll Taxes</span><span class="fw-medium sb-mono" id="sb_r_withTaxes">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Cost with Overhead</span><span class="fw-medium sb-mono" id="sb_r_withOverhead">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">OT Bill Rate (1.5x)</span><span class="fw-medium sb-mono" id="sb_r_otRate">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Holiday Bill Rate (1.5x)</span><span class="fw-medium sb-mono" id="sb_r_holidayRate">{{ \App\Support\Currency::format(0) }}/hr</span></div>
                     </div>
                   </div>
                   <div class="col-lg-6">
                     <div class="sb-panel sb-panel-muted p-3 h-100">
                       <h5 class="fw-semibold mb-3">Totals</h5>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Monthly Total</span><span class="fw-medium sb-mono" id="sb_r_monthly">$0.00</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Uniform Cost</span><span class="fw-medium sb-mono" id="sb_r_uniforms">$0.00</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Training Cost (amortized/hr)</span><span class="fw-medium sb-mono" id="sb_r_trainingHr">$0.00/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Monthly Total</span><span class="fw-medium sb-mono" id="sb_r_monthly">{{ \App\Support\Currency::format(0) }}</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Uniform Cost</span><span class="fw-medium sb-mono" id="sb_r_uniforms">{{ \App\Support\Currency::format(0) }}</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Training Cost (amortized/hr)</span><span class="fw-medium sb-mono" id="sb_r_trainingHr">{{ \App\Support\Currency::format(0) }}/hr</span></div>
                       <hr class="my-3">
                       <div class="rounded-4 p-4 text-white text-center" style="background:var(--gasq-primary)">
                         <div class="small mb-1" style="opacity:.8">Recommended Bill Rate</div>
-                        <div class="display-5 fw-bold sb-mono" id="sb_r_billRate">$0.00/hr</div>
+                        <div class="display-5 fw-bold sb-mono" id="sb_r_billRate">{{ \App\Support\Currency::format(0) }}/hr</div>
                         <div class="small mt-1" style="opacity:.7">Applied everywhere on this page</div>
                       </div>
                     </div>
@@ -310,15 +310,15 @@
                         <h5 class="mb-0 fw-semibold">Scenario A</h5>
                       </div>
                       <div class="small text-gasq-muted mb-3">This scenario mirrors the shared left-side inputs in real time.</div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Base Pay</span><span class="fw-medium sb-mono" id="cmpA_basePay">$0.00/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Base Pay</span><span class="fw-medium sb-mono" id="cmpA_basePay">{{ \App\Support\Currency::format(0) }}/hr</span></div>
                       <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Hours / Week</span><span class="fw-medium sb-mono" id="cmpA_hours">0</span></div>
                       <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Overhead</span><span class="fw-medium sb-mono" id="cmpA_overhead">0%</span></div>
                       <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Profit</span><span class="fw-medium sb-mono" id="cmpA_profit">0%</span></div>
                       <hr class="my-3">
                       <div class="rounded-4 p-4 text-white text-center" style="background:var(--gasq-primary)">
                         <div class="small mb-1" style="opacity:.82">Scenario A Bill Rate</div>
-                        <div class="fs-2 fw-bold sb-mono" id="cmpRateA">$0.00</div>
-                        <div class="small mt-1" style="opacity:.72">Annual: <span id="cmpAnnualA">$0.00</span></div>
+                        <div class="fs-2 fw-bold sb-mono" id="cmpRateA">{{ \App\Support\Currency::format(0) }}</div>
+                        <div class="small mt-1" style="opacity:.72">Annual: <span id="cmpAnnualA">{{ \App\Support\Currency::format(0) }}</span></div>
                       </div>
                     </div>
                   </div>
@@ -331,7 +331,7 @@
                       <div class="small text-gasq-muted mb-3">Use the current tax structure from the left and test an alternate pay, hours, overhead, and profit mix here.</div>
                       <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                          <label class="form-label x-sm fw-medium">Base Pay $/hr</label>
+                          <label class="form-label x-sm fw-medium">Base Pay {{ \App\Support\Currency::symbol() }}/hr</label>
                           <input type="number" id="cmpB_basePay" class="form-control form-control-sm" value="18.00" step="0.01" oninput="scheduleSB()">
                         </div>
                         <div class="col-md-6">
@@ -349,8 +349,8 @@
                       </div>
                       <div class="rounded-4 p-4 text-white text-center" style="background:#16a34a">
                         <div class="small mb-1" style="opacity:.82">Scenario B Bill Rate</div>
-                        <div class="fs-2 fw-bold sb-mono" id="cmpRateB">$0.00</div>
-                        <div class="small mt-1" style="opacity:.72">Annual: <span id="cmpAnnualB">$0.00</span></div>
+                        <div class="fs-2 fw-bold sb-mono" id="cmpRateB">{{ \App\Support\Currency::format(0) }}</div>
+                        <div class="small mt-1" style="opacity:.72">Annual: <span id="cmpAnnualB">{{ \App\Support\Currency::format(0) }}</span></div>
                       </div>
                     </div>
                   </div>
@@ -358,9 +358,9 @@
                     <div class="sb-panel sb-panel-muted p-3">
                       <h5 class="fw-semibold mb-3">Difference (B vs A)</h5>
                       <div class="row g-3">
-                        <div class="col-md-4 text-center"><div class="small text-gasq-muted mb-1">Hourly Rate</div><div class="fs-5 fw-bold sb-mono" id="cmpDiffRate">$0.00</div></div>
-                        <div class="col-md-4 text-center"><div class="small text-gasq-muted mb-1">Weekly</div><div class="fs-5 fw-bold sb-mono" id="cmpDiffWeekly">$0.00</div></div>
-                        <div class="col-md-4 text-center"><div class="small text-gasq-muted mb-1">Annual</div><div class="fs-5 fw-bold sb-mono" id="cmpDiffAnnual">$0.00</div></div>
+                        <div class="col-md-4 text-center"><div class="small text-gasq-muted mb-1">Hourly Rate</div><div class="fs-5 fw-bold sb-mono" id="cmpDiffRate">{{ \App\Support\Currency::format(0) }}</div></div>
+                        <div class="col-md-4 text-center"><div class="small text-gasq-muted mb-1">Weekly</div><div class="fs-5 fw-bold sb-mono" id="cmpDiffWeekly">{{ \App\Support\Currency::format(0) }}</div></div>
+                        <div class="col-md-4 text-center"><div class="small text-gasq-muted mb-1">Annual</div><div class="fs-5 fw-bold sb-mono" id="cmpDiffAnnual">{{ \App\Support\Currency::format(0) }}</div></div>
                       </div>
                     </div>
                   </div>
@@ -381,12 +381,12 @@
                   <div class="col-lg-6">
                     <div class="sb-panel p-3 h-100">
                       <h5 class="fw-semibold mb-3">Live Rate Sheet</h5>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Base Pay</span><span class="fw-medium sb-mono" id="profile_basePay">$0.00/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Base Pay</span><span class="fw-medium sb-mono" id="profile_basePay">{{ \App\Support\Currency::format(0) }}/hr</span></div>
                       <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Payroll Burden</span><span class="fw-medium sb-mono" id="profile_taxPct">0.00%</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Bill Rate</span><span class="fw-medium sb-mono" id="profile_billRate">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">OT Bill Rate</span><span class="fw-medium sb-mono" id="profile_ot">$0.00/hr</span></div>
-                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Monthly Total</span><span class="fw-medium sb-mono" id="profile_monthly">$0.00</span></div>
-                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Annual Total</span><span class="fw-semibold sb-mono" id="profile_annual">$0.00</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Bill Rate</span><span class="fw-medium sb-mono" id="profile_billRate">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">OT Bill Rate</span><span class="fw-medium sb-mono" id="profile_ot">{{ \App\Support\Currency::format(0) }}/hr</span></div>
+                      <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted small">Monthly Total</span><span class="fw-medium sb-mono" id="profile_monthly">{{ \App\Support\Currency::format(0) }}</span></div>
+                      <div class="d-flex justify-content-between"><span class="text-gasq-muted small">Annual Total</span><span class="fw-semibold sb-mono" id="profile_annual">{{ \App\Support\Currency::format(0) }}</span></div>
                     </div>
                   </div>
                   <div class="col-12">

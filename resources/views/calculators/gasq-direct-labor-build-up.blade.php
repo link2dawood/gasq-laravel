@@ -125,7 +125,7 @@
               <div class="dlb-summary-card p-3 p-md-4 mb-4">
                 <div class="dlb-benchmark-card mb-4">
                   <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Direct Labor Workspace</div>
-                  <div class="h3 fw-bold text-primary mb-1" id="dlb_stat_total">$0.00</div>
+                  <div class="h3 fw-bold text-primary mb-1" id="dlb_stat_total">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted mb-2">Live fully loaded hourly bill rate from the shared direct labor build-up.</div>
                   <div class="d-flex justify-content-between align-items-center small gap-3">
                     <span class="text-gasq-muted">Annual billable hours</span>
@@ -140,19 +140,19 @@
                   <div class="col-6 col-xl-4">
                     <div class="gasq-metric-card text-center">
                       <div class="metric-desc">Direct Labor</div>
-                      <div class="metric-value text-primary dlb-mono" id="dlb_stat_direct">$0.00</div>
+                      <div class="metric-value text-primary dlb-mono" id="dlb_stat_direct">{{ \App\Support\Currency::format(0) }}</div>
                     </div>
                   </div>
                   <div class="col-6 col-xl-4">
                     <div class="gasq-metric-card text-center">
                       <div class="metric-desc">Labor Plus Fringe</div>
-                      <div class="metric-value dlb-mono" id="dlb_stat_burdened">$0.00</div>
+                      <div class="metric-value dlb-mono" id="dlb_stat_burdened">{{ \App\Support\Currency::format(0) }}</div>
                     </div>
                   </div>
                   <div class="col-12 col-xl-4">
                     <div class="gasq-metric-card text-center">
                       <div class="metric-desc">Fully Loaded Rate</div>
-                      <div class="metric-value text-primary dlb-mono" id="dlb_stat_total_card">$0.00</div>
+                      <div class="metric-value text-primary dlb-mono" id="dlb_stat_total_card">{{ \App\Support\Currency::format(0) }}</div>
                     </div>
                   </div>
                 </div>

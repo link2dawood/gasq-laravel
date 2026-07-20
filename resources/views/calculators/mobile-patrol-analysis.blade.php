@@ -161,7 +161,7 @@
               <div class="col-md-6 col-xl-3">
                 <div class="mpa-stat">
                   <div class="mpa-stat-label mb-2">Annual Total</div>
-                  <div class="mpa-stat-value" id="mpa_kpiAnnual">$0.00</div>
+                  <div class="mpa-stat-value" id="mpa_kpiAnnual">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Total fleet cost including labor</div>
                 </div>
               </div>
@@ -182,7 +182,7 @@
               <div class="col-md-6 col-xl-3">
                 <div class="mpa-stat">
                   <div class="mpa-stat-label mb-2">Avg Cost / Stop</div>
-                  <div class="mpa-stat-value" id="mpa_kpiStop">$0.00</div>
+                  <div class="mpa-stat-value" id="mpa_kpiStop">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Weighted average across active vehicles</div>
                 </div>
               </div>
@@ -200,7 +200,7 @@
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                   <div class="small text-gasq-muted mb-1">Labor Reference</div>
-                  <h4 class="fw-bold mb-1" id="mpa_laborRates">Regular 25.00 / OT 37.50 $/hr</h4>
+                  <h4 class="fw-bold mb-1" id="mpa_laborRates">Regular 25.00 / OT 37.50 {{ \App\Support\Currency::symbol() }}/hr</h4>
                   <div class="small text-gasq-muted">Reference rates used by the shipped analysis engine.</div>
                 </div>
                 <div class="text-end">
@@ -438,7 +438,7 @@
     document.getElementById('mpa_kpiStop').textContent = money(avgCostStop);
     document.getElementById('mpa_laborRates').textContent =
       'Regular ' + (laborRates.regularHourlyUsd || 0).toFixed(2) +
-      ' / OT ' + (laborRates.overtimeHourlyUsd || 0).toFixed(2) + ' $/hr';
+      ' / OT ' + (laborRates.overtimeHourlyUsd || 0).toFixed(2) + ' {{ \App\Support\Currency::symbol() }}/hr';
     document.getElementById('mpa_reference').textContent = k.reference || 'react_bundle:bDe';
   }
 
@@ -498,7 +498,7 @@
       <div class="col-md-4">
         <div class="rounded p-3 h-100" style="background:var(--gasq-muted-bg)">
           <div class="small text-gasq-muted">Labor rates</div>
-          <div class="fw-medium mpa-mono">${(k.laborRates.regularHourlyUsd || 0).toFixed(2)} / ${(k.laborRates.overtimeHourlyUsd || 0).toFixed(2)} $/hr</div>
+          <div class="fw-medium mpa-mono">${(k.laborRates.regularHourlyUsd || 0).toFixed(2)} / ${(k.laborRates.overtimeHourlyUsd || 0).toFixed(2)} {{ \App\Support\Currency::symbol() }}/hr</div>
         </div>
       </div>
       <div class="col-md-4">

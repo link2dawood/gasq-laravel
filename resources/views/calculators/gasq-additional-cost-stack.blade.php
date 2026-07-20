@@ -112,7 +112,7 @@
               <div class="acs-summary-card p-3 p-md-4 mb-4">
                 <div class="acs-benchmark-card mb-4">
                   <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Additional Cost Workspace</div>
-                  <div class="h3 fw-bold text-primary mb-1" id="acs_stat_total_a">$0.00</div>
+                  <div class="h3 fw-bold text-primary mb-1" id="acs_stat_total_a">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted mb-2">Merged annual additional-cost stack across vehicles, uniforms, equipment, and workforce maintenance.</div>
                   <div class="d-flex justify-content-between align-items-center small gap-3">
                     <span class="text-gasq-muted">Annual billable hours</span>
@@ -133,13 +133,13 @@
                   <div class="col-6 col-xl-4">
                     <div class="gasq-metric-card text-center">
                       <div class="metric-desc">Total Hourly Cost</div>
-                      <div class="metric-value acs-mono" id="acs_stat_total_h">$0.00</div>
+                      <div class="metric-value acs-mono" id="acs_stat_total_h">{{ \App\Support\Currency::format(0) }}</div>
                     </div>
                   </div>
                   <div class="col-12 col-xl-4">
                     <div class="gasq-metric-card text-center">
                       <div class="metric-desc">Total Annual Cost</div>
-                      <div class="metric-value text-primary acs-mono" id="acs_stat_total_a_card">$0.00</div>
+                      <div class="metric-value text-primary acs-mono" id="acs_stat_total_a_card">{{ \App\Support\Currency::format(0) }}</div>
                     </div>
                   </div>
                 </div>
@@ -170,8 +170,8 @@
                         <tr class="table-success fw-semibold">
                           <td>Total Additional Cost</td>
                           <td></td>
-                          <td class="text-end" id="acs_total_h">$0.00</td>
-                          <td class="text-end text-success" id="acs_total_a">$0.00</td>
+                          <td class="text-end" id="acs_total_h">{{ \App\Support\Currency::format(0) }}</td>
+                          <td class="text-end text-success" id="acs_total_a">{{ \App\Support\Currency::format(0) }}</td>
                         </tr>
                       </tfoot>
                     </table>

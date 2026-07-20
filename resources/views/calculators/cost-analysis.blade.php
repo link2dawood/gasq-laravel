@@ -26,7 +26,7 @@
       <div class="card gasq-card h-100">
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">Cost Inputs</h5></div>
         <div class="card-body d-flex flex-column gap-3">
-          <div><label class="form-label fw-medium">Annual Workforce Budget ($)</label>
+          <div><label class="form-label fw-medium">Annual Workforce Budget ({{ \App\Support\Currency::symbol() }})</label>
             <input type="number" id="ca_budget" class="form-control" value="180000" oninput="calcCA()"></div>
           <div><label class="form-label fw-medium">Number of Guards</label>
             <input type="number" id="ca_guards" class="form-control" value="3" min="1" oninput="calcCA()"></div>
@@ -34,11 +34,11 @@
             <input type="number" id="ca_hours" class="form-control" value="24" step="0.5" oninput="calcCA()"></div>
           <hr>
           <h6 class="fw-semibold">Cost of NOT Having Security</h6>
-          <div><label class="form-label small fw-medium">Annual Theft/Shrinkage Losses ($)</label>
+          <div><label class="form-label small fw-medium">Annual Theft/Shrinkage Losses ({{ \App\Support\Currency::symbol() }})</label>
             <input type="number" id="ca_theft" class="form-control" value="50000" oninput="calcCA()"></div>
-          <div><label class="form-label small fw-medium">Annual Insurance Premium ($)</label>
+          <div><label class="form-label small fw-medium">Annual Insurance Premium ({{ \App\Support\Currency::symbol() }})</label>
             <input type="number" id="ca_insurance" class="form-control" value="25000" oninput="calcCA()"></div>
-          <div><label class="form-label small fw-medium">Annual Liability Exposure ($)</label>
+          <div><label class="form-label small fw-medium">Annual Liability Exposure ({{ \App\Support\Currency::symbol() }})</label>
             <input type="number" id="ca_liability" class="form-control" value="30000" oninput="calcCA()"></div>
           <div><label class="form-label small fw-medium">Security Reduces Risk By (%)</label>
             <input type="number" id="ca_reduction" class="form-control" value="70" step="5" oninput="calcCA()"></div>
@@ -51,16 +51,16 @@
         <div class="card-body">
           <div class="row g-3 mb-4">
             <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Cost/Guard/Year</div><div class="metric-value text-primary" id="r_perGuard">$0</div></div></div>
-            <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Cost/Hour</div><div class="metric-value text-primary" id="r_perHour">$0.00</div></div></div>
+            <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Cost/Hour</div><div class="metric-value text-primary" id="r_perHour">{{ \App\Support\Currency::format(0) }}</div></div></div>
             <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Monthly Cost</div><div class="metric-value text-primary" id="r_monthly">$0</div></div></div>
             <div class="col-6 col-md-3"><div class="gasq-metric-card text-center"><div class="metric-desc">Weekly Cost</div><div class="metric-value text-primary" id="r_weekly">$0</div></div></div>
           </div>
 
           <h6 class="fw-semibold mb-3">Risk Reduction Value</h6>
           <div class="rounded p-3 mb-3" style="background:var(--gasq-muted-bg)">
-            <div class="d-flex justify-content-between mb-1 small"><span class="text-gasq-muted">Total annual risk exposure</span><span id="r_totalRisk">$0.00</span></div>
-            <div class="d-flex justify-content-between mb-1 small"><span class="text-gasq-muted">Risk reduction (at <span id="r_reductionPct">70</span>%)</span><span id="r_riskReduction">$0.00</span></div>
-            <div class="d-flex justify-content-between small fw-semibold"><span>Net value of security investment</span><span class="text-success" id="r_netValue">$0.00</span></div>
+            <div class="d-flex justify-content-between mb-1 small"><span class="text-gasq-muted">Total annual risk exposure</span><span id="r_totalRisk">{{ \App\Support\Currency::format(0) }}</span></div>
+            <div class="d-flex justify-content-between mb-1 small"><span class="text-gasq-muted">Risk reduction (at <span id="r_reductionPct">70</span>%)</span><span id="r_riskReduction">{{ \App\Support\Currency::format(0) }}</span></div>
+            <div class="d-flex justify-content-between small fw-semibold"><span>Net value of security investment</span><span class="text-success" id="r_netValue">{{ \App\Support\Currency::format(0) }}</span></div>
           </div>
 
           <div class="rounded p-4 text-white text-center mb-3" style="background:var(--gasq-primary)">
@@ -73,7 +73,7 @@
             <div class="col-6">
               <div class="rounded p-3 text-center" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3)">
                 <div class="x-sm text-gasq-muted mb-1">Risk Savings</div>
-                <div class="fs-5 fw-bold text-success" id="r_savings">$0.00</div>
+                <div class="fs-5 fw-bold text-success" id="r_savings">{{ \App\Support\Currency::format(0) }}</div>
               </div>
             </div>
             <div class="col-6">

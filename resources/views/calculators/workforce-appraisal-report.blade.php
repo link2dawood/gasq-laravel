@@ -249,21 +249,21 @@
                 <div class="card-header gasq-wa-section small text-uppercase">Appraisal drivers</div>
                 <div class="card-body small">
             <div class="mb-2">
-              <label class="form-label mb-0">Baseline labor ($/hr)</label>
+              <label class="form-label mb-0">Baseline labor ({{ \App\Support\Currency::symbol() }}/hr)</label>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" id="wa_baseL" class="form-control form-control-sm gasq-wa-input" value="18.00" step="0.01" oninput="scheduleCompute()">
                 <input type="range" id="wa_baseL_range" class="form-range mb-0" min="0" max="150" step="0.01" value="18.00" data-sync="wa_baseL">
               </div>
             </div>
             <div class="mb-2">
-              <label class="form-label mb-0">Government should-cost ($/hr)</label>
+              <label class="form-label mb-0">Government should-cost ({{ \App\Support\Currency::symbol() }}/hr)</label>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" id="wa_govH" class="form-control form-control-sm gasq-wa-input" value="78.25" step="0.01" oninput="scheduleCompute()">
                 <input type="range" id="wa_govH_range" class="form-range mb-0" min="0" max="250" step="0.01" value="78.25" data-sync="wa_govH">
               </div>
             </div>
             <div class="mb-2">
-              <label class="form-label mb-0">Vendor TCO ($/hr)</label>
+              <label class="form-label mb-0">Vendor TCO ({{ \App\Support\Currency::symbol() }}/hr)</label>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" id="wa_vendH" class="form-control form-control-sm gasq-wa-input" value="54.78" step="0.01" oninput="scheduleCompute()">
                 <input type="range" id="wa_vendH_range" class="form-range mb-0" min="0" max="250" step="0.01" value="54.78" data-sync="wa_vendH">
@@ -290,14 +290,14 @@
             </div>
             <hr>
             <div class="mb-2">
-              <label class="form-label mb-0">Memo — training ($/hr)</label>
+              <label class="form-label mb-0">Memo — training ({{ \App\Support\Currency::symbol() }}/hr)</label>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" id="wa_pr_train" class="form-control form-control-sm gasq-wa-input" value="3.47" step="0.01" oninput="scheduleCompute()">
                 <input type="range" id="wa_pr_train_range" class="form-range mb-0" min="0" max="25" step="0.01" value="3.47" data-sync="wa_pr_train">
               </div>
             </div>
             <div class="mb-0">
-              <label class="form-label mb-0">Reserved gov rate ($/hr)</label>
+              <label class="form-label mb-0">Reserved gov rate ({{ \App\Support\Currency::symbol() }}/hr)</label>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" id="wa_pr_res" class="form-control form-control-sm gasq-wa-input" value="38.34" step="0.01" oninput="scheduleCompute()">
                 <input type="range" id="wa_pr_res_range" class="form-range mb-0" min="0" max="250" step="0.01" value="38.34" data-sync="wa_pr_res">
@@ -444,7 +444,7 @@
           <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
             <div class="gasq-wa-benchmark-card mb-4">
               <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Workforce Appraisal Summary</div>
-              <div class="h3 fw-bold text-primary mb-1" id="wa_stat_gov">$0.00</div>
+              <div class="h3 fw-bold text-primary mb-1" id="wa_stat_gov">{{ \App\Support\Currency::format(0) }}</div>
               <div class="small text-gasq-muted mb-2">Current government should-cost benchmark from the shared appraisal controls.</div>
               <div class="d-flex justify-content-between align-items-center small gap-3">
                 <span class="text-gasq-muted">Annual billable hours</span>
@@ -465,7 +465,7 @@
               <div class="col-6 col-xl-4">
                 <div class="gasq-metric-card text-center">
                   <div class="metric-desc">Vendor TCO</div>
-                  <div class="metric-value gasq-wa-mono" id="wa_stat_vendor">$0.00</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_stat_vendor">{{ \App\Support\Currency::format(0) }}</div>
                 </div>
               </div>
               <div class="col-12 col-xl-4">
@@ -482,7 +482,7 @@
           <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
             <div class="gasq-wa-benchmark-card mb-4">
               <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">CFO Bill Rate Summary</div>
-              <div class="h3 fw-bold text-primary mb-1" id="wa_cfo_stat_total">$0.00</div>
+              <div class="h3 fw-bold text-primary mb-1" id="wa_cfo_stat_total">{{ \App\Support\Currency::format(0) }}</div>
               <div class="small text-gasq-muted mb-2">Fully loaded hourly bill rate derived from the workforce capital recovery stack.</div>
               <div class="d-flex justify-content-between align-items-center small gap-3">
                 <span class="text-gasq-muted">Annual billable hours</span>
@@ -497,19 +497,19 @@
               <div class="col-6 col-xl-4">
                 <div class="gasq-metric-card text-center">
                   <div class="metric-desc">Direct Labor</div>
-                  <div class="metric-value text-primary gasq-wa-mono" id="wa_cfo_stat_direct">$0.00</div>
+                  <div class="metric-value text-primary gasq-wa-mono" id="wa_cfo_stat_direct">{{ \App\Support\Currency::format(0) }}</div>
                 </div>
               </div>
               <div class="col-6 col-xl-4">
                 <div class="gasq-metric-card text-center">
                   <div class="metric-desc">Labor Plus Fringe</div>
-                  <div class="metric-value gasq-wa-mono" id="wa_cfo_stat_burdened">$0.00</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_cfo_stat_burdened">{{ \App\Support\Currency::format(0) }}</div>
                 </div>
               </div>
               <div class="col-12 col-xl-4">
                 <div class="gasq-metric-card text-center">
                   <div class="metric-desc">Annual Total</div>
-                  <div class="metric-value gasq-wa-mono" id="wa_cfo_stat_annual">$0.00</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_cfo_stat_annual">{{ \App\Support\Currency::format(0) }}</div>
                 </div>
               </div>
             </div>
@@ -520,7 +520,7 @@
           <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
             <div class="gasq-wa-benchmark-card mb-4">
               <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Post Position Summary</div>
-              <div class="h3 fw-bold text-primary mb-1" id="wa_posts_stat_annual_cost">$0.00</div>
+              <div class="h3 fw-bold text-primary mb-1" id="wa_posts_stat_annual_cost">{{ \App\Support\Currency::format(0) }}</div>
               <div class="small text-gasq-muted mb-2">Total annual direct labor cost across the active post positions.</div>
               <div class="d-flex justify-content-between align-items-center small gap-3">
                 <span class="text-gasq-muted">Annual billable hours</span>
@@ -558,7 +558,7 @@
           <div class="gasq-wa-summary-card p-3 p-md-4 mb-4">
             <div class="gasq-wa-benchmark-card mb-4">
               <div class="text-uppercase small fw-semibold text-gasq-muted mb-1">Appraisal Summary</div>
-              <div class="h3 fw-bold text-primary mb-1" id="wa_appraisal_stat_recovered">$0.00</div>
+              <div class="h3 fw-bold text-primary mb-1" id="wa_appraisal_stat_recovered">{{ \App\Support\Currency::format(0) }}</div>
               <div class="small text-gasq-muted mb-2">Operational capital recovered from the appraisal comparison results.</div>
               <div class="d-flex justify-content-between align-items-center small gap-3">
                 <span class="text-gasq-muted">Annual coverage hours</span>
@@ -573,13 +573,13 @@
               <div class="col-6 col-xl-3">
                 <div class="gasq-metric-card text-center">
                   <div class="metric-desc">Gov Should-Cost</div>
-                  <div class="metric-value text-primary gasq-wa-mono" id="wa_appraisal_stat_gov">$0.00</div>
+                  <div class="metric-value text-primary gasq-wa-mono" id="wa_appraisal_stat_gov">{{ \App\Support\Currency::format(0) }}</div>
                 </div>
               </div>
               <div class="col-6 col-xl-3">
                 <div class="gasq-metric-card text-center">
                   <div class="metric-desc">Vendor TCO</div>
-                  <div class="metric-value gasq-wa-mono" id="wa_appraisal_stat_vendor">$0.00</div>
+                  <div class="metric-value gasq-wa-mono" id="wa_appraisal_stat_vendor">{{ \App\Support\Currency::format(0) }}</div>
                 </div>
               </div>
               <div class="col-6 col-xl-3">
@@ -726,13 +726,13 @@
                     <tfoot>
                       <tr class="gasq-wa-total-row small" id="wa_post_foot">
                         <td>TOTAL</td>
-                        <td class="text-end font-monospace" id="pf_avg">$0.00</td>
+                        <td class="text-end font-monospace" id="pf_avg">{{ \App\Support\Currency::format(0) }}</td>
                         <td class="text-end font-monospace" id="pf_ah">0</td>
                         <td class="text-end font-monospace" id="pf_wh">0</td>
-                        <td class="text-end font-monospace" id="pf_wc">$0.00</td>
+                        <td class="text-end font-monospace" id="pf_wc">{{ \App\Support\Currency::format(0) }}</td>
                         <td class="text-end font-monospace" id="pf_mh">0</td>
-                        <td class="text-end font-monospace" id="pf_mc">$0.00</td>
-                        <td class="text-end font-monospace" id="pf_ac">$0.00</td>
+                        <td class="text-end font-monospace" id="pf_mc">{{ \App\Support\Currency::format(0) }}</td>
+                        <td class="text-end font-monospace" id="pf_ac">{{ \App\Support\Currency::format(0) }}</td>
                       </tr>
                     </tfoot>
                   </table>

@@ -30,16 +30,16 @@
                         <input type="number" id="ua_hpw" class="form-control" value="40" min="0" step="1">
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-medium">Bill rate ($/hr)</label>
+                        <label class="form-label small fw-medium">Bill rate ({{ \App\Support\Currency::symbol() }}/hr)</label>
                         <input type="number" id="ua_rate" class="form-control" value="30.63" min="0" step="0.01">
                     </div>
                 </div>
             </x-card>
             <div class="mt-4">
                 <x-card title="Totals" subtitle="Computed">
-                    <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted">Weekly</span><span class="fw-semibold font-monospace" id="ua_weekly">$0.00</span></div>
-                    <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted">Monthly</span><span class="fw-semibold font-monospace" id="ua_monthly">$0.00</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-gasq-muted">Annual</span><span class="fw-semibold font-monospace" id="ua_annual">$0.00</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted">Weekly</span><span class="fw-semibold font-monospace" id="ua_weekly">{{ \App\Support\Currency::format(0) }}</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-gasq-muted">Monthly</span><span class="fw-semibold font-monospace" id="ua_monthly">{{ \App\Support\Currency::format(0) }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-gasq-muted">Annual</span><span class="fw-semibold font-monospace" id="ua_annual">{{ \App\Support\Currency::format(0) }}</span></div>
                     <hr class="my-3">
                     <div class="d-flex justify-content-between"><span class="text-gasq-muted">Weekly hours</span><span class="fw-semibold font-monospace" id="ua_wh">0</span></div>
                 </x-card>

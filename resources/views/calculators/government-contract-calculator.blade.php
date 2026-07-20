@@ -117,11 +117,11 @@
               </h5>
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium">Base wage ($/hr)</label>
+                  <label class="form-label small fw-medium">Base wage ({{ \App\Support\Currency::symbol() }}/hr)</label>
                   <input type="number" id="gc_base" class="form-control form-control-sm" value="18.00" step="0.01">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium">H&amp;W cash ($/hr)</label>
+                  <label class="form-label small fw-medium">H&amp;W cash ({{ \App\Support\Currency::symbol() }}/hr)</label>
                   <input type="number" id="gc_hw" class="form-control form-control-sm" value="4.22" step="0.01">
                 </div>
                 <div class="col-md-6">
@@ -171,28 +171,28 @@
               <div class="col-md-6">
                 <div class="gcc-stat">
                   <div class="gcc-stat-label mb-2">Bill Rate</div>
-                  <div class="gcc-stat-value" id="gc_bill">$0.00/hr</div>
+                  <div class="gcc-stat-value" id="gc_bill">{{ \App\Support\Currency::format(0) }}/hr</div>
                   <div class="small text-gasq-muted">Hourly government contract bill rate</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="gcc-stat">
                   <div class="gcc-stat-label mb-2">Annual Bill Total</div>
-                  <div class="gcc-stat-value" id="gc_billAnnual">$0.00</div>
+                  <div class="gcc-stat-value" id="gc_billAnnual">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Bill rate multiplied by annual hours</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="gcc-stat">
                   <div class="gcc-stat-label mb-2">Cost Hourly</div>
-                  <div class="gcc-stat-value" id="gc_cost">$0.00</div>
+                  <div class="gcc-stat-value" id="gc_cost">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Direct plus burden, ops, and overhead</div>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="gcc-stat">
                   <div class="gcc-stat-label mb-2">Annual Cost</div>
-                  <div class="gcc-stat-value" id="gc_costAnnual">$0.00</div>
+                  <div class="gcc-stat-value" id="gc_costAnnual">{{ \App\Support\Currency::format(0) }}</div>
                   <div class="small text-gasq-muted">Cost hourly multiplied by annual hours</div>
                 </div>
               </div>
@@ -217,11 +217,11 @@
                   </div>
                   <div class="d-flex justify-content-between mb-2">
                     <span class="text-gasq-muted small">Direct hourly</span>
-                    <span class="fw-medium gcc-mono" id="gc_direct">$0.00</span>
+                    <span class="fw-medium gcc-mono" id="gc_direct">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                   <div class="d-flex justify-content-between">
                     <span class="text-gasq-muted small">Burden hourly</span>
-                    <span class="fw-medium gcc-mono" id="gc_bh">$0.00</span>
+                    <span class="fw-medium gcc-mono" id="gc_bh">{{ \App\Support\Currency::format(0) }}</span>
                   </div>
                 </div>
               </div>
@@ -234,12 +234,12 @@
                   <div class="table-responsive">
                     <table class="table table-striped align-middle mb-0">
                       <tbody>
-                        <tr><td class="text-gasq-muted">Direct hourly</td><td class="text-end gcc-mono" id="gc_direct_table">$0.00</td></tr>
-                        <tr><td class="text-gasq-muted">Burden hourly</td><td class="text-end gcc-mono" id="gc_bh_table">$0.00</td></tr>
-                        <tr><td class="text-gasq-muted">Ops hourly</td><td class="text-end gcc-mono" id="gc_oph">$0.00</td></tr>
-                        <tr><td class="text-gasq-muted">Overhead hourly</td><td class="text-end gcc-mono" id="gc_ohh">$0.00</td></tr>
-                        <tr class="fw-semibold"><td>Cost hourly</td><td class="text-end gcc-mono" id="gc_cost_table">$0.00</td></tr>
-                        <tr class="fw-semibold"><td>Annual cost</td><td class="text-end gcc-mono" id="gc_costAnnual_table">$0.00</td></tr>
+                        <tr><td class="text-gasq-muted">Direct hourly</td><td class="text-end gcc-mono" id="gc_direct_table">{{ \App\Support\Currency::format(0) }}</td></tr>
+                        <tr><td class="text-gasq-muted">Burden hourly</td><td class="text-end gcc-mono" id="gc_bh_table">{{ \App\Support\Currency::format(0) }}</td></tr>
+                        <tr><td class="text-gasq-muted">Ops hourly</td><td class="text-end gcc-mono" id="gc_oph">{{ \App\Support\Currency::format(0) }}</td></tr>
+                        <tr><td class="text-gasq-muted">Overhead hourly</td><td class="text-end gcc-mono" id="gc_ohh">{{ \App\Support\Currency::format(0) }}</td></tr>
+                        <tr class="fw-semibold"><td>Cost hourly</td><td class="text-end gcc-mono" id="gc_cost_table">{{ \App\Support\Currency::format(0) }}</td></tr>
+                        <tr class="fw-semibold"><td>Annual cost</td><td class="text-end gcc-mono" id="gc_costAnnual_table">{{ \App\Support\Currency::format(0) }}</td></tr>
                       </tbody>
                     </table>
                   </div>

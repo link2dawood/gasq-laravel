@@ -42,7 +42,7 @@
                 <input type="text" id="ej_preparedBy" class="form-control" placeholder="Your name" oninput="calcEJ()">
               </div>
               <div class="col-md-6">
-                <label class="form-label fw-medium">Employee True Hourly Cost ($/hr)</label>
+                <label class="form-label fw-medium">Employee True Hourly Cost ({{ \App\Support\Currency::symbol() }}/hr)</label>
                 <input type="number" id="ej_employeeCost" class="form-control" value="133.00" step="0.01" oninput="calcEJ()">
               </div>
               <div class="col-md-6">
@@ -74,10 +74,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td class="small text-gasq-muted">Hourly Cost</td><td class="text-center small fw-medium" id="ej_r_ihHourly">$0.00</td><td class="text-center small fw-medium" id="ej_r_vHourly">$0.00</td></tr>
-                  <tr><td class="small text-gasq-muted">Weekly Cost</td><td class="text-center small fw-medium" id="ej_r_ihWeekly">$0.00</td><td class="text-center small fw-medium" id="ej_r_vWeekly">$0.00</td></tr>
-                  <tr><td class="small text-gasq-muted">Monthly Cost</td><td class="text-center small fw-medium" id="ej_r_ihMonthly">$0.00</td><td class="text-center small fw-medium" id="ej_r_vMonthly">$0.00</td></tr>
-                  <tr class="table-light fw-semibold"><td class="small">Annual Cost</td><td class="text-center small" id="ej_r_ihAnnual">$0.00</td><td class="text-center small" id="ej_r_vAnnual">$0.00</td></tr>
+                  <tr><td class="small text-gasq-muted">Hourly Cost</td><td class="text-center small fw-medium" id="ej_r_ihHourly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vHourly">{{ \App\Support\Currency::format(0) }}</td></tr>
+                  <tr><td class="small text-gasq-muted">Weekly Cost</td><td class="text-center small fw-medium" id="ej_r_ihWeekly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vWeekly">{{ \App\Support\Currency::format(0) }}</td></tr>
+                  <tr><td class="small text-gasq-muted">Monthly Cost</td><td class="text-center small fw-medium" id="ej_r_ihMonthly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vMonthly">{{ \App\Support\Currency::format(0) }}</td></tr>
+                  <tr class="table-light fw-semibold"><td class="small">Annual Cost</td><td class="text-center small" id="ej_r_ihAnnual">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small" id="ej_r_vAnnual">{{ \App\Support\Currency::format(0) }}</td></tr>
                 </tbody>
               </table>
             </div>
@@ -86,7 +86,7 @@
               <div class="col-6">
                 <div class="rounded p-3 text-center" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3)">
                   <div class="small text-gasq-muted mb-1">Cost Savings</div>
-                  <div class="fs-5 fw-bold text-success" id="ej_r_savings">$0.00</div>
+                  <div class="fs-5 fw-bold text-success" id="ej_r_savings">{{ \App\Support\Currency::format(0) }}</div>
                 </div>
               </div>
               <div class="col-6">
@@ -104,7 +104,7 @@
               <div class="col-6">
                 <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
                   <div class="small text-gasq-muted mb-1">Dollar for Dollar Return</div>
-                  <div class="fs-5 fw-bold" id="ej_r_dollar">$0.00</div>
+                  <div class="fs-5 fw-bold" id="ej_r_dollar">{{ \App\Support\Currency::format(0) }}</div>
                 </div>
               </div>
             </div>

@@ -254,7 +254,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold" for="selectedRate">Baseline hourly pay rate</label>
                                 <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ \App\Support\Currency::symbol() }}</span>
                                     <input id="selectedRate" type="number" min="0" step="0.01" class="form-control">
                                 </div>
                             </div>
@@ -305,11 +305,11 @@
                             <div class="text-uppercase small fw-bold mb-1" style="color:#7f1d1d; letter-spacing:.08em;">
                                 Estimated Outsourcing Cost
                             </div>
-                            <div class="h2 fw-bold mb-1" style="color:#7f1d1d;" id="step2EstimateTotal">$0.00</div>
+                            <div class="h2 fw-bold mb-1" style="color:#7f1d1d;" id="step2EstimateTotal">{{ \App\Support\Currency::format(0) }}</div>
                             <div class="small" style="color:#7f1d1d;">
                                 <span id="step2EstimateWeeks">52</span> weeks ·
-                                <span id="step2EstimateHourly">$0.00</span>/hr ·
-                                <span id="step2EstimateAnnual">$0.00</span> annual
+                                <span id="step2EstimateHourly">{{ \App\Support\Currency::format(0) }}</span>/hr ·
+                                <span id="step2EstimateAnnual">{{ \App\Support\Currency::format(0) }}</span> annual
                             </div>
                         </div>
 
@@ -330,7 +330,7 @@
                         <h3 class="fw-bold mb-2">Your Estimate Is Ready</h3>
                         <p class="text-gasq-muted mb-1">To reveal your full cost analysis, select one option below.</p>
                         <p class="text-gasq-muted small mb-4">
-                            Price Permit Fee: <strong id="gateAppraisalFeeDisplay">$0.00</strong>
+                            Price Permit Fee: <strong id="gateAppraisalFeeDisplay">{{ \App\Support\Currency::format(0) }}</strong>
                             <span class="opacity-75">&nbsp;(1% of annual recovered capital)</span>
                         </p>
                         <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mb-3">
@@ -397,13 +397,13 @@
                         <div class="col-6 col-xl-3">
                             <div class="est-stat">
                                 <div class="est-stat-label"><i class="fa fa-dollar-sign me-1"></i>Outsourced Hourly</div>
-                                <div class="est-stat-value" id="statOutsourcedHourly">$0.00</div>
+                                <div class="est-stat-value" id="statOutsourcedHourly">{{ \App\Support\Currency::format(0) }}</div>
                             </div>
                         </div>
                         <div class="col-6 col-xl-3">
                             <div class="est-stat">
                                 <div class="est-stat-label"><i class="fa fa-dollar-sign me-1"></i>Internal True Hourly</div>
-                                <div class="est-stat-value" id="statInternalHourly">$0.00</div>
+                                <div class="est-stat-value" id="statInternalHourly">{{ \App\Support\Currency::format(0) }}</div>
                             </div>
                         </div>
                     </div>
@@ -420,25 +420,25 @@
                                     <div class="col-6">
                                         <div class="est-metric-tile">
                                             <div class="est-metric-label">Total Hourly</div>
-                                            <div class="est-metric-value" id="outHourly">$0.00</div>
+                                            <div class="est-metric-value" id="outHourly">{{ \App\Support\Currency::format(0) }}</div>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="est-metric-tile">
                                             <div class="est-metric-label">Total Weekly</div>
-                                            <div class="est-metric-value" id="outWeekly">$0.00</div>
+                                            <div class="est-metric-value" id="outWeekly">{{ \App\Support\Currency::format(0) }}</div>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="est-metric-tile">
                                             <div class="est-metric-label">Total Monthly</div>
-                                            <div class="est-metric-value" id="outMonthly">$0.00</div>
+                                            <div class="est-metric-value" id="outMonthly">{{ \App\Support\Currency::format(0) }}</div>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="est-metric-tile est-metric-tile-accent">
                                             <div class="est-metric-label">Annual / Term</div>
-                                            <div class="est-metric-value" id="outTerm">$0.00</div>
+                                            <div class="est-metric-value" id="outTerm">{{ \App\Support\Currency::format(0) }}</div>
                                         </div>
                                     </div>
                                     <span id="outAnnual" class="d-none"></span>
@@ -455,25 +455,25 @@
                                     <div class="col-6">
                                         <div class="est-metric-tile">
                                             <div class="est-metric-label">Internal True Hourly</div>
-                                            <div class="est-metric-value" id="inHourly">$0.00</div>
+                                            <div class="est-metric-value" id="inHourly">{{ \App\Support\Currency::format(0) }}</div>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="est-metric-tile">
                                             <div class="est-metric-label">Weekly TCO</div>
-                                            <div class="est-metric-value" id="inWeekly">$0.00</div>
+                                            <div class="est-metric-value" id="inWeekly">{{ \App\Support\Currency::format(0) }}</div>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="est-metric-tile">
                                             <div class="est-metric-label">Monthly TCO</div>
-                                            <div class="est-metric-value" id="inMonthly">$0.00</div>
+                                            <div class="est-metric-value" id="inMonthly">{{ \App\Support\Currency::format(0) }}</div>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <div class="est-metric-tile est-metric-tile-accent">
                                             <div class="est-metric-label">Annual / Term</div>
-                                            <div class="est-metric-value" id="inTerm">$0.00</div>
+                                            <div class="est-metric-value" id="inTerm">{{ \App\Support\Currency::format(0) }}</div>
                                         </div>
                                     </div>
                                     <span id="inAnnual" class="d-none"></span>
@@ -493,14 +493,14 @@
                                 <div class="col-6 col-xl-3">
                                     <div class="est-metric-tile">
                                         <div class="est-metric-label">Capital Recovered</div>
-                                        <div class="est-metric-value" id="recoveredCapital">$0.00</div>
+                                        <div class="est-metric-value" id="recoveredCapital">{{ \App\Support\Currency::format(0) }}</div>
                                         <div class="est-metric-sub">term savings vs in-house</div>
                                     </div>
                                 </div>
                                 <div class="col-6 col-xl-3">
                                     <div class="est-metric-tile">
                                         <div class="est-metric-label">Price Permit Fee</div>
-                                        <div class="est-metric-value" id="appraisalFee">$0.00</div>
+                                        <div class="est-metric-value" id="appraisalFee">{{ \App\Support\Currency::format(0) }}</div>
                                         <div class="est-metric-sub">1% of annual recovered capital</div>
                                     </div>
                                 </div>
@@ -542,7 +542,7 @@
                                     <div class="small text-gasq-muted">$28.00 – $39.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ \App\Support\Currency::symbol() }}</span>
                                     <input class="form-control rate-library-input" data-rate-key="unarmed" type="number" min="0" step="0.01">
                                 </div>
                             </div>
@@ -554,7 +554,7 @@
                                     <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ \App\Support\Currency::symbol() }}</span>
                                     <input class="form-control rate-library-input" data-rate-key="armed" type="number" min="0" step="0.01">
                                 </div>
                             </div>
@@ -566,7 +566,7 @@
                                     <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ \App\Support\Currency::symbol() }}</span>
                                     <input class="form-control rate-library-input" data-rate-key="supervisor" type="number" min="0" step="0.01">
                                 </div>
                             </div>
@@ -578,7 +578,7 @@
                                     <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ \App\Support\Currency::symbol() }}</span>
                                     <input class="form-control rate-library-input" data-rate-key="mobile" type="number" min="0" step="0.01">
                                 </div>
                             </div>
@@ -590,7 +590,7 @@
                                     <div class="small text-gasq-muted">$40.00 – $52.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ \App\Support\Currency::symbol() }}</span>
                                     <input class="form-control rate-library-input" data-rate-key="loss" type="number" min="0" step="0.01">
                                 </div>
                             </div>
@@ -602,7 +602,7 @@
                                     <div class="small text-gasq-muted">$53.00 – $68.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ \App\Support\Currency::symbol() }}</span>
                                     <input class="form-control rate-library-input" data-rate-key="executive" type="number" min="0" step="0.01">
                                 </div>
                             </div>
@@ -614,7 +614,7 @@
                                     <div class="small text-gasq-muted">$53.00 – $68.00</div>
                                 </div>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ \App\Support\Currency::symbol() }}</span>
                                     <input class="form-control rate-library-input" data-rate-key="offduty" type="number" min="0" step="0.01">
                                 </div>
                             </div>
@@ -663,7 +663,7 @@
                             <div class="est-report-block-outer">
                                 <div class="text-uppercase small fw-semibold text-gasq-muted mb-3">Estimate Summary</div>
                                 <div class="est-report-row"><span>Service</span><strong id="reportService">—</strong></div>
-                                <div class="est-report-row"><span>Baseline pay</span><strong id="reportRate">$0.00/hr</strong></div>
+                                <div class="est-report-row"><span>Baseline pay</span><strong id="reportRate">{{ \App\Support\Currency::format(0) }}/hr</strong></div>
                                 <div class="est-report-row"><span>Budget</span><strong id="reportBudget">—</strong></div>
                                 <div class="est-report-row"><span>Attachments</span><strong id="reportAttachments">—</strong></div>
                             </div>
