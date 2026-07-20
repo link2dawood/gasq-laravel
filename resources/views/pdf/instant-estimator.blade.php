@@ -2,8 +2,8 @@
     $kpis        = (array) ($result['kpis'] ?? $result ?? []);
     $requestData = (array) ($result['request'] ?? []);
 
-    $money  = static fn ($v) => '$' . number_format((float)($v ?? 0), 2);
-    $moneyK = static fn ($v) => '$' . number_format((float)($v ?? 0), 0);
+    $money  = static fn ($v) => \App\Support\Currency::format($v ?? 0, 2);
+    $moneyK = static fn ($v) => \App\Support\Currency::format($v ?? 0, 0);
     $num    = static fn ($v, $d = 2) => number_format((float)($v ?? 0), $d);
 
     $outsourcedHourly  = (float)($kpis['outsourcedHourly']  ?? $result['hourly_rate']   ?? 0);

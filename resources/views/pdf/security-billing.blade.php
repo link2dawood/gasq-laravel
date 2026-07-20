@@ -5,8 +5,8 @@
     $annual = (float) ($r['annual_total'] ?? 0);
 
     $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-SB' . str_pad((string) (rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
-    $money = fn ($v) => '$' . number_format((float) $v, 2);
-    $moneyK = fn ($v) => '$' . number_format((float) $v, 0);
+    $money = fn ($v) => \App\Support\Currency::format($v, 2);
+    $moneyK = fn ($v) => \App\Support\Currency::format($v, 0);
 @endphp
 
 @extends('pdf.layouts.gasq-report', [

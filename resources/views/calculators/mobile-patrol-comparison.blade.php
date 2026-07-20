@@ -360,9 +360,9 @@ const COMPARISON_DEFAULTS = {
   b_markup: 25
 };
 
-function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(v);}
+function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format(v);}
 function fmtPct(v){return (v > 0 ? '+' : '') + v.toFixed(1) + '%';}
-function fmtN(v, dec = 0){return new Intl.NumberFormat('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
+function fmtN(v, dec = 0){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
 function gv(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 

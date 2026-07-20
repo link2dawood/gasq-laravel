@@ -125,10 +125,10 @@
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
 const masterInputs = window.__gasqMasterInputs || {};
 function fmt(v, dec = 2) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
+  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
 }
 function fmtN(v, dec = 0) {
-  return new Intl.NumberFormat('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
+  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
 }
 function gNum(id) {
   const el = document.getElementById(id);

@@ -437,8 +437,8 @@ let mphc2PersistTimer = null;
 
 function $id(id) { return document.getElementById(id); }
 
-const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtN = (v, d = 2) => new Intl.NumberFormat('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v || 0);
+const fmt = new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtN = (v, d = 2) => new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v || 0);
 const money = (v) => fmt.format(v || 0);
 const pct = (v) => fmtN(v * 100, 2) + '%';
 

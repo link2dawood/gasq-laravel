@@ -689,19 +689,19 @@
 
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
-  const currency = (n) => new Intl.NumberFormat('en-US', {
+  const currency = (n) => new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n || 0);
 
-  const number = (n, decimals = 2) => new Intl.NumberFormat('en-US', {
+  const number = (n, decimals = 2) => new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(n || 0);
 
-  const integer = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n || 0);
+  const integer = (n) => new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { maximumFractionDigits: 0 }).format(n || 0);
 
   const fieldValue = (key) => {
     const el = document.getElementById('mi_' + key);

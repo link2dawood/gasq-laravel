@@ -138,7 +138,7 @@
 const SHIFT_MULTIPLIERS = {'8-hour':3,'10-hour':2.4,'12-hour':2,'16-hour':1.5,'24-hour':1};
 const SHIFTS_LIST = Object.entries(SHIFT_MULTIPLIERS);
 
-function fmtN(v,dec=1){return new Intl.NumberFormat('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
+function fmtN(v,dec=1){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 

@@ -1176,16 +1176,16 @@ function byId(id) {
 
 function fmtCurrency(value) {
     const amount = Number.isFinite(value) ? value : 0;
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',
         maximumFractionDigits: 2,
     }).format(amount);
 }
 
 function fmtNumber(value, digits = 2) {
     const amount = Number.isFinite(value) ? value : 0;
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
         minimumFractionDigits: digits,
         maximumFractionDigits: digits,
     }).format(amount);

@@ -91,7 +91,7 @@
 (() => {
   const url = @json(route('backend.standalone.v24.compute', ['type' => 'unarmed-security-guard-services']));
   let t = null;
-  const money = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
+  const money = (n) => new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
   const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
 
   const packages = [

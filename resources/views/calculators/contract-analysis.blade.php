@@ -161,8 +161,8 @@ let rowId = 0;
 
 const CATEGORIES = ['Access Control Officer','Unarmed Security Officer','Armed Security Guard','Patrol Officer','Lobby Ambassador','Event Security'];
 
-function fmt(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(v);}
-function fmtN(v,dec=1){return new Intl.NumberFormat('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
+function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format(v);}
+function fmtN(v,dec=1){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
 function addRow(data={}){

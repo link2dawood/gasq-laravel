@@ -333,15 +333,15 @@ function mp24ById(id) {
 }
 
 function mp24Money(value) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',
     maximumFractionDigits: 2,
   }).format(Number.isFinite(value) ? value : 0);
 }
 
 function mp24Number(value, digits = 2) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(Number.isFinite(value) ? value : 0);

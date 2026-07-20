@@ -45,8 +45,8 @@
 
     $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-BID' . str_pad((string) $bid->id, 4, '0', STR_PAD_LEFT);
 
-    $money = fn ($v) => '$' . number_format((float) $v, 2);
-    $moneyK = fn ($v) => '$' . number_format((float) $v, 0);
+    $money = fn ($v) => \App\Support\Currency::format($v, 2);
+    $moneyK = fn ($v) => \App\Support\Currency::format($v, 0);
 @endphp
 
 @extends('pdf.layouts.gasq-report', [

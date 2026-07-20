@@ -3,8 +3,8 @@
     $contact = (array) ($scenario['contact'] ?? []);
     $kpis    = (array) ($result['kpis']      ?? $result ?? []);
 
-    $money  = static fn ($v) => '$' . number_format((float)($v ?? 0), 2);
-    $moneyK = static fn ($v) => '$' . number_format((float)($v ?? 0), 0);
+    $money  = static fn ($v) => \App\Support\Currency::format($v ?? 0, 2);
+    $moneyK = static fn ($v) => \App\Support\Currency::format($v ?? 0, 0);
     $num    = static fn ($v, $d = 2) => number_format((float)($v ?? 0), $d);
 
     $siteName   = trim($meta['siteName']        ?? $contact['siteName']    ?? '');

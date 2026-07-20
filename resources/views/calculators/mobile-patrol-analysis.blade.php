@@ -293,9 +293,9 @@
   function money(x) {
     const cur = currentCurrency();
     try {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: cur }).format(x || 0);
+      return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency: cur }).format(x || 0);
     } catch (e) {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(x || 0);
+      return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD' }).format(x || 0);
     }
   }
 
