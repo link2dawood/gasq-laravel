@@ -313,7 +313,7 @@
           </div>
 
           <div class="d-flex justify-content-between small text-gasq-muted mb-3 px-1">
-            <span>Loaded Wage: <strong id="r_loadedWage">$0.00</strong></span>
+            <span>Shared Resources Safe Zone Rate: <strong id="r_loadedWage">$0.00</strong></span>
             <span>Annual Coverage: <strong id="r_hours">0</strong> hrs</span>
           </div>
           <div class="text-center small mb-4">
