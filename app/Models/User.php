@@ -35,6 +35,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'nda_accepted_at',
         'nda_accepted_ip',
         'hubspot_contact_id',
+        'currency',
     ];
 
     /**

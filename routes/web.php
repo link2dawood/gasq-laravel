@@ -254,6 +254,7 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
+    Route::post('/preferences/currency', [ProfileController::class, 'updateCurrency'])->name('preferences.currency');
     Route::get('/account-balance', [App\Http\Controllers\AccountBalanceController::class, 'index'])->name('account-balance');
     Route::get('/credits', [App\Http\Controllers\CreditsController::class, 'index'])->name('credits');
     Route::get('/credits/success', [App\Http\Controllers\CreditsController::class, 'success'])->name('credits.success');

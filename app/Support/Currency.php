@@ -20,14 +20,24 @@ class Currency
     public static function code(): string
     {
         $default = (string) config('currency.default', 'USD');
+        $profiles = (array) config('currency.profiles', []);
 
+        // 1) Per-user preference wins (each user picks USD or CAD).
+        try {
+            $userCode = auth()->check() ? (string) (auth()->user()->currency ?? '') : '';
+            if ($userCode !== '' && isset($profiles[$userCode])) {
+                return $userCode;
+            }
+        } catch (\Throwable $e) {
+            // fall through to the platform default
+        }
+
+        // 2) Platform default (admin Setting), else config default.
         try {
             $code = (string) Setting::get('currency', $default);
         } catch (\Throwable $e) {
             $code = $default;
         }
-
-        $profiles = (array) config('currency.profiles', []);
 
         if (isset($profiles[$code])) {
             return $code;

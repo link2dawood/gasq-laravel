@@ -75,6 +75,17 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="{{ route('profile.show') }}"><i class="fa fa-user me-2"></i>Profile</a></li>
+                                    <li>
+                                        <form action="{{ route('preferences.currency') }}" method="POST" class="px-3 py-2 mb-0">
+                                            @csrf
+                                            <label class="small text-gasq-muted mb-1 d-block"><i class="fa fa-coins me-2"></i>Currency</label>
+                                            <select name="currency" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                @foreach(config('currency.profiles') as $currencyCode => $currencyProfile)
+                                                    <option value="{{ $currencyCode }}" @selected(\App\Support\Currency::code() === $currencyCode)>{{ $currencyProfile['label'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </form>
+                                    </li>
                                     <li><a class="dropdown-item" href="{{ url('/home') }}"><i class="fa fa-gauge me-2"></i>Dashboard</a></li>
                                     @if(auth()->user()->isBuyer() || auth()->user()->isVendor())
                                         <li><a class="dropdown-item" href="{{ route('jobs.index') }}">My Jobs</a></li>

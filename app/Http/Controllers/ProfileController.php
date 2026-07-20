@@ -343,6 +343,19 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')->with('success', 'Vendor settings updated successfully.');
     }
 
+    public function updateCurrency(Request $request): RedirectResponse
+    {
+        $codes = array_keys((array) config('currency.profiles', []));
+
+        $data = $request->validate([
+            'currency' => ['required', 'string', 'in:' . implode(',', $codes)],
+        ]);
+
+        $request->user()->forceFill(['currency' => $data['currency']])->save();
+
+        return back()->with('success', 'Currency preference updated.');
+    }
+
     public function sendPhoneVerification(Request $request): RedirectResponse
     {
         $user = Auth::user();
