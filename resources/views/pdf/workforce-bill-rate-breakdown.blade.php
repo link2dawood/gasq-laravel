@@ -142,8 +142,8 @@
 
     $reportNumber = $reportNumber ?? ('GASQ ' . now()->format('Y-m-d') . '-V' . ((int) ($vendorId ?? 0)));
 
-    $money = fn ($v) => '$' . number_format((float) $v, 2);
-    $moneyK = fn ($v) => '$' . number_format((float) $v, 0);
+    $money = fn ($v) => \App\Support\Currency::format($v, 2);
+    $moneyK = fn ($v) => \App\Support\Currency::format($v, 0);
     $num = fn ($v) => number_format((float) $v);
 
     // Two reports off the same data:

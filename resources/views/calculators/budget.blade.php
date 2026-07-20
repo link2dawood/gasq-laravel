@@ -512,7 +512,8 @@ const ALL_ITEMS = BUDGET_GROUPS.flatMap((group) =>
 let syncTimer = null;
 
 function fmt(v) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(v);
+  const cur = window.GASQ_CURRENCY || { locale: 'en-US', code: 'USD' };
+  return new Intl.NumberFormat(cur.locale, { style: 'currency', currency: cur.code, minimumFractionDigits: 2 }).format(v);
 }
 
 function trimNumber(v, digits = 2) {

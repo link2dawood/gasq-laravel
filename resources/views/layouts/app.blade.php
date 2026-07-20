@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Active currency for browser-side formatters (Intl.NumberFormat). --}}
+    <script>window.GASQ_CURRENCY = @json(\App\Support\Currency::jsConfig());</script>
     <title>@yield('title', config('app.name', 'GASQ'))</title>
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
