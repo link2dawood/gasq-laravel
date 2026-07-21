@@ -1180,7 +1180,7 @@ function fmtCurrency(value) {
         style: 'currency',
         currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',
         maximumFractionDigits: 2,
-    }).format(amount);
+    }).format((amount)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
 }
 
 function fmtNumber(value, digits = 2) {
@@ -1188,7 +1188,7 @@ function fmtNumber(value, digits = 2) {
     return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
         minimumFractionDigits: digits,
         maximumFractionDigits: digits,
-    }).format(amount);
+    }).format((amount)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
 }
 
 function ceilWhole(value) {

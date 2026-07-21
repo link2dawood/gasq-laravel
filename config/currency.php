@@ -20,11 +20,14 @@ return [
     | amounts are labelled and formatted.
     */
     'profiles' => [
+        // 'rate' = multiplier applied to the USD labor model to present amounts in
+        // this currency (USD result × rate = local result). USD is the base (1.0).
         'USD' => [
             'code' => 'USD',
             'label' => 'United States (USD)',
             'symbol' => '$',
             'locale' => 'en-US',
+            'rate' => 1.0,
         ],
         'CAD' => [
             'code' => 'CAD',
@@ -33,6 +36,7 @@ return [
             // never looks identical to USD. locale en-US makes Intl render "CA$" too.
             'symbol' => 'CA$',
             'locale' => 'en-US',
+            'rate' => (float) env('EXCHANGE_RATE_CAD', 1.41),
         ],
     ],
 ];

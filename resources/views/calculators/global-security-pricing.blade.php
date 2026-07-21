@@ -212,7 +212,7 @@
   }
 
   function fmtMoney(x) {
-    return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD' }).format(x);
+    return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD' }).format((x)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
   }
 
   function renderPostRow(p) {

@@ -154,7 +154,7 @@
 @push('scripts')
 <style>.x-sm{font-size:0.75rem;line-height:1.2}</style>
 <script>
-function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format(v);}
+function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format((v)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));}
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 

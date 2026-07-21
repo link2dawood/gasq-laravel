@@ -276,7 +276,7 @@ const savedScenario = window.__gasqCalculatorState?.scenario || null;
 const masterInputs = window.__gasqMasterInputs || {};
 const COMP_COLORS = ['#3b82f6','#84cc16','#ef4444','#8b5cf6','#06b6d4','#f97316','#a855f7'];
 
-function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format(v || 0);}
+function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format((v || 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));}
 function g(id){return parseFloat(document.getElementById(id)?.value)||0;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 

@@ -64,19 +64,42 @@ class Currency
     }
 
     /**
-     * Format an amount in the active currency, e.g. "$1,234.56".
+     * Exchange rate applied to the USD labor model (USD × rate = local amount).
+     * An admin Setting ("exchange_rate_cad") overrides the config value so the
+     * rate can be updated without a deploy.
+     */
+    public static function rate(): float
+    {
+        $profile = self::profile();
+        $rate = (float) ($profile['rate'] ?? 1.0);
+
+        try {
+            $override = Setting::get('exchange_rate_' . strtolower((string) ($profile['code'] ?? 'usd')));
+            if (is_numeric($override) && (float) $override > 0) {
+                $rate = (float) $override;
+            }
+        } catch (\Throwable $e) {
+            // keep the config rate
+        }
+
+        return $rate > 0 ? $rate : 1.0;
+    }
+
+    /**
+     * Format a USD amount in the active currency, applying the exchange rate.
+     * e.g. USD 18 → "$18.00" (US) or "CA$25.38" (Canada at 1.41).
      */
     public static function format(float|int|string|null $amount, int $decimals = 2): string
     {
         $value = is_numeric($amount) ? (float) $amount : 0.0;
 
-        return self::symbol() . number_format($value, $decimals);
+        return self::symbol() . number_format($value * self::rate(), $decimals);
     }
 
     /**
-     * Config for browser-side formatters (Intl.NumberFormat).
+     * Config for browser-side formatters (Intl.NumberFormat + rate multiplier).
      *
-     * @return array{code:string,symbol:string,locale:string}
+     * @return array{code:string,symbol:string,locale:string,rate:float}
      */
     public static function jsConfig(): array
     {
@@ -86,6 +109,7 @@ class Currency
             'code' => $p['code'] ?? 'USD',
             'symbol' => $p['symbol'] ?? '$',
             'locale' => $p['locale'] ?? 'en-US',
+            'rate' => self::rate(),
         ];
     }
 }

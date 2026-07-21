@@ -513,7 +513,7 @@ let syncTimer = null;
 
 function fmt(v) {
   const cur = window.GASQ_CURRENCY || { locale: 'en-US', code: 'USD' };
-  return new Intl.NumberFormat(cur.locale, { style: 'currency', currency: cur.code, minimumFractionDigits: 2 }).format(v);
+  return new Intl.NumberFormat(cur.locale, { style: 'currency', currency: cur.code, minimumFractionDigits: 2 }).format((v)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
 }
 
 function trimNumber(v, digits = 2) {

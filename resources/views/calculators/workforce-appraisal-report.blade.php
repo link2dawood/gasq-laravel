@@ -811,7 +811,7 @@
   ];
 
   function money(n){
-    return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
+    return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format((n||0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
   }
   function num(n){ return (n===null||n===undefined||Number.isNaN(n))?'—':Number(n).toLocaleString('en-US'); }
   function setNodeText(id, value){

@@ -337,14 +337,14 @@ function mp24Money(value) {
     style: 'currency',
     currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',
     maximumFractionDigits: 2,
-  }).format(Number.isFinite(value) ? value : 0);
+  }).format((Number.isFinite(value) ? value : 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
 }
 
 function mp24Number(value, digits = 2) {
   return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
-  }).format(Number.isFinite(value) ? value : 0);
+  }).format((Number.isFinite(value) ? value : 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
 }
 
 function mp24NormalizeRosRate(value) {

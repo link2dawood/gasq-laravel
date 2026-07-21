@@ -694,14 +694,14 @@
     currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(n || 0);
+  }).format((n || 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
 
   const number = (n, decimals = 2) => new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  }).format(n || 0);
+  }).format((n || 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
 
-  const integer = (n) => new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { maximumFractionDigits: 0 }).format(n || 0);
+  const integer = (n) => new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { maximumFractionDigits: 0 }).format((n || 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
 
   const fieldValue = (key) => {
     const el = document.getElementById('mi_' + key);

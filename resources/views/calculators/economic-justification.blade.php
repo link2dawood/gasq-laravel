@@ -314,8 +314,8 @@
 @push('scripts')
 <script>
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
-function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format(v || 0);}
-function fmtN(v,dec=0){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v || 0);}
+function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format((v || 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));}
+function fmtN(v,dec=0){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format((v || 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));}
 function g(id){return parseFloat(document.getElementById(id)?.value)||0;}
 function t(id){return (document.getElementById(id)?.value || '').trim();}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
