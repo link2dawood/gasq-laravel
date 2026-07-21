@@ -20,6 +20,8 @@ Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/buyer-faq', [PageController::class, 'buyerFaq'])->name('buyer-faq');
 Route::get('/vendor-faq', [PageController::class, 'vendorFaq'])->name('vendor-faq');
 Route::get('/payscale', [PageController::class, 'payScale'])->name('payscale');
+// GASQ Impact — public "by the numbers" dashboard (GASQ's own USD figures, live).
+Route::get('/impact', [App\Http\Controllers\GasqImpactController::class, 'index'])->name('impact');
 Route::get('/payment-model', [PageController::class, 'paymentPolicy'])->name('payment-policy');
 Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('terms');
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy-policy');
