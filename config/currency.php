@@ -22,21 +22,17 @@ return [
     'profiles' => [
         // 'rate' = multiplier applied to the USD labor model to present amounts in
         // this currency (USD result × rate = local result). USD is the base (1.0).
-        'USD' => [
-            'code' => 'USD',
-            'label' => 'United States (USD)',
-            'symbol' => '$',
-            'locale' => 'en-US',
-            'rate' => 1.0,
-        ],
-        'CAD' => [
-            'code' => 'CAD',
-            'label' => 'Canada (CAD)',
-            // "CA$" (not a bare "$") so flipping to Canada is visible everywhere and
-            // never looks identical to USD. locale en-US makes Intl render "CA$" too.
-            'symbol' => 'CA$',
-            'locale' => 'en-US',
-            'rate' => (float) env('EXCHANGE_RATE_CAD', 1.41),
-        ],
+        // Rates are starting defaults — update them per market from Admin → Settings
+        // (exchange_rate_<code>) with the current USD→local rate.
+        'USD' => ['code' => 'USD', 'label' => 'United States (USD)', 'symbol' => '$',   'locale' => 'en-US', 'rate' => 1.0],
+        'CAD' => ['code' => 'CAD', 'label' => 'Canada (CAD)',        'symbol' => 'CA$', 'locale' => 'en-US', 'rate' => (float) env('EXCHANGE_RATE_CAD', 1.41)],
+        'GBP' => ['code' => 'GBP', 'label' => 'United Kingdom (GBP)', 'symbol' => '£',   'locale' => 'en-GB', 'rate' => 0.79],
+        'AUD' => ['code' => 'AUD', 'label' => 'Australia (AUD)',      'symbol' => 'A$',  'locale' => 'en-US', 'rate' => 1.53],
+        'INR' => ['code' => 'INR', 'label' => 'India (INR)',          'symbol' => '₹',   'locale' => 'en-IN', 'rate' => 86.0],
+        'BRL' => ['code' => 'BRL', 'label' => 'Brazil (BRL)',         'symbol' => 'R$',  'locale' => 'en-US', 'rate' => 5.70],
+        'ZAR' => ['code' => 'ZAR', 'label' => 'South Africa (ZAR)',   'symbol' => 'R',   'locale' => 'en-US', 'rate' => 18.50],
+        'EUR' => ['code' => 'EUR', 'label' => 'Germany / France (EUR)', 'symbol' => '€', 'locale' => 'en-IE', 'rate' => 0.93],
+        'CNY' => ['code' => 'CNY', 'label' => 'China (CNY)',          'symbol' => 'CN¥', 'locale' => 'en-US', 'rate' => 7.25],
+        'JPY' => ['code' => 'JPY', 'label' => 'Japan (JPY)',          'symbol' => '¥',   'locale' => 'en-US', 'rate' => 157.0],
     ],
 ];
