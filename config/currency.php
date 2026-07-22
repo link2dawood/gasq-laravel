@@ -26,6 +26,7 @@ return [
         // (exchange_rate_<code>) with the current USD→local rate.
         'USD' => ['code' => 'USD', 'label' => 'United States (USD)', 'symbol' => '$',   'locale' => 'en-US', 'rate' => 1.0],
         'CAD' => ['code' => 'CAD', 'label' => 'Canada (CAD)',        'symbol' => 'CA$', 'locale' => 'en-US', 'rate' => (float) env('EXCHANGE_RATE_CAD', 1.41)],
+        'MXN' => ['code' => 'MXN', 'label' => 'Mexico (MXN)',        'symbol' => 'MX$', 'locale' => 'en-US', 'rate' => 17.50],
         'GBP' => ['code' => 'GBP', 'label' => 'United Kingdom (GBP)', 'symbol' => '£',   'locale' => 'en-GB', 'rate' => 0.79],
         'AUD' => ['code' => 'AUD', 'label' => 'Australia (AUD)',      'symbol' => 'A$',  'locale' => 'en-US', 'rate' => 1.53],
         'INR' => ['code' => 'INR', 'label' => 'India (INR)',          'symbol' => '₹',   'locale' => 'en-IN', 'rate' => 86.0],

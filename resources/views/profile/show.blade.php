@@ -256,6 +256,20 @@
                         </div>
                     </div>
                 </section>
+
+                <section class="account-section account-panel">
+                    <div class="account-section-title">Display Currency</div>
+                    <p class="account-section-copy">Choose the currency shown across your calculators and reports. Amounts convert from the USD model at the current rate.</p>
+                    <form action="{{ route('preferences.currency') }}" method="POST" class="d-flex flex-wrap align-items-center gap-2">
+                        @csrf
+                        <select name="currency" class="form-select" style="max-width:340px;" onchange="this.form.submit()">
+                            @foreach(config('currency.profiles') as $currencyCode => $currencyProfile)
+                                <option value="{{ $currencyCode }}" @selected(\App\Support\Currency::code() === $currencyCode)>{{ $currencyProfile['label'] }}</option>
+                            @endforeach
+                        </select>
+                        <span class="text-gasq-muted small">Now showing: <strong>{{ \App\Support\Currency::symbol() }} {{ \App\Support\Currency::code() }}</strong></span>
+                    </form>
+                </section>
             </div>
         </div>
     </div>
