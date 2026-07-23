@@ -10,10 +10,6 @@
 @endphp
 <div class="container py-5">
     <div class="text-center mb-4">
-        <div class="d-flex justify-content-center gap-2 mb-3">
-            <a href="{{ route('pricing.buyers') }}" class="btn btn-sm {{ $audience === 'buyer' ? 'btn-primary' : 'btn-outline-primary' }}">For Buyers</a>
-            <a href="{{ route('pricing.vendors') }}" class="btn btn-sm {{ $audience === 'vendor' ? 'btn-primary' : 'btn-outline-primary' }}">For Vendors</a>
-        </div>
         <h1 class="h2 mb-2">{{ $pricingTitle }}</h1>
         <p class="text-gasq-muted mb-3">Buy credits once, or subscribe monthly for a recurring credit allotment. Credits power the calculators and reports.</p>
 
