@@ -22,21 +22,19 @@ class JobPostingController extends Controller
     private const ESTIMATOR_RETURN_SESSION_KEY = 'job_posting_estimator_return_url';
 
     /**
-     * @var list<string>
+     * Canonical buyer service options for the starter dropdown + validation.
+     * Names come from config/security_services.php (single source of truth,
+     * shared with the public /security-services page); 'Other' is appended.
+     *
+     * @return list<string>
      */
-    private const STARTER_SERVICE_OPTIONS = [
-        'Security Guard Services',
-        'Armed Security Services',
-        'Mobile Patrol Services',
-        'Executive Protection',
-        'Event Security',
-        'School Security',
-        'Hospital Security',
-        'Fire Watch Services',
-        'Loss Prevention',
-        'Access Control Officers',
-        'Other',
-    ];
+    private static function starterServiceOptions(): array
+    {
+        $names = array_column(config('security_services.services', []), 'name');
+        $names[] = 'Other';
+
+        return $names;
+    }
 
     /**
      * Fields captured from the buyer questionnaire and persisted as a per-posting snapshot.
@@ -156,7 +154,7 @@ class JobPostingController extends Controller
             'starter' => $starter,
             'prefill' => $this->estimatorPrefillSessionData(),
             'showDetailsStep' => $showDetailsStep,
-            'starterServiceOptions' => self::STARTER_SERVICE_OPTIONS,
+            'starterServiceOptions' => self::starterServiceOptions(),
         ]);
     }
 
@@ -257,7 +255,7 @@ class JobPostingController extends Controller
         }
 
         $data = $request->validate([
-            'starter_service_type' => ['required', Rule::in(self::STARTER_SERVICE_OPTIONS)],
+            'starter_service_type' => ['required', Rule::in(self::starterServiceOptions())],
             'starter_service_type_other' => ['nullable', 'required_if:starter_service_type,Other', 'string', 'max:255'],
             'location' => ['required', 'string', 'max:255'],
             'zip_code' => ['nullable', 'string', 'max:20'],
@@ -410,7 +408,7 @@ class JobPostingController extends Controller
             'starter' => $starter,
             'prefill' => $prefill,
             'showDetailsStep' => true,
-            'starterServiceOptions' => self::STARTER_SERVICE_OPTIONS,
+            'starterServiceOptions' => self::starterServiceOptions(),
             'editingJob' => $job,
         ]);
     }
@@ -937,12 +935,12 @@ class JobPostingController extends Controller
     private function estimatorStarterServiceType(string $serviceType): string
     {
         // Map estimator service codes to the canonical buyer service labels
-        // (STARTER_SERVICE_OPTIONS) so a job prefilled from the estimator uses
-        // the same wording as the rest of the site.
+        // (config/security_services.php) so a job prefilled from the estimator
+        // uses the same wording as the rest of the site.
         return match ($serviceType) {
-            'unarmed' => 'Security Guard Services',
-            'armed' => 'Armed Security Services',
-            'mobile' => 'Mobile Patrol Services',
+            'unarmed' => 'Unarmed Security Guard',
+            'armed' => 'Armed Security Guard',
+            'mobile' => 'Mobile Patrol',
             'loss' => 'Loss Prevention',
             'executive' => 'Executive Protection',
             default => 'Other',

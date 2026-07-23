@@ -9,7 +9,7 @@
     <title>@yield('title', config('app.name', 'GASQ'))</title>
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/gasq-theme.css') }}?v={{ @filemtime(public_path('css/gasq-theme.css')) ?: '1' }}" rel="stylesheet">
     @stack('styles')

@@ -327,6 +327,17 @@
         </div>
     </section>
 
+    {{-- EXPLORE — surface Services & Industries beyond the footer --}}
+    <section class="gasq-section py-4" style="background:#f4f6fb;">
+        <div class="container px-4 text-center">
+            <p class="fw-semibold text-uppercase text-gasq-muted small mb-3" style="letter-spacing:.05em;">Explore what you can contract on GASQ</p>
+            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                <a href="{{ route('security-services') }}" class="btn btn-outline-primary btn-lg"><i class="fa fa-shield-halved me-2"></i>Security Services You Can Contract</a>
+                <a href="{{ route('industries-served') }}" class="btn btn-outline-primary btn-lg"><i class="fa fa-building-shield me-2"></i>Industries We Serve</a>
+            </div>
+        </div>
+    </section>
+
     {{-- WHAT VENDORS GET — navy theme, carries to the vendor dashboard --}}
     <section class="gasq-section" id="vendors" style="background:#153a81;">
         <div class="container px-4">
