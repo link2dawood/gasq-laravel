@@ -68,6 +68,12 @@
         .gasq-tc-badge { justify-content:center; }
         .gasq-tc-art { margin-top:1.25rem; }
     }
+
+    /* ---- Dark navy + gold treatment carried into the section below the hero ---- */
+    .gasq-hero-dark-section { background: linear-gradient(120deg,#0a1c3a 0%,#0e2a52 60%,#123a6b 100%) !important; color:#eaf1fb; }
+    .gasq-hero-dark-section > .container > .text-center .gasq-section-title { color:#fff !important; }
+    .gasq-hero-dark-section > .container > .text-center .gasq-section-title::after { content:""; display:block; width:66px; height:3px; background:#e6b84c; margin:16px auto 0; border-radius:2px; }
+    .gasq-hero-dark-section > .container > .text-center p { color:#cdd9ec !important; }
 </style>
 @endpush
 
@@ -137,7 +143,7 @@
     </section>
 
     {{-- BUYER PAIN POINT --}}
-    <section class="gasq-section">
+    <section class="gasq-section gasq-hero-dark-section">
         <div class="container px-4">
             <div class="text-center mb-5">
                 <h2 class="gasq-section-title mb-3">Most Buyers Don&rsquo;t Know What Security Services Really Costs!</h2>
