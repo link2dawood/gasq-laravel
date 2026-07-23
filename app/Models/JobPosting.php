@@ -105,6 +105,21 @@ class JobPosting extends Model
         return $this->hasMany(Bid::class);
     }
 
+    public function interviews(): HasMany
+    {
+        return $this->hasMany(Interview::class);
+    }
+
+    public function interviewSlots(): HasMany
+    {
+        return $this->hasMany(InterviewSlot::class);
+    }
+
+    public function interviewConfig(): HasOne
+    {
+        return $this->hasOne(InterviewConfig::class);
+    }
+
     public function vendorOpportunity(): HasOne
     {
         return $this->hasOne(VendorOpportunity::class);
