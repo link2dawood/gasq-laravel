@@ -20,6 +20,7 @@
                             @include('partials.nav-calculators-dropdown', ['toggleId' => 'navbarCalculatorsVendor', 'navLinkClass' => 'nav-link text-gasq-muted dropdown-toggle'])
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('credits') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('credits') }}">Credits</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('discovery-call.index') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('discovery-call.index') }}">Discovery Call</a></li>
+                            <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('vendor-faq') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('vendor-faq') }}">FAQ</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('profile.*') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('profile.show') }}">Settings</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('landing') }}">Home</a></li>
                             <li class="nav-item ms-md-2">
@@ -89,6 +90,9 @@
                                     <li><a class="dropdown-item" href="{{ url('/home') }}"><i class="fa fa-gauge me-2"></i>Dashboard</a></li>
                                     @if(auth()->user()->isBuyer() || auth()->user()->isVendor())
                                         <li><a class="dropdown-item" href="{{ route('jobs.index') }}">My Jobs</a></li>
+                                    @endif
+                                    @if(auth()->user()->isBuyer())
+                                        <li><a class="dropdown-item" href="{{ route('buyer-faq') }}"><i class="fa fa-circle-question me-2"></i>Buyer FAQ</a></li>
                                     @endif
                                     @if(auth()->user()->isAdmin())
                                         <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fa fa-chart-line me-2"></i>Dashboard</a></li>

@@ -50,10 +50,17 @@ class PageController extends Controller
 
     public function faq(): View
     {
-        // The generic /faq adapts to the logged-in role; guests/admins see all.
-        $user = auth()->user();
-        $audience = $user?->isBuyer() ? 'buyer' : ($user?->isVendor() ? 'vendor' : null);
-        return $this->renderFaq($audience, 'Frequently Asked Questions');
+        // Public front-end FAQ = general Q&A only. Buyer/Vendor FAQs are reached
+        // from their respective dashboards (see buyerFaq()/vendorFaq()).
+        $query = Faq::where('is_active', true);
+
+        if (Schema::hasColumn('faqs', 'audience')) {
+            $query->where('audience', 'all');
+        }
+
+        $faqs = $query->orderBy('order')->get();
+
+        return view('pages.faq', ['faqs' => $faqs, 'faqTitle' => 'Frequently Asked Questions']);
     }
 
     public function buyerFaq(): View

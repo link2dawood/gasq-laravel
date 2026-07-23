@@ -17,8 +17,11 @@ Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
 Route::get('/pricing/buyers', [PageController::class, 'buyerPricing'])->name('pricing.buyers');
 Route::get('/pricing/vendors', [PageController::class, 'vendorPricing'])->name('pricing.vendors');
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
-Route::get('/buyer-faq', [PageController::class, 'buyerFaq'])->name('buyer-faq');
-Route::get('/vendor-faq', [PageController::class, 'vendorFaq'])->name('vendor-faq');
+// Buyer/Vendor FAQs are dashboard-only (accessed while logged in), not public.
+Route::middleware('auth')->group(function () {
+    Route::get('/buyer-faq', [PageController::class, 'buyerFaq'])->name('buyer-faq');
+    Route::get('/vendor-faq', [PageController::class, 'vendorFaq'])->name('vendor-faq');
+});
 Route::get('/payscale', [PageController::class, 'payScale'])->name('payscale');
 // GASQ Impact — public "by the numbers" dashboard (GASQ's own USD figures, live).
 Route::get('/impact', [App\Http\Controllers\GasqImpactController::class, 'index'])->name('impact');
