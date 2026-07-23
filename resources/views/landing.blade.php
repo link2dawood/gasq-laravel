@@ -339,10 +339,12 @@
             <div class="row g-3 justify-content-center">
                 @php
                     $vendorFeatures = [
-                        ['icon' => 'fa-network-wired', 'label' => 'Vendor Acceptance Network'],
-                        ['icon' => 'fa-users',         'label' => 'Workforce-to-Post™ Analysis'],
-                        ['icon' => 'fa-route',         'label' => 'Mobile Patrol Cost Modeling'],
-                        ['icon' => 'fa-door-open',     'label' => 'Cost Per Door Models'],
+                        ['icon' => 'fa-network-wired',       'label' => 'Vendor Acceptance Network'],
+                        ['icon' => 'fa-users',               'label' => 'Workforce-to-Post™ Analysis'],
+                        ['icon' => 'fa-route',               'label' => 'Mobile Patrol Cost Modeling'],
+                        ['icon' => 'fa-door-open',           'label' => 'Cost Per Door Models'],
+                        ['icon' => 'fa-file-invoice-dollar', 'label' => 'Bill Rate &amp; Margin Tools'],
+                        ['icon' => 'fa-lock',                'label' => 'Sealed Pricing Protection'],
                     ];
                 @endphp
                 @foreach ($vendorFeatures as $feature)

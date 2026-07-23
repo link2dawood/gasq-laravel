@@ -25,13 +25,12 @@
             <div class="col-md-2">
                 <h4 class="h6 fw-semibold mb-3">For Buyers</h4>
                 <ul class="list-unstyled small">
-                    <li><a href="{{ route('pricing') }}" class="text-gasq-muted text-decoration-none">Know Before You Buy</a></li>
+                    <li><a href="{{ route('instant-estimator.index') }}" class="text-gasq-muted text-decoration-none">Know Before You Buy</a></li>
                     <li><a href="{{ route('security-services') }}" class="text-gasq-muted text-decoration-none">Security Services</a></li>
                     <li><a href="{{ route('jobs.create') }}" class="text-gasq-muted text-decoration-none">Post Your Job</a></li>
+                    <li><a href="{{ route('pricing.buyers') }}" class="text-gasq-muted text-decoration-none">Buyer Pricing</a></li>
                     <li><a href="{{ route('register.buyer.index') }}" class="text-gasq-muted text-decoration-none">Register as Buyer</a></li>
                     <li><a href="{{ route('login') }}" class="text-gasq-muted text-decoration-none">Buyer Login</a></li>
-                    <li><a href="{{ route('pricing.buyers') }}" class="text-gasq-muted text-decoration-none">Buyer Pricing</a></li>
-                    <li><a href="{{ route('buyer-faq') }}" class="text-gasq-muted text-decoration-none">Buyer FAQ</a></li>
                 </ul>
             </div>
 
@@ -40,11 +39,10 @@
                 <ul class="list-unstyled small">
                     <li><a href="{{ route('job-board') }}" class="text-gasq-muted text-decoration-none">Browse Jobs</a></li>
                     <li><a href="{{ route('industries-served') }}" class="text-gasq-muted text-decoration-none">Industries We Serve</a></li>
-                    <li><a href="{{ route('register.vendor.index') }}" class="text-gasq-muted text-decoration-none">Register as Vendor</a></li>
-                    <li><a href="{{ route('login') }}" class="text-gasq-muted text-decoration-none">Vendor Login</a></li>
                     <li><a href="{{ route('credits') }}" class="text-gasq-muted text-decoration-none">Buy Credits</a></li>
                     <li><a href="{{ route('pricing.vendors') }}" class="text-gasq-muted text-decoration-none">Vendor Pricing</a></li>
-                    <li><a href="{{ route('vendor-faq') }}" class="text-gasq-muted text-decoration-none">Vendor FAQ</a></li>
+                    <li><a href="{{ route('register.vendor.index') }}" class="text-gasq-muted text-decoration-none">Register as Vendor</a></li>
+                    <li><a href="{{ route('login') }}" class="text-gasq-muted text-decoration-none">Vendor Login</a></li>
                 </ul>
             </div>
 
@@ -53,7 +51,7 @@
                 <ul class="list-unstyled small">
                     <li><a href="{{ route('about') }}" class="text-gasq-muted text-decoration-none">About Us</a></li>
                     <li><a href="{{ route('why-gasq-works') }}" class="text-gasq-muted text-decoration-none">Why GASQ Works</a></li>
-                    <li><a href="{{ url('/#how-it-works') }}" class="text-gasq-muted text-decoration-none">How It Works</a></li>
+                    <li><a href="{{ url('/#how-it-works') }}" class="text-gasq-muted text-decoration-none">How GASQ Works</a></li>
                     <li><a href="https://livingwage.mit.edu/" target="_blank" rel="noopener noreferrer" class="text-gasq-muted text-decoration-none">MIT Living Wage Calculator</a></li>
                     <li><a href="{{ route('terms') }}" class="text-gasq-muted text-decoration-none">Terms &amp; Conditions</a></li>
                     <li><a href="{{ route('privacy-policy') }}" class="text-gasq-muted text-decoration-none">Privacy Policy</a></li>
