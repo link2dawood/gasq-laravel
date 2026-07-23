@@ -30,6 +30,44 @@
     /* Only the intro paragraphs (they carry .text-white-50) go light — NOT the
        card labels, which also live in .text-center boxes but must stay dark. */
     #buyers p.text-white-50, #vendors p.text-white-50 { color: rgba(255,255,255,0.9) !important; }
+
+    /* ---- Homepage hero banner (design #1) ---- */
+    .gasq-tc-banner {
+        background:
+            radial-gradient(circle at 78% 28%, rgba(37,99,235,.35) 0%, transparent 52%),
+            linear-gradient(120deg, #0a1c3a 0%, #0e2a52 58%, #123a6b 100%);
+        border-radius: 1.25rem;
+        padding: 2.75rem 2.25rem;
+        color: #fff;
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 1.75rem;
+        align-items: center;
+        overflow: hidden;
+        box-shadow: 0 26px 52px -26px rgba(6,20,41,.6);
+        text-align: left;
+    }
+    .gasq-tc-headline { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; line-height: 1.03; margin: 0; font-size: clamp(2rem, 4.4vw, 3.6rem); }
+    .gasq-tc-headline .knw { display:block; font-size:.6em; }
+    .gasq-tc-headline .gold { display:block; color:#e6b84c; }
+    .gasq-tc-headline .sub { display:block; font-size:.62em; }
+    .gasq-tc-tag { letter-spacing:.12em; font-weight:700; font-size:.82rem; color:#cdd9ec; margin:1.1rem 0 1.25rem; text-transform:uppercase; }
+    .gasq-tc-badge { display:inline-flex; align-items:center; gap:.65rem; color:#e6b84c; font-weight:700; font-size:.8rem; line-height:1.25; }
+    .gasq-tc-badge i { font-size:1.7rem; }
+    .gasq-tc-art { display:flex; align-items:center; justify-content:center; gap:1.25rem; flex-wrap:wrap; }
+    .gasq-tc-shield { position:relative; font-size:6.5rem; color:#9fb8dd; filter: drop-shadow(0 10px 18px rgba(0,0,0,.45)); }
+    .gasq-tc-shield .gasq-tc-lock { position:absolute; left:50%; top:50%; transform:translate(-50%,-46%); font-size:2.3rem; color:#eef4ff; }
+    .gasq-tc-analysis { background:#fff; color:#0e2a52; border-radius:.85rem; padding:1rem 1.15rem; min-width:236px; box-shadow:0 14px 30px -14px rgba(0,0,0,.55); }
+    .gasq-tc-analysis-title { font-weight:800; font-size:.82rem; text-transform:uppercase; letter-spacing:.03em; color:#0a1c3a; margin-bottom:.6rem; }
+    .gasq-tc-analysis ul { list-style:none; margin:0; padding:0; }
+    .gasq-tc-analysis li { display:flex; align-items:center; gap:.55rem; font-size:.86rem; font-weight:600; padding:.3rem 0; border-bottom:1px solid #eef1f6; color:#1e3558; }
+    .gasq-tc-analysis li:last-child { border-bottom:0; }
+    .gasq-tc-analysis li i { color:#2563eb; width:1.15rem; text-align:center; }
+    @media (max-width: 767.98px) {
+        .gasq-tc-banner { grid-template-columns:1fr; text-align:center; padding:2rem 1.25rem; }
+        .gasq-tc-badge { justify-content:center; }
+        .gasq-tc-art { margin-top:1.25rem; }
+    }
 </style>
 @endpush
 
@@ -39,7 +77,39 @@
     {{-- HERO --}}
     <section class="gasq-hero-bg">
         <div class="container text-center px-4">
-            <h1 class="gasq-hero-title mb-4" style="font-size: clamp(1.85rem, 3.6vw, 3rem);">GASQ<sup style="font-size:.5em; top:-.7em;">&reg;</sup> The Financial Operating System for Security Procurement<sup style="font-size:.5em; top:-.7em;">&trade;</sup></h1>
+            <div class="gasq-tc-banner mb-4">
+                <div class="gasq-tc-copy">
+                    <h1 class="gasq-tc-headline">
+                        <span class="knw">Know the</span>
+                        <span class="gold">True Cost</span>
+                        <span class="sub">of Security Services</span>
+                        <span class="sub">Before You Buy</span>
+                    </h1>
+                    <div class="gasq-tc-tag">Insight. Transparency. Value. Protection.</div>
+                    <div class="gasq-tc-badge">
+                        <i class="fa fa-shield-halved"></i>
+                        <span>EXPERT ADVICE.<br>SMARTER SECURITY DECISIONS.</span>
+                    </div>
+                </div>
+                <div class="gasq-tc-art">
+                    <div class="gasq-tc-shield">
+                        <i class="fa fa-shield-halved"></i>
+                        <i class="fa fa-lock gasq-tc-lock"></i>
+                    </div>
+                    <div class="gasq-tc-analysis">
+                        <div class="gasq-tc-analysis-title">Security Service Cost Analysis</div>
+                        <ul>
+                            <li><i class="fa fa-user"></i> Labor</li>
+                            <li><i class="fa fa-microchip"></i> Technology</li>
+                            <li><i class="fa fa-gears"></i> Operations</li>
+                            <li><i class="fa fa-triangle-exclamation"></i> Risk</li>
+                            <li><i class="fa fa-clipboard-check"></i> Compliance</li>
+                            <li><i class="fa fa-building"></i> Overhead</li>
+                            <li><i class="fa fa-eye-slash"></i> Hidden Costs</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
             <p class="gasq-hero-lead lead mb-4 mx-auto">
                 GetASecurityQuoteNow (GASQ) helps property owners, procurement teams, and security buyers
                 compare the <em>real total cost of ownership</em> of security services before signing a contract.
