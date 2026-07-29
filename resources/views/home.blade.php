@@ -374,25 +374,52 @@
     </div>
     <div class="card-body p-4">
 
+      @php
+          // Buyer explainer clip (GASQ_B2_Vid5), self-hosted under storage/app/public/videos/.
+          // When present: both calculator buttons stack in the left column and the video
+          // fills the right column. Until uploaded, the two calculators sit side by side.
+          $vid5Path = 'storage/videos/GASQ_B2_Vid5.mp4';
+          $hasVid5 = file_exists(public_path($vid5Path));
+      @endphp
+
       {{-- Buyers only see the two buyer-facing calculators (consistent naming everywhere). --}}
       <div class="row g-3">
         <div class="col-md-6">
-          <a href="{{ route('instant-estimator.index') }}" class="gasq-action-card" style="border-color:rgba(6,45,121,0.18);background:rgba(6,45,121,0.03)">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-bolt"></i></div>
-            <div>
-              <div class="action-title">Instant Estimator</div>
-              <div class="action-desc">Your fast security services cost estimate</div>
-            </div>
-          </a>
+          <div class="d-flex flex-column gap-3">
+            <a href="{{ route('instant-estimator.index') }}" class="gasq-action-card" style="border-color:rgba(6,45,121,0.18);background:rgba(6,45,121,0.03)">
+              <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-bolt"></i></div>
+              <div>
+                <div class="action-title">Instant Estimator</div>
+                <div class="action-desc">Your fast security services cost estimate</div>
+              </div>
+            </a>
+            @if($hasVid5)
+            <a href="{{ route('budget-calculator.index') }}" class="gasq-action-card">
+              <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-piggy-bank"></i></div>
+              <div>
+                <div class="action-title">Know Before You Buy Calculator</div>
+                <div class="action-desc">Estimate your annual security spend</div>
+              </div>
+            </a>
+            @endif
+          </div>
         </div>
         <div class="col-md-6">
-          <a href="{{ route('budget-calculator.index') }}" class="gasq-action-card">
-            <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-piggy-bank"></i></div>
-            <div>
-              <div class="action-title">Know Before You Buy Calculator</div>
-              <div class="action-desc">Estimate your annual security spend</div>
-            </div>
-          </a>
+          @if($hasVid5)
+            <video controls preload="metadata" playsinline class="w-100 rounded-3 shadow-sm d-block" style="background:#0b1f4d;">
+              <source src="{{ asset($vid5Path) }}" type="video/mp4">
+              Your browser does not support embedded video.
+              <a href="{{ asset($vid5Path) }}">Download the video</a>.
+            </video>
+          @else
+            <a href="{{ route('budget-calculator.index') }}" class="gasq-action-card">
+              <div class="gasq-icon-badge" style="width:40px;height:40px;font-size:1rem"><i class="fa fa-piggy-bank"></i></div>
+              <div>
+                <div class="action-title">Know Before You Buy Calculator</div>
+                <div class="action-desc">Estimate your annual security spend</div>
+              </div>
+            </a>
+          @endif
         </div>
       </div>
 
