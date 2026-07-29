@@ -373,7 +373,14 @@
     {{-- GUARANTEE --}}
     <section class="gasq-roi-section">
         <div class="container px-4">
-            <div class="gasq-card card gasq-roi-card p-4 p-lg-5 mx-auto" style="max-width: 56rem;">
+            @php
+                // Buyer explainer clip (GASQ_B2_Vid5). Self-hosted MP4 under
+                // storage/app/public/videos/ (survives deploys, out of git).
+                // Upload the file there and it appears automatically — no redeploy.
+                $vid5Path = 'storage/videos/GASQ_B2_Vid5.mp4';
+                $hasVid5 = file_exists(public_path($vid5Path));
+            @endphp
+            <div class="gasq-card card gasq-roi-card p-4 p-lg-5 mx-auto" style="max-width: {{ $hasVid5 ? '62rem' : '56rem' }};">
                 <div class="text-center mb-4">
                     <h2 class="gasq-section-title text-primary mb-3">Built for Buyers. Trusted by Vendors.</h2>
                     <p class="text-gasq-muted mb-0" style="font-size: 1.125rem;">
@@ -381,15 +388,30 @@
                         and security service providers.
                     </p>
                 </div>
-                <h3 class="card-title gasq-card-title-lg mb-3">GASQ Advantages</h3>
-                <ul class="gasq-list-check mb-0">
-                    <li>Buyer-to-vendor comparison model</li>
-                    <li>Vendor replacement guarantee</li>
-                    <li>Price lock options</li>
-                    <li>Transparent workforce pricing</li>
-                    <li>Budget-first procurement approach</li>
-                    <li>Educational procurement tools</li>
-                </ul>
+                <div class="row g-4 align-items-center">
+                    <div class="{{ $hasVid5 ? 'col-lg-6' : 'col-12' }}">
+                        <h3 class="card-title gasq-card-title-lg mb-3">GASQ Advantages</h3>
+                        <ul class="gasq-list-check mb-0">
+                            <li>Buyer-to-vendor comparison model</li>
+                            <li>Vendor replacement guarantee</li>
+                            <li>Price lock options</li>
+                            <li>Transparent workforce pricing</li>
+                            <li>Budget-first procurement approach</li>
+                            <li>Educational procurement tools</li>
+                        </ul>
+                    </div>
+                    @if($hasVid5)
+                        <div class="col-lg-6">
+                            <video controls preload="metadata" playsinline
+                                   class="w-100 rounded-3 shadow-sm d-block"
+                                   style="background:#0b1f4d;">
+                                <source src="{{ asset($vid5Path) }}" type="video/mp4">
+                                Your browser does not support embedded video.
+                                <a href="{{ asset($vid5Path) }}">Download the video</a>.
+                            </video>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </section>
