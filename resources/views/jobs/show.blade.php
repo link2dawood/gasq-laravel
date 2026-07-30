@@ -50,6 +50,9 @@
         <h1 class="gasq-page-title mb-0">{{ $job->title }}</h1>
         @if($isOwner)
             <div class="d-flex gap-2">
+                @if(! $isClosed)
+                    <a href="{{ route('interviews.manage', $job) }}" class="btn btn-primary btn-sm"><i class="fa fa-calendar-check me-1"></i>Set up Interviews</a>
+                @endif
                 @if(! $isHired && ! $isClosed)
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#closeJobModal">Close job</button>
                 @endif

@@ -127,6 +127,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/jobs/{job}/hire', [App\Http\Controllers\JobPostingController::class, 'hire'])->name('jobs.hire');
         Route::post('/jobs/{job}/close', [App\Http\Controllers\JobPostingController::class, 'close'])->name('jobs.close');
         Route::post('/jobs/{job}/workflow-status', [App\Http\Controllers\JobPostingController::class, 'updateWorkflowStatus'])->name('jobs.workflow-status');
+
+        // Interview Scheduler — buyer control room (setup + per-vendor status).
+        Route::get('/jobs/{job}/interviews', [App\Http\Controllers\InterviewController::class, 'manage'])->name('interviews.manage');
+        Route::post('/jobs/{job}/interviews/config', [App\Http\Controllers\InterviewController::class, 'saveConfig'])->name('interviews.config');
+
         Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
     });
     Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
