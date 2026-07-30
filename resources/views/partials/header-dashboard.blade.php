@@ -22,7 +22,6 @@
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('discovery-call.index') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('discovery-call.index') }}">Discovery Call</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('vendor-faq') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('vendor-faq') }}">FAQ</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('profile.*') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('profile.show') }}">Settings</a></li>
-                            <li class="nav-item"><a class="nav-link text-gasq-muted" href="{{ route('landing') }}">Home</a></li>
                             <li class="nav-item ms-md-2">
                                 <span class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2">
                                     <i class="fa fa-wallet"></i>

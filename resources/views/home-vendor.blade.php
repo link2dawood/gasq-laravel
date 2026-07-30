@@ -37,10 +37,10 @@
     }
     .vendor-cta {
         display: inline-flex; align-items: center; justify-content: center; min-width: 10rem;
-        padding: .75rem 1.25rem; border-radius: 999px; background: #ff825f; color: #fff;
+        padding: .75rem 1.25rem; border-radius: .5rem; background: #0d2c6b; color: #fff;
         text-decoration: none; font-weight: 700;
     }
-    .vendor-cta:hover { color: #fff; background: #f36e47; }
+    .vendor-cta:hover { color: #fff; background: #09204e; }
     .vendor-link-btn {
         display: inline-flex; align-items: center; justify-content: center; min-width: 9rem;
         padding: .6rem 1.05rem; border-radius: 999px; border: 1px solid #2f71ff; color: #2f71ff;
@@ -168,10 +168,10 @@
             </section>
 
             <section class="vendor-panel">
-                <div class="vendor-panel-head"><h2 class="h2 mb-0">Special Pages</h2></div>
+                <div class="vendor-panel-head"><h2 class="h2 mb-0">Quick Links</h2></div>
                 <div class="vendor-panel-body text-center">
-                    <p class="mb-2"><a href="{{ route('discovery-call.index') }}" class="fs-4">GASQ Seminars</a></p>
-                    <p class="mb-0"><a href="{{ route('faq') }}" class="fs-4">Documents</a></p>
+                    <p class="mb-2"><a href="{{ route('discovery-call.index') }}" class="fs-4">Discovery Call</a></p>
+                    <p class="mb-0"><a href="{{ route('faq') }}" class="fs-4">FAQ</a></p>
                 </div>
             </section>
 
