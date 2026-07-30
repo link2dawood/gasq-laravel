@@ -128,12 +128,25 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/jobs/{job}/close', [App\Http\Controllers\JobPostingController::class, 'close'])->name('jobs.close');
         Route::post('/jobs/{job}/workflow-status', [App\Http\Controllers\JobPostingController::class, 'updateWorkflowStatus'])->name('jobs.workflow-status');
 
-        // Interview Scheduler — buyer control room (setup + per-vendor status).
+        // Interview Scheduler — buyer control room (setup, slots, invites, scoring, reveal).
         Route::get('/jobs/{job}/interviews', [App\Http\Controllers\InterviewController::class, 'manage'])->name('interviews.manage');
         Route::post('/jobs/{job}/interviews/config', [App\Http\Controllers\InterviewController::class, 'saveConfig'])->name('interviews.config');
+        Route::post('/jobs/{job}/interviews/slots', [App\Http\Controllers\InterviewController::class, 'addSlot'])->name('interviews.slots.add');
+        Route::delete('/jobs/{job}/interviews/slots/{slot}', [App\Http\Controllers\InterviewController::class, 'deleteSlot'])->name('interviews.slots.delete');
+        Route::post('/jobs/{job}/interviews/invite', [App\Http\Controllers\InterviewController::class, 'invite'])->name('interviews.invite');
+        Route::post('/jobs/{job}/interviews/{interview}/score', [App\Http\Controllers\InterviewController::class, 'score'])->name('interviews.score');
+        Route::post('/jobs/{job}/interviews/certify', [App\Http\Controllers\InterviewController::class, 'certify'])->name('interviews.certify');
+        Route::post('/jobs/{job}/interviews/reveal', [App\Http\Controllers\InterviewController::class, 'reveal'])->name('interviews.reveal');
 
         Route::resource('jobs', App\Http\Controllers\JobPostingController::class)->except(['index', 'show'])->names('jobs');
     });
+
+    // Interview Scheduler — vendor self-scheduling (auth, no phone-verify needed).
+    Route::get('/my-interviews', [App\Http\Controllers\InterviewController::class, 'myInterviews'])->name('interviews.vendor.index');
+    Route::get('/my-interviews/{interview}', [App\Http\Controllers\InterviewController::class, 'schedule'])->name('interviews.vendor.schedule');
+    Route::post('/my-interviews/{interview}/book', [App\Http\Controllers\InterviewController::class, 'book'])->name('interviews.vendor.book');
+    Route::post('/my-interviews/{interview}/prep-ack', [App\Http\Controllers\InterviewController::class, 'acknowledgePrep'])->name('interviews.vendor.prep-ack');
+    Route::get('/interviews/{interview}/calendar.ics', [App\Http\Controllers\InterviewController::class, 'ics'])->name('interviews.ics');
     Route::post('/jobs/{job}/bids', [App\Http\Controllers\BidController::class, 'store'])->name('bids.store');
     Route::post('/jobs/{job}/offer-response', [App\Http\Controllers\BidController::class, 'offerResponse'])->name('bids.offer-response');
     Route::put('/bids/{bid}', [App\Http\Controllers\BidController::class, 'update'])->name('bids.update');

@@ -170,6 +170,7 @@
             <section class="vendor-panel">
                 <div class="vendor-panel-head"><h2 class="h2 mb-0">Quick Links</h2></div>
                 <div class="vendor-panel-body text-center">
+                    <p class="mb-2"><a href="{{ route('interviews.vendor.index') }}" class="fs-4">My Interviews</a></p>
                     <p class="mb-2"><a href="{{ route('discovery-call.index') }}" class="fs-4">Discovery Call</a></p>
                     <p class="mb-0"><a href="{{ route('faq') }}" class="fs-4">FAQ</a></p>
                 </div>

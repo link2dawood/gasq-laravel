@@ -10,17 +10,19 @@ class Interview extends Model
     protected $fillable = [
         'job_posting_id', 'vendor_id', 'bid_id', 'slot_id', 'status', 'scheduled_at',
         'duration_minutes', 'format', 'location', 'timezone', 'capability_score',
-        'price_status', 'vendor_prep_acknowledged_at', 'reschedule_count',
-        'completed_at', 'buyer_notes',
+        'score_breakdown', 'scored_at', 'price_status', 'vendor_prep_acknowledged_at',
+        'reschedule_count', 'completed_at', 'buyer_notes',
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
         'completed_at' => 'datetime',
+        'scored_at' => 'datetime',
         'vendor_prep_acknowledged_at' => 'datetime',
         'duration_minutes' => 'integer',
         'reschedule_count' => 'integer',
         'capability_score' => 'decimal:2',
+        'score_breakdown' => 'array',
     ];
 
     /** Interview lifecycle statuses (spec §10). */
