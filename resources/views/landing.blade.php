@@ -402,10 +402,11 @@
                         </ul>
                     </div>
                     @if($hasVid5)
-                        <div class="col-lg-6">
+                        <div class="col-lg-6 text-center">
+                            {{-- Portrait clip: cap the height and center so it doesn't dominate the row. --}}
                             <video controls preload="metadata" playsinline
-                                   class="w-100 rounded-3 shadow-sm d-block"
-                                   style="background:#0b1f4d;">
+                                   class="rounded-3 shadow-sm mx-auto d-block"
+                                   style="max-height:520px; max-width:100%; width:auto; background:#0b1f4d;">
                                 <source src="{{ asset($vid5Path) }}" type="video/mp4">
                                 Your browser does not support embedded video.
                                 <a href="{{ asset($vid5Path) }}">Download the video</a>.

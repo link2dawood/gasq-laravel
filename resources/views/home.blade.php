@@ -407,7 +407,8 @@
         </div>
         <div class="col-md-6">
           @if($hasVid5)
-            <video controls preload="metadata" playsinline class="w-100 rounded-3 shadow-sm d-block" style="background:#0b1f4d;">
+            {{-- Portrait clip: cap height and center beside the stacked calculator buttons. --}}
+            <video controls preload="metadata" playsinline class="rounded-3 shadow-sm mx-auto d-block" style="max-height:360px; max-width:100%; width:auto; background:#0b1f4d;">
               <source src="{{ asset($vid5Path) }}" type="video/mp4">
               Your browser does not support embedded video.
               <a href="{{ asset($vid5Path) }}">Download the video</a>.
