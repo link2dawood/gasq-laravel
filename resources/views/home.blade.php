@@ -375,10 +375,11 @@
     <div class="card-body p-4">
 
       @php
-          // Buyer explainer clip (GASQ_B2_Vid5), self-hosted under storage/app/public/videos/.
-          // When present: both calculator buttons stack in the left column and the video
-          // fills the right column. Until uploaded, the two calculators sit side by side.
-          $vid5Path = 'storage/videos/GASQ_B2_Vid5.mp4';
+          // Buyer explainer clip (GASQ_B2_Vid5), self-hosted under public/videos/
+          // (excluded from the deploy's rsync --delete; no storage symlink, which
+          // this host blocks). When present: both calculator buttons stack in the left
+          // column and the video fills the right. Until uploaded, calculators sit side by side.
+          $vid5Path = 'videos/GASQ_B2_Vid5.mp4';
           $hasVid5 = file_exists(public_path($vid5Path));
       @endphp
 

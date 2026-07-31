@@ -375,9 +375,10 @@
         <div class="container px-4">
             @php
                 // Buyer explainer clip (GASQ_B2_Vid5). Self-hosted MP4 under
-                // storage/app/public/videos/ (survives deploys, out of git).
-                // Upload the file there and it appears automatically — no redeploy.
-                $vid5Path = 'storage/videos/GASQ_B2_Vid5.mp4';
+                // public/videos/ (excluded from the deploy's rsync --delete, so a
+                // manually-uploaded file survives). Upload it there and it appears
+                // automatically — no redeploy, no storage symlink (which this host blocks).
+                $vid5Path = 'videos/GASQ_B2_Vid5.mp4';
                 $hasVid5 = file_exists(public_path($vid5Path));
             @endphp
             <div class="gasq-card card gasq-roi-card p-4 p-lg-5 mx-auto" style="max-width: {{ $hasVid5 ? '62rem' : '56rem' }};">
