@@ -38,6 +38,16 @@
 </ul>
 @endif
 
+@if(!empty($surveyorNotes) || !empty($attachmentCount))
+<p><strong>Notes from your GASQ representative:</strong></p>
+@if(!empty($surveyorNotes))
+<div style="margin:6px 0 10px 8px; padding:10px 12px; background:#f1f5f9; border-left:3px solid #153a81; white-space:pre-line;">{{ $surveyorNotes }}</div>
+@endif
+@if(!empty($attachmentCount))
+<p style="margin-left:8px;">{{ $attachmentCount }} on-site {{ \Illuminate\Support\Str::plural('file', $attachmentCount) }} (photos/documents) {{ $attachmentCount === 1 ? 'is' : 'are' }} attached to this email alongside your report.</p>
+@endif
+@endif
+
 <p>Please note that this report is designated:</p>
 
 <p style="margin-left:8px;">

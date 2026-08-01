@@ -113,6 +113,10 @@ class ReportController extends Controller
             'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,budget-calculator-allocation,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
             'email' => 'required|string',
             'email2' => 'nullable|string',
+            // Optional on-site survey notes + photos/files (preparers only, gated below).
+            'notes' => 'nullable|string|max:5000',
+            'attachments' => 'nullable|array|max:8',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,heic,heif,webp,gif,pdf,doc,docx,txt|max:8192',
         ]);
 
         // Combine the primary field (which may itself hold several addresses) with
@@ -149,6 +153,35 @@ class ReportController extends Controller
             $subject = 'Your GASQ Cost to Protect™ Appraisal Report';
         }
 
+        // On-site survey notes + photos/files. Only preparers (vendors/admins) may
+        // attach these — re-checked server-side so a crafted request can't bypass
+        // the hidden UI. Notes render in the email body; files ride as attachments.
+        $user = $request->user();
+        $canAttach = $user && (
+            (method_exists($user, 'isVendor') && $user->isVendor())
+            || (method_exists($user, 'isAdmin') && $user->isAdmin())
+        );
+
+        $extraAttachments = [];
+        if ($canAttach) {
+            $notes = trim((string) $request->input('notes', ''));
+            foreach ((array) $request->file('attachments', []) as $file) {
+                if ($file && $file->isValid()) {
+                    $extraAttachments[] = [
+                        'data' => (string) file_get_contents($file->getRealPath()),
+                        'name' => $file->getClientOriginalName() ?: ('attachment.' . ($file->guessExtension() ?: 'dat')),
+                        'mime' => $file->getMimeType() ?: 'application/octet-stream',
+                    ];
+                }
+            }
+            if ($notes !== '' || $extraAttachments !== []) {
+                $bodyData = array_merge($bodyData, [
+                    'surveyorNotes' => $notes !== '' ? $notes : null,
+                    'attachmentCount' => count($extraAttachments),
+                ]);
+            }
+        }
+
         // BCC the GASQ inbox (record of each send) and the HubSpot "log to CRM"
         // address (auto-logs the report onto the contact's HubSpot timeline).
         $bcc = array_values(array_filter([self::ESTIMATE_BCC, config('services.hubspot.bcc')]));
@@ -167,6 +200,7 @@ class ReportController extends Controller
                     filename: $filename,
                     bodyView: $bodyView,
                     bodyData: $bodyData,
+                    extraAttachments: $extraAttachments,
                 ));
         }
 
