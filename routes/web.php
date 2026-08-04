@@ -34,6 +34,7 @@ Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'submit'])->name('contact.submit');
 Route::view('/security-services', 'pages.security-services')->name('security-services');
 Route::view('/industries-served', 'pages.industries-served')->name('industries-served');
+Route::view('/vendor-membership', 'pages.vendor-membership')->name('vendor-membership');
 Route::view('/license/buyer', 'pages.license-buyer')->name('license.buyer');
 Route::view('/license/seller', 'pages.license-seller')->name('license.seller');
 // Vendor-only standalone calculators.
