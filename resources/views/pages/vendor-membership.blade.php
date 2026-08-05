@@ -187,6 +187,29 @@
   .vm-tagline{ margin-top:30px; color:var(--vm-gold); font-weight:800; font-size:1.05rem; font-family:var(--vm-display); font-style:italic; }
   .vm-promise .vm-cta-row{ justify-content:center; margin-top:30px; }
 
+  /* Report dashboard */
+  .vm-dash-band{ background:var(--vm-navy); color:#fff; border-radius:10px; text-align:center; font-weight:800;
+    letter-spacing:.12em; text-transform:uppercase; font-size:.76rem; padding:10px 14px; margin-bottom:22px; }
+  .vm-tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:26px; }
+  .vm-tile{ background:var(--vm-surface); border:1px solid var(--vm-border); border-radius:14px; padding:22px; box-shadow:var(--vm-shadow-sm); }
+  .vm-tile .vm-tlabel{ font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:var(--vm-muted); font-weight:700; }
+  .vm-tile .vm-tval{ font-family:var(--vm-mono); font-size:1.85rem; font-weight:700; letter-spacing:-.02em; color:var(--vm-ink); margin-top:8px; line-height:1.05; }
+  .vm-tile .vm-tval.vm-gold{ color:var(--vm-gold-deep); }
+  .vm-tile .vm-tval.vm-green{ color:var(--vm-good); }
+  .vm-tile .vm-tsub{ font-size:.8rem; color:var(--vm-muted); margin-top:6px; }
+  .vm-compare{ background:var(--vm-surface); border:1px solid var(--vm-border); border-radius:14px; padding:26px 28px; box-shadow:var(--vm-shadow-sm); }
+  .vm-compare .vm-ctitle{ font-family:var(--vm-display); font-size:1.2rem; color:var(--vm-ink); margin:0 0 18px; }
+  .vm-cbar-row{ margin-bottom:16px; }
+  .vm-cbar-label{ display:flex; justify-content:space-between; font-size:.9rem; color:var(--vm-ink); font-weight:600; margin-bottom:6px; }
+  .vm-cbar-label .vm-cval{ font-family:var(--vm-mono); font-variant-numeric:tabular-nums; }
+  .vm-cbar-track{ background:var(--vm-surface-2); border:1px solid var(--vm-border); border-radius:6px; height:34px; overflow:hidden; }
+  .vm-cbar-fill{ height:100%; border-radius:0 6px 6px 0; display:flex; align-items:center; padding-left:14px; color:#fff; font-family:var(--vm-mono); font-size:.82rem; font-weight:700; }
+  .vm-cbar-fill.vm-navy{ background:var(--vm-navy); }
+  .vm-cbar-fill.vm-green{ background:var(--vm-good); }
+  .vm-recovery{ margin-top:6px; padding-top:16px; border-top:1px dashed var(--vm-border-strong); font-size:.98rem; color:var(--vm-ink); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .vm-recovery .vm-pill{ font-family:var(--vm-mono); font-weight:700; color:#2a1c00; background:var(--vm-gold); padding:4px 12px; border-radius:999px; }
+  .vm-dash-note{ text-align:center; color:var(--vm-muted); font-size:.82rem; margin-top:18px; max-width:640px; margin-inline:auto; }
+
   /* Scroll reveal */
   .vm-reveal{ opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease; }
   .vm-reveal.vm-in{ opacity:1; transform:none; }
@@ -194,7 +217,9 @@
 
   @media (max-width:900px){
     .vm-hero .vm-wrap,.vm-grid-3,.vm-grid-2,.vm-plans,.vm-steps{ grid-template-columns:1fr; }
+    .vm-tiles{ grid-template-columns:repeat(2,1fr); }
   }
+  @media (max-width:460px){ .vm-tiles{ grid-template-columns:1fr; } }
   @media (max-width:760px){
     .vm-ledger{ grid-template-columns:1fr; } .vm-ledger .vm-new{ border-left:0; border-top:3px solid var(--vm-gold); }
     .vm-side-plans,.vm-stamp-cards,.vm-example{ grid-template-columns:1fr; } .vm-example .vm-figure{ text-align:left; }
@@ -303,8 +328,85 @@
     </div>
   </section>
 
+  {{-- REPORT DASHBOARD --}}
+  <section class="vm-section" id="report">
+    <div class="vm-wrap">
+      <div class="vm-sec-head vm-center vm-reveal">
+        <hr class="vm-rule vm-center">
+        <h2>What your GASQ Certified&trade; report delivers</h2>
+        <p>Every opportunity comes with an independent appraisal. Here&rsquo;s a snapshot on a representative contract &mdash; the same figures your Cost to Protect&trade; report puts in front of the buyer.</p>
+      </div>
+
+      <div class="vm-dash-band vm-reveal">Financial Impact Summary</div>
+      <div class="vm-tiles vm-reveal">
+        <div class="vm-tile">
+          <div class="vm-tlabel">In-House Cost to Protect&trade;</div>
+          <div class="vm-tval">$91.84<span style="font-size:.9rem;color:var(--vm-muted)">/hr</span></div>
+          <div class="vm-tsub">$802,286 per year (buyer TCO)</div>
+        </div>
+        <div class="vm-tile">
+          <div class="vm-tlabel">Vendor Cost to Deliver&trade;</div>
+          <div class="vm-tval vm-green">$64.29<span style="font-size:.9rem;color:var(--vm-muted)">/hr</span></div>
+          <div class="vm-tsub">$561,600 per year (vendor TCO)</div>
+        </div>
+        <div class="vm-tile">
+          <div class="vm-tlabel">Capital Recovery Opportunity</div>
+          <div class="vm-tval vm-gold">$240,686</div>
+          <div class="vm-tsub">$27.55/hr recovered vs in-house</div>
+        </div>
+        <div class="vm-tile">
+          <div class="vm-tlabel">Savings vs In-House</div>
+          <div class="vm-tval vm-gold">30%</div>
+          <div class="vm-tsub">Payback period &asymp; 8.4 months</div>
+        </div>
+      </div>
+
+      <div class="vm-dash-band vm-reveal">Staffing &amp; Coverage</div>
+      <div class="vm-tiles vm-reveal">
+        <div class="vm-tile">
+          <div class="vm-tlabel">Annual Coverage Hours</div>
+          <div class="vm-tval">8,736</div>
+          <div class="vm-tsub">24&times;7 post coverage modeled</div>
+        </div>
+        <div class="vm-tile">
+          <div class="vm-tlabel">Workforce Required</div>
+          <div class="vm-tval">12<span style="font-size:.9rem;color:var(--vm-muted)"> FTE</span></div>
+          <div class="vm-tsub">Includes relief &amp; supervision</div>
+        </div>
+        <div class="vm-tile">
+          <div class="vm-tlabel">Shared Resources Safe-Zone Rate</div>
+          <div class="vm-tval">$35.71<span style="font-size:.9rem;color:var(--vm-muted)">/hr</span></div>
+          <div class="vm-tsub">Loaded wage floor for sustainability</div>
+        </div>
+        <div class="vm-tile">
+          <div class="vm-tlabel">Price-Realism Check</div>
+          <div class="vm-tval vm-green">Pass</div>
+          <div class="vm-tsub">Bid is sustainable at this coverage</div>
+        </div>
+      </div>
+
+      <div class="vm-compare vm-reveal">
+        <h3 class="vm-ctitle">In-House vs. Outsourced &mdash; the recovery gap</h3>
+        <div class="vm-cbar-row">
+          <div class="vm-cbar-label"><span>In-House Cost to Protect&trade;</span><span class="vm-cval">$802,286 / yr</span></div>
+          <div class="vm-cbar-track"><div class="vm-cbar-fill vm-navy" style="width:100%;">$91.84 / hr</div></div>
+        </div>
+        <div class="vm-cbar-row">
+          <div class="vm-cbar-label"><span>Vendor Cost to Deliver&trade;</span><span class="vm-cval">$561,600 / yr</span></div>
+          <div class="vm-cbar-track"><div class="vm-cbar-fill vm-green" style="width:70%;">$64.29 / hr</div></div>
+        </div>
+        <div class="vm-recovery">
+          <span>Annual Capital Recovery Opportunity</span>
+          <span class="vm-pill">$240,686 &middot; 30%</span>
+        </div>
+      </div>
+
+      <p class="vm-dash-note vm-reveal">Representative example for illustration. Actual figures vary by scope, market, coverage, and vendor participation. Amounts in USD.</p>
+    </div>
+  </section>
+
   {{-- PLANS --}}
-  <section class="vm-section" id="vm-plans">
+  <section class="vm-section vm-band" id="vm-plans">
     <div class="vm-wrap">
       <div class="vm-sec-head vm-center vm-reveal">
         <hr class="vm-rule vm-center">
@@ -435,7 +537,7 @@
   </section>
 
   {{-- PROTECTIONS --}}
-  <section class="vm-section vm-band" id="protections">
+  <section class="vm-section" id="protections">
     <div class="vm-wrap">
       <div class="vm-sec-head vm-reveal">
         <hr class="vm-rule">
@@ -471,7 +573,7 @@
   </section>
 
   {{-- SERVICES --}}
-  <section class="vm-section" id="services">
+  <section class="vm-section vm-band" id="services">
     <div class="vm-wrap">
       <div class="vm-sec-head vm-reveal">
         <hr class="vm-rule">
@@ -499,7 +601,7 @@
   </section>
 
   {{-- PROCESS --}}
-  <section class="vm-section vm-band" id="process">
+  <section class="vm-section" id="process">
     <div class="vm-wrap">
       <div class="vm-sec-head vm-reveal">
         <hr class="vm-rule">
@@ -517,7 +619,7 @@
   </section>
 
   {{-- FAQ --}}
-  <section class="vm-section" id="faq">
+  <section class="vm-section vm-band" id="faq">
     <div class="vm-wrap">
       <div class="vm-sec-head vm-center vm-reveal">
         <hr class="vm-rule vm-center">
