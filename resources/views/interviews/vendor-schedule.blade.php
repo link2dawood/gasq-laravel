@@ -80,6 +80,9 @@
             @else
                 <form action="{{ route('interviews.vendor.book', $interview) }}" method="POST">
                     @csrf
+                    @if($config->timezone)
+                        <p class="small text-gasq-muted mb-2"><i class="fa fa-globe me-1"></i>Times shown in {{ $config->timezone }}.</p>
+                    @endif
                     <div class="list-group mb-3">
                         @foreach($openSlots as $slot)
                             <label class="list-group-item d-flex align-items-center gap-2">

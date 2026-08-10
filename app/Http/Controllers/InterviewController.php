@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
@@ -297,26 +298,45 @@ class InterviewController extends Controller
         $job = $interview->jobPosting;
         $config = $job->interviewConfig()->firstOrNew([]);
 
-        $slot = InterviewSlot::where('id', $data['slot_id'])
-            ->where('job_posting_id', $job->id)
-            ->whereNull('interview_id')
-            ->first();
+        $slotId = (int) $data['slot_id'];
 
-        if (! $slot) {
+        // Re-booking the exact slot they already hold — nothing to do.
+        if ($interview->slot_id && (int) $interview->slot_id === $slotId) {
+            return redirect()->route('interviews.vendor.schedule', $interview)
+                ->with('success', 'Your interview is already booked for that time.');
+        }
+
+        // Atomically claim the slot: the UPDATE succeeds only if it is still open,
+        // so two vendors racing for the same time can never both win.
+        $booked = DB::transaction(function () use ($interview, $job, $slotId) {
+            $claimed = InterviewSlot::where('id', $slotId)
+                ->where('job_posting_id', $job->id)
+                ->whereNull('interview_id')
+                ->update(['interview_id' => $interview->id]);
+
+            if ($claimed === 0) {
+                return null;
+            }
+
+            // Release the previously held slot (reschedule).
+            if ($interview->slot_id) {
+                InterviewSlot::where('id', $interview->slot_id)
+                    ->where('interview_id', $interview->id)
+                    ->update(['interview_id' => null]);
+                $interview->increment('reschedule_count');
+            }
+
+            return InterviewSlot::find($slotId);
+        });
+
+        if (! $booked) {
             return redirect()->route('interviews.vendor.schedule', $interview)
                 ->with('error', 'That time was just taken — please pick another.');
         }
 
-        // Release any previously held slot (reschedule).
-        if ($interview->slot_id) {
-            InterviewSlot::where('id', $interview->slot_id)->update(['interview_id' => null]);
-            $interview->increment('reschedule_count');
-        }
-
-        $slot->update(['interview_id' => $interview->id]);
         $interview->update([
-            'slot_id' => $slot->id,
-            'scheduled_at' => $slot->starts_at,
+            'slot_id' => $booked->id,
+            'scheduled_at' => $booked->starts_at,
             'status' => 'scheduled',
             'format' => $interview->format ?: $config->default_format,
             'location' => $interview->location ?: $config->location,

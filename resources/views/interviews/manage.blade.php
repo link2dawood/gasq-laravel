@@ -143,7 +143,7 @@
             </h2>
             <div id="secSlots" class="accordion-collapse collapse" data-bs-parent="#interviewAccordion">
                 <div class="accordion-body">
-                    <p class="text-gasq-muted small">Publish the times you're available. Invited vendors each book one open slot.</p>
+                    <p class="text-gasq-muted small">Publish the times you're available. Invited vendors each book one open slot.@if($config->timezone) Times are in <strong>{{ $config->timezone }}</strong> — set on the Settings tab.@endif</p>
                     <form action="{{ route('interviews.slots.add', $job) }}" method="POST" class="row g-2 align-items-end mb-3">
                         @csrf
                         <div class="col-sm-8">

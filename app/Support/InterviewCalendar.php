@@ -49,21 +49,58 @@ class InterviewCalendar
     }
 
     /**
-     * Floating (local, no-zone) timestamp — the platform stores/shows times
-     * naively, so the calendar entry must show the same wall-clock rather than
-     * being shifted into the viewer's zone.
+     * Floating (local, no-zone) timestamp — used only when the interview has no
+     * timezone, so the event floats to the viewer's zone.
      */
     private static function stampLocal(Carbon $dt): string
     {
         return $dt->format('Ymd\THis');
     }
 
+    /**
+     * Reinterpret the stored naive wall-clock (e.g. "2026-08-15 14:00") as being
+     * in the interview's timezone. Returns null when no timezone is set.
+     */
+    private static function inZone(Interview $interview, Carbon $dt): ?Carbon
+    {
+        if (! $interview->timezone) {
+            return null;
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m-d H:i:s', $dt->format('Y-m-d H:i:s'), $interview->timezone);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * DTSTART/DTEND stamps for the .ics. With a timezone we anchor the stored
+     * wall-clock to that zone and emit UTC (…Z) so the event lands at the right
+     * absolute moment for a viewer in ANY zone; without one we emit a floating
+     * (viewer-local) time, matching how the platform shows times.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private static function eventStamps(Interview $interview): array
+    {
+        $start = self::start($interview);
+        $end = self::end($interview);
+        $zStart = self::inZone($interview, $start);
+        $zEnd = self::inZone($interview, $end);
+
+        if ($zStart && $zEnd) {
+            return [self::stampUtc($zStart), self::stampUtc($zEnd)];
+        }
+
+        return [self::stampLocal($start), self::stampLocal($end)];
+    }
+
     public static function ics(Interview $interview): string
     {
         $uid = 'interview-' . $interview->id . '@getasecurityquotenow.com';
         $now = self::stampUtc(Carbon::now());
-        $start = self::stampLocal(self::start($interview));
-        $end = self::stampLocal(self::end($interview));
+        [$start, $end] = self::eventStamps($interview);
         $summary = self::escape(self::title($interview));
         $desc = self::escape(self::description($interview));
         $loc = self::escape((string) ($interview->location ?? ''));
@@ -110,12 +147,18 @@ class InterviewCalendar
 
     public static function outlookUrl(Interview $interview): string
     {
+        // With a zone, send an offset-aware timestamp (e.g. 2026-08-15T14:00:00-04:00)
+        // so Outlook places it correctly regardless of the account's own zone.
+        $startDt = self::inZone($interview, self::start($interview)) ?? self::start($interview);
+        $endDt = self::inZone($interview, self::end($interview)) ?? self::end($interview);
+        $format = $interview->timezone ? 'Y-m-d\TH:i:sP' : 'Y-m-d\TH:i:s';
+
         $params = http_build_query([
             'path' => '/calendar/action/compose',
             'rru' => 'addevent',
             'subject' => self::title($interview),
-            'startdt' => self::start($interview)->format('Y-m-d\TH:i:s'),
-            'enddt' => self::end($interview)->format('Y-m-d\TH:i:s'),
+            'startdt' => $startDt->format($format),
+            'enddt' => $endDt->format($format),
             'body' => self::description($interview),
             'location' => (string) ($interview->location ?? ''),
         ]);
