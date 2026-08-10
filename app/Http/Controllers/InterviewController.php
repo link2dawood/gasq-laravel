@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\InterviewInviteMail;
+use App\Mail\InterviewScheduledMail;
 use App\Models\Interview;
 use App\Models\InterviewConfig;
 use App\Models\InterviewSlot;
@@ -11,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
 
@@ -153,7 +156,7 @@ class InterviewController extends Controller
 
         $config = $job->interviewConfig()->firstOrNew([]);
 
-        Interview::firstOrCreate(
+        $interview = Interview::firstOrCreate(
             ['job_posting_id' => $job->id, 'vendor_id' => (int) $data['vendor_id']],
             [
                 'bid_id' => $bid->id,
@@ -165,6 +168,11 @@ class InterviewController extends Controller
                 'price_status' => 'sealed',
             ]
         );
+
+        // Notify the vendor — but only the first time they're invited.
+        if ($interview->wasRecentlyCreated) {
+            $this->deliver($interview->vendor?->email, new InterviewInviteMail($interview));
+        }
 
         return redirect()->route('interviews.manage', $job)->with('success', 'Vendor invited to interview.');
     }
@@ -315,6 +323,10 @@ class InterviewController extends Controller
             'timezone' => $interview->timezone ?: $config->timezone,
         ]);
 
+        // Confirm to the vendor and notify the buyer, each with an .ics attachment.
+        $this->deliver($interview->vendor?->email, new InterviewScheduledMail($interview, 'vendor'));
+        $this->deliver($job->user?->email, new InterviewScheduledMail($interview, 'buyer'));
+
         return redirect()->route('interviews.vendor.schedule', $interview)
             ->with('success', 'Interview scheduled. Add it to your calendar below.');
     }
@@ -355,6 +367,20 @@ class InterviewController extends Controller
     /* ===================================================================
      |  Authorization helpers
      * =================================================================== */
+
+    /** Send a mailable, swallowing/logging errors so email can't block the action. */
+    private function deliver(?string $email, \Illuminate\Mail\Mailable $mailable): void
+    {
+        if (! $email) {
+            return;
+        }
+
+        try {
+            Mail::to($email)->send($mailable);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
 
     private function authorizeOwner(JobPosting $job): void
     {
