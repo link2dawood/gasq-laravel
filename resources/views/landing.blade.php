@@ -136,6 +136,26 @@
         </div>
     </section>
 
+    {{-- POSITIONING — GASQ is not a quote-comparison site --}}
+    <section class="gasq-section" style="background:#0d233f;color:#fff;">
+        <div class="container px-4 text-center" style="max-width: 62rem;">
+            <div class="fw-bold text-uppercase mb-3" style="color:#e6b84c;letter-spacing:.14em;font-size:.8rem;">The GASQ Difference</div>
+            <p class="mb-4" style="font-size:clamp(1.25rem,2.4vw,1.9rem);line-height:1.35;">
+                <strong>GASQ is not another quote-comparison website.</strong> Before vendors tell you what they want to
+                charge, GASQ helps determine what the service <em>should realistically cost to deliver</em>.
+            </p>
+            <div class="d-flex flex-column flex-sm-row gap-2 gap-sm-4 justify-content-center align-items-center mb-3">
+                <span class="fw-bold" style="color:#e6b84c;font-size:1.15rem;">Scope First.</span>
+                <span class="fw-bold" style="color:#e6b84c;font-size:1.15rem;">Validation Second.</span>
+                <span class="fw-bold" style="color:#e6b84c;font-size:1.15rem;">Price Last.</span>
+            </div>
+            <p class="mb-0" style="color:#cdd9ec;">
+                <strong>Validate Before You Estimate&trade;</strong> &mdash; price validation before price comparison. That&rsquo;s why GASQ
+                never treats a vendor&rsquo;s quote as the starting point for what protection should cost.
+            </p>
+        </div>
+    </section>
+
     {{-- BUYER PAIN POINT --}}
     <section class="gasq-section gasq-hero-dark-section">
         <div class="container px-4">
