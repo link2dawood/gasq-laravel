@@ -131,7 +131,7 @@
                 <a href="{{ route('instant-estimator.index') }}" class="fw-semibold text-decoration-none">Already have a quote? Validate my quote &rarr;</a>
             </p>
             <p class="small text-gasq-muted mt-3 mb-0">
-                <i class="fa fa-shield-alt me-1"></i>CFO Tested. CFO Approved.
+                <i class="fa fa-shield-alt me-1"></i>Built for CFO-Level Cost Analysis.
             </p>
         </div>
     </section>
@@ -282,7 +282,7 @@
                         </ul>
                     </div>
                 </div>
-                <p class="text-center fw-semibold text-primary mt-4 mb-0">CFO Tested. CFO Approved.</p>
+                <p class="text-center fw-semibold text-primary mt-4 mb-0">Built for CFO-Level Cost Analysis.</p>
             </div>
         </div>
     </section>

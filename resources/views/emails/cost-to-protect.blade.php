@@ -63,7 +63,7 @@
 
 <p>Thank you again for allowing GASQ to serve as your independent pricing referee and procurement resource.</p>
 
-<p><strong>CFO Tested. CFO Approved.</strong></p>
+<p><strong>Built for CFO-Level Cost Analysis.</strong></p>
 
 <p>Respectfully,<br>
 Get A Security Quote (GASQ) Team</p>

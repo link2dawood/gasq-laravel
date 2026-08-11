@@ -291,7 +291,7 @@
 
     <div class="text-center text-gasq-muted small mt-4 mb-2">
       <strong>GASQ — "Know Before You Buy" Pricing Tools</strong><br>
-      CFO Tested. CFO Approved.<br>
+      Built for CFO-Level Cost Analysis.<br>
       The Kelly Blue Book for Security Services Pricing.
     </div>
 

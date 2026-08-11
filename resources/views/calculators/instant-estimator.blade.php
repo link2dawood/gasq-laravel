@@ -33,7 +33,7 @@
                     <div>
                         <h2 class="fw-bold mb-1 h4">GASQ Instant Estimator</h2>
                         <p class="text-gasq-muted mb-0 small">Baseline pay, coverage planning, internal TCO, outsourced bill rate, and report sharing.</p>
-                        <span class="est-chip est-chip-dark mt-2 d-inline-flex">CFO Tested. CFO Approved.</span>
+                        <span class="est-chip est-chip-dark mt-2 d-inline-flex">Built for CFO-Level Cost Analysis.</span>
                     </div>
                 </div>
             </div>
