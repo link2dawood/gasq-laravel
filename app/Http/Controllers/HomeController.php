@@ -22,7 +22,13 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        // Authenticated users get their dashboard here. Guests go to the public
+        // homepage ("/") instead of the login wall. This is a 302 (not a 301)
+        // on purpose: the same URL serves the dashboard to logged-in users, so a
+        // permanent redirect must never be cached for it.
+        $this->middleware(function ($request, $next) {
+            return auth()->check() ? $next($request) : redirect('/');
+        });
     }
 
     /**

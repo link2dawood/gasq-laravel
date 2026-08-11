@@ -86,9 +86,8 @@
             <div class="gasq-tc-banner mb-4">
                 <div class="gasq-tc-copy">
                     <h1 class="gasq-tc-headline">
-                        <span class="knw">Know the</span>
-                        <span class="gold">True Cost</span>
-                        <span class="sub">of Security Services</span>
+                        <span class="knw">Know What Security</span>
+                        <span class="gold">Should Cost</span>
                         <span class="sub">Before You Buy</span>
                     </h1>
                     <div class="gasq-tc-tag">Insight. Transparency. Value. Protection.</div>
@@ -116,27 +115,22 @@
                     </div>
                 </div>
             </div>
-            <p class="gasq-hero-lead lead mb-4 mx-auto">
-                GetASecurityQuoteNow (GASQ) helps property owners, procurement teams, and security buyers
-                compare the <em>real total cost of ownership</em> of security services before signing a contract.
+            <p class="gasq-hero-lead lead mb-4 mx-auto" style="max-width: 52rem;">
+                GASQ independently calculates the <strong>Cost to Protect&trade;</strong> so buyers can validate budgets,
+                evaluate vendor pricing, and identify potential capital-recovery opportunities before awarding a security contract.
             </p>
-            <p class="gasq-hero-subtitle mb-4 mx-auto" style="max-width: 48rem;">
-                We don&rsquo;t just collect quotes. We help you understand:
-            </p>
-            <ul class="gasq-list-check mx-auto text-start mb-5" style="max-width: 36rem;">
-                <li>What security services <em>should</em> cost</li>
-                <li>What your in-house cost would be</li>
-                <li>What hidden labor costs vendors absorb</li>
-                <li>What your capital recovery opportunity looks like</li>
-                <li>Whether a proposal is realistic, risky, or overpriced</li>
-            </ul>
-            <p class="gasq-hero-lead h3 fw-bold text-center my-4 mx-auto">Know Before You Buy. Know Before You Bid.</p>
             <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center mb-3">
                 <a href="{{ route('instant-estimator.index') }}" class="btn btn-primary btn-lg px-4 py-3 shadow">
-                    <i class="fa fa-calculator me-2"></i>Get An Instant Security Cost Estimate
+                    <i class="fa fa-calculator me-2"></i>Calculate My Cost to Protect&trade;
+                </a>
+                <a href="{{ url('/#how-it-works') }}" class="btn btn-outline-primary btn-lg px-4 py-3">
+                    <i class="fa fa-circle-play me-2"></i>See How GASQ Works
                 </a>
             </div>
-            <p class="small text-gasq-muted mb-0">
+            <p class="mb-1">
+                <a href="{{ route('instant-estimator.index') }}" class="fw-semibold text-decoration-none">Already have a quote? Validate my quote &rarr;</a>
+            </p>
+            <p class="small text-gasq-muted mt-3 mb-0">
                 <i class="fa fa-shield-alt me-1"></i>CFO Tested. CFO Approved.
             </p>
         </div>
@@ -146,7 +140,7 @@
     <section class="gasq-section gasq-hero-dark-section">
         <div class="container px-4">
             <div class="text-center mb-5">
-                <h2 class="gasq-section-title mb-3">Most Buyers Don&rsquo;t Know What Security Services Really Costs!</h2>
+                <h2 class="gasq-section-title mb-3">Most Buyers Don&rsquo;t Know What Security Services Really Cost.</h2>
                 <p class="text-gasq-muted mx-auto" style="max-width: 48rem;">
                     Many buyers compare vendors against each other instead of comparing vendors against the
                     <em>actual cost of performing the service correctly.</em>
