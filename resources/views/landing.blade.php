@@ -366,6 +366,63 @@
         </div>
     </section>
 
+    {{-- VALIDATE BEFORE YOU ESTIMATE WORKFLOW (Phase 8) --}}
+    <style>
+        .vbe-wrap { max-width: 56rem; margin: 0 auto; }
+        .vbe-step { display:grid; grid-template-columns: 44px 1fr; gap:18px; position:relative; padding-bottom:26px; }
+        .vbe-step:not(:last-child)::before { content:""; position:absolute; left:21px; top:46px; bottom:0; width:2px; background:#d3e0ef; }
+        .vbe-num { width:44px; height:44px; border-radius:50%; background:#0d233f; color:#e6b84c; font-weight:800; display:grid; place-items:center; font-family: Georgia, 'Times New Roman', serif; z-index:1; }
+        .vbe-body h3 { font-size:1.15rem; color:#17222f; margin:6px 0 6px; }
+        .vbe-body p { color:#566579; margin:0; font-size:.96rem; }
+        .vbe-confirm { list-style:none; margin:12px 0 0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; }
+        .vbe-confirm li { display:flex; gap:8px; align-items:flex-start; font-size:.92rem; color:#17222f; }
+        .vbe-confirm li i { color:#14855c; margin-top:.2rem; }
+        @media (max-width:560px){ .vbe-confirm { grid-template-columns:1fr; } }
+    </style>
+    <section class="gasq-section gasq-section-muted">
+        <div class="container px-4">
+            <div class="text-center mb-5">
+                <div class="fw-bold text-uppercase mb-2" style="color:#c2921d;letter-spacing:.12em;font-size:.78rem;">Validate Before You Estimate&trade;</div>
+                <h2 class="gasq-section-title mb-3">The GASQ Procurement Workflow</h2>
+                <p class="text-gasq-muted mx-auto" style="max-width:46rem;">Scope first. Validation second. Price last. Here&rsquo;s the exact order buyers and vendors move through on GASQ.</p>
+            </div>
+            <div class="vbe-wrap">
+                <div class="vbe-step">
+                    <div class="vbe-num">1</div>
+                    <div class="vbe-body">
+                        <h3>Validate the requirement</h3>
+                        <p>Before any pricing, GASQ confirms the job is real and fully defined:</p>
+                        <ul class="vbe-confirm">
+                            <li><i class="fa fa-check"></i>Decision-maker / designated representative</li>
+                            <li><i class="fa fa-check"></i>Approved budget or budget range</li>
+                            <li><i class="fa fa-check"></i>Project location</li>
+                            <li><i class="fa fa-check"></i>Start &amp; end dates</li>
+                            <li><i class="fa fa-check"></i>Scope of work</li>
+                            <li><i class="fa fa-check"></i>Coverage requirements</li>
+                            <li><i class="fa fa-check"></i>Service type</li>
+                            <li><i class="fa fa-check"></i>Procurement requirements</li>
+                        </ul>
+                    </div>
+                </div>
+                @foreach([
+                    ['Establish the Cost to Protect&trade;', 'GASQ independently calculates what the service should realistically cost to deliver.'],
+                    ['Establish a financially supportable buyer offer', 'The buyer sets an offer or range the economics actually support &mdash; not a hopeful number.'],
+                    ['Vendor validates requirements &amp; capability', 'Qualified vendors confirm they understand the scope and can deliver it.'],
+                    ['Buyer &amp; vendor resolve open items', 'Both sides close gaps on scope, assumptions, and requirements.'],
+                    ['Final estimate / quote is revealed', 'Only now is pricing negotiated and revealed &mdash; measured against a validated benchmark, never used as the starting point.'],
+                ] as $i => $s)
+                    <div class="vbe-step">
+                        <div class="vbe-num">{{ $i + 2 }}</div>
+                        <div class="vbe-body">
+                            <h3>{!! $s[0] !!}</h3>
+                            <p>{!! $s[1] !!}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
     {{-- WHAT YOU GET --}}
     {{-- WHAT BUYERS GET — maroon theme, carries to the buyer dashboard --}}
     <section class="gasq-section" id="buyers" style="background:#800000;">
