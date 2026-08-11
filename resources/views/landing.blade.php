@@ -196,6 +196,64 @@
         </div>
     </section>
 
+    {{-- TRADITIONAL vs GASQ COMPARISON (Phase 7) --}}
+    @php
+        $tvgRows = [
+            ['Ask vendors for prices', 'Establish the cost first'],
+            ['Compare quote vs. quote', 'Compare price against a benchmark'],
+            ['Lowest price drives the decision', 'Price realism drives the decision'],
+            ['Different, unstated assumptions', 'Requirements validated up front'],
+            ['Vendor defines the price narrative', 'Buyer understands the economics'],
+            ['Price revealed immediately', 'Pricing follows qualification'],
+            ['Hope the budget is sufficient', 'Validate the budget first'],
+        ];
+    @endphp
+    <style>
+        .tvg-wrap { max-width: 62rem; margin: 0 auto; }
+        .tvg-head { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:12px; }
+        .tvg-head > div { text-align:center; font-weight:800; padding:12px 14px; border-radius:10px; }
+        .tvg-head .trad { background:#fbeceb; color:#b42318; }
+        .tvg-head .way  { background:#0d233f; color:#e6b84c; }
+        .tvg-grid { display:grid; gap:12px; }
+        .tvg-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .tvg-cell { padding:14px 16px; border-radius:10px; font-size:.98rem; display:flex; align-items:flex-start; gap:10px; line-height:1.4; }
+        .tvg-cell i { margin-top:.15rem; }
+        .tvg-cell.trad { background:#faf1f0; color:#7a2b23; border:1px solid #f0d5d2; }
+        .tvg-cell.trad i { color:#c23b2c; }
+        .tvg-cell.way  { background:#f5f9fd; color:#17222f; border:1px solid #d3e0ef; }
+        .tvg-cell.way i { color:#14855c; }
+        @media (max-width: 640px) {
+            .tvg-head { display:none; }
+            .tvg-row { grid-template-columns:1fr; gap:0; border:1px solid #d3e0ef; border-radius:12px; overflow:hidden; margin-bottom:4px; }
+            .tvg-cell { border:0; border-radius:0; flex-wrap:wrap; }
+            .tvg-cell::before { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; display:block; width:100%; margin-bottom:3px; }
+            .tvg-cell.trad::before { content:"Traditional approach"; color:#b42318; }
+            .tvg-cell.way::before  { content:"The GASQ way"; color:#c2921d; }
+        }
+    </style>
+    <section class="gasq-section">
+        <div class="container px-4">
+            <div class="text-center mb-5">
+                <h2 class="gasq-section-title mb-3 text-uppercase">Traditional Procurement vs. The GASQ Way</h2>
+                <p class="text-gasq-muted mx-auto" style="max-width:44rem;">GASQ flips the order: establish what protection should cost, then judge every quote against it.</p>
+            </div>
+            <div class="tvg-wrap">
+                <div class="tvg-head">
+                    <div class="trad">Traditional Approach</div>
+                    <div class="way">The GASQ Approach</div>
+                </div>
+                <div class="tvg-grid">
+                    @foreach($tvgRows as $r)
+                        <div class="tvg-row">
+                            <div class="tvg-cell trad"><i class="fa fa-xmark"></i><span>{{ $r[0] }}</span></div>
+                            <div class="tvg-cell way"><i class="fa fa-check"></i><span>{{ $r[1] }}</span></div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- POSITIONING / KBB --}}
     <section class="gasq-section-muted">
         <div class="container px-4">
