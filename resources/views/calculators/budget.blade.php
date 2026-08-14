@@ -829,7 +829,11 @@ function calcBudget() {
     const visibleItems = group.items.filter((item) => item.pct > 0);
     const rows = visibleItems.length > 0
       ? visibleItems.map((item) => {
-          const amount = total * item.pct / 100;
+          // Use the SAME base as the allocation editor + group headers
+          // (allocationBase = vendor total), so breakdown line items match the
+          // editor and sum to their group total. Previously used `total` (buyer
+          // TCO), which showed a different dollar amount for the same line item.
+          const amount = allocationBase * item.pct / 100;
           return `
             <div class="budget-breakdown-item d-flex justify-content-between align-items-center small gap-3">
               <div class="d-flex align-items-center gap-2">
