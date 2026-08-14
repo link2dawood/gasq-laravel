@@ -22,6 +22,16 @@
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('interviews.vendor.*') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('interviews.vendor.index') }}">Interviews</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('discovery-call.index') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('discovery-call.index') }}">Discovery Call</a></li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('vendor-faq') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('vendor-faq') }}">FAQ</a></li>
+                            <li class="nav-item">
+                                <form action="{{ route('preferences.currency') }}" method="POST" class="mb-0">
+                                    @csrf
+                                    <select name="currency" class="form-select form-select-sm" style="width:auto;min-width:132px" onchange="this.form.submit()" title="Display currency" aria-label="Display currency">
+                                        @foreach(config('currency.profiles') as $currencyCode => $currencyProfile)
+                                            <option value="{{ $currencyCode }}" @selected(\App\Support\Currency::code() === $currencyCode)>{{ $currencyProfile['label'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </form>
+                            </li>
                             <li class="nav-item"><a class="nav-link text-gasq-muted {{ request()->routeIs('profile.*') ? 'active fw-semibold text-dark' : '' }}" href="{{ route('profile.show') }}">Settings</a></li>
                             <li class="nav-item ms-md-2">
                                 <span class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2">
