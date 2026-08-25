@@ -295,6 +295,8 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::get('/credits', [App\Http\Controllers\CreditsController::class, 'index'])->name('credits');
     Route::get('/credits/success', [App\Http\Controllers\CreditsController::class, 'success'])->name('credits.success');
     Route::post('/credits/redeem', [App\Http\Controllers\CreditsController::class, 'redeem'])->name('credits.redeem');
+    // Pay As You Go: any quantity of credits, no pack or subscription.
+    Route::post('/credits/pay-as-you-go', [StripeCreditsController::class, 'payAsYouGo'])->name('credits.payg');
     Route::post('/credits/checkout/{plan}', [StripeCreditsController::class, 'checkout'])->name('credits.checkout');
     Route::post('/credits/subscribe/{plan}', [StripeCreditsController::class, 'subscribe'])->name('credits.subscribe');
 

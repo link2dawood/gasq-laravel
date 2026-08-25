@@ -71,6 +71,74 @@ class StripeCreditsController extends Controller
     }
 
     /**
+     * Pay As You Go: buy an arbitrary quantity of credits at a flat unit price,
+     * with no pack or subscription.
+     *
+     * Deliberately reuses the same one-off checkout contract as checkout(): mode
+     * 'payment' plus metadata carrying user_id and tokens_included. The existing
+     * checkout.session.completed webhook grants the credits and already handles
+     * idempotency, so no webhook change is needed for this to work.
+     */
+    public function payAsYouGo(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $min = (int) config('credits.payg.min');
+        $max = (int) config('credits.payg.max');
+
+        $validated = $request->validate([
+            'credits' => ['required', 'integer', 'min:' . $min, 'max:' . $max],
+        ], [], ['credits' => 'credit amount']);
+
+        $credits = (int) $validated['credits'];
+        $unitPrice = (float) config('credits.payg.unit_price');
+        $amountCents = (int) round($credits * $unitPrice * 100);
+
+        // Stripe rejects anything under $0.50; with sane config this is
+        // unreachable, but a misconfigured unit price should not reach Stripe.
+        if ($amountCents < 50) {
+            return back()->withErrors([
+                'credits' => 'That credit amount is below the minimum card charge. Please choose more credits.',
+            ]);
+        }
+
+        $secretKey = config('services.stripe.secret');
+        if (! $secretKey) {
+            abort(500, 'Stripe secret key is not configured.');
+        }
+
+        $client = new StripeClient($secretKey);
+
+        $successUrl = config('services.stripe.success_url') ?: url('/credits');
+        $cancelUrl = config('services.stripe.cancel_url') ?: url('/credits');
+
+        $session = $client->checkout->sessions->create([
+            'mode' => 'payment',
+            'success_url' => $successUrl . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $cancelUrl,
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'usd',
+                    'unit_amount' => $amountCents,
+                    'product_data' => [
+                        'name' => $credits . ' GASQ credits (Pay As You Go)',
+                    ],
+                ],
+                'quantity' => 1,
+            ]],
+            'metadata' => [
+                'user_id' => (string) $user->id,
+                'tokens_included' => (string) $credits,
+                'purchase_type' => 'pay_as_you_go',
+            ],
+            'customer_email' => $user->email,
+        ]);
+
+        return response()->redirectTo($session->url);
+    }
+
+    /**
      * Create a Stripe Checkout session for a monthly subscription to a plan.
      * Credits are granted each billing cycle via the invoice.payment_succeeded webhook.
      */
