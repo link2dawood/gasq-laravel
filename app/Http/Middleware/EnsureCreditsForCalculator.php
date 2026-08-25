@@ -17,8 +17,16 @@ class EnsureCreditsForCalculator
     public function handle(Request $request, Closure $next, string $featureKey): Response
     {
         $user = $request->user();
+
+        // Guests are treated like buyers: free. A guest can never be a vendor, so
+        // there is nothing to charge. This is what lets the Instant Estimator show a
+        // result before asking anyone to register.
+        //
+        // NOTE: this middleware no longer forces a login. Any calculator route that
+        // genuinely requires an account must declare 'auth' itself — every route
+        // using calc.credits does, except /instant-estimator, which is public by design.
         if (! $user) {
-            return redirect()->route('login');
+            return $next($request);
         }
 
         // Buyers and admins access calculators for free.

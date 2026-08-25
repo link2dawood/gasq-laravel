@@ -353,7 +353,7 @@
 
 <p style="text-align:center; color:#1e3558; font-size:10px; font-weight:bold; margin-top:18px; line-height:1.7;">
     © 2026 GASQ &nbsp;·&nbsp; ALL RIGHTS RESERVED<br>
-    CFO TESTED. CFO APPROVED.<br>
+    BUILT FOR CFO-LEVEL COST ANALYSIS.<br>
     THE INDUSTRY PRICING REFEREE™
 </p>
 

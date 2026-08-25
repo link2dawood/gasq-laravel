@@ -12,7 +12,9 @@
 
         {{-- Page header --}}
         <div class="d-flex align-items-center gap-3 mb-4 d-print-none">
-            <a href="{{ route('calculator.index') }}" class="btn btn-outline-secondary btn-sm">
+            {{-- Guests reach this page straight from the homepage; the calculator hub is
+                 auth-gated, so sending them there would bounce them into a login wall. --}}
+            <a href="{{ $estimatorUser ? route('calculator.index') : url('/') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="fa fa-arrow-left"></i>
             </a>
             <div>
@@ -33,7 +35,7 @@
                     <div>
                         <h2 class="fw-bold mb-1 h4">GASQ Instant Estimator</h2>
                         <p class="text-gasq-muted mb-0 small">Baseline pay, coverage planning, internal TCO, outsourced bill rate, and report sharing.</p>
-                        <span class="est-chip est-chip-dark mt-2 d-inline-flex">CFO Tested. CFO Approved.</span>
+                        <span class="est-chip est-chip-dark mt-2 d-inline-flex">Built for CFO-Level Cost Analysis.</span>
                     </div>
                 </div>
             </div>
@@ -328,6 +330,27 @@
                             <i class="fa fa-lock fa-2x"></i>
                         </div>
                         <h3 class="fw-bold mb-2">Your Estimate Is Ready</h3>
+
+                        @guest
+                            {{-- Guests have already seen a real number in Step 2. Ask for the
+                                 account here — at the point of value — not before the estimate. --}}
+                            <p class="text-gasq-muted mb-1">Create a free account to reveal your full cost analysis.</p>
+                            <p class="text-gasq-muted small mb-4 mx-auto" style="max-width:34rem;">
+                                Your inputs are kept, and buyer tools stay free &mdash; the full Workforce-to-Post&trade;
+                                breakdown, the downloadable appraisal, and posting the job to qualified vendors.
+                            </p>
+                            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mb-3">
+                                <a href="{{ route('register.buyer.index') }}" class="btn btn-primary btn-lg px-5">
+                                    <i class="fa fa-unlock me-2"></i> Create My Free Account
+                                </a>
+                                <a href="{{ route('login') }}" class="btn btn-outline-primary btn-lg px-5">
+                                    <i class="fa fa-right-to-bracket me-2"></i> Sign In
+                                </a>
+                            </div>
+                            <button type="button" class="btn btn-link text-gasq-muted small mt-1" id="backToStep2BtnGuest">
+                                <i class="fa fa-arrow-left me-1"></i> Back to Calculation
+                            </button>
+                        @else
                         <p class="text-gasq-muted mb-1">To reveal your full cost analysis, select one option below.</p>
                         <p class="text-gasq-muted small mb-4">
                             Price Permit Fee: <strong id="gateAppraisalFeeDisplay">{{ \App\Support\Currency::format(0) }}</strong>
@@ -358,6 +381,7 @@
                         <button type="button" class="btn btn-link text-gasq-muted small mt-1" id="backToStep2Btn">
                             <i class="fa fa-arrow-left me-1"></i> Back to Calculation
                         </button>
+                        @endguest
                     </div>
                 </div>
 
@@ -1174,6 +1198,16 @@ function byId(id) {
     return document.getElementById(id);
 }
 
+// Several gate nodes render only for authenticated users, so guests legitimately
+// have none of them. Assigning .textContent on the missing node would throw and
+// take the whole estimator script down with it.
+function setTextIfPresent(id, value) {
+    const el = byId(id);
+    if (el) {
+        el.textContent = value;
+    }
+}
+
 function fmtCurrency(value) {
     const amount = Number.isFinite(value) ? value : 0;
     return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', {
@@ -1966,8 +2000,8 @@ function resetEstimator() {
 
     byId('attachments').value = '';
     byId('continueToJobButton').classList.add('d-none');
-    byId('gateFeeAmount').textContent = '';
-    byId('gateAppraisalFeeDisplay').textContent = fmtCurrency(0);
+    setTextIfPresent('gateFeeAmount', '');
+    setTextIfPresent('gateAppraisalFeeDisplay', fmtCurrency(0));
     render();
     setStepState(1);
     showStatus('success', 'Estimator reset to default values.');
@@ -2262,15 +2296,16 @@ function bindEvents() {
         }
 
         const appraisalFee = window.__gasqInstantEstimator?.results?.appraisalFee ?? 0;
-        byId('gateAppraisalFeeDisplay').textContent = fmtCurrency(appraisalFee);
-        byId('gateFeeAmount').textContent = fmtCurrency(appraisalFee);
+        setTextIfPresent('gateAppraisalFeeDisplay', fmtCurrency(appraisalFee));
+        setTextIfPresent('gateFeeAmount', fmtCurrency(appraisalFee));
         setStepState('gate');
     });
 
-    byId('backToStep2Btn').addEventListener('click', () => setStepState(2));
+    byId('backToStep2Btn')?.addEventListener('click', () => setStepState(2));
+    byId('backToStep2BtnGuest')?.addEventListener('click', () => setStepState(2));
     byId('backToStep2FromResults').addEventListener('click', () => setStepState(2));
 
-    byId('gateFeeBtn').addEventListener('click', async event => {
+    byId('gateFeeBtn')?.addEventListener('click', async event => {
         const trigger = event.currentTarget;
 
         if (!IS_AUTHENTICATED) {
@@ -2293,7 +2328,7 @@ function bindEvents() {
             trigger.disabled = false;
         }
     });
-    byId('gatePostJobBtn').addEventListener('click', async event => {
+    byId('gatePostJobBtn')?.addEventListener('click', async event => {
         const trigger = event.currentTarget;
 
         if (!IS_AUTHENTICATED) {

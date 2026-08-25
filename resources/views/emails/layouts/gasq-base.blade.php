@@ -32,7 +32,7 @@
                 </tr>
                 <tr>
                     <td style="background:#f1f5f9;padding:16px 28px;color:#64748b;font-size:12px;">
-                        CFO Tested · CFO Approved · (470) 633-2816 ·
+                        Built for CFO-Level Cost Analysis · (470) 633-2816 ·
                         <a href="mailto:info@getasecurityquote.com" style="color:#0d6efd;text-decoration:none;">info@getasecurityquote.com</a>
                     </td>
                 </tr>

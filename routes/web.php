@@ -30,6 +30,10 @@ Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('ter
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy-policy');
 Route::view('/about', 'pages.about')->name('about');
 Route::view('/why-gasq-works', 'pages.why-gasq-works')->name('why-gasq-works');
+// Trust standards — what the GASQ Certified mark covers, and what "prequalified
+// vendor" is actually measured against. Linked from every place those claims appear.
+Route::view('/gasq-certified', 'pages.gasq-certified')->name('gasq-certified');
+Route::view('/vendor-qualification-standard', 'pages.vendor-qualification-standard')->name('vendor-qualification-standard');
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'submit'])->name('contact.submit');
 Route::view('/security-services', 'pages.security-services')->name('security-services');
@@ -70,8 +74,12 @@ Route::get('/calculator', function () {
     ->middleware(['auth', 'calc.credits:calculator_hub_access'])
     ->name('calculator.index');
 
+// Public by design: a guest can run an estimate and see the Cost to Protect result
+// (Steps 1-2) without an account. Step 3 — the full analysis, the PDF, posting a job,
+// reaching vendors — stays gated in the view, and those POST endpoints still require
+// auth. Vendors are still charged their session credits by calc.credits.
 Route::match(['get', 'post'], '/instant-estimator', [App\Http\Controllers\InstantEstimatorController::class, 'index'])
-    ->middleware(['auth', 'calc.credits:instant_estimator_access'])
+    ->middleware(['calc.credits:instant_estimator_access'])
     ->name('instant-estimator.index');
 
 Route::get('/vendor-form', function () {

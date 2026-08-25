@@ -53,6 +53,8 @@
                     <li><a href="{{ route('about') }}" class="text-gasq-muted text-decoration-none">About Us</a></li>
                     <li><a href="{{ route('why-gasq-works') }}" class="text-gasq-muted text-decoration-none">Why GASQ Works</a></li>
                     <li><a href="{{ url('/#how-it-works') }}" class="text-gasq-muted text-decoration-none">How GASQ Works</a></li>
+                    <li><a href="{{ route('gasq-certified') }}" class="text-gasq-muted text-decoration-none">GASQ Certified&trade; Standard</a></li>
+                    <li><a href="{{ route('vendor-qualification-standard') }}" class="text-gasq-muted text-decoration-none">Vendor Qualification Standard</a></li>
                     <li><a href="https://livingwage.mit.edu/" target="_blank" rel="noopener noreferrer" class="text-gasq-muted text-decoration-none">MIT Living Wage Calculator</a></li>
                     <li><a href="{{ route('terms') }}" class="text-gasq-muted text-decoration-none">Terms &amp; Conditions</a></li>
                     <li><a href="{{ route('privacy-policy') }}" class="text-gasq-muted text-decoration-none">Privacy Policy</a></li>
@@ -89,7 +91,7 @@
                     <p class="mb-0">It tells buyers the numbers were measured against staffing requirements, workforce availability, and total cost of ownership, not just a vendor&rsquo;s hourly bill rate — so they can buy with confidence.</p>
                 </div>
                 <div class="modal-footer">
-                    <a href="{{ route('why-gasq-works') }}" class="btn btn-outline-primary btn-sm">Learn how it works</a>
+                    <a href="{{ route('gasq-certified') }}" class="btn btn-outline-primary btn-sm">Read the standard</a>
                     <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Got it</button>
                 </div>
             </div>

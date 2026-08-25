@@ -158,7 +158,7 @@
         <tr>
             <td style="border:0;padding:0;">
                 <div class="brand">GASQ</div>
-                <div class="tagline">GetASecurityQuoteNow · CFO Tested · CFO Approved</div>
+                <div class="tagline">GetASecurityQuoteNow · Built for CFO-Level Cost Analysis</div>
             </td>
             <td style="border:0;padding:0;text-align:right;color:#cfe1ff;font-size:11px;">
                 {{ $title ?? '' }}

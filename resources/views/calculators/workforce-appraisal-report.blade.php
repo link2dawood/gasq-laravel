@@ -764,7 +764,7 @@
               <div class="card-header gasq-wa-section">Coverage Statement</div>
               <div class="card-body small text-gasq-muted" id="wa_coverage_text"></div>
             </div>
-            <div class="text-center small text-gasq-muted mt-3 mb-2">CFO Tested · CFO Approved · (470) 633-2816 · info@getasecurityquote.com · getasecurityquotenow.com</div>
+            <div class="text-center small text-gasq-muted mt-3 mb-2">Built for CFO-Level Cost Analysis · (470) 633-2816 · info@getasecurityquote.com · getasecurityquotenow.com</div>
           @endif
 
           @if ($showPrice)

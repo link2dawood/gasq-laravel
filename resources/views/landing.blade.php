@@ -131,7 +131,7 @@
                 <a href="{{ route('instant-estimator.index') }}" class="fw-semibold text-decoration-none">Already have a quote? Validate my quote &rarr;</a>
             </p>
             <p class="small text-gasq-muted mt-3 mb-0">
-                <i class="fa fa-shield-alt me-1"></i>CFO Tested. CFO Approved.
+                <i class="fa fa-shield-alt me-1"></i>Built for CFO-Level Cost Analysis.
             </p>
         </div>
     </section>
@@ -282,7 +282,7 @@
                         </ul>
                     </div>
                 </div>
-                <p class="text-center fw-semibold text-primary mt-4 mb-0">CFO Tested. CFO Approved.</p>
+                <p class="text-center fw-semibold text-primary mt-4 mb-0">Built for CFO-Level Cost Analysis.</p>
             </div>
         </div>
     </section>
@@ -353,7 +353,9 @@
                         </div>
                         <p class="small text-gasq-muted mb-0">
                             Post your approved budget offer to our vendor network and receive vendor
-                            acceptance responses.
+                            acceptance responses. Every vendor must clear the
+                            <a href="{{ route('vendor-qualification-standard') }}">Vendor Qualification Standard</a>
+                            &mdash; licensing, insurance, references, and payroll sustainment &mdash; before responding.
                         </p>
                     </div>
                 </div>
@@ -510,7 +512,9 @@
                     <div class="gasq-card card p-4 p-lg-5 h-100">
                         <i class="fa fa-file-upload text-primary fa-2x mb-3"></i>
                         <h3 class="gasq-card-title-lg mb-2">Add A Job Post</h3>
-                        <p class="text-gasq-muted small mb-4">Post your job and let prequalified vendors respond on your terms.</p>
+                        <p class="text-gasq-muted small mb-4">Post your job and let
+                            <a href="{{ route('vendor-qualification-standard') }}">prequalified vendors</a>
+                            respond on your terms.</p>
                         <a href="{{ route('jobs.create') }}" class="btn btn-primary w-100 py-3 mt-auto">
                             Post Job &rarr;
                         </a>
