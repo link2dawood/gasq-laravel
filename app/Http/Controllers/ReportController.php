@@ -107,7 +107,7 @@ class ReportController extends Controller
     /**
      * Email calculator report PDF.
      */
-    public function emailReport(Request $request): \Illuminate\Http\RedirectResponse
+    public function emailReport(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $request->validate([
             'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,budget-calculator-allocation,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
@@ -128,18 +128,28 @@ class ReportController extends Controller
             ->values();
         $invalid = $recipients->reject(fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL));
         if ($recipients->isEmpty() || $invalid->isNotEmpty()) {
-            return back()->with('error', $invalid->isNotEmpty()
+            $error = $invalid->isNotEmpty()
                 ? 'These email addresses look invalid: ' . $invalid->implode(', ')
-                : 'Enter at least one valid email address.');
+                : 'Enter at least one valid email address.';
+
+            return $this->emailFailure($request, $error);
         }
 
         $type = $request->input('type');
         $payload = $this->payloadForType($request, $type);
         if (! $payload) {
-            return back()->with('error', 'No report data available. Run the calculator again and use Email report.');
+            return $this->emailFailure($request, 'No report data available. Run the calculator again and use Email report.');
         }
 
         if ($charge = $this->chargeForReport($request, $type, $payload)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok' => false,
+                    'needs_credits' => (int) config('credits.calculator_per_run'),
+                    'message' => 'You do not have enough credits to generate this report.',
+                ], 402);
+            }
+
             return $charge;
         }
 
@@ -204,7 +214,34 @@ class ReportController extends Controller
                 ));
         }
 
-        return back()->with('success', 'Report sent to ' . $recipients->implode(', '));
+        $message = 'Report sent to ' . $recipients->implode(', ');
+
+        // Answer XHR sends with JSON so the calculator page never reloads. A full
+        // reload re-initialises the calculator JS to its defaults, which wiped the
+        // user's inputs and made it impossible to email a second report without
+        // re-entering everything.
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => $message,
+                'recipients' => $recipients->all(),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Email failure response: JSON for XHR sends, redirect-back for the plain
+     * form fallback (no JS).
+     */
+    private function emailFailure(Request $request, string $error): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => false, 'message' => $error], 422);
+        }
+
+        return back()->with('error', $error);
     }
 
     /**
