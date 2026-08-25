@@ -128,7 +128,7 @@
                 </a>
             </div>
             <p class="mb-1">
-                <a href="{{ route('instant-estimator.index') }}" class="fw-semibold text-decoration-none">Already have a quote? Validate my quote &rarr;</a>
+                <a href="{{ route('instant-estimator.index', ['intent' => 'validate-quote']) }}" class="fw-semibold text-decoration-none">Already have a quote? Validate my quote &rarr;</a>
             </p>
             <p class="small text-gasq-muted mt-3 mb-0">
                 <i class="fa fa-shield-alt me-1"></i>Built for CFO-Level Cost Analysis.

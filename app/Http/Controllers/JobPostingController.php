@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreJobPostingRequest;
 use App\Models\Bid;
 use App\Models\JobPosting;
+use App\Support\Funnel;
 use App\Notifications\HireNotification;
 use App\Services\VendorOpportunityManager;
 use Illuminate\Http\JsonResponse;
@@ -143,6 +144,8 @@ class JobPostingController extends Controller
 
     public function create(): View|RedirectResponse
     {
+        Funnel::record(Funnel::JOB_POST_STARTED);
+
         if (! auth()->user()->isBuyer()) {
             return redirect()->route('job-board')->with('error', 'Only buyers can post jobs.');
         }
@@ -339,6 +342,8 @@ class JobPostingController extends Controller
                 ->with('error', 'There was a problem saving your job announcement. Please try again or contact support.');
         }
 
+        Funnel::record(Funnel::JOB_POST_COMPLETED, ['job_id' => $job->id, 'via' => 'publish']);
+
         $this->clearDraftSessions($request);
 
         if (is_string($estimatorReturnUrl) && $estimatorReturnUrl !== '') {
@@ -357,6 +362,7 @@ class JobPostingController extends Controller
 
         $job = JobPosting::create($this->buildJobPostingPayload($data, $request));
         $vendorOpportunityManager->createForPublishedJob($job);
+        Funnel::record(Funnel::JOB_POST_COMPLETED, ['job_id' => $job->id, 'via' => 'store']);
         $this->clearDraftSessions($request);
         return redirect()->route('job-board')->with('success', 'Job posted successfully.');
     }

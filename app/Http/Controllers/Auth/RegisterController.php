@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SyncContactToHubSpot;
 use App\Models\User;
 use App\Services\PhoneOtpService;
+use App\Support\Funnel;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -43,12 +44,27 @@ class RegisterController extends Controller
     protected $redirectTo = '/home';
 
     /**
+     * RegistersUsers provides this; overridden only to open the funnel so that
+     * registration_started has a counterpart for every registration_completed.
+     */
+    public function showRegistrationForm()
+    {
+        Funnel::record(Funnel::REGISTRATION_STARTED, ['form' => 'generic']);
+
+        return view('auth.register');
+    }
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
     protected function registered(Request $request, $user)
     {
+        Funnel::record(Funnel::REGISTRATION_COMPLETED, [
+            'user_type' => $user?->user_type,
+        ], $user?->id);
+
         // Push the new buyer/vendor into HubSpot (no-op until the token is set).
         if ($user) {
             SyncContactToHubSpot::dispatch($user->id, $user->email);

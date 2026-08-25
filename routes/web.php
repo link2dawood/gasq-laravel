@@ -87,10 +87,14 @@ Route::get('/vendor-form', function () {
 })->name('vendor-form.index');
 
 Route::get('/register/buyer', function () {
+    \App\Support\Funnel::record(\App\Support\Funnel::REGISTRATION_STARTED, ['form' => 'buyer']);
+
     return view('pages.register-buyer');
 })->name('register.buyer.index');
 
 Route::get('/register/vendor', function () {
+    \App\Support\Funnel::record(\App\Support\Funnel::REGISTRATION_STARTED, ['form' => 'vendor']);
+
     return view('pages.register-vendor');
 })->name('register.vendor.index');
 
