@@ -16,7 +16,7 @@
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
             <a class="btn btn-primary btn-lg" href="{{ url('/vendor-form') }}">Open Vendor Form UI</a>
-            <a class="btn btn-outline-primary btn-lg" href="{{ route('register') }}">Go to Standard Registration</a>
+            <a class="btn btn-outline-primary btn-lg" href="{{ route('register', request()->filled('invite') ? ['invite' => request()->query('invite')] : []) }}">Go to Standard Registration</a>
         </div>
     </div>
 

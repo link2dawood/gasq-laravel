@@ -14,6 +14,20 @@
             <form action="{{ route('register') }}" method="POST" autocomplete="off" novalidate>
                 @csrf
 
+                @if(config('beta.invite_only'))
+                    {{-- Invite gate. Prefilled from ?invite=CODE so an invite link
+                         just works and the tester never has to copy a code across. --}}
+                    <div class="mb-3">
+                        <label class="form-label">Invite code</label>
+                        <input type="text" name="invite_code"
+                               class="form-control form-control-lg @error('invite_code') is-invalid @enderror"
+                               value="{{ old('invite_code', request()->query('invite')) }}"
+                               placeholder="Your GASQ beta invite code" autocomplete="off">
+                        @error('invite_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">GASQ is in closed beta — accounts are created by invitation.</div>
+                    </div>
+                @endif
+
                 <div class="mb-3">
                     <label class="form-label">Name</label>
                     <input type="text" name="name" class="form-control form-control-lg @error('name') is-invalid @enderror" value="{{ old('name') }}" placeholder="Enter your name" autocomplete="name" autofocus>

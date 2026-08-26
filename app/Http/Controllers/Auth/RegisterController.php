@@ -117,13 +117,42 @@ class RegisterController extends Controller
      */
     protected function validator(array $data)
     {
-        return Validator::make($data, [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'user_type' => ['required', 'in:buyer,vendor'],
             'company' => ['nullable', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
+        ];
+
+        if (config('beta.invite_only')) {
+            $rules['invite_code'] = ['required', 'string', function ($attribute, $value, $fail) {
+                $codes = (array) config('beta.invite_codes');
+
+                // Fail closed: an invite gate with no codes configured must not
+                // quietly let everyone in. Say so plainly rather than rejecting
+                // every genuine invite with "code is invalid".
+                if ($codes === []) {
+                    Log::error('BETA_INVITE_ONLY is on but BETA_INVITE_CODES is empty — registration is closed.');
+                    $fail('Registration is invite-only and no invite codes are configured yet. Please contact GASQ.');
+
+                    return;
+                }
+
+                $supplied = strtolower(trim((string) $value));
+                foreach ($codes as $code) {
+                    if (hash_equals(strtolower(trim((string) $code)), $supplied)) {
+                        return;
+                    }
+                }
+
+                $fail('That invite code is not valid.');
+            }];
+        }
+
+        return Validator::make($data, $rules, [
+            'invite_code.required' => 'An invite code is required during the GASQ beta.',
         ]);
     }
 
