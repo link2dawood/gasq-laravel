@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SyncContactToHubSpot;
 use App\Models\User;
 use App\Services\PhoneOtpService;
+use App\Support\Beta;
 use App\Support\Funnel;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
@@ -125,6 +126,14 @@ class RegisterController extends Controller
             'company' => ['nullable', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
         ];
+
+        // Enrolment limits come first: if the beta is full or past its closing
+        // date, a valid invite code must not get anyone in either.
+        if (! Beta::registrationOpen()) {
+            $rules['email'][] = function ($attribute, $value, $fail) {
+                $fail(Beta::closedReason() ?? 'Registration is closed.');
+            };
+        }
 
         if (config('beta.invite_only')) {
             $rules['invite_code'] = ['required', 'string', function ($attribute, $value, $fail) {

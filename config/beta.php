@@ -45,4 +45,27 @@ return [
         explode(',', (string) env('BETA_INVITE_CODES', ''))
     ))),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Beta cap — how many get in, and until when
+    |--------------------------------------------------------------------------
+    |
+    | This is how exposure is limited during the beta, rather than by locking out
+    | the users we are paying to attract. Cap the headcount, cap the window, and
+    | the amount of the product on show is bounded either way.
+    |
+    | BETA_MAX_ACCOUNTS  total non-admin accounts allowed. 0/null = unlimited.
+    | BETA_CLOSES_AT     date/time after which registration closes (any format
+    |                    strtotime understands, e.g. 2026-09-30 or
+    |                    "2026-09-30 23:59:59"). Blank = no end date.
+    |
+    | Both double as scarcity: the register page shows remaining places and the
+    | closing date, which gives outreach a reason to chase ("beta closes Friday").
+    |
+    */
+
+    'max_accounts' => (int) env('BETA_MAX_ACCOUNTS', 0),
+
+    'closes_at' => env('BETA_CLOSES_AT') ?: null,
+
 ];
