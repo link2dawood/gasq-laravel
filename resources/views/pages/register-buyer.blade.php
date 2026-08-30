@@ -15,7 +15,7 @@
             Static preview of the buyer onboarding flow (no submission, no API calls).
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
-            <a class="btn btn-primary btn-lg" href="{{ route('register') }}">Go to Standard Registration</a>
+            <a class="btn btn-primary btn-lg" href="{{ route('register', request()->filled('invite') ? ['invite' => request()->query('invite')] : []) }}">Go to Standard Registration</a>
             <a class="btn btn-outline-primary btn-lg" href="{{ url('/calculator') }}">View Calculator UI</a>
         </div>
     </div>

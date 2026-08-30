@@ -9,10 +9,58 @@
         <p class="text-gasq-muted small mb-0">Join as a buyer or vendor. Enter your details to get started.</p>
     </div>
 
+    @php($betaClosedReason = \App\Support\Beta::closedReason())
+    @php($betaSpotsLeft = \App\Support\Beta::spotsRemaining())
+
+    @if($betaClosedReason)
+        {{-- Beta full or past its closing date: explain and offer a way in, rather
+             than showing a form that can only fail on submit. --}}
+        <div class="card gasq-card shadow-sm mx-auto" style="max-width: 28rem;">
+            <div class="card-body p-4 p-lg-5 text-center">
+                <i class="fa fa-lock fa-2x text-gasq-muted mb-3"></i>
+                <h2 class="h5 fw-bold mb-2">Beta registration is closed</h2>
+                <p class="text-gasq-muted small mb-4">{{ $betaClosedReason }}</p>
+                <a href="{{ route('contact') }}" class="btn btn-primary w-100 mb-2">Join the waiting list</a>
+                <a href="{{ route('instant-estimator.index') }}" class="btn btn-outline-primary w-100">
+                    Run a free estimate instead
+                </a>
+                <p class="small text-gasq-muted mt-3 mb-0">
+                    Already have an account? <a href="{{ route('login') }}">Sign in</a>
+                </p>
+            </div>
+        </div>
+    @else
     <div class="card gasq-card shadow-sm mx-auto" style="max-width: 28rem;">
         <div class="card-body p-4 p-lg-5">
+            @if($betaSpotsLeft !== null || \App\Support\Beta::hasClosingDate())
+                {{-- Remaining places / closing date. Real limits, and they give
+                     outreach a deadline to point at. --}}
+                <div class="alert alert-info py-2 px-3 small mb-3">
+                    @if($betaSpotsLeft !== null)
+                        <strong>{{ $betaSpotsLeft }}</strong> beta {{ \Illuminate\Support\Str::plural('place', $betaSpotsLeft) }} left.
+                    @endif
+                    @if(\App\Support\Beta::hasClosingDate())
+                        Beta closes {{ \App\Support\Beta::closingDate()->format('j F Y') }}.
+                    @endif
+                </div>
+            @endif
+
             <form action="{{ route('register') }}" method="POST" autocomplete="off" novalidate>
                 @csrf
+
+                @if(config('beta.invite_only'))
+                    {{-- Invite gate. Prefilled from ?invite=CODE so an invite link
+                         just works and the tester never has to copy a code across. --}}
+                    <div class="mb-3">
+                        <label class="form-label">Invite code</label>
+                        <input type="text" name="invite_code"
+                               class="form-control form-control-lg @error('invite_code') is-invalid @enderror"
+                               value="{{ old('invite_code', request()->query('invite')) }}"
+                               placeholder="Your GASQ beta invite code" autocomplete="off">
+                        @error('invite_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">GASQ is in closed beta — accounts are created by invitation.</div>
+                    </div>
+                @endif
 
                 <div class="mb-3">
                     <label class="form-label">Name</label>
@@ -91,6 +139,7 @@
         Already have an account?
         <a href="{{ route('login') }}" class="text-primary fw-medium text-decoration-none">Sign in</a>
     </p>
+    @endif
 </div>
 
 @push('scripts')

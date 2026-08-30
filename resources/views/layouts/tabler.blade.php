@@ -3,6 +3,11 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    @if(config('beta.noindex'))
+        {{-- Beta host: kept out of search results. Paired with the X-Robots-Tag
+             header in SecurityHeaders so crawlers get the signal either way. --}}
+        <meta name="robots" content="noindex, nofollow, noarchive">
+    @endif
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
     
     <!-- CSRF Token -->

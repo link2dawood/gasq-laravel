@@ -38,6 +38,81 @@
         </div>
     </div>
 
+    {{-- BUYER FUNNEL --}}
+    <div class="card gasq-card mb-4">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h3 class="card-title mb-0">Buyer funnel (last 7 days)</h3>
+            <span class="small text-gasq-muted">Distinct sessions per stage</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Stage</th>
+                            <th class="text-end">Sessions</th>
+                            <th class="text-end">From previous</th>
+                            <th class="text-end">Dropped</th>
+                            <th class="text-end">From top</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($journey as $stage)
+                            <tr>
+                                <td>{{ $stage['label'] }}</td>
+                                <td class="text-end fw-semibold">{{ number_format($stage['count']) }}</td>
+                                <td class="text-end">
+                                    @if($stage['from_previous'] === null)
+                                        <span class="text-gasq-muted">&mdash;</span>
+                                    @else
+                                        <span class="{{ $stage['from_previous'] < 50 ? 'text-danger fw-semibold' : '' }}">{{ $stage['from_previous'] }}%</span>
+                                    @endif
+                                </td>
+                                <td class="text-end text-gasq-muted">
+                                    {{ $stage['dropped'] === null ? '—' : number_format($stage['dropped']) }}
+                                </td>
+                                <td class="text-end text-gasq-muted">
+                                    {{ $stage['from_top'] === null ? '—' : $stage['from_top'] . '%' }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert alert-warning mt-3 mb-0 small">
+                <strong>Registration abandoned:</strong>
+                {{ number_format($registrationAbandoned) }}
+                @if($registrationAbandonRate !== null)
+                    ({{ $registrationAbandonRate }}% of registrations started)
+                @endif
+                <div class="mt-1">
+                    Derived as <em>registration started &minus; registration completed</em>, not a stored event.
+                </div>
+            </div>
+
+            <p class="small text-gasq-muted mt-3 mb-0">
+                These are stage volume ratios, not a cohort funnel: the session id is regenerated at login,
+                so a single visitor cannot be followed across the registration boundary. Read a percentage as
+                &ldquo;how many sessions reach this stage&rdquo;, not &ldquo;how many of these exact people continued&rdquo;.
+            </p>
+        </div>
+    </div>
+
+    {{-- SIDE ENTRIES --}}
+    <div class="row g-3 mb-4">
+        @foreach($sideEntries as $entry)
+            <div class="col-sm-6 col-lg-3">
+                <div class="card gasq-card h-100">
+                    <div class="card-body">
+                        <div class="small text-gasq-muted mb-1">{{ $entry['label'] }}</div>
+                        <div class="h3 fw-bold mb-0">{{ number_format($entry['count']) }}</div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
     <div class="row g-4">
         <div class="col-md-6">
             <div class="card gasq-card">

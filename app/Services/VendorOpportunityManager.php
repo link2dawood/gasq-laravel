@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Support\Funnel;
 
 class VendorOpportunityManager
 {
@@ -58,6 +59,12 @@ class VendorOpportunityManager
                 'max_accepts' => 5,
             ]
         );
+
+        Funnel::record(Funnel::VENDOR_MATCH_STARTED, [
+            'job_id' => $job->id,
+            'lead_tier' => $qualification['lead_tier'],
+            'vendor_target_count' => $qualification['vendor_target_count'],
+        ]);
 
         $this->sendInvitations($opportunity);
         if ($opportunity->lead_tier !== 'a') {

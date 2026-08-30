@@ -8,6 +8,7 @@ class PricingPlan extends Model
 {
     protected $fillable = [
         'name',
+        'audience',
         'price',
         'monthly_price',
         'tokens_included',

@@ -108,7 +108,7 @@ as a lead marketplace or a quote aggregator.
 
 - **Know What Security Should Cost Before You Buy.** (primary buyer promise / H1)
 - **Know Before You Buy.** (buyers) · **Know Before You Bid.** (vendors)
-- **CFO Tested. CFO Approved.**
+- **Built for CFO-Level Cost Analysis.**
 - **The Kelley Blue Book of Security Pricing™** · **The Industry Pricing Referee™**
 
 ---
@@ -122,3 +122,5 @@ as a lead marketplace or a quote aggregator.
 | "Cost to Protect™ … Cost to Protect™ … Cost to Protect™" | mark once, then "Cost to Protect" |
 | "supplier / client / customer" | "vendor / buyer" |
 | calling a vendor price an "estimate" | vendor price = **quote/bid**; GASQ number = **estimate** |
+| "CFO Tested. CFO Approved." (**retired** — implies a third-party endorsement we cannot document) | "Built for CFO-Level Cost Analysis." |
+| "prequalified vendors" with no definition nearby | link **[Vendor Qualification Standard](/vendor-qualification-standard)** on first use |

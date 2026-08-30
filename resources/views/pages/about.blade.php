@@ -40,7 +40,7 @@
 
     <h2 class="h4 fw-semibold mt-5 mb-2">GASQ Certified™</h2>
     <p>Our goal is to establish an industry standard for independently verifying and validating security service estimates.</p>
-    <p>The <strong>GASQ Certified™</strong> designation recognizes pricing analyses that have been evaluated using the GASQ methodology, providing buyers with greater confidence in procurement decisions.</p>
+    <p>The <strong>GASQ Certified™</strong> designation recognizes pricing analyses that have been evaluated using the GASQ methodology, providing buyers with greater confidence in procurement decisions. The designation applies to the <em>analysis</em>, not to any vendor — read the <a href="{{ route('gasq-certified') }}">GASQ Certified standard</a> for what it covers and what it does not.</p>
 
     <h2 class="h4 fw-semibold mt-5 mb-2">Who We Serve</h2>
     <p>GASQ supports organizations that purchase security services, including:</p>

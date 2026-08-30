@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContentSection;
 use App\Models\Faq;
 use App\Models\PricingPlan;
+use App\Support\Funnel;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -27,11 +28,15 @@ class PageController extends Controller
 
     public function buyerPricing(): View
     {
+        Funnel::record(Funnel::BUYER_PRICING_VIEWED);
+
         return $this->renderPricing('buyer', 'Pricing — For Buyers');
     }
 
     public function vendorPricing(): View
     {
+        Funnel::record(Funnel::VENDOR_PRICING_VIEWED);
+
         return $this->renderPricing('vendor', 'Pricing — For Vendors');
     }
 

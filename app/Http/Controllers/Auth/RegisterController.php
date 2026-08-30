@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SyncContactToHubSpot;
 use App\Models\User;
 use App\Services\PhoneOtpService;
+use App\Support\Beta;
+use App\Support\Funnel;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -43,12 +45,27 @@ class RegisterController extends Controller
     protected $redirectTo = '/home';
 
     /**
+     * RegistersUsers provides this; overridden only to open the funnel so that
+     * registration_started has a counterpart for every registration_completed.
+     */
+    public function showRegistrationForm()
+    {
+        Funnel::record(Funnel::REGISTRATION_STARTED, ['form' => 'generic']);
+
+        return view('auth.register');
+    }
+
+    /**
      * Create a new controller instance.
      *
      * @return void
      */
     protected function registered(Request $request, $user)
     {
+        Funnel::record(Funnel::REGISTRATION_COMPLETED, [
+            'user_type' => $user?->user_type,
+        ], $user?->id);
+
         // Push the new buyer/vendor into HubSpot (no-op until the token is set).
         if ($user) {
             SyncContactToHubSpot::dispatch($user->id, $user->email);
@@ -101,13 +118,50 @@ class RegisterController extends Controller
      */
     protected function validator(array $data)
     {
-        return Validator::make($data, [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'user_type' => ['required', 'in:buyer,vendor'],
             'company' => ['nullable', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
+        ];
+
+        // Enrolment limits come first: if the beta is full or past its closing
+        // date, a valid invite code must not get anyone in either.
+        if (! Beta::registrationOpen()) {
+            $rules['email'][] = function ($attribute, $value, $fail) {
+                $fail(Beta::closedReason() ?? 'Registration is closed.');
+            };
+        }
+
+        if (config('beta.invite_only')) {
+            $rules['invite_code'] = ['required', 'string', function ($attribute, $value, $fail) {
+                $codes = (array) config('beta.invite_codes');
+
+                // Fail closed: an invite gate with no codes configured must not
+                // quietly let everyone in. Say so plainly rather than rejecting
+                // every genuine invite with "code is invalid".
+                if ($codes === []) {
+                    Log::error('BETA_INVITE_ONLY is on but BETA_INVITE_CODES is empty — registration is closed.');
+                    $fail('Registration is invite-only and no invite codes are configured yet. Please contact GASQ.');
+
+                    return;
+                }
+
+                $supplied = strtolower(trim((string) $value));
+                foreach ($codes as $code) {
+                    if (hash_equals(strtolower(trim((string) $code)), $supplied)) {
+                        return;
+                    }
+                }
+
+                $fail('That invite code is not valid.');
+            }];
+        }
+
+        return Validator::make($data, $rules, [
+            'invite_code.required' => 'An invite code is required during the GASQ beta.',
         ]);
     }
 

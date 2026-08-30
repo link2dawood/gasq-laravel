@@ -32,9 +32,71 @@
         </form>
     </x-card>
     @endif
-    <h2 class="h5 mb-3">Purchase credits</h2>
+    @php
+        $paygUnit = (float) config('credits.payg.unit_price');
+        $paygMin = (int) config('credits.payg.min');
+        $paygMax = (int) config('credits.payg.max');
+        $paygDefault = min($paygMax, max($paygMin, 50));
+    @endphp
+    <x-card title="Pay As You Go" class="mb-4">
+        <p class="text-muted small">
+            Buy exactly the credits you need at ${{ number_format($paygUnit, 2) }} each &mdash; no pack, no subscription.
+            The packages below work out cheaper per credit if you buy ahead.
+        </p>
+        <form method="POST" action="{{ route('credits.payg') }}" class="row g-3 align-items-end">
+            @csrf
+            <div class="col-md-5">
+                <label class="form-label" for="paygCredits">Credits</label>
+                <input type="number" id="paygCredits" name="credits"
+                       class="form-control @error('credits') is-invalid @enderror"
+                       value="{{ old('credits', $paygDefault) }}"
+                       min="{{ $paygMin }}" max="{{ $paygMax }}" step="1" required>
+                <div class="form-text">Between {{ number_format($paygMin) }} and {{ number_format($paygMax) }} credits.</div>
+                @error('credits')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="paygTotal">Total</label>
+                <input type="text" id="paygTotal" class="form-control-plaintext fs-4 fw-bold mb-0 pt-0" readonly tabindex="-1" value="">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">Buy Credits</button>
+            </div>
+        </form>
+    </x-card>
+
+    @push('scripts')
+    <script>
+    (function () {
+        const qty = document.getElementById('paygCredits');
+        const total = document.getElementById('paygTotal');
+        if (!qty || !total) return;
+
+        // Display only — the charge is always recomputed server-side from the
+        // configured unit price, so editing this in devtools changes nothing.
+        const unit = {{ json_encode($paygUnit) }};
+        const min = {{ (int) $paygMin }};
+        const max = {{ (int) $paygMax }};
+
+        const render = () => {
+            const n = parseInt(qty.value, 10);
+            if (!Number.isFinite(n) || n < min || n > max) {
+                total.value = '—';
+                return;
+            }
+            total.value = (n * unit).toLocaleString(undefined, {
+                style: 'currency', currency: 'USD',
+            });
+        };
+
+        qty.addEventListener('input', render);
+        render();
+    })();
+    </script>
+    @endpush
+
+    <h2 class="h5 mb-3">Credit packages</h2>
     @if($plans->isEmpty())
-        <p class="text-muted">No credit packages available at the moment. Contact support to add credits.</p>
+        <p class="text-muted">No credit packages available at the moment &mdash; use Pay As You Go above to buy any amount you need.</p>
     @else
         <div class="row g-4">
             @foreach($plans as $plan)

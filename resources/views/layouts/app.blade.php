@@ -3,6 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if(config('beta.noindex'))
+        {{-- Beta host: kept out of search results. Paired with the X-Robots-Tag
+             header in SecurityHeaders so crawlers get the signal either way. --}}
+        <meta name="robots" content="noindex, nofollow, noarchive">
+    @endif
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- Active currency for browser-side formatters (Intl.NumberFormat). --}}
     <script>window.GASQ_CURRENCY = @json(\App\Support\Currency::jsConfig());</script>

@@ -3,6 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if(config('beta.noindex'))
+        {{-- Beta host: kept out of search results. Paired with the X-Robots-Tag
+             header in SecurityHeaders so crawlers get the signal either way. --}}
+        <meta name="robots" content="noindex, nofollow, noarchive">
+    @endif
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'GASQ')</title>
     <link rel="dns-prefetch" href="//fonts.bunny.net">

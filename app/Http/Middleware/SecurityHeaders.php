@@ -42,6 +42,13 @@ class SecurityHeaders
         
         $response->headers->set('Content-Security-Policy', implode('; ', $csp));
 
+        // Keep the beta host out of search results. Applied as a header so it
+        // covers every response — Blade pages, the React SPA and generated PDFs
+        // alike — instead of relying on a meta tag each layout has to remember.
+        if (config('beta.noindex')) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        }
+
         // HSTS (only for HTTPS)
         if ($request->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');

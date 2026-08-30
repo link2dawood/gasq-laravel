@@ -7,6 +7,7 @@ use App\Models\DiscoveryCall;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Support\Funnel;
 
 class DiscoveryCallController extends Controller
 {
@@ -36,6 +37,8 @@ class DiscoveryCallController extends Controller
             'status' => 'requested',
             'notes' => $data['notes'] ?? null,
         ]);
+
+        Funnel::record(Funnel::MEETING_BOOKED, ['type' => 'discovery_call']);
 
         // Ensure this lead is in HubSpot (no-op until the token is set).
         SyncContactToHubSpot::dispatch($request->user()->id, $request->user()->email);

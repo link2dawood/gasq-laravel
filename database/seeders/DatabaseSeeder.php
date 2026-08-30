@@ -426,10 +426,13 @@ class DatabaseSeeder extends Seeder
             ['feature_key' => 'main_menu_calculator', 'feature_name' => 'Main Menu Calculator', 'tokens_required' => 5, 'description' => 'Full calculator suite', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
         ]);
 
-        // Pricing plans (credit packages) — use create() so features array is cast to JSON
-        PricingPlan::create(['name' => 'Starter', 'price' => 29.00, 'monthly_price' => 29.00, 'tokens_included' => 30, 'features' => ['Instant estimator', 'Email support'], 'is_active' => true, 'sort_order' => 1]);
-        PricingPlan::create(['name' => 'Professional', 'price' => 79.00, 'monthly_price' => 79.00, 'tokens_included' => 100, 'features' => ['All calculators', 'Contract analysis', 'Priority support'], 'is_active' => true, 'sort_order' => 2]);
-        PricingPlan::create(['name' => 'Enterprise', 'price' => 199.00, 'monthly_price' => 199.00, 'tokens_included' => 300, 'features' => ['Everything in Professional', 'Discovery call', 'Dedicated support'], 'is_active' => true, 'sort_order' => 3]);
+        // Pricing plans (credit packages) — use create() so features array is cast to JSON.
+        // Credits are a VENDOR-side currency: EnsureCreditsForCalculator lets buyers and
+        // admins through free, so every pack below is audience => 'vendor'. Buyer pricing
+        // is not table-driven (see pages/pricing.blade.php).
+        PricingPlan::create(['name' => 'Starter', 'audience' => 'vendor', 'price' => 29.00, 'monthly_price' => 29.00, 'tokens_included' => 30, 'features' => ['One calculator session', 'Know Before You Bid bill-rate check', 'Email support'], 'is_active' => true, 'sort_order' => 1]);
+        PricingPlan::create(['name' => 'Professional', 'audience' => 'vendor', 'price' => 79.00, 'monthly_price' => 79.00, 'tokens_included' => 100, 'features' => ['All vendor calculators', 'Workforce-to-Post bill-rate breakdown', 'Submit estimates to buyers', 'Priority support'], 'is_active' => true, 'sort_order' => 2]);
+        PricingPlan::create(['name' => 'Enterprise', 'audience' => 'vendor', 'price' => 199.00, 'monthly_price' => 199.00, 'tokens_included' => 300, 'features' => ['Everything in Professional', 'Buyer opportunity unlocks', 'Discovery call', 'Dedicated support'], 'is_active' => true, 'sort_order' => 3]);
 
         // App settings
         Setting::insert([

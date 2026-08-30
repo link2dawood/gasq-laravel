@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\CalculatorStateStore;
 use App\Services\GasqEstimatorService;
 use App\Services\StripeCheckoutService;
+use App\Support\Funnel;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Throwable;
@@ -26,6 +27,18 @@ class InstantEstimatorController extends Controller
         $postJobStatus = $postJobPublished
             ? session('success', 'Job announcement published successfully. Your estimate results are now unlocked.')
             : null;
+
+        // Entry into the funnel. The "Validate My Quote" CTA carries intent=validate-quote
+        // so a buyer who already holds a vendor price is counted separately from one
+        // starting cold — they are different journeys with different messaging needs.
+        if ($request->isMethod('get')) {
+            Funnel::record(
+                $request->query('intent') === 'validate-quote'
+                    ? Funnel::QUOTE_VALIDATION_STARTED
+                    : Funnel::ESTIMATE_STARTED,
+                ['guest' => ! $request->user()],
+            );
+        }
 
         if ($request->isMethod('post') && $request->filled(['location', 'hours_per_week', 'number_of_guards'])) {
             $result = $this->estimator->estimate(
@@ -52,6 +65,10 @@ class InstantEstimatorController extends Controller
                 );
             } catch (Throwable $e) {
                 report($e);
+            }
+
+            if ($feeCheckoutPaid) {
+                Funnel::record(Funnel::REPORT_PURCHASED);
             }
 
             $feeCheckoutStatus = $feeCheckoutPaid
