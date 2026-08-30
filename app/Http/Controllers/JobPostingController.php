@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreJobPostingRequest;
 use App\Models\Bid;
 use App\Models\JobPosting;
+use App\Services\OpportunityValidator;
 use App\Support\Funnel;
 use App\Notifications\HireNotification;
 use App\Services\VendorOpportunityManager;
@@ -285,6 +286,26 @@ class JobPostingController extends Controller
         return redirect()->route('jobs.review');
     }
 
+    /**
+     * Buyer acknowledgements required before an opportunity may be released
+     * (review spec §24). Each maps to a checkbox on the review page.
+     */
+    public const REQUIRED_CERTIFICATIONS = [
+        'cert_scope_reviewed',
+        'cert_coverage_correct',
+        'cert_wage_correct',
+        'cert_dates_correct',
+        'cert_budget_authority',
+        'cert_vendor_responses',
+        'cert_scope_changes',
+        'cert_sealed_pricing',
+        'cert_price_variance',
+        'cert_capital_recovery',
+        'cert_shared_resource_hours',
+        'cert_shared_resource_breakdown',
+        'cert_authorize_release',
+    ];
+
     public function review(Request $request): View|RedirectResponse
     {
         if (! $request->user()?->isBuyer()) {
@@ -298,9 +319,14 @@ class JobPostingController extends Controller
                 ->with('error', 'Complete the questionnaire so we can generate your job announcement.');
         }
 
+        $questionnaire = $preview['payload']['questionnaire_data'] ?? [];
+
         return view('jobs.review', [
             'preview' => $preview['payload'],
-            'questionnaire' => $preview['payload']['questionnaire_data'] ?? [],
+            'questionnaire' => $questionnaire,
+            // Final validation gate (review spec §2). The publish control stays disabled
+            // until every blocking check passes.
+            'validation' => app(OpportunityValidator::class)->validate($questionnaire),
         ]);
     }
 
@@ -327,6 +353,23 @@ class JobPostingController extends Controller
         }
 
         $payload = $preview['payload'];
+
+        // Re-run the validation gate server-side. The disabled publish button is a
+        // convenience for the buyer, never the control (review spec P0-14).
+        $validator = app(OpportunityValidator::class);
+        if (! $validator->isReadyForRelease($payload['questionnaire_data'] ?? [])) {
+            return redirect()->route('jobs.review')
+                ->with('error', 'This opportunity is not ready for release. Complete the outstanding items listed below.');
+        }
+
+        // Buyer certifications are mandatory before release (review spec §24, P0-13).
+        $missingCertifications = collect(self::REQUIRED_CERTIFICATIONS)
+            ->reject(fn ($key) => $request->boolean($key));
+
+        if ($missingCertifications->isNotEmpty()) {
+            return redirect()->route('jobs.review')
+                ->with('error', 'All buyer certifications must be acknowledged before this opportunity can be released.');
+        }
 
         // If questionnaire_data column does not exist in production yet, strip it rather than crash.
         if (! \Illuminate\Support\Facades\Schema::hasColumn('job_postings', 'questionnaire_data')) {

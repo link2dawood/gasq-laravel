@@ -21,6 +21,10 @@ class StoreJobPostingRequest extends FormRequest
                 : $this->input('google_place_id'),
             // Blank money inputs arrive as '' — normalise to null so 'numeric'
             // doesn't reject them before 'required' can report a clean message.
+            // Baseline wage: the labour assumption the financial analysis rests on
+            // (review spec §8, P0-3). Not the vendor bill rate.
+            'baseline_wage' => ['nullable', 'numeric', 'min:0', 'max:500'],
+            'baseline_wage_source' => ['nullable', 'string', 'max:40'],
             'approved_budget_amount' => $this->blankToNull($this->input('approved_budget_amount')),
             'offer_price' => $this->blankToNull($this->input('offer_price')),
         ]);
