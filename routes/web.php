@@ -41,6 +41,15 @@ Route::view('/industries-served', 'pages.industries-served')->name('industries-s
 Route::view('/vendor-membership', 'pages.vendor-membership')->name('vendor-membership');
 Route::view('/license/buyer', 'pages.license-buyer')->name('license.buyer');
 Route::view('/license/seller', 'pages.license-seller')->name('license.seller');
+// Verified Shared Resource Rate(tm) — vendor proves operating scale, then submits a
+// line-item bill-rate breakdown. Clearing the hours gate only earns the right to apply.
+Route::middleware(['auth', 'phone.verified', 'vendor'])->group(function () {
+    Route::get('/vendor/shared-resource', [App\Http\Controllers\SharedResourceController::class, 'index'])->name('shared-resource.index');
+    Route::post('/vendor/shared-resource/volume', [App\Http\Controllers\SharedResourceController::class, 'storeVolume'])->name('shared-resource.volume.store');
+    Route::get('/vendor/shared-resource/breakdown', [App\Http\Controllers\SharedResourceController::class, 'editBreakdown'])->name('shared-resource.breakdown.edit');
+    Route::post('/vendor/shared-resource/breakdown', [App\Http\Controllers\SharedResourceController::class, 'storeBreakdown'])->name('shared-resource.breakdown.store');
+});
+
 // Vendor-only standalone calculators.
 Route::middleware(['auth', 'phone.verified', 'vendor'])->group(function () {
     Route::get('/post-coverage-schedule', function () {
