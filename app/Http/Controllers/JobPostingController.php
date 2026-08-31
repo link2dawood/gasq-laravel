@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreJobPostingRequest;
 use App\Models\Bid;
 use App\Models\JobPosting;
+use App\Models\ScopeVersion;
 use App\Services\OpportunityValidator;
+use App\Services\ScopeVersionService;
+use App\Support\OpportunityStatus;
 use App\Support\Funnel;
 use App\Notifications\HireNotification;
 use App\Services\VendorOpportunityManager;
@@ -376,8 +379,25 @@ class JobPostingController extends Controller
             unset($payload['questionnaire_data']);
         }
 
+        // Releasing puts the opportunity into the vendor-facing lifecycle (spec §28) and
+        // opens scope version 1.0 — the baseline any later material change is measured
+        // against (§6, P0-15).
+        $payload['opportunity_status'] = OpportunityStatus::OPEN_TO_VENDORS;
+        $payload['released_at'] = now();
+        $payload['scope_version'] = '1.0';
+
         try {
             $job = JobPosting::create($payload);
+
+            ScopeVersion::create([
+                'job_posting_id' => $job->id,
+                'version' => '1.0',
+                'is_material' => false,
+                'changes' => [],
+                'changed_by' => $request->user()?->id,
+                'note' => 'Opportunity released to the vendor network.',
+            ]);
+
             $vendorOpportunityManager->createForPublishedJob($job);
         } catch (\Throwable $e) {
             report($e);
@@ -489,14 +509,31 @@ class JobPostingController extends Controller
             unset($payload['supporting_documents']);
         }
 
+        // Capture the scope as vendors currently see it, before the edit lands, so a
+        // material change can be detected and versioned rather than applied silently
+        // (spec §6, P0-15).
+        $scopeBefore = is_array($job->questionnaire_data) ? $job->questionnaire_data : [];
+        $scopeBefore['baseline_wage'] = $job->baseline_wage;
+
         $job->update($payload);
+
+        $scopeAfter = is_array($job->fresh()->questionnaire_data) ? $job->fresh()->questionnaire_data : [];
+        $scopeAfter['baseline_wage'] = $job->fresh()->baseline_wage;
+
+        $scopeVersion = app(ScopeVersionService::class)
+            ->record($job->fresh(), $scopeBefore, $scopeAfter, $request->user()?->id);
 
         // Re-qualify: a corrected questionnaire can move the job out of
         // "Pending Qualification" (Tier C) and release it to vendors.
         $vendorOpportunityManager->createForPublishedJob($job);
 
-        return redirect()->route('jobs.show', $job)
-            ->with('success', 'Job updated. Your questionnaire has been re-checked.');
+        $message = 'Job updated. Your questionnaire has been re-checked.';
+        if ($scopeVersion?->is_material) {
+            $message = 'Scope version ' . $scopeVersion->version
+                . ' created. This is a material change, so vendors who already responded will need to re-acknowledge the revised scope.';
+        }
+
+        return redirect()->route('jobs.show', $job)->with('success', $message);
     }
 
     public function hire(Request $request, JobPosting $job): RedirectResponse

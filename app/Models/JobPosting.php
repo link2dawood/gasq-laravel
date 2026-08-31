@@ -40,6 +40,11 @@ class JobPosting extends Model
         'last_activity_at',
         'inactivity_survey_sent_at',
         'offer_status',
+        'opportunity_status',
+        'scope_version',
+        'released_at',
+        'baseline_wage',
+        'baseline_wage_source',
         'interviews_scheduled',
         'interviews_completed',
         'risk_assessment_scheduled',
@@ -138,5 +143,10 @@ class JobPosting extends Model
     public function isClosed(): bool
     {
         return $this->status === 'closed';
+    }
+
+    public function scopeVersions()
+    {
+        return $this->hasMany(ScopeVersion::class)->latest('id');
     }
 }
