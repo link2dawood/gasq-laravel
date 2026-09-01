@@ -9,6 +9,15 @@ class StoreJobPostingRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
+        $budgetApprovedStatus = $this->normaliseBudgetApprovedStatus(
+            $this->input('budget_approved_status', $this->input('funds_approval_status'))
+        );
+
+        $staffPerShift = $this->input('staff_per_shift');
+        if (($staffPerShift === '' || $staffPerShift === null) && filled($this->input('guards_per_shift'))) {
+            $staffPerShift = $this->input('guards_per_shift');
+        }
+
         $this->merge([
             'latitude' => $this->input('latitude') === '' || $this->input('latitude') === null
                 ? null
@@ -21,10 +30,13 @@ class StoreJobPostingRequest extends FormRequest
                 : $this->input('google_place_id'),
             // Blank money inputs arrive as '' — normalise to null so 'numeric'
             // doesn't reject them before 'required' can report a clean message.
-            // Baseline wage: the labour assumption the financial analysis rests on
-            // (review spec §8, P0-3). Not the vendor bill rate.
-            'baseline_wage' => ['nullable', 'numeric', 'min:0', 'max:500'],
-            'baseline_wage_source' => ['nullable', 'string', 'max:40'],
+            'baseline_wage' => $this->blankToNull($this->input('baseline_wage')),
+            'baseline_wage_source' => $this->input('baseline_wage_source') === '' || $this->input('baseline_wage_source') === null
+                ? null
+                : $this->input('baseline_wage_source'),
+            'budget_approved_status' => $budgetApprovedStatus,
+            'funds_approval_status' => $budgetApprovedStatus,
+            'staff_per_shift' => $staffPerShift === '' ? null : $staffPerShift,
             'approved_budget_amount' => $this->blankToNull($this->input('approved_budget_amount')),
             'offer_price' => $this->blankToNull($this->input('offer_price')),
         ]);
@@ -38,6 +50,20 @@ class StoreJobPostingRequest extends FormRequest
 
         // Allow buyers to type "$1,200.00" without tripping numeric validation.
         return is_string($value) ? str_replace([',', '$', ' '], '', $value) : $value;
+    }
+
+    private function normaliseBudgetApprovedStatus(mixed $value): ?string
+    {
+        if ($value === '' || $value === null) {
+            return null;
+        }
+
+        return match ((string) $value) {
+            'approved', 'yes', 'flexible_budget', 'restrictive_budget' => 'yes',
+            'no', 'not_approved' => 'no',
+            'pending', 'pending_approval', 'unknown' => 'pending',
+            default => (string) $value,
+        };
     }
 
     /**
@@ -58,6 +84,10 @@ class StoreJobPostingRequest extends FormRequest
 
             // Approved Budget Amount — GASQ does not permit "hidden budget" solicitations.
             'approved_budget_amount' => ['required', 'numeric', 'min:0'],
+
+            // Baseline wage is the labour assumption the financial analysis rests on.
+            'baseline_wage' => ['nullable', 'numeric', 'min:0.01', 'max:500'],
+            'baseline_wage_source' => ['nullable', 'string', 'max:40'],
 
             // Buyer Selection Method (Option A / Option B).
             'selection_method' => ['required', 'in:accept_decline,sealed_price'],
@@ -116,6 +146,7 @@ class StoreJobPostingRequest extends FormRequest
             'contact_name' => ['required', 'string', 'max:255'],
             'contact_job_title' => ['required', 'string', 'max:255'],
             'organization_name' => ['required', 'string', 'max:255'],
+            'property_site_name' => ['required', 'string', 'max:255'],
             'contact_email' => ['required', 'email', 'max:255'],
             'contact_phone' => ['required', 'string', 'max:40'],
             'preferred_contact_method' => ['required', 'in:email,mobile_phone,text_message'],
@@ -126,6 +157,15 @@ class StoreJobPostingRequest extends FormRequest
             'approval_authority' => ['required', 'string', 'max:50'],
             'final_approver_name' => ['nullable', 'string', 'max:255'],
             'budget_approved_status' => ['required', 'in:yes,no,pending'],
+            'knows_true_inhouse_cost' => ['nullable', 'in:yes,no'],
+            'project_readiness_reasons' => ['nullable', 'array'],
+            'project_readiness_reasons.*' => ['string', 'max:100'],
+            'service_start_timeline' => ['nullable', 'string', 'max:60'],
+            'budget_type' => ['nullable', 'string', 'max:40'],
+            'if_pricing_exceeds' => ['nullable', 'array'],
+            'if_pricing_exceeds.*' => ['string', 'max:100'],
+            'multiple_bids_required' => ['nullable', 'in:yes,no'],
+            'willing_adjust_scope_to_budget' => ['nullable', 'in:yes,no'],
             'move_forward_if_accepted' => ['required', 'in:yes,no,need_internal_review'],
 
             // SECTION 3: Service Location
@@ -142,6 +182,8 @@ class StoreJobPostingRequest extends FormRequest
             'request_type' => ['required', 'in:new_service,replace_current_provider,expand_existing_coverage,temporary_emergency_coverage'],
             'desired_contract_term' => ['required', 'string', 'max:60'],
             'primary_reason' => ['required', 'string', 'max:4000'],
+            'current_security_setup' => ['nullable', 'string', 'max:50'],
+            'is_replacing_provider' => ['nullable', 'in:yes,no'],
 
             // SECTION 5: Scope, Schedule and Staffing
             'hours_per_day' => ['required', 'integer', 'min:1', 'max:24'],
@@ -150,6 +192,7 @@ class StoreJobPostingRequest extends FormRequest
             'staff_per_shift' => ['required', 'integer', 'min:1', 'max:100'],
             'shifts_needed' => ['required', 'array', 'min:1'],
             'shifts_needed.*' => ['string', 'max:50'],
+            'assignment_type' => ['nullable', 'string', 'max:60'],
             'patrol_types' => ['nullable', 'array'],
             'patrol_types.*' => ['in:Foot Patrol,Vehicle Patrol,Golf Cart Patrol,Bike Patrol'],
 
@@ -158,6 +201,8 @@ class StoreJobPostingRequest extends FormRequest
             'duties_required.*' => ['string', 'max:120'],
             'duties_other' => ['nullable', 'string', 'max:255'],
             'service_package_expectation' => ['required', 'in:observe_and_report_only,detect_delay_assess_respond'],
+            'hands_off_expected' => ['nullable', 'in:yes,no'],
+            'has_written_post_orders' => ['nullable', 'string', 'max:50'],
             'supporting_documents' => ['nullable', 'array'],
             'supporting_documents.*' => ['file', 'mimes:pdf,doc,docx,png,jpg,jpeg,webp', 'max:5120'],
             'known_site_risks' => ['nullable', 'string', 'max:4000'],
@@ -174,8 +219,16 @@ class StoreJobPostingRequest extends FormRequest
             'monthly_budget' => ['nullable', 'numeric', 'min:0'],
             'hourly_budget' => ['nullable', 'numeric', 'min:0'],
             'budget_amount_range' => ['nullable', 'string', 'max:255'],
+            'willing_post_offer' => ['nullable', 'in:yes,no'],
+            'allow_scope_adjustment' => ['nullable', 'in:yes,no'],
+            'cost_comparison_requested' => ['nullable', 'in:yes,no'],
+            'officer_licensing_required' => ['nullable', 'string', 'max:50'],
+            'background_checks_required' => ['nullable', 'in:yes,no'],
+            'drug_testing_required' => ['nullable', 'in:yes,no'],
+            'uniformed_officers_required' => ['nullable', 'in:yes,no'],
 
             // SECTION 9: Posting Terms and Submission
+            'vendor_response_deadline' => ['nullable', 'date'],
             'additional_notes_to_vendors' => ['nullable', 'string', 'max:4000'],
             'buyer_certification' => ['required', 'accepted'],
             'consent_to_contact' => ['required', 'accepted'],

@@ -51,6 +51,7 @@ class JobPostingController extends Controller
         'contact_name',
         'contact_job_title',
         'organization_name',
+        'property_site_name',
         'contact_email',
         'contact_phone',
         'preferred_contact_method',
@@ -60,9 +61,18 @@ class JobPostingController extends Controller
         'approval_authority',
         'final_approver_name',
         'budget_approved_status',
+        'funds_approval_status',
+        'knows_true_inhouse_cost',
+        'project_readiness_reasons',
+        'service_start_timeline',
+        'budget_type',
+        'if_pricing_exceeds',
+        'multiple_bids_required',
+        'willing_adjust_scope_to_budget',
         'move_forward_if_accepted',
         // Section 3: Service Location
         'business_address',
+        'business_address_place_id',
         'multiple_locations',
         'locations_count',
         'property_type_other',
@@ -72,12 +82,15 @@ class JobPostingController extends Controller
         'request_type',
         'desired_contract_term',
         'primary_reason',
+        'current_security_setup',
+        'is_replacing_provider',
         // Section 5: Scope, Schedule and Staffing
         'hours_per_day',
         'days_per_week',
         'weeks_per_year',
         'staff_per_shift',
         'shifts_needed',
+        'assignment_type',
         'patrol_types',
         'armed_status',
         'deployment_types',
@@ -85,6 +98,8 @@ class JobPostingController extends Controller
         'duties_required',
         'duties_other',
         'service_package_expectation',
+        'hands_off_expected',
+        'has_written_post_orders',
         'supporting_documents',
         'known_site_risks',
         'equipment_requirements',
@@ -96,12 +111,22 @@ class JobPostingController extends Controller
         'annual_budget',
         'budget_amount_range',
         'approved_budget_amount',
+        'baseline_wage',
+        'baseline_wage_source',
         'selection_method',
         'offer_price',
+        'willing_post_offer',
+        'allow_scope_adjustment',
+        'cost_comparison_requested',
+        'officer_licensing_required',
+        'background_checks_required',
+        'drug_testing_required',
+        'uniformed_officers_required',
         // Section 8: Compliance Requirements
         'insurance_minimums_required',
         'compliance_terms',
         // Section 9: Posting Terms and Submission
+        'vendor_response_deadline',
         'additional_notes_to_vendors',
         'buyer_certification',
         'consent_to_contact',
@@ -219,7 +244,8 @@ class JobPostingController extends Controller
             'contact_phone' => $data['contact_phone'] ?? null,
             'business_address' => $data['business_address'] ?? $data['location'],
             'final_decision_maker' => $data['final_decision_maker'] ?? null,
-            'funds_approval_status' => $data['funds_approval_status'] ?? null,
+            'budget_approved_status' => $this->normaliseBudgetApprovedStatus($data['funds_approval_status'] ?? null),
+            'funds_approval_status' => $this->normaliseBudgetApprovedStatus($data['funds_approval_status'] ?? null),
             'move_forward_if_accepted' => $data['move_forward_if_accepted'] ?? 'yes',
             'property_type' => $data['property_type'] ?? null,
             'current_security_setup' => $data['current_security_setup'] ?? null,
@@ -319,17 +345,21 @@ class JobPostingController extends Controller
 
         if ($preview === []) {
             return redirect()->route('jobs.create', ['step' => 'details'])
-                ->with('error', 'Complete the questionnaire so we can generate your job announcement.');
+                ->with('error', 'Complete the questionnaire so we can generate your opportunity preview.');
         }
 
         $questionnaire = $preview['payload']['questionnaire_data'] ?? [];
+        $reviewPayload = $this->buildOpportunityValidationPayload($preview['payload']);
+        $validation = app(OpportunityValidator::class)->validate($reviewPayload);
 
         return view('jobs.review', [
             'preview' => $preview['payload'],
             'questionnaire' => $questionnaire,
-            // Final validation gate (review spec §2). The publish control stays disabled
-            // until every blocking check passes.
-            'validation' => app(OpportunityValidator::class)->validate($questionnaire),
+            'reviewPayload' => $reviewPayload,
+            'validation' => $validation,
+            'opportunityStatus' => $validation['status'] === OpportunityValidator::STATUS_READY
+                ? OpportunityStatus::READY_FOR_RELEASE
+                : OpportunityStatus::VALIDATION_REQUIRED,
         ]);
     }
 
@@ -352,7 +382,7 @@ class JobPostingController extends Controller
 
         if ($preview === [] || ! isset($preview['payload']) || ! is_array($preview['payload'])) {
             return redirect()->route('jobs.create', ['step' => 'details'])
-                ->with('error', 'There is no generated job announcement ready to publish yet.');
+                ->with('error', 'There is no generated opportunity ready to release yet.');
         }
 
         $payload = $preview['payload'];
@@ -360,7 +390,7 @@ class JobPostingController extends Controller
         // Re-run the validation gate server-side. The disabled publish button is a
         // convenience for the buyer, never the control (review spec P0-14).
         $validator = app(OpportunityValidator::class);
-        if (! $validator->isReadyForRelease($payload['questionnaire_data'] ?? [])) {
+        if (! $validator->isReadyForRelease($this->buildOpportunityValidationPayload($payload))) {
             return redirect()->route('jobs.review')
                 ->with('error', 'This opportunity is not ready for release. Complete the outstanding items listed below.');
         }
@@ -402,7 +432,7 @@ class JobPostingController extends Controller
         } catch (\Throwable $e) {
             report($e);
             return redirect()->route('jobs.review')
-                ->with('error', 'There was a problem saving your job announcement. Please try again or contact support.');
+                ->with('error', 'There was a problem saving your opportunity. Please try again or contact support.');
         }
 
         Funnel::record(Funnel::JOB_POST_COMPLETED, ['job_id' => $job->id, 'via' => 'publish']);
@@ -411,11 +441,11 @@ class JobPostingController extends Controller
 
         if (is_string($estimatorReturnUrl) && $estimatorReturnUrl !== '') {
             return redirect()->to($estimatorReturnUrl)
-                ->with('success', 'Job announcement published successfully. Your estimate results are now unlocked.');
+                ->with('success', 'Security service opportunity released successfully. Your estimate results are now unlocked.');
         }
 
         return redirect()->route('jobs.show', $job)
-            ->with('success', 'Job announcement published successfully.');
+            ->with('success', 'Security service opportunity released successfully.');
     }
 
     public function store(StoreJobPostingRequest $request, VendorOpportunityManager $vendorOpportunityManager): RedirectResponse
@@ -455,8 +485,11 @@ class JobPostingController extends Controller
             'longitude' => $job->longitude,
             'property_type' => $job->property_type,
             'guards_per_shift' => $job->guards_per_shift,
+            'staff_per_shift' => $q['staff_per_shift'] ?? $job->guards_per_shift,
             'budget_min' => $job->budget_min,
             'budget_max' => $job->budget_max,
+            'baseline_wage' => $job->baseline_wage,
+            'baseline_wage_source' => $job->baseline_wage_source,
             'service_start_date' => $job->service_start_date?->format('Y-m-d'),
             'service_end_date' => $job->service_end_date?->format('Y-m-d'),
         ], fn ($v) => $v !== null && $v !== ''));
@@ -782,6 +815,16 @@ class JobPostingController extends Controller
         $payload = $data;
         $payload['user_id'] = $request->user()->id;
 
+        if (! is_numeric($payload['baseline_wage'] ?? null) || (float) $payload['baseline_wage'] <= 0) {
+            $payload['baseline_wage'] = $this->defaultBaselineWageForJob($payload);
+        }
+        if (blank($payload['baseline_wage_source'] ?? null)) {
+            $payload['baseline_wage_source'] = 'buyer_assumption';
+        }
+        if (! array_key_exists('funds_approval_status', $payload) && array_key_exists('budget_approved_status', $payload)) {
+            $payload['funds_approval_status'] = $payload['budget_approved_status'];
+        }
+
         // Pull calculator-derived budget values from the estimator prefill so
         // the buyer never has to re-enter them on the questionnaire.
         $prefill = $this->estimatorPrefillSessionData();
@@ -803,7 +846,7 @@ class JobPostingController extends Controller
             && is_numeric($payload['hours_per_day'] ?? null)
             && is_numeric($payload['days_per_week'] ?? null)
             && is_numeric($payload['weeks_per_year'] ?? null)) {
-            $baselineWage = $this->defaultBaselineWageForJob($payload);
+            $baselineWage = (float) $payload['baseline_wage'];
             $employerCost = $baselineWage > 0 ? $baselineWage / 0.70 : 0.0;
             $annualEmployerCost = $employerCost * 3744;
             $internalTrueHourly = $annualEmployerCost > 0 ? $annualEmployerCost / 1456 : 0.0;
@@ -811,17 +854,15 @@ class JobPostingController extends Controller
             $staffPerShift = is_numeric($payload['staff_per_shift'] ?? null) ? max(1.0, (float) $payload['staff_per_shift']) : 1.0;
             $weeklyCoverageHours = (float) $payload['hours_per_day'] * (float) $payload['days_per_week'] * $staffPerShift;
             $weeksPerYear = max(1.0, (float) $payload['weeks_per_year']);
-            $annualCoverageHours = $weeklyCoverageHours * 52;
-            $termCoverageHours = $weeklyCoverageHours * $weeksPerYear;
+            $annualCoverageHours = $weeklyCoverageHours * $weeksPerYear;
             $hourlyBudget = round($outsourcedHourly, 2);
             $annualBudget = round($outsourcedHourly * $annualCoverageHours, 2);
             $monthlyBudget = round($annualBudget / 12, 2);
-            $termBudget = round($outsourcedHourly * $termCoverageHours, 2);
             $payload['hourly_budget'] = $hourlyBudget;
             $payload['monthly_budget'] = $monthlyBudget;
             $payload['annual_budget'] = $annualBudget;
-            if (empty($payload['budget_amount_range']) && $termBudget > 0) {
-                $payload['budget_amount_range'] = '$' . number_format($termBudget, 2);
+            if (empty($payload['budget_amount_range']) && $annualBudget > 0) {
+                $payload['budget_amount_range'] = '$' . number_format($annualBudget, 2);
             }
         }
 
@@ -888,7 +929,10 @@ class JobPostingController extends Controller
         ];
         $payload['special_requirements'] = array_values(array_filter($specialRequirements));
 
-        $drop = array_merge(self::QUESTIONNAIRE_FIELDS, [
+        $drop = array_merge(array_diff(self::QUESTIONNAIRE_FIELDS, [
+            'baseline_wage',
+            'baseline_wage_source',
+        ]), [
             'budget_approved',
             'ready_to_move_forward',
         ]);
@@ -996,6 +1040,68 @@ class JobPostingController extends Controller
         }
 
         return 33.0;
+    }
+
+    private function normaliseBudgetApprovedStatus(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return match ($value) {
+            'approved', 'yes', 'flexible_budget', 'restrictive_budget' => 'yes',
+            'no', 'not_approved' => 'no',
+            'pending', 'pending_approval', 'unknown' => 'pending',
+            default => $value,
+        };
+    }
+
+    /**
+     * The review screen validates the vendor-facing opportunity, not just the
+     * questionnaire fragment, so top-level fields are merged back in here.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function buildOpportunityValidationPayload(array $payload): array
+    {
+        $questionnaire = is_array($payload['questionnaire_data'] ?? null)
+            ? $payload['questionnaire_data']
+            : [];
+
+        foreach ([
+            'service_start_date',
+            'baseline_wage',
+            'baseline_wage_source',
+            'approved_budget_amount',
+            'budget_approved_status',
+            'funds_approval_status',
+            'final_decision_maker',
+            'approval_authority',
+            'desired_contract_term',
+            'selection_method',
+            'offer_price',
+            'insurance_minimums_required',
+            'service_types',
+            'duties_required',
+            'hours_per_day',
+            'days_per_week',
+            'weeks_per_year',
+            'staff_per_shift',
+        ] as $field) {
+            if (array_key_exists($field, $payload) && ! array_key_exists($field, $questionnaire)) {
+                $questionnaire[$field] = $payload[$field];
+            }
+        }
+
+        if (! array_key_exists('staff_per_shift', $questionnaire) && array_key_exists('guards_per_shift', $payload)) {
+            $questionnaire['staff_per_shift'] = $payload['guards_per_shift'];
+        }
+        if (! array_key_exists('budget_approved_status', $questionnaire) && array_key_exists('funds_approval_status', $questionnaire)) {
+            $questionnaire['budget_approved_status'] = $questionnaire['funds_approval_status'];
+        }
+
+        return $questionnaire;
     }
 
     /**

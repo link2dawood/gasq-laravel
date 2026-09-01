@@ -1,0 +1,68 @@
+name: Bug report
+description: Something behaves incorrectly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please do **not** use this form for security
+        vulnerabilities — see [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Sign in as a buyer
+        2. Open the estimator
+        3. Enter ...
+        4. See ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v1.2.0, or a commit SHA
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where
+      options:
+        - Local development
+        - Self-hosted deployment
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment-detail
+    attributes:
+      label: Environment
+      placeholder: |
+        PHP: 8.2.14
+        Database: MySQL 8.0
+        Browser: Firefox 128
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: From storage/logs/laravel.log. Redact anything sensitive.
+      render: shell
+    validations:
+      required: false

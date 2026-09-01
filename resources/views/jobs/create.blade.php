@@ -590,6 +590,8 @@
                     <input type="hidden" name="monthly_budget" id="monthly_budget_input" value="{{ old('monthly_budget', $prefill['monthly_budget'] ?? '') }}">
                     <input type="hidden" name="hourly_budget" id="hourly_budget_input" value="{{ old('hourly_budget', $prefill['hourly_budget'] ?? '') }}">
                     <input type="hidden" name="budget_amount_range" id="budget_amount_range_input" value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}">
+                    <input type="hidden" name="baseline_wage" id="baseline_wage_input" value="{{ old('baseline_wage', $prefill['baseline_wage'] ?? '') }}" data-locked="{{ old('baseline_wage', $prefill['baseline_wage'] ?? '') !== '' ? '1' : '0' }}" data-default-locked="{{ old('baseline_wage', $prefill['baseline_wage'] ?? '') !== '' ? '1' : '0' }}">
+                    <input type="hidden" name="baseline_wage_source" id="baseline_wage_source_input" value="{{ old('baseline_wage_source', $prefill['baseline_wage_source'] ?? 'buyer_assumption') }}">
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Approved Budget Amount ($) <span class="text-danger">*</span></label>
@@ -956,6 +958,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const OVERRIDE_TTL_MS = 30 * 60 * 1000; // 30 min
 
     function pickBaselineWage() {
+        const baselineInput = document.getElementById('baseline_wage_input');
+        const lockedBaseline = baselineInput?.dataset.locked === '1';
+        const storedBaseline = parseFloat(baselineInput?.value || '') || 0;
+        if (lockedBaseline && storedBaseline > 0) {
+            return storedBaseline;
+        }
+
         const category = (document.querySelector('input[name="category"]')?.value || '').toLowerCase().trim();
         const serviceTypes = Array.from(document.querySelectorAll('input[name="service_types[]"]'))
             .map(el => (el.value || '').toLowerCase().trim())
@@ -1053,6 +1062,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const monthlyInput = document.getElementById('monthly_budget_input');
         const hourlyInput = document.getElementById('hourly_budget_input');
         const rangeInput = document.getElementById('budget_amount_range_input');
+        const baselineInput = document.getElementById('baseline_wage_input');
+        const baselineSourceInput = document.getElementById('baseline_wage_source_input');
 
         const usingOverride = override !== null;
         const annualBudget = usingOverride ? override.annualBudget : (computed ? computed.annualBudget : 0);
@@ -1074,6 +1085,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (monthlyInput) monthlyInput.value = monthlyBudget > 0 ? monthlyBudget.toFixed(2) : '';
         if (hourlyInput) hourlyInput.value = hourlyBudget > 0 ? hourlyBudget.toFixed(2) : '';
         if (rangeInput) rangeInput.value = annualBudget > 0 ? fmtMoney(annualBudget) : '';
+        if (baselineInput) {
+            baselineInput.value = baselineWage > 0 ? baselineWage.toFixed(2) : '';
+            baselineInput.dataset.locked = usingOverride ? '1' : (baselineInput.dataset.defaultLocked || '0');
+        }
+        if (baselineSourceInput) {
+            baselineSourceInput.value = usingOverride ? 'buyer_assumption' : (baselineSourceInput.value || 'buyer_assumption');
+        }
     }
 
     ['hours_per_day', 'days_per_week', 'weeks_per_year', 'guards_per_shift'].forEach(function (name) {
@@ -1095,6 +1113,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('reset_budget_cta')?.addEventListener('click', function () {
+        const baselineInput = document.getElementById('baseline_wage_input');
+        if (baselineInput) {
+            baselineInput.dataset.locked = baselineInput.dataset.defaultLocked || '0';
+        }
         clearCalculatorOverride();
         renderEstimatedBudget();
     });
@@ -1108,9 +1130,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Clear the override + scope handoff after the buyer submits so a future
     // post doesn't inherit a stale value.
-    const questionnaireForm = document.querySelector('form[action*="jobs/preview"]') || document.querySelector('form[action*="jobs.preview"]');
-    if (questionnaireForm) {
-        questionnaireForm.addEventListener('submit', function () {
+    const previewForm = document.querySelector('form[action*="jobs/preview"]') || document.querySelector('form[action*="jobs.preview"]');
+    if (previewForm) {
+        previewForm.addEventListener('submit', function () {
             clearCalculatorOverride();
             try { localStorage.removeItem(QUESTIONNAIRE_SCOPE_KEY); } catch (e) {}
         });

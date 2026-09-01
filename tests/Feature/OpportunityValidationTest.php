@@ -30,7 +30,7 @@ class OpportunityValidationTest extends TestCase
             'weeks_per_year' => 52,
             'staff_per_shift' => 1,
             'baseline_wage' => 20.00,
-            'budget_approved_status' => 'approved',
+            'budget_approved_status' => 'yes',
             'approved_budget_amount' => 250000,
             'final_decision_maker' => 'yes',
             'approval_authority' => 'yes',
@@ -63,7 +63,7 @@ class OpportunityValidationTest extends TestCase
     public function test_unconfirmed_budget_blocks_release(): void
     {
         $this->assertFalse($this->validator->isReadyForRelease(
-            $this->completeQuestionnaire(['budget_approved_status' => 'unknown'])
+            $this->completeQuestionnaire(['budget_approved_status' => 'pending'])
         ));
 
         $this->assertFalse($this->validator->isReadyForRelease(

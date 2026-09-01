@@ -120,12 +120,19 @@ class OpportunityValidator
         $status = (string) ($q['budget_approved_status'] ?? '');
         $amount = $q['approved_budget_amount'] ?? null;
 
-        return $status !== '' && $status !== 'unknown' && is_numeric($amount) && (float) $amount > 0;
+        return in_array($status, ['yes', 'approved'], true)
+            && is_numeric($amount)
+            && (float) $amount > 0;
     }
 
     private function hasDecisionMaker(array $q): bool
     {
-        return filled($q['final_decision_maker'] ?? null) && filled($q['approval_authority'] ?? null);
+        $decisionMaker = (string) ($q['final_decision_maker'] ?? '');
+        $approvalAuthority = (string) ($q['approval_authority'] ?? '');
+
+        return in_array($decisionMaker, ['yes', 'authorized_representative'], true)
+            && $approvalAuthority !== ''
+            && $approvalAuthority !== 'no_authority';
     }
 
     private function hasVendorRequirements(array $q): bool

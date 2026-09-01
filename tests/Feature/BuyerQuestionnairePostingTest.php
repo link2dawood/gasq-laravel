@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\EnsureNdaAccepted;
 use App\Models\Bid;
 use App\Models\JobPosting;
 use App\Models\User;
@@ -13,6 +14,13 @@ use Tests\TestCase;
 class BuyerQuestionnairePostingTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(EnsureNdaAccepted::class);
+    }
 
     public function test_buyer_can_open_job_create_page(): void
     {
@@ -257,7 +265,11 @@ class BuyerQuestionnairePostingTest extends TestCase
         $response->assertSessionHas('job_posting_preview', function (array $preview): bool {
             return ($preview['payload']['title'] ?? null) === 'Downtown Office Security'
                 && ($preview['payload']['status'] ?? null) === 'open'
-                && ($preview['payload']['questionnaire_data']['property_site_name'] ?? null) === 'Buckhead Tower';
+                && ($preview['payload']['questionnaire_data']['property_site_name'] ?? null) === 'Buckhead Tower'
+                && is_numeric($preview['payload']['baseline_wage'] ?? null)
+                && (float) ($preview['payload']['baseline_wage'] ?? 0) > 0
+                && is_numeric($preview['payload']['questionnaire_data']['baseline_wage'] ?? null)
+                && (float) ($preview['payload']['questionnaire_data']['baseline_wage'] ?? 0) > 0;
         });
     }
 
@@ -273,16 +285,19 @@ class BuyerQuestionnairePostingTest extends TestCase
         $this->actingAs($buyer)->post(route('jobs.preview'), $this->validPostingPayload())
             ->assertRedirect(route('jobs.review'));
 
-        $publishResponse = $this->actingAs($buyer)->post(route('jobs.publish'));
+        $publishResponse = $this->actingAs($buyer)->post(route('jobs.publish'), $this->releaseCertifications());
 
         $job = JobPosting::query()->latest('id')->first();
 
         $this->assertNotNull($job);
         $this->assertSame('open', $job?->status);
+        $this->assertSame('open_to_vendors', $job?->opportunity_status);
+        $this->assertSame('1.0', $job?->scope_version);
         $this->assertSame('Buckhead Tower', $job?->questionnaire('property_site_name'));
+        $this->assertGreaterThan(0, (float) $job?->baseline_wage);
 
         $publishResponse->assertRedirect(route('jobs.show', $job));
-        $publishResponse->assertSessionHas('success', 'Job announcement published successfully.');
+        $publishResponse->assertSessionHas('success', 'Security service opportunity released successfully.');
         $this->assertNull(session('job_posting_preview'));
     }
 
@@ -306,13 +321,57 @@ class BuyerQuestionnairePostingTest extends TestCase
             ->withSession([
                 'job_posting_estimator_return_url' => route('instant-estimator.index', ['post_job' => 'success']),
             ])
-            ->post(route('jobs.publish'));
+            ->post(route('jobs.publish'), $this->releaseCertifications());
 
         $job = JobPosting::query()->latest('id')->first();
 
         $this->assertNotNull($job);
         $publishResponse->assertRedirect(route('instant-estimator.index', ['post_job' => 'success']));
-        $publishResponse->assertSessionHas('success', 'Job announcement published successfully. Your estimate results are now unlocked.');
+        $publishResponse->assertSessionHas('success', 'Security service opportunity released successfully. Your estimate results are now unlocked.');
+    }
+
+    public function test_review_page_renders_procurement_validation_sections(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '+14045551234',
+            'phone_verified' => true,
+        ]);
+
+        $this->actingAs($buyer)->post(route('jobs.preview'), $this->validPostingPayload())
+            ->assertRedirect(route('jobs.review'));
+
+        $response = $this->actingAs($buyer)->get(route('jobs.review'));
+
+        $response->assertOk();
+        $response->assertSeeText('Review & Validate Security Service Opportunity');
+        $response->assertSeeText('Opportunity Overview');
+        $response->assertSeeText('Scope Version Control');
+        $response->assertSeeText('Coverage / Staffing Validation');
+        $response->assertSeeText('Shared Resource Rate Rules');
+        $response->assertSeeText('Release Opportunity to Vendor Network');
+    }
+
+    public function test_publish_requires_all_release_certifications(): void
+    {
+        $buyer = User::factory()->create([
+            'user_type' => 'buyer',
+            'company' => 'Acme Properties',
+            'phone' => '+14045551234',
+            'phone_verified' => true,
+        ]);
+
+        $this->actingAs($buyer)->post(route('jobs.preview'), $this->validPostingPayload())
+            ->assertRedirect(route('jobs.review'));
+
+        $response = $this->actingAs($buyer)->post(route('jobs.publish'));
+
+        $response
+            ->assertRedirect(route('jobs.review'))
+            ->assertSessionHas('error', 'All buyer certifications must be acknowledged before this opportunity can be released.');
+
+        $this->assertDatabaseCount('job_postings', 0);
     }
 
     public function test_buyer_posting_request_persists_questionnaire_snapshot_on_job_posting(): void
@@ -336,10 +395,12 @@ class BuyerQuestionnairePostingTest extends TestCase
         $this->assertSame('Buckhead Tower', $job?->questionnaire('property_site_name'));
         $this->assertSame('123 Peachtree St, Atlanta, GA 30303', $job?->questionnaire('business_address'));
         $this->assertSame(['new_requirement', 'budget_planning'], $job?->questionnaire('project_readiness_reasons'));
-        $this->assertSame('flexible_budget', $job?->questionnaire('funds_approval_status'));
+        $this->assertSame('yes', $job?->questionnaire('budget_approved_status'));
+        $this->assertSame('yes', $job?->questionnaire('funds_approval_status'));
         $this->assertSame(24, $job?->questionnaire('hours_per_day'));
         $this->assertSame(52, $job?->questionnaire('weeks_per_year'));
         $this->assertTrue((bool) $job?->questionnaire('phone_verified'));
+        $this->assertGreaterThan(0, (float) $job?->questionnaire('baseline_wage'));
         $this->assertContains('Business address: 123 Peachtree St, Atlanta, GA 30303', $job?->special_requirements ?? []);
     }
 
@@ -743,6 +804,7 @@ class BuyerQuestionnairePostingTest extends TestCase
             'contact_email' => 'jordan@example.com',
             'contact_phone' => '+1 (404) 555-1234',
             'business_address' => '123 Peachtree St, Atlanta, GA 30303',
+            'business_address_place_id' => 'place_123',
             'preferred_contact_method' => 'email',
             'best_time_to_contact' => 'morning',
             'final_decision_maker' => 'yes',
@@ -750,7 +812,7 @@ class BuyerQuestionnairePostingTest extends TestCase
             'knows_true_inhouse_cost' => 'yes',
             'project_readiness_reasons' => ['new_requirement', 'budget_planning'],
             'service_start_timeline' => '30_60_days',
-            'funds_approval_status' => 'flexible_budget',
+            'budget_approved_status' => 'yes',
             'budget_type' => 'monthly',
             'budget_amount_range' => '$12,000-$16,000 monthly',
             'true_internal_cost_calculated' => 'yes',
@@ -771,6 +833,8 @@ class BuyerQuestionnairePostingTest extends TestCase
             'weeks_per_year' => 52,
             'shifts_needed' => ['Day Shift', 'Overnight Shift'],
             'assignment_type' => 'dedicated_post',
+            'armed_status' => 'unarmed',
+            'deployment_types' => ['Dedicated Officer'],
             'duties_required' => ['Observe and Report', 'Access Control'],
             'service_package_expectation' => 'observe_and_report_only',
             'hands_off_expected' => 'yes',
@@ -785,12 +849,36 @@ class BuyerQuestionnairePostingTest extends TestCase
             'background_checks_required' => 'yes',
             'drug_testing_required' => 'no',
             'uniformed_officers_required' => 'yes',
+            'approved_budget_amount' => 120000,
             'insurance_minimums_required' => ['General Liability', 'Auto Liability'],
             'compliance_terms' => 'Standard site badge and insurance certificate requirements.',
+            'selection_method' => 'sealed_price',
             'vendor_response_deadline' => '2026-05-01',
             'additional_notes_to_vendors' => 'Please review lobby visitor traffic before bidding.',
             'buyer_certification' => '1',
             'consent_to_contact' => '1',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function releaseCertifications(): array
+    {
+        return [
+            'cert_scope_reviewed' => '1',
+            'cert_coverage_correct' => '1',
+            'cert_wage_correct' => '1',
+            'cert_dates_correct' => '1',
+            'cert_budget_authority' => '1',
+            'cert_vendor_responses' => '1',
+            'cert_scope_changes' => '1',
+            'cert_sealed_pricing' => '1',
+            'cert_price_variance' => '1',
+            'cert_capital_recovery' => '1',
+            'cert_shared_resource_hours' => '1',
+            'cert_shared_resource_breakdown' => '1',
+            'cert_authorize_release' => '1',
         ];
     }
 }
