@@ -844,6 +844,8 @@ class BuyerQuestionnairePostingTest extends TestCase
             'monthly_budget' => 14000,
             'willing_post_offer' => 'yes',
             'allow_scope_adjustment' => 'yes',
+            'cost_to_protect_status' => 'validated',
+            'baseline_wage_acknowledged' => '1',
             'cost_comparison_requested' => 'yes',
             'officer_licensing_required' => 'yes',
             'background_checks_required' => 'yes',

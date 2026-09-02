@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Http\Middleware\EnsureNdaAccepted;
 use App\Services\StripeCheckoutService;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,6 +19,7 @@ class InstantEstimatorFeeCheckoutTest extends TestCase
         parent::setUp();
 
         $this->withoutMiddleware(ValidateCsrfToken::class);
+        $this->withoutMiddleware(EnsureNdaAccepted::class);
     }
 
     public function test_authenticated_user_can_start_instant_estimator_fee_checkout(): void
@@ -94,7 +96,8 @@ class InstantEstimatorFeeCheckoutTest extends TestCase
             ]))
             ->assertOk()
             ->assertSee('const FEE_CHECKOUT_PAID = true;', false)
-            ->assertSeeText('Card payment confirmed. Your Step 3 estimate is now unlocked.');
+            ->assertSee('Buyer Commitment', false)
+            ->assertSee('Your Step 3 estimate is now unlocked.', false);
     }
 
     public function test_instant_estimator_page_keeps_fee_path_locked_when_checkout_cannot_be_verified(): void
@@ -118,6 +121,6 @@ class InstantEstimatorFeeCheckoutTest extends TestCase
             ]))
             ->assertOk()
             ->assertSee('const FEE_CHECKOUT_PAID = false;', false)
-            ->assertSeeText('We could not verify the card payment for this estimate. Please try again.');
+            ->assertSee('We could not verify the card payment for this estimate. Please try again.', false);
     }
 }

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Bid;
 use App\Models\JobPosting;
 use App\Models\User;
+use App\Http\Middleware\EnsureNdaAccepted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -12,6 +13,13 @@ use Tests\TestCase;
 class JobOfferResponseTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(EnsureNdaAccepted::class);
+    }
 
     public function test_vendor_can_accept_job_offer_and_create_response_bid(): void
     {
@@ -26,6 +34,7 @@ class JobOfferResponseTest extends TestCase
             'user_type' => 'vendor',
             'phone_verified' => true,
         ]);
+        $this->qualifiedCapability($vendor);
 
         $job = JobPosting::query()->create([
             'user_id' => $buyer->id,
@@ -40,11 +49,12 @@ class JobOfferResponseTest extends TestCase
 
         $response = $this->actingAs($vendor)->post(route('bids.offer-response', $job), [
             'status' => 'accepted',
+            'baseline_wage_acknowledged' => true,
         ]);
 
         $response
             ->assertRedirect()
-            ->assertSessionHas('success', 'You accepted this job offer. You can change your response while the offer remains open.');
+            ->assertSessionHas('success', 'Offer accepted. Please complete the qualification questionnaire to send your full response to the buyer.');
 
         $this->assertDatabaseHas('bids', [
             'job_posting_id' => $job->id,
@@ -71,6 +81,7 @@ class JobOfferResponseTest extends TestCase
             'user_type' => 'vendor',
             'phone_verified' => true,
         ]);
+        $this->qualifiedCapability($vendor);
 
         $job = JobPosting::query()->create([
             'user_id' => $buyer->id,
@@ -95,11 +106,12 @@ class JobOfferResponseTest extends TestCase
 
         $response = $this->actingAs($vendor)->post(route('bids.offer-response', $job), [
             'status' => 'accepted',
+            'baseline_wage_acknowledged' => true,
         ]);
 
         $response
             ->assertRedirect()
-            ->assertSessionHas('success', 'You accepted this job offer. You can change your response while the offer remains open.');
+            ->assertSessionHas('success', 'Offer accepted. Please complete the qualification questionnaire to send your full response to the buyer.');
 
         $bid->refresh();
         $this->assertSame('accepted', $bid->vendor_response_status);
@@ -162,12 +174,22 @@ class JobOfferResponseTest extends TestCase
         $response = $this->actingAs($viewerVendor)->get(route('jobs.show', $job));
 
         $response->assertOk();
-        $response->assertSeeText('2/5 responded');
+        $response->assertSeeText('Responses 2/5');
         $response->assertSeeText('1 accepted');
         $response->assertSeeText('1 declined');
-        $response->assertSeeText('Vendor Responses');
-        $response->assertSeeText('Accept');
+        $response->assertSeeText('Interested in this opportunity?');
+        $response->assertSeeText('Accept opportunity');
         $response->assertSeeText('Decline');
-        $response->assertSeeText('You have accepted this job offer.');
+        $response->assertSeeText('You accepted this opportunity.');
+    }
+
+    private function qualifiedCapability(User $vendor): void
+    {
+        $vendor->vendorCapability()->create([
+            'license_verified' => true,
+            'insurance_verified' => true,
+            'profile_completion_score' => 100,
+            'team_size' => '25 officers',
+        ]);
     }
 }

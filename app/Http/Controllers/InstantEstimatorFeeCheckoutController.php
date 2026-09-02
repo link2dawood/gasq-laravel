@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\StripeCheckoutService;
+use App\Support\Funnel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -18,6 +19,7 @@ class InstantEstimatorFeeCheckoutController extends Controller
         $data = $request->validate([
             'appraisal_fee' => ['required', 'numeric', 'min:0.50', 'max:999999.99'],
         ]);
+        Funnel::record(Funnel::BUYER_COMMITMENT_FEE_INITIATED, [], $request->user()->id);
 
         $amountCents = (int) round(((float) $data['appraisal_fee']) * 100);
         if ($amountCents < 50) {

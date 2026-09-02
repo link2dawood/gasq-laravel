@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBidRequest;
 use App\Http\Requests\UpdateBidRequest;
 use App\Models\Bid;
+use App\Models\BaselineWageResponse;
 use App\Models\JobPosting;
 use App\Notifications\BidNotification;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +29,29 @@ class BidController extends Controller
 
         $validated = $request->validate([
             'status' => ['required', 'in:accepted,declined'],
+            'baseline_wage_acknowledged' => ['nullable', 'accepted'],
         ]);
+
+        if ($validated['status'] === 'accepted') {
+            $capability = $request->user()->vendorCapability;
+            $canParticipate = $capability
+                && $capability->license_verified
+                && $capability->insurance_verified
+                && $capability->profile_completion_score >= 80
+                && filled($capability->team_size)
+                && $request->boolean('baseline_wage_acknowledged');
+
+            if (! $canParticipate) {
+                return back()->with('error', 'Complete vendor qualification and acknowledge the baseline wage before accepting this opportunity.');
+            }
+
+            BaselineWageResponse::updateOrCreate(
+                ['job_posting_id' => $job->id, 'vendor_id' => $request->user()->id],
+                ['buyer_baseline_wage' => (float) ($job->baseline_wage ?? 0), 'recommended_baseline_wage' => null,
+                    'status' => 'accepted', 'reasons' => null, 'explanation' => null,
+                    'resolution' => 'approved', 'resolved_by' => null, 'responded_at' => now(), 'resolved_at' => now()]
+            );
+        }
         $offerResponseMessage = $validated['status'] === 'accepted'
             ? 'Accepted job offer announcement.'
             : 'Declined job offer announcement.';

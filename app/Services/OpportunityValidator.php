@@ -36,12 +36,25 @@ class OpportunityValidator
             $this->check('coverage_math', 'Coverage hours reconcile', $this->coverageReconciles($q), blocking: false,
                 message: 'The staffing entered may not sustain the requested coverage without overtime or relief personnel.'),
             $this->check('baseline_wage', 'Baseline wage established', $this->hasBaselineWage($q)),
+            $this->check('baseline_wage_acknowledgement', 'Buyer baseline wage acknowledged', ($q['baseline_wage_acknowledged'] ?? false) === true || ($q['baseline_wage_acknowledged'] ?? '') === '1'),
+            $this->check('baseline_wage_validation', 'Baseline wage approved', ($q['baseline_wage_validation_status'] ?? '') !== 'not_approved',
+                message: 'The baseline wage is below the applicable GASQ minimum eligibility floor.'),
+            $this->check('cost_to_protect', 'Cost to Protect validated', $this->hasCostToProtect($q),
+                message: 'Validate GASQ Cost to Protect before inviting vendors, or explicitly mark it not required for this service.'),
             $this->check('budget', 'Approved budget confirmed', $this->hasApprovedBudget($q)),
+            $this->check('budget_authority', 'Approved offer is within recorded authority', $this->budgetFitsAuthority($q),
+                message: 'The approved buyer offer exceeds the buyer\'s recorded approval authority.'),
             $this->check('decision_maker', 'Purchasing authority confirmed', $this->hasDecisionMaker($q)),
             $this->check('start_date', 'Start date confirmed', filled($q['service_start_date'] ?? null)),
+            $this->check('date_range', 'Start and end dates reconcile with the contract term', $this->datesReconcile($q),
+                message: 'Add a valid end date and reconcile the coverage period with the selected contract term.'),
             $this->check('contract_term', 'Contract term confirmed', filled($q['desired_contract_term'] ?? null)),
+            $this->check('category_property', 'Service category and property type reconcile', $this->categoryMatchesProperty($q),
+                message: 'The selected service category conflicts with the property type.'),
             $this->check('pricing_method', 'Pricing method confirmed', filled($q['selection_method'] ?? null)),
             $this->check('vendor_requirements', 'Vendor requirements complete', $this->hasVendorRequirements($q)),
+            $this->check('scope_quality', 'Scope entries are production-ready', $this->hasProductionReadyScope($q),
+                message: 'Remove placeholder or incomplete scope entries before release.'),
         ];
 
         $blocking = array_filter($checks, fn ($c) => $c['blocking'] && ! $c['passed']);
@@ -115,6 +128,14 @@ class OpportunityValidator
         return is_numeric($q['baseline_wage'] ?? null) && (float) $q['baseline_wage'] > 0;
     }
 
+    private function hasCostToProtect(array $q): bool
+    {
+        $status = (string) ($q['cost_to_protect_status'] ?? '');
+
+        return $status === 'validated'
+            || ($status === 'not_required' && ($q['cost_to_protect_required'] ?? 'yes') === 'no');
+    }
+
     private function hasApprovedBudget(array $q): bool
     {
         $status = (string) ($q['budget_approved_status'] ?? '');
@@ -138,5 +159,57 @@ class OpportunityValidator
     private function hasVendorRequirements(array $q): bool
     {
         return filled($q['insurance_minimums_required'] ?? null);
+    }
+
+    private function budgetFitsAuthority(array $q): bool
+    {
+        $amount = is_numeric($q['approved_budget_amount'] ?? null) ? (float) $q['approved_budget_amount'] : 0.0;
+        $authority = (string) ($q['approval_authority'] ?? '');
+        $limits = ['under_1000' => 999.99, '1000_4999' => 4999.99, '5000_9999' => 9999.99, '10000_24999' => 24999.99, '25000_49999' => 49999.99];
+
+        return ! isset($limits[$authority]) || $amount <= $limits[$authority];
+    }
+
+    private function datesReconcile(array $q): bool
+    {
+        $start = $this->date($q['service_start_date'] ?? null);
+        $end = $this->date($q['service_end_date'] ?? null);
+        if (! $start) return false;
+
+        $term = strtolower((string) ($q['desired_contract_term'] ?? ''));
+        $weeks = is_numeric($q['weeks_per_year'] ?? null) ? (int) $q['weeks_per_year'] : 0;
+        if (str_contains($term, 'one-time') || str_contains($term, 'temporary')) {
+            return $end !== null && $end->greaterThanOrEqualTo($start) && $weeks <= 12;
+        }
+
+        return $end === null || $end->greaterThan($start);
+    }
+
+    private function categoryMatchesProperty(array $q): bool
+    {
+        $category = strtolower((string) ($q['category'] ?? ''));
+        $property = strtolower((string) ($q['property_type'] ?? ''));
+
+        if ($category === '' || $property === '') return true;
+        if (str_contains($category, 'school')) return str_contains($property, 'school') || str_contains($property, 'education');
+        if (str_contains($category, 'event')) return str_contains($property, 'event');
+
+        return true;
+    }
+
+    private function hasProductionReadyScope(array $q): bool
+    {
+        foreach (['primary_reason', 'known_site_risks', 'duties_other', 'service_type_other'] as $field) {
+            $value = trim((string) ($q[$field] ?? ''));
+            if ($value !== '' && preg_match('/^(?:test|\\d+test|n\\/?a|not provided)$/i', $value)) return false;
+        }
+
+        return true;
+    }
+
+    private function date(mixed $value): ?\Carbon\Carbon
+    {
+        if (! filled($value)) return null;
+        try { return \Carbon\Carbon::parse($value)->startOfDay(); } catch (\Throwable) { return null; }
     }
 }

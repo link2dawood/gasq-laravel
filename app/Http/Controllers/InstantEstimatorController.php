@@ -69,10 +69,11 @@ class InstantEstimatorController extends Controller
 
             if ($feeCheckoutPaid) {
                 Funnel::record(Funnel::REPORT_PURCHASED);
+                Funnel::record(Funnel::BUYER_COMMITMENT_FEE_COMPLETED);
             }
 
             $feeCheckoutStatus = $feeCheckoutPaid
-                ? 'Card payment confirmed. Your Step 3 estimate is now unlocked.'
+                ? 'Buyer Commitment & Protection Fee confirmed. Your Step 3 estimate is now unlocked. Select an eligible GASQ Network Vendor and receive a 100% credit on that vendor\'s first invoice.'
                 : 'We could not verify the card payment for this estimate. Please try again.';
         } elseif ($request->query('fee_checkout') === 'cancelled') {
             $feeCheckoutStatus = 'Card payment was canceled before the estimate was unlocked.';

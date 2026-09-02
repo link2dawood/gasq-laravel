@@ -7,6 +7,7 @@ use App\Models\Bid;
 use App\Models\JobPosting;
 use App\Models\ScopeVersion;
 use App\Services\OpportunityValidator;
+use App\Services\BaselineWageValidator;
 use App\Services\ScopeVersionService;
 use App\Support\OpportunityStatus;
 use App\Support\Funnel;
@@ -113,11 +114,17 @@ class JobPostingController extends Controller
         'approved_budget_amount',
         'baseline_wage',
         'baseline_wage_source',
+        'baseline_wage_acknowledged',
+        'baseline_wage_validation_status',
+        'baseline_wage_recommended',
+        'baseline_wage_validation_message',
         'selection_method',
         'offer_price',
         'willing_post_offer',
         'allow_scope_adjustment',
         'cost_comparison_requested',
+        'cost_to_protect_status',
+        'cost_to_protect_required',
         'officer_licensing_required',
         'background_checks_required',
         'drug_testing_required',
@@ -462,7 +469,7 @@ class JobPostingController extends Controller
 
     public function show(JobPosting $job): View
     {
-        $job->load(['user:id,name,company', 'bids.user:id,name,company']);
+        $job->load(['user:id,name,company', 'bids.user:id,name,company', 'baselineWageResponses.vendor:id,name,company']);
         return view('jobs.show', compact('job'));
     }
 
@@ -821,6 +828,11 @@ class JobPostingController extends Controller
         if (blank($payload['baseline_wage_source'] ?? null)) {
             $payload['baseline_wage_source'] = 'buyer_assumption';
         }
+
+        $wageAssessment = app(BaselineWageValidator::class)->assess($payload);
+        $payload['baseline_wage_validation_status'] = $wageAssessment['status'];
+        $payload['baseline_wage_recommended'] = $wageAssessment['recommended_wage'];
+        $payload['baseline_wage_validation_message'] = $wageAssessment['message'];
         if (! array_key_exists('funds_approval_status', $payload) && array_key_exists('budget_approved_status', $payload)) {
             $payload['funds_approval_status'] = $payload['budget_approved_status'];
         }
@@ -932,6 +944,10 @@ class JobPostingController extends Controller
         $drop = array_merge(array_diff(self::QUESTIONNAIRE_FIELDS, [
             'baseline_wage',
             'baseline_wage_source',
+            'baseline_wage_acknowledged',
+            'baseline_wage_validation_status',
+            'baseline_wage_recommended',
+            'baseline_wage_validation_message',
         ]), [
             'budget_approved',
             'ready_to_move_forward',
@@ -1071,6 +1087,9 @@ class JobPostingController extends Controller
 
         foreach ([
             'service_start_date',
+            'service_end_date',
+            'category',
+            'property_type',
             'baseline_wage',
             'baseline_wage_source',
             'approved_budget_amount',
@@ -1088,6 +1107,8 @@ class JobPostingController extends Controller
             'days_per_week',
             'weeks_per_year',
             'staff_per_shift',
+            'cost_to_protect_status',
+            'cost_to_protect_required',
         ] as $field) {
             if (array_key_exists($field, $payload) && ! array_key_exists($field, $questionnaire)) {
                 $questionnaire[$field] = $payload[$field];

@@ -30,6 +30,8 @@ class OpportunityValidationTest extends TestCase
             'weeks_per_year' => 52,
             'staff_per_shift' => 1,
             'baseline_wage' => 20.00,
+            'baseline_wage_acknowledged' => true,
+            'cost_to_protect_status' => 'validated',
             'budget_approved_status' => 'yes',
             'approved_budget_amount' => 250000,
             'final_decision_maker' => 'yes',
@@ -69,6 +71,37 @@ class OpportunityValidationTest extends TestCase
         $this->assertFalse($this->validator->isReadyForRelease(
             $this->completeQuestionnaire(['approved_budget_amount' => 0])
         ));
+    }
+
+    public function test_cost_to_protect_pending_blocks_release(): void
+    {
+        $q = $this->completeQuestionnaire(['cost_to_protect_status' => 'pending']);
+
+        $this->assertFalse($this->validator->isReadyForRelease($q));
+        $this->assertContains('cost_to_protect', $this->blockingKeys($q));
+    }
+
+    public function test_budget_cannot_exceed_recorded_approval_authority(): void
+    {
+        $q = $this->completeQuestionnaire([
+            'approval_authority' => '10000_24999',
+            'approved_budget_amount' => 741312,
+        ]);
+
+        $this->assertFalse($this->validator->isReadyForRelease($q));
+        $this->assertContains('budget_authority', $this->blockingKeys($q));
+    }
+
+    public function test_temporary_term_cannot_claim_year_round_coverage(): void
+    {
+        $q = $this->completeQuestionnaire([
+            'desired_contract_term' => 'One-time / temporary',
+            'weeks_per_year' => 52,
+            'service_end_date' => '2026-10-02',
+        ]);
+
+        $this->assertFalse($this->validator->isReadyForRelease($q));
+        $this->assertContains('date_range', $this->blockingKeys($q));
     }
 
     /** P0-5 — purchasing authority must be confirmed (§18). */

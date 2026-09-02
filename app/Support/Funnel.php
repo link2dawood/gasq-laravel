@@ -30,6 +30,12 @@ class Funnel
 
     // Conversion
     public const REPORT_PURCHASED = 'report_purchased';
+    public const ESTIMATE_COMPLETED = 'estimate_completed';
+    public const ESTIMATE_FOLLOW_UP_SENT = 'estimate_follow_up_sent';
+    public const ESTIMATE_FOLLOW_UP_OPENED = 'estimate_follow_up_opened';
+    public const ESTIMATE_FOLLOW_UP_CTA_CLICKED = 'estimate_follow_up_cta_clicked';
+    public const BUYER_COMMITMENT_FEE_INITIATED = 'buyer_commitment_fee_initiated';
+    public const BUYER_COMMITMENT_FEE_COMPLETED = 'buyer_commitment_fee_completed';
     public const JOB_POST_STARTED = 'job_post_started';
     public const JOB_POST_COMPLETED = 'job_post_completed';
     public const VENDOR_MATCH_STARTED = 'vendor_match_started';
@@ -43,6 +49,7 @@ class Funnel
      */
     public const BUYER_JOURNEY = [
         ['key' => self::ESTIMATE_STARTED, 'label' => 'Estimate started'],
+        ['key' => self::ESTIMATE_COMPLETED, 'label' => 'Estimate completed'],
         ['key' => self::REGISTRATION_STARTED, 'label' => 'Registration started'],
         ['key' => self::REGISTRATION_COMPLETED, 'label' => 'Registration completed'],
         ['key' => self::JOB_POST_STARTED, 'label' => 'Job post started'],
@@ -61,6 +68,7 @@ class Funnel
     public const SIDE_ENTRIES = [
         ['key' => self::QUOTE_VALIDATION_STARTED, 'label' => 'Quote validation started'],
         ['key' => self::REPORT_PURCHASED, 'label' => 'Report purchased'],
+        ['key' => self::ESTIMATE_FOLLOW_UP_SENT, 'label' => 'Estimate follow-up sent'],
         ['key' => self::BUYER_PRICING_VIEWED, 'label' => 'Buyer pricing viewed'],
         ['key' => self::VENDOR_PRICING_VIEWED, 'label' => 'Vendor pricing viewed'],
     ];

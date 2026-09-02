@@ -88,6 +88,7 @@ class StoreJobPostingRequest extends FormRequest
             // Baseline wage is the labour assumption the financial analysis rests on.
             'baseline_wage' => ['nullable', 'numeric', 'min:0.01', 'max:500'],
             'baseline_wage_source' => ['nullable', 'string', 'max:40'],
+            'baseline_wage_acknowledged' => ['required', 'accepted'],
 
             // Buyer Selection Method (Option A / Option B).
             'selection_method' => ['required', 'in:accept_decline,sealed_price'],
@@ -222,6 +223,8 @@ class StoreJobPostingRequest extends FormRequest
             'willing_post_offer' => ['nullable', 'in:yes,no'],
             'allow_scope_adjustment' => ['nullable', 'in:yes,no'],
             'cost_comparison_requested' => ['nullable', 'in:yes,no'],
+            'cost_to_protect_status' => ['required', 'in:validated,pending,not_required'],
+            'cost_to_protect_required' => ['nullable', 'in:yes,no'],
             'officer_licensing_required' => ['nullable', 'string', 'max:50'],
             'background_checks_required' => ['nullable', 'in:yes,no'],
             'drug_testing_required' => ['nullable', 'in:yes,no'],

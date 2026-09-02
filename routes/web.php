@@ -68,6 +68,9 @@ Route::middleware(['auth', 'phone.verified', 'vendor'])->group(function () {
 Route::get('/open-bid-offer', OpenBidOfferController::class)
     ->middleware('auth')
     ->name('open-bid-offer.index');
+Route::get('/estimate-follow-ups/{token}/open', [App\Http\Controllers\EstimateFollowUpController::class, 'open'])->name('estimate-follow-ups.open');
+Route::get('/estimate-follow-ups/{token}/review', [App\Http\Controllers\EstimateFollowUpController::class, 'review'])->name('estimate-follow-ups.review');
+Route::get('/estimate-follow-ups/{token}/convert', [App\Http\Controllers\EstimateFollowUpController::class, 'convert'])->name('estimate-follow-ups.convert');
 
 Route::get('/vendor-opportunities/{invitation}', [VendorOpportunityController::class, 'show'])
     ->middleware('signed')
@@ -121,6 +124,8 @@ Route::middleware('auth')->group(function () {
 
 // Master Inputs should remain editable anytime (no credits needed).
 Route::middleware(['auth', 'phone.verified'])->group(function () {
+    Route::post('/jobs/{job}/baseline-wage-adjustment', [App\Http\Controllers\BaselineWageResponseController::class, 'requestAdjustment'])->name('jobs.baseline-wage-adjustment.request');
+    Route::post('/baseline-wage-adjustments/{response}/resolve', [App\Http\Controllers\BaselineWageResponseController::class, 'resolve'])->name('baseline-wage-adjustments.resolve');
     Route::get('/master-inputs', [App\Http\Controllers\MasterInputsController::class, 'index'])->name('master-inputs.index');
 });
 

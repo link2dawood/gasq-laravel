@@ -149,4 +149,9 @@ class JobPosting extends Model
     {
         return $this->hasMany(ScopeVersion::class)->latest('id');
     }
+
+    public function baselineWageResponses(): HasMany
+    {
+        return $this->hasMany(BaselineWageResponse::class);
+    }
 }

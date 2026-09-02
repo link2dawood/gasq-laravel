@@ -239,7 +239,7 @@
                             </button>
                         </div>
                         <h3 class="mb-2">Start Your Calculation</h3>
-                        <p class="text-gasq-muted small mb-4">Step 3 stays locked until you choose either <strong>Pay 1% Fee</strong> or <strong>Post a Job</strong>.</p>
+                        <p class="text-gasq-muted small mb-4">Step 3 stays locked until you choose either the <strong>1% Buyer Commitment &amp; Protection Fee</strong> or <strong>Post a Job</strong>. Select an eligible GASQ Network Vendor and receive a 100% fee credit on that vendor's first invoice.</p>
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label fw-semibold" for="serviceType">Security service type</label>
@@ -358,7 +358,7 @@
                         </p>
                         <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mb-3">
                             <button type="button" class="btn btn-primary btn-lg px-5" id="gateFeeBtn">
-                                <i class="fa fa-credit-card me-2"></i> Pay 1% Fee
+                                <i class="fa fa-credit-card me-2"></i> Pay 1% Buyer Commitment &amp; Protection Fee
                                 <span class="fw-normal opacity-75 ms-1 small" id="gateFeeAmount"></span>
                             </button>
                             <button type="button" class="btn btn-outline-primary btn-lg px-5" id="gatePostJobBtn">

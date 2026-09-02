@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Services\CalculatorStateStore;
+use App\Services\EstimateFollowUpService;
+use App\Support\Funnel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,7 +15,7 @@ class ReportPayloadController extends Controller
         private CalculatorStateStore $calculatorStateStore
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, EstimateFollowUpService $followUps): JsonResponse
     {
         $validated = $request->validate([
             'type' => ['required', 'string', 'max:120'],
@@ -35,6 +37,10 @@ class ReportPayloadController extends Controller
             $validated['scenario'] ?? [],
             $validated['result'],
         );
+        if ($validated['type'] === 'instant-estimator') {
+            Funnel::record(Funnel::ESTIMATE_COMPLETED, [], $request->user()?->id);
+            $followUps->sendFor($request->user(), $validated['scenario'] ?? [], $validated['result']);
+        }
 
         return response()->json(['ok' => true]);
     }

@@ -1,603 +1,65 @@
 @extends('layouts.app')
 
-@section('title', $job->title)
+@section('title', 'Security Service Opportunity')
 
 @section('content')
 @php
-    $isLoggedIn        = auth()->check();
-    $isOwner           = $isLoggedIn && $job->user_id === auth()->id();
-    $isVendorViewer    = $isLoggedIn && auth()->user()->isVendor() && ! $isOwner;
-    $userBid           = $isVendorViewer ? $job->bids->firstWhere('user_id', auth()->id()) : null;
-    $offerOpen         = $job->isOfferOpen();
-    $mapsKey           = config('services.google.maps_api_key');
-    $hasGeo            = $job->hasGeoPoint();
-    $showInteractiveMap = $hasGeo && $mapsKey;
-    $mapQueryString    = trim((string) ($job->location ?? ''));
-    $mapEmbedUrl       = (! $showInteractiveMap && $mapQueryString !== '')
-        ? 'https://www.google.com/maps?q=' . rawurlencode($mapQueryString) . '&output=embed'
-        : null;
-    $showMap           = $showInteractiveMap || $mapEmbedUrl !== null;
-    $responseTarget    = 5;
-    $respondedCount    = $job->bids->filter(fn($b) => $b->hasVendorResponded())->count();
-    $acceptedCount     = $job->bids->filter(fn($b) => $b->vendorAccepted())->count();
-    $declinedCount     = $job->bids->filter(fn($b) => $b->vendorDeclined())->count();
-    $vrStatus          = $userBid?->vendor_response_status ?? 'pending';
-    $vrAccepted        = $vrStatus === 'accepted';
-    $vrDeclined        = $vrStatus === 'declined';
-    $progressPct       = min(100, ($respondedCount / $responseTarget) * 100);
-    $offerStatusLabel  = $offerOpen ? 'Open' : 'Closed';
-    $offerStatusBadge  = $offerOpen ? 'success' : 'secondary';
-    $isHired           = $job->isHired();
-    $isClosed          = $job->isClosed();
-    $hiredBid          = $job->hired_bid_id ? $job->bids->firstWhere('id', $job->hired_bid_id) : null;
-    $hiredVendorName   = $hiredBid?->user?->name ?? $job->hired_external_name;
+    $q = is_array($job->questionnaire_data) ? $job->questionnaire_data : [];
+    $viewer = auth()->user();
+    $isOwner = $viewer && $job->user_id === $viewer->id;
+    $isVendor = $viewer && $viewer->isVendor() && ! $isOwner;
+    $offerOpen = $job->isOfferOpen();
+    $responseTarget = $job->vendorOpportunity?->vendor_target_count ?: 5;
+    $respondedCount = $job->bids->filter(fn ($bid) => $bid->hasVendorResponded())->count();
+    $acceptedCount = $job->bids->filter(fn ($bid) => $bid->vendorAccepted())->count();
+    $declinedCount = $job->bids->filter(fn ($bid) => $bid->vendorDeclined())->count();
+    $userBid = $isVendor ? $job->bids->firstWhere('user_id', $viewer->id) : null;
+    $responseStatus = $userBid?->vendor_response_status ?? 'pending';
+    $capability = $isVendor ? $viewer->vendorCapability : null;
+    $qualification = [
+        'License jurisdiction verified' => (bool) $capability?->license_verified,
+        'Insurance verified' => (bool) $capability?->insurance_verified,
+        'Required documents verified' => (int) ($capability?->profile_completion_score ?? 0) >= 80,
+        'Staffing capacity recorded' => filled($capability?->team_size),
+    ];
+    $qualifiedCount = count(array_filter($qualification));
+    $canRespond = $qualifiedCount === count($qualification) && $offerOpen;
+    $locationParts = array_values(array_filter(array_map('trim', explode(',', (string) $job->location))));
+    $serviceArea = count($locationParts) > 1 ? implode(', ', array_slice($locationParts, -2)) : ($job->zip_code ?: 'Service area protected');
+    if ($job->zip_code && ! str_contains($serviceArea, $job->zip_code)) $serviceArea .= ' ' . $job->zip_code;
+    $start = $job->service_start_date; $end = $job->service_end_date;
+    $weeklyHours = (float) ($q['hours_per_day'] ?? 0) * (float) ($q['days_per_week'] ?? 0) * (float) ($q['staff_per_shift'] ?? $job->guards_per_shift ?? 1);
+    $ctpStatus = (string) ($q['cost_to_protect_status'] ?? 'pending');
+    $ctpLabel = $ctpStatus === 'validated' ? 'Validated' : ($ctpStatus === 'not_required' ? 'Not required' : 'Pending');
+    $isSharedResource = ($q['assignment_type'] ?? '') === 'shared_resource';
+    $wageResponse = $isVendor ? $job->baselineWageResponses->firstWhere('vendor_id', $viewer->id) : null;
+    $buyerVerified = in_array(($q['final_decision_maker'] ?? ''), ['yes', 'authorized_representative'], true);
+    $budgetVerified = in_array(($q['budget_approved_status'] ?? ''), ['yes', 'approved'], true);
+    $scopeVerified = ! empty($q['service_types']) && ! empty($q['duties_required']);
 @endphp
 
-<div class="container py-4 px-4">
+<style>
+    .opportunity-shell{max-width:1240px}.opportunity-summary{border-top:5px solid #b91c1c;background:#fffdf8}.opportunity-kicker{color:#9f1239;font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.opportunity-title{font-family:Georgia,'Times New Roman',serif;font-size:clamp(2rem,4vw,3.35rem);letter-spacing:-.04em}.opportunity-chip{border:1px solid #d6d3d1;border-radius:999px;color:#44403c;font-size:.73rem;font-weight:700;letter-spacing:.04em;padding:.42rem .7rem;text-transform:uppercase}.opportunity-chip.is-good{background:#ecfdf5;border-color:#86efac;color:#166534}.opportunity-chip.is-pending{background:#fff7ed;border-color:#fdba74;color:#9a3412}.opportunity-grid{display:grid;gap:1px;background:#e7e5e4;border:1px solid #e7e5e4}.opportunity-grid>div{background:#fff;padding:1rem}.opportunity-grid dt{color:#78716c;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.opportunity-grid dd{margin:.35rem 0 0;font-weight:650}.opportunity-panel{border-top:1px solid #d6d3d1;padding-top:1.5rem}.opportunity-panel h2{font-family:Georgia,'Times New Roman',serif;font-size:1.55rem;letter-spacing:-.02em}.vendor-action{top:1.25rem;border:1px solid #d6d3d1}.process-step{border-left:2px solid #d6d3d1;padding:.3rem 0 .3rem 1rem}
+</style>
 
-    {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('job-board') }}">Job Board</a></li>
-            <li class="breadcrumb-item active">{{ Str::limit($job->title, 40) }}</li>
-        </ol>
-    </nav>
-
-    {{-- Flash messages (success/error) are rendered globally in layouts.app --}}
-
-    {{-- Title row --}}
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
-        <h1 class="gasq-page-title mb-0">{{ $job->title }}</h1>
-        @if($isOwner)
-            <div class="d-flex gap-2">
-                @if(! $isClosed)
-                    <a href="{{ route('interviews.manage', $job) }}" class="btn btn-primary btn-sm"><i class="fa fa-calendar-check me-1"></i>Set up Interviews</a>
-                @endif
-                @if(! $isHired && ! $isClosed)
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#closeJobModal">Close job</button>
-                @endif
-                <a href="{{ route('jobs.edit', $job) }}" class="btn btn-outline-primary btn-sm">Edit</a>
-                <form action="{{ route('jobs.destroy', $job) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove this job?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
-                </form>
-            </div>
-        @endif
-    </div>
-
-    {{-- Hired / closed banner --}}
-    @if($isHired)
-        <div class="alert alert-success d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4" id="hired-banner">
-            <div>
-                <i class="fa fa-circle-check me-1"></i>
-                <strong>Hired:</strong>
-                <span id="hired-vendor-name">{{ $hiredVendorName ?? 'A professional was hired' }}</span>
-                @if($hiredBid?->user?->company)
-                    <span class="text-muted">({{ $hiredBid->user->company }})</span>
-                @endif
-                @if($job->hired_at)
-                    <span class="text-muted small ms-2">on {{ $job->hired_at->format('M j, Y') }}</span>
-                @endif
-            </div>
-            @if($hiredBid && $hiredBid->user)
-                <a href="{{ route('vendor-profile.show', $hiredBid->user) }}" class="btn btn-sm btn-outline-success">View vendor</a>
-            @endif
-        </div>
-    @elseif($isClosed)
-        <div class="alert alert-secondary mb-4">
-            <i class="fa fa-circle-xmark me-1"></i> This job is closed.
-            @if($job->close_reason)
-                <span class="text-muted small">(Reason: {{ str_replace('_', ' ', $job->close_reason) }})</span>
-            @endif
-        </div>
-    @endif
-
-    {{-- ═══ TOP VENDOR RESPONSE PANEL ═══ --}}
-    @if($isVendorViewer)
-        <div class="card gasq-card mb-4 border-2 @if($vrAccepted) border-success @endif @if($vrDeclined) border-secondary @endif">
-            <div class="card-body">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
-                    <div class="flex-grow-1">
-                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                            <span class="small text-uppercase fw-semibold text-gasq-muted">Your Response</span>
-                            <span class="badge bg-{{ $offerStatusBadge }}">Offer {{ $offerStatusLabel }}</span>
-                            <span class="badge bg-light text-dark border">{{ $respondedCount }}/{{ $responseTarget }} responded</span>
-                            <span class="badge bg-success-subtle text-success-emphasis">{{ $acceptedCount }} accepted</span>
-                            <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ $declinedCount }} declined</span>
-                        </div>
-                        {{-- Progress bar --}}
-                        <div class="progress mb-3" style="height: 6px;" title="{{ $respondedCount }}/{{ $responseTarget }} vendors responded">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ $progressPct }}%"></div>
-                        </div>
-                        @if($vrAccepted)
-                            <p class="mb-0 text-success fw-semibold">
-                                <i class="fa fa-circle-check me-1"></i>You accepted this job offer.
-                                @if($offerOpen) You can change your response while the offer remains open.@endif
-                            </p>
-                        @endif
-                        @if($vrDeclined)
-                            <p class="mb-0 text-gasq-muted">
-                                <i class="fa fa-circle-xmark me-1"></i>You declined this job offer.
-                                @if($offerOpen) You can change your response while the offer remains open.@endif
-                            </p>
-                        @endif
-                        @if(! $vrAccepted && ! $vrDeclined)
-                            <p class="mb-0 text-gasq-muted">Review this job offer and record your response. We are tracking toward a target of {{ $responseTarget }} vendor responses.</p>
-                        @endif
-                    </div>
-                    <div class="d-flex flex-wrap gap-2 flex-shrink-0">
-                        <form action="{{ route('bids.offer-response', $job) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="status" value="accepted">
-                            <button type="submit" class="btn btn-success @if($vrAccepted) active @endif" @disabled(! $offerOpen)>
-                                <i class="fa fa-check me-1"></i>Accept
-                            </button>
-                        </form>
-                        <form action="{{ route('bids.offer-response', $job) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="status" value="declined">
-                            <button type="submit" class="btn btn-outline-secondary @if($vrDeclined) active @endif" @disabled(! $offerOpen)>
-                                <i class="fa fa-xmark me-1"></i>Decline
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if(! $isLoggedIn)
-        <div class="alert alert-info mb-4">
-            <a href="{{ route('login') }}" class="text-primary text-decoration-none">Sign in</a> as a vendor to accept or decline this job offer.
-        </div>
-    @endif
-
-    {{-- Job details --}}
-    <div class="card gasq-card mb-4">
-        <div class="card-body">
-            <p class="text-gasq-muted small mb-2">
-                Posted by {{ $job->user->name }}
-                @if($job->user->company)({{ $job->user->company }})@endif
-                · {{ $job->created_at->format('M j, Y') }}
-            </p>
-            @if($job->location)
-                <p class="mb-1"><strong>Location:</strong> {{ $job->location }}</p>
-            @endif
-            @if($job->hasGeoPoint())
-                <p class="mb-1 small text-gasq-muted">
-                    <i class="fa fa-map-pin me-1"></i>{{ number_format((float) $job->latitude, 5) }}, {{ number_format((float) $job->longitude, 5) }}
-                </p>
-            @endif
-            @if($job->category)
-                <p class="mb-1"><strong>Category:</strong> {{ $job->category }}</p>
-            @endif
-            @php
-                $minValidYear = 2000;
-                $validStart = $job->service_start_date instanceof \Carbon\Carbon && $job->service_start_date->year >= $minValidYear;
-                $validEnd = $job->service_end_date instanceof \Carbon\Carbon && $job->service_end_date->year >= $minValidYear;
-            @endphp
-            @if($validStart || $validEnd)
-                <p class="mb-1"><strong>Period:</strong>
-                    @if($validStart){{ $job->service_start_date->format('M j, Y') }}@endif
-                    @if($validStart && $validEnd) – @endif
-                    @if($validEnd){{ $job->service_end_date->format('M j, Y') }}@endif
-                </p>
-            @endif
-            @if($job->budget_min || $job->budget_max)
-                <p class="mb-1"><strong>Budget:</strong> ${{ number_format($job->budget_min ?? 0) }} – ${{ number_format($job->budget_max ?? 0) }}</p>
-            @endif
-            @if($job->guards_per_shift)
-                <p class="mb-1"><strong>Guards per shift:</strong> {{ $job->guards_per_shift }}</p>
-            @endif
-            @php
-                $descLines = array_filter(
-                    preg_split('/\r?\n/', (string) $job->description),
-                    function ($line) {
-                        $value = trim(preg_replace('/^[^:]+:\s*/', '', $line));
-                        return $value !== '' && ! in_array(strtolower($value), ['n/a', 'not provided', 'none', 'none provided', 'not applicable'], true);
-                    }
-                );
-            @endphp
-            @if(! empty($descLines))
-                <hr>
-                <div>{!! nl2br(e(implode("\n", $descLines))) !!}</div>
-            @endif
-            @if($job->property_type)
-                <p class="mb-0 mt-2"><strong>Property type:</strong> {{ $job->property_type }}</p>
-            @endif
-            @if($job->special_requirements && count($job->special_requirements) > 0)
-                <p class="mb-0 mt-2"><strong>Special requirements:</strong></p>
-                <ul class="mb-0">
-                    @foreach($job->special_requirements as $req)
-                        <li>{{ $req }}</li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
-    </div>
-
-    {{-- Map --}}
-    @if($showMap)
-        <div class="card gasq-card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Job site map</h5>
-            </div>
-            <div class="card-body">
-                @if($showInteractiveMap)
-                    <div id="job-show-map" class="rounded border" style="height: 280px; min-height: 200px; border-color: var(--gasq-border);"></div>
-                @else
-                    <iframe
-                        src="{{ $mapEmbedUrl }}"
-                        class="rounded border w-100"
-                        style="height: 280px; min-height: 200px; border-color: var(--gasq-border);"
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                        allowfullscreen></iframe>
-                @endif
-            </div>
-        </div>
-        @if($showInteractiveMap)
-            @push('scripts')
-                <script>
-                    window.initJobShowMap = function () {
-                        var el = document.getElementById('job-show-map');
-                        if (!el || !window.google || !google.maps) { return; }
-                        var center = { lat: {{ (float) $job->latitude }}, lng: {{ (float) $job->longitude }} };
-                        var map = new google.maps.Map(el, { zoom: 14, center: center, mapTypeControl: true });
-                        new google.maps.Marker({ position: center, map: map, title: @json(Str::limit($job->title, 80)) });
-                    };
-                </script>
-                <script src="https://maps.googleapis.com/maps/api/js?key={{ $mapsKey }}&callback=initJobShowMap" async defer></script>
-            @endpush
-        @endif
-    @endif
-
-    {{-- Vendor responses list --}}
-    <h2 class="gasq-card-title-lg mb-3">Vendor Responses (<span data-live="responded">{{ $respondedCount }}</span>/{{ $responseTarget }})</h2>
-
-    @if($job->bids->isEmpty())
-        <p class="text-gasq-muted" id="bids-empty">No vendor responses yet.</p>
-    @else
-        <div class="row g-3 mb-4" id="bids-list" data-live-root>
-            @foreach($job->bids as $bid)
-                @php
-                    $bidVrStatus  = $bid->vendor_response_status ?? 'pending';
-                    $bidBadgeCls  = $bid->vendorAccepted() ? 'success' : ($bid->vendorDeclined() ? 'secondary' : 'warning');
-                    $bidIsHired   = $job->hired_bid_id === $bid->id;
-                @endphp
-                <div class="col-12" data-bid-row="{{ $bid->id }}">
-                    <div class="card gasq-card @if($bidIsHired) border-success border-2 @endif">
-                        <div class="card-body">
-                            @if($bidIsHired)
-                                <div class="mb-2"><span class="badge bg-success"><i class="fa fa-circle-check me-1"></i>Hired</span></div>
-                            @endif
-                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
-                                <h6 class="card-title mb-0">
-                                    <a href="{{ route('vendor-profile.show', $bid->user) }}" class="text-decoration-none">{{ $bid->user->name }}</a>
-                                    @if($bid->user->company)
-                                        <span class="text-gasq-muted fw-normal">({{ $bid->user->company }})</span>
-                                    @endif
-                                </h6>
-                                <span class="badge bg-{{ $bidBadgeCls }}">{{ $bidVrStatus }}</span>
-                            </div>
-                            @if($bid->message)
-                                <p class="mb-1 small">{{ $bid->message }}</p>
-                            @endif
-                            @if($bid->proposal)
-                                <p class="mb-2 small text-gasq-muted">{{ Str::limit($bid->proposal, 300) }}</p>
-                            @endif
-                            @if($bid->amount && (float) $bid->amount > 0)
-                                <p class="fw-bold mb-1">${{ number_format((float) $bid->amount, 2) }}</p>
-                            @endif
-                            @if($bid->hasCounterOffer())
-                                <div class="border-start border-3 border-primary ps-2 py-1 mb-2 small">
-                                    <strong>Counter offer:</strong> ${{ number_format($bid->counter_offer_amount, 2) }}
-                                    @if($bid->counter_offer_message)
-                                        <br>{{ $bid->counter_offer_message }}
-                                    @endif
-                                    <br><span class="text-gasq-muted">{{ $bid->counter_offer_at?->format('M j, Y H:i') }}</span>
-                                </div>
-                            @endif
-                            @if($isOwner && ! $isHired && ! $isClosed)
-                                <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
-                                    <form action="{{ route('jobs.hire', $job) }}" method="POST" class="d-inline" onsubmit="return confirm('Hire {{ addslashes($bid->user->name) }}? This will reject all other bids.');">
-                                        @csrf
-                                        <input type="hidden" name="bid_id" value="{{ $bid->id }}">
-                                        <input type="hidden" name="source" value="platform">
-                                        <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-handshake me-1"></i>Hire</button>
-                                    </form>
-                                    @if($bid->isPending())
-                                    <form action="{{ route('bids.respond', $bid) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <input type="hidden" name="status" value="accepted">
-                                        <button type="submit" class="btn btn-sm btn-success">Accept Bid</button>
-                                    </form>
-                                    <form action="{{ route('bids.respond', $bid) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <input type="hidden" name="status" value="rejected">
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Reject Bid</button>
-                                    </form>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#counter-{{ $bid->id }}" aria-expanded="false">Counter offer</button>
-                                    <div class="collapse w-100 mt-2" id="counter-{{ $bid->id }}">
-                                        <div class="card gasq-card card-body">
-                                            <form action="{{ route('bids.counter-offer', $bid) }}" method="POST">
-                                                @csrf
-                                                <div class="mb-2">
-                                                    <label class="form-label small">Amount ($)</label>
-                                                    <input type="number" name="counter_offer_amount" class="form-control form-control-sm" step="0.01" min="0" value="{{ old('counter_offer_amount', $bid->counter_offer_amount) }}" required>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label class="form-label small">Message (optional)</label>
-                                                    <textarea name="counter_offer_message" class="form-control form-control-sm" rows="2">{{ old('counter_offer_message', $bid->counter_offer_message) }}</textarea>
-                                                </div>
-                                                <button type="submit" class="btn btn-sm btn-primary">Send counter offer</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                    @endif
-                                </div>
-                            @endif
-                            @if($bid->vendor_responded_at)
-                                <small class="text-gasq-muted d-block mt-2">Responded {{ $bid->vendor_responded_at->format('M j, Y H:i') }}</small>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    @endif
-
-    {{-- ═══ BOTTOM VENDOR RESPONSE PANEL ═══ --}}
-    <div class="card gasq-card mt-2">
-        <div class="card-body">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                <div>
-                    <div class="fw-semibold mb-1">{{ $respondedCount }}/{{ $responseTarget }} vendors responded</div>
-                    <div class="progress mb-2" style="height: 6px; min-width: 180px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $progressPct }}%"></div>
-                    </div>
-                    <small class="text-gasq-muted">{{ $acceptedCount }} accepted · {{ $declinedCount }} declined · Offer: {{ $offerStatusLabel }}</small>
-                </div>
-                @if($isVendorViewer)
-                    <div class="d-flex flex-wrap gap-2 flex-shrink-0">
-                        <form action="{{ route('bids.offer-response', $job) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="status" value="accepted">
-                            <button type="submit" class="btn btn-success @if($vrAccepted) active @endif" @disabled(! $offerOpen)>
-                                <i class="fa fa-check me-1"></i>Accept
-                            </button>
-                        </form>
-                        <form action="{{ route('bids.offer-response', $job) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="status" value="declined">
-                            <button type="submit" class="btn btn-outline-secondary @if($vrDeclined) active @endif" @disabled(! $offerOpen)>
-                                <i class="fa fa-xmark me-1"></i>Decline
-                            </button>
-                        </form>
-                    </div>
-                @endif
-                @if(! $isLoggedIn)
-                    <a href="{{ route('login') }}" class="btn btn-outline-primary">Sign in to respond</a>
-                @endif
-            </div>
-        </div>
-    </div>
-
-    @push('scripts')
-    <script>
-    (function () {
-        const FRAGMENT_URL = @json(route('jobs.bids-fragment', $job));
-        const RESPONSE_TARGET = {{ $responseTarget }};
-        let lastSig = '';
-
-        function fmtMoney(v) {
-            if (v === null || v === undefined || isNaN(v)) return '';
-            return '$' + Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        function statusBadge(b) {
-            if (b.is_hired) return '<span class="badge bg-success">Hired</span>';
-            const vr = b.vendor_response_status || 'pending';
-            const cls = vr === 'accepted' ? 'success' : (vr === 'declined' || vr === 'rejected' ? 'secondary' : 'warning');
-            return `<span class="badge bg-${cls}">${vr}</span>`;
-        }
-
-        function updateLiveCounts(counts) {
-            const el = document.querySelector('[data-live="responded"]');
-            if (el) el.textContent = counts.responded;
-        }
-
-        function updateHiredBanner(jobInfo, bids) {
-            const banner = document.getElementById('hired-banner');
-            const nameEl = document.getElementById('hired-vendor-name');
-            if (!jobInfo.is_hired) return;
-            let name = jobInfo.hired_external_name;
-            if (!name && jobInfo.hired_bid_id) {
-                const b = bids.find(x => x.id === jobInfo.hired_bid_id);
-                name = b ? b.vendor_name : null;
-            }
-            if (banner && nameEl && name) nameEl.textContent = name;
-            if (!banner && name) {
-                // Reload to render full banner — first-time hire
-                location.reload();
-            }
-        }
-
-        async function poll() {
-            try {
-                const r = await fetch(FRAGMENT_URL, { credentials: 'same-origin', headers: { 'Accept': 'application/json' }});
-                if (!r.ok) return;
-                const data = await r.json();
-                const sig = JSON.stringify({ s: data.job.status, h: data.job.hired_bid_id, c: data.counts, b: data.bids.map(x => [x.id, x.status, x.vendor_response_status, x.is_hired, x.counter_offer_amount]) });
-                if (sig === lastSig) return;
-                lastSig = sig;
-                updateLiveCounts(data.counts);
-                updateHiredBanner(data.job, data.bids);
-
-                // Update each bid row badge & status pill if present in DOM
-                data.bids.forEach(b => {
-                    const row = document.querySelector(`[data-bid-row="${b.id}"]`);
-                    if (!row) { return; }
-                    const badge = row.querySelector('.card-body > .d-flex .badge');
-                    if (badge) badge.outerHTML = statusBadge(b);
-                });
-
-                // If status changed to closed/awarded and we are not yet showing it, reload
-                if ((data.job.is_closed || data.job.is_hired) && !document.getElementById('hired-banner') && !document.querySelector('.alert.alert-secondary')) {
-                    location.reload();
-                }
-            } catch (e) { /* noop */ }
-        }
-
-        // Initial poll baseline + interval
-        poll();
-        setInterval(poll, 10000);
-    })();
-    </script>
-    @endpush
-
-    @if($isOwner && ! $isHired && ! $isClosed)
-        {{-- Close Job modal: two-step survey --}}
-        <div class="modal fade" id="closeJobModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <form id="closeJobForm" method="POST" action="">
-                        @csrf
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="closeJobTitle">Which professional did you hire?</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            {{-- Step 1: which professional did you hire --}}
-                            <div data-step="who">
-                                <div class="vstack gap-2">
-                                    @foreach($job->bids as $bid)
-                                        <label class="border rounded p-2 d-flex gap-2 align-items-center mb-0">
-                                            <input class="form-check-input mt-0" type="radio" name="who_choice" value="bid:{{ $bid->id }}">
-                                            <span>{{ $bid->user->name }}@if($bid->user->company) ({{ $bid->user->company }})@endif</span>
-                                        </label>
-                                    @endforeach
-                                    <label class="border rounded p-2 d-flex gap-2 align-items-center mb-0">
-                                        <input class="form-check-input mt-0" type="radio" name="who_choice" value="external">
-                                        <span>Someone not on the platform</span>
-                                    </label>
-                                    <label class="border rounded p-2 d-flex gap-2 align-items-center mb-0">
-                                        <input class="form-check-input mt-0" type="radio" name="who_choice" value="none">
-                                        <span>I didn't hire a professional</span>
-                                    </label>
-                                </div>
-                                <div class="mt-3 d-none" data-external-name>
-                                    <label class="form-label small">Who did you hire?</label>
-                                    <input type="text" name="external_name" class="form-control form-control-sm" placeholder="Vendor or person's name">
-                                </div>
-                            </div>
-
-                            {{-- Step 2: why didn't you hire --}}
-                            <div data-step="why" class="d-none">
-                                <p class="text-gasq-muted small">Help us improve — why didn't you hire a professional?</p>
-                                <div class="vstack gap-2">
-                                    @php
-                                    $reasons = [
-                                        'still_deciding' => "I'm still deciding on who to hire",
-                                        'diy_or_friend' => 'I decided to do it myself or a friend helped',
-                                        'change_of_plan' => 'There was a change of plan',
-                                        'on_hold' => "I'm putting the project on hold",
-                                        'quotes_not_right' => 'The quotes were not right for me',
-                                        'other' => 'Other',
-                                    ];
-                                    @endphp
-                                    @foreach($reasons as $key => $label)
-                                        <label class="border rounded p-2 d-flex gap-2 align-items-center mb-0">
-                                            <input class="form-check-input mt-0" type="radio" name="close_reason" value="{{ $key }}">
-                                            <span>{{ $label }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                                <div class="mt-3 d-none" data-reason-other>
-                                    <input type="text" name="close_reason_other" class="form-control form-control-sm" placeholder="Tell us more (optional)">
-                                </div>
-                            </div>
-
-                            <input type="hidden" name="bid_id" value="">
-                            <input type="hidden" name="source" value="">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-link text-secondary" data-bs-dismiss="modal" data-back-btn>Cancel</button>
-                            <button type="button" class="btn btn-primary" data-next-btn>Next</button>
-                            <button type="submit" class="btn btn-primary d-none" data-submit-btn>Submit</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        @push('scripts')
-        <script>
-        (function () {
-            const modalEl = document.getElementById('closeJobModal');
-            if (!modalEl) return;
-            const form     = modalEl.querySelector('#closeJobForm');
-            const stepWho  = modalEl.querySelector('[data-step="who"]');
-            const stepWhy  = modalEl.querySelector('[data-step="why"]');
-            const title    = modalEl.querySelector('#closeJobTitle');
-            const nextBtn  = modalEl.querySelector('[data-next-btn]');
-            const subBtn   = modalEl.querySelector('[data-submit-btn]');
-            const extWrap  = modalEl.querySelector('[data-external-name]');
-            const otherWrap= modalEl.querySelector('[data-reason-other]');
-
-            const hireUrl  = @json(route('jobs.hire', $job));
-            const closeUrl = @json(route('jobs.close', $job));
-
-            function selectedWho() {
-                const r = modalEl.querySelector('input[name="who_choice"]:checked');
-                return r ? r.value : null;
-            }
-
-            modalEl.addEventListener('change', (e) => {
-                if (e.target.name === 'who_choice') {
-                    extWrap.classList.toggle('d-none', e.target.value !== 'external');
-                }
-                if (e.target.name === 'close_reason') {
-                    otherWrap.classList.toggle('d-none', e.target.value !== 'other');
-                }
-            });
-
-            nextBtn.addEventListener('click', () => {
-                const who = selectedWho();
-                if (!who) { alert('Please pick one.'); return; }
-
-                if (who.startsWith('bid:')) {
-                    // Hire flow — submit immediately
-                    form.action = hireUrl;
-                    form.querySelector('[name=bid_id]').value = who.replace('bid:', '');
-                    form.querySelector('[name=source]').value = 'platform';
-                    form.submit();
-                    return;
-                }
-
-                if (who === 'external') {
-                    const name = (form.querySelector('[name=external_name]')?.value || '').trim();
-                    if (!name) { alert('Please tell us who you hired.'); return; }
-                    form.action = hireUrl;
-                    form.querySelector('[name=source]').value = 'external';
-                    form.submit();
-                    return;
-                }
-
-                // who === 'none' → ask why
-                title.textContent = "Why didn't you hire a professional?";
-                stepWho.classList.add('d-none');
-                stepWhy.classList.remove('d-none');
-                nextBtn.classList.add('d-none');
-                subBtn.classList.remove('d-none');
-                form.action = closeUrl;
-                form.querySelector('[name=source]').value = 'none';
-            });
-        })();
-        </script>
-        @endpush
-    @endif
-
+<div class="container py-4 py-lg-5 opportunity-shell">
+    <nav aria-label="breadcrumb" class="mb-3 small"><a href="{{ route('job-board') }}" class="text-decoration-none">Vendor Network</a><span class="text-muted mx-1">/</span> Opportunity</nav>
+    <header class="opportunity-summary p-4 p-lg-5 mb-4">
+        <div class="d-flex flex-wrap justify-content-between gap-3 align-items-start"><div><div class="opportunity-kicker">GASQ procurement opportunity</div><h1 class="opportunity-title mb-2">{{ $job->category ?: 'Security Service' }} Opportunity <span class="text-muted">- {{ $serviceArea }}</span></h1><p class="text-muted mb-0">Scope first. Validation second. Price last.</p></div>@if($isOwner)<a href="{{ route('jobs.edit', $job) }}" class="btn btn-outline-primary">Edit opportunity</a>@endif</div>
+        <div class="d-flex flex-wrap gap-2 mt-4"><span class="opportunity-chip {{ $offerOpen ? 'is-good' : 'is-pending' }}">{{ $offerOpen ? 'Open' : 'Closed' }}</span><span class="opportunity-chip {{ $buyerVerified ? 'is-good' : 'is-pending' }}">Buyer {{ $buyerVerified ? 'verified' : 'pending' }}</span><span class="opportunity-chip {{ $budgetVerified ? 'is-good' : 'is-pending' }}">Budget {{ $budgetVerified ? 'verified' : 'pending' }}</span><span class="opportunity-chip {{ $scopeVerified ? 'is-good' : 'is-pending' }}">Scope {{ $scopeVerified ? 'verified' : 'pending' }}</span><span class="opportunity-chip {{ $ctpStatus === 'validated' ? 'is-good' : 'is-pending' }}">CTP {{ $ctpLabel }}</span><span class="opportunity-chip">{{ $start?->format('M j, Y') ?? 'Start date pending' }}</span><span class="opportunity-chip">Responses {{ $respondedCount }}/{{ $responseTarget }}</span><span class="opportunity-chip">{{ $acceptedCount }} accepted</span><span class="opportunity-chip">{{ $declinedCount }} declined</span></div>
+    </header>
+    <div class="row g-4"><main class="col-lg-8">
+        <section class="mb-5"><div class="d-flex justify-content-between align-items-end mb-3"><div><div class="opportunity-kicker">Opportunity Summary</div><h2 class="mb-0">Opportunity at a glance</h2></div><span class="small text-muted">Scope version {{ $job->scope_version ?: '1.0' }}</span></div><dl class="opportunity-grid row-cols-1 row-cols-sm-2 row-cols-lg-3 mb-0"><div><dt>Service type</dt><dd>{{ implode(', ', (array) ($q['service_types'] ?? [$job->category])) }}</dd></div><div><dt>Service area</dt><dd>{{ $serviceArea }}</dd></div><div><dt>Contract term</dt><dd>{{ $q['desired_contract_term'] ?? 'To be confirmed' }}</dd></div><div><dt>Start / end</dt><dd>{{ $start?->format('M j, Y') ?? 'Pending' }}{{ $end ? ' - ' . $end->format('M j, Y') : '' }}</dd></div><div><dt>Coverage</dt><dd>{{ $q['hours_per_day'] ?? '-' }} hrs/day, {{ $q['days_per_week'] ?? '-' }} days/week</dd></div><div><dt>Posts / officers</dt><dd>{{ $q['staff_per_shift'] ?? $job->guards_per_shift ?? '-' }} per shift</dd></div></dl></section>
+        <section class="opportunity-panel mb-5"><div class="opportunity-kicker">Labor & Financial Assumptions</div><h2>Financially supportable service delivery</h2><dl class="opportunity-grid row-cols-1 row-cols-sm-2 mb-0"><div><dt>Original buyer baseline wage</dt><dd>${{ number_format((float) $job->baseline_wage, 2) }}/hour</dd></div><div><dt>GASQ wage validation</dt><dd>{{ str_replace('_', ' ', strtoupper((string) ($q['baseline_wage_validation_status'] ?? 'pending'))) }}</dd></div><div><dt>Coverage hours</dt><dd>{{ number_format($weeklyHours, 0) }} weekly hours</dd></div><div><dt>Pricing basis</dt><dd>{{ ($q['selection_method'] ?? '') === 'sealed_price' ? 'Sealed vendor price process' : 'Buyer offer process' }}</dd></div><div><dt>Resource model</dt><dd>{{ $isSharedResource ? 'Shared resource review required' : 'Dedicated resource' }}</dd></div><div><dt>Living-wage status</dt><dd>Buyer baseline acknowledged</dd></div></dl><p class="small text-muted mt-3 mb-0">{{ $q['baseline_wage_validation_message'] ?? 'The original buyer baseline wage is locked when released; approved adjustments are separately recorded.' }}</p>@if($isSharedResource)<p class="small border-start border-3 border-warning ps-3 mt-3 mb-0">Shared-resource pricing is available only after GASQ verifies at least 1,000 weekly billable hours and a complete line-item bill-rate breakdown.</p>@endif</section>
+        <section class="opportunity-panel mb-5"><div class="opportunity-kicker">Scope of Work</div><h2>Coverage and operating expectations</h2><p>{{ $q['primary_reason'] ?? 'Scope summary available to qualified vendors.' }}</p><div class="d-flex flex-wrap gap-2 mb-3">@foreach((array) ($q['duties_required'] ?? []) as $duty)<span class="badge text-bg-light border">{{ $duty }}</span>@endforeach</div><dl class="opportunity-grid row-cols-1 row-cols-sm-2 mb-0"><div><dt>Deployment</dt><dd>{{ implode(', ', (array) ($q['deployment_types'] ?? [])) ?: 'As scoped' }}</dd></div><div><dt>Reporting</dt><dd>{{ $q['reporting_requirements'] ?? 'As required in final post orders' }}</dd></div><div><dt>Uniform / equipment</dt><dd>{{ $q['uniform_requirements'] ?? 'As scoped' }}</dd></div><div><dt>Post orders</dt><dd>{{ ($q['has_written_post_orders'] ?? '') === 'yes' ? 'Available after qualification' : 'To be finalized' }}</dd></div></dl></section>
+        <section class="opportunity-panel mb-5"><div class="opportunity-kicker">Compliance & Insurance</div><h2>Required for qualified participation</h2><dl class="opportunity-grid row-cols-1 row-cols-sm-2 mb-0"><div><dt>Insurance</dt><dd>{{ implode(', ', (array) ($q['insurance_minimums_required'] ?? [])) ?: 'To be confirmed' }}</dd></div><div><dt>Licensing</dt><dd>{{ ($q['officer_licensing_required'] ?? '') === 'yes' ? 'Jurisdictional licensing required' : 'Per applicable law' }}</dd></div><div><dt>Background screening</dt><dd>{{ ($q['background_checks_required'] ?? '') === 'yes' ? 'Required' : 'As applicable' }}</dd></div><div><dt>Training / documentation</dt><dd>Verified during qualification</dd></div></dl></section>
+        <section class="opportunity-panel mb-4"><div class="opportunity-kicker">How This Works</div><h2>The GASQ procurement sequence</h2><div class="row row-cols-1 row-cols-md-2 g-3 mt-1">@foreach(['Review opportunity','Verify qualification','Accept, decline, or request scope adjustment','Site visit and interview','Buyer selection','Sealed price process','Contract award'] as $step)<div class="process-step small">{{ $loop->iteration }}. {{ $step }}</div>@endforeach</div><p class="small text-muted mt-3 mb-0">Acceptance confirms capability and interest. It is not an invitation to submit an immediate price.</p></section>
+        @if($isOwner)<section class="opportunity-panel mb-4"><div class="opportunity-kicker">Buyer View</div><h2>Vendor response status</h2><dl class="opportunity-grid row-cols-2 row-cols-md-4 mb-0"><div><dt>Invitation slots</dt><dd>{{ $responseTarget }}</dd></div><div><dt>Accepted</dt><dd>{{ $acceptedCount }}</dd></div><div><dt>Declined</dt><dd>{{ $declinedCount }}</dd></div><div><dt>Scope adjustments</dt><dd>0</dd></div></dl><p class="small text-muted mt-3 mb-0">Vendor qualification, site visits, interviews, and selection remain managed in the buyer workflow. Competing sealed prices are never displayed here.</p></section>@endif
+    </main><aside class="col-lg-4"><div class="vendor-action position-sticky p-4 bg-white"><div class="opportunity-kicker">Vendor action</div><h2 class="h3">Interested in this opportunity?</h2>
+        @if($isVendor)<p class="small text-muted">{{ $qualifiedCount }} of {{ count($qualification) }} profile requirements verified. Confirm the baseline wage acknowledgement to proceed.</p><ul class="list-unstyled small mb-4">@foreach($qualification as $label => $passed)<li class="mb-2 {{ $passed ? 'text-success' : 'text-danger' }}"><i class="fa {{ $passed ? 'fa-circle-check' : 'fa-circle-exclamation' }} me-2"></i>{{ $label }}</li>@endforeach<li class="mb-2"><i class="fa fa-circle me-2"></i>Baseline wage acknowledged</li></ul>@if($responseStatus === 'accepted')<div class="alert alert-success small">You accepted this opportunity. Complete your qualification questionnaire to send the buyer your full response.</div>@endif<form action="{{ route('bids.offer-response', $job) }}" method="POST" class="mb-2" data-accept-form data-eligible="{{ $canRespond ? '1' : '0' }}">@csrf<input type="hidden" name="status" value="accepted"><label class="form-check small mb-3"><input class="form-check-input" type="checkbox" name="baseline_wage_acknowledged" value="1" data-wage-ack @disabled(! $canRespond)> <span class="form-check-label">I can meet the ${{ number_format((float) $job->baseline_wage, 2) }}/hour baseline wage assumption.</span></label><button class="btn btn-success w-100" type="submit" data-accept-button disabled>Accept opportunity</button></form><form action="{{ route('bids.offer-response', $job) }}" method="POST" class="mb-2">@csrf<input type="hidden" name="status" value="declined"><button class="btn btn-outline-secondary w-100" type="submit" @disabled(! $offerOpen)>Decline</button></form><button class="btn btn-link w-100 small" type="button" data-bs-toggle="collapse" data-bs-target="#wage-adjustment">Request wage adjustment</button><div class="collapse mt-2" id="wage-adjustment"><form action="{{ route('jobs.baseline-wage-adjustment.request', $job) }}" method="POST" class="border p-3 small">@csrf<label class="form-label">Recommended baseline wage</label><input class="form-control form-control-sm mb-2" type="number" name="recommended_baseline_wage" step="0.01" min="0.01" required><label class="form-label">Reasons</label><select class="form-select form-select-sm mb-2" name="reasons[]" multiple required><option value="recruiting_difficulty">Recruiting difficulty</option><option value="employee_retention">Employee retention</option><option value="local_wage_competition">Local wage competition</option><option value="armed_officer_requirements">Armed officer requirements</option><option value="overnight_coverage">Overnight coverage</option><option value="high_risk_environment">High-risk environment</option><option value="specialized_training">Specialized training</option><option value="other">Other</option></select><textarea class="form-control form-control-sm mb-2" name="explanation" rows="3" minlength="20" placeholder="Explain why this assignment needs a different wage" required></textarea><button class="btn btn-outline-primary btn-sm w-100">Send adjustment request</button></form></div>@if($wageResponse?->status === 'adjustment_requested')<p class="small text-warning mt-2">Adjustment request pending buyer decision. The original buyer baseline remains locked.</p>@endif @if(! $canRespond)<p class="small text-danger mt-3 mb-0">Complete the outstanding profile requirements before accepting.</p>@endif
+        @elseif(auth()->check())<p class="small text-muted">Only verified vendor accounts can participate in this procurement event.</p>
+        @else<p class="small text-muted">Sign in with a verified vendor account to review qualification and respond.</p><a href="{{ route('login') }}" class="btn btn-primary w-100">Sign in as a vendor</a>@endif
+    </div></aside></div>
 </div>
+@push('scripts')<script>document.querySelector('[data-accept-form]')?.addEventListener('change',function(){const b=this.querySelector('[data-accept-button]'),a=this.querySelector('[data-wage-ack]');if(b&&a)b.disabled=this.dataset.eligible!=='1'||!a.checked;});</script>@endpush
 @endsection

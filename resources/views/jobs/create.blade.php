@@ -592,6 +592,11 @@
                     <input type="hidden" name="budget_amount_range" id="budget_amount_range_input" value="{{ old('budget_amount_range', $prefill['budget_amount_range'] ?? '') }}">
                     <input type="hidden" name="baseline_wage" id="baseline_wage_input" value="{{ old('baseline_wage', $prefill['baseline_wage'] ?? '') }}" data-locked="{{ old('baseline_wage', $prefill['baseline_wage'] ?? '') !== '' ? '1' : '0' }}" data-default-locked="{{ old('baseline_wage', $prefill['baseline_wage'] ?? '') !== '' ? '1' : '0' }}">
                     <input type="hidden" name="baseline_wage_source" id="baseline_wage_source_input" value="{{ old('baseline_wage_source', $prefill['baseline_wage_source'] ?? 'buyer_assumption') }}">
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" name="baseline_wage_acknowledged" value="1" id="baseline_wage_acknowledged" @checked(old('baseline_wage_acknowledged', $prefill['baseline_wage_acknowledged'] ?? false)) required>
+                        <label class="form-check-label" for="baseline_wage_acknowledged">I understand and confirm this baseline wage assumption. It is a staffing assumption, not a vendor bill rate or guaranteed employee wage.</label>
+                    </div>
+                    @error('baseline_wage_acknowledged')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Approved Budget Amount ($) <span class="text-danger">*</span></label>
@@ -623,6 +628,18 @@
                     <input type="number" step="0.01" min="0" name="offer_price" id="offer_price_input" class="form-control @error('offer_price') is-invalid @enderror" value="{{ old('offer_price', $prefill['offer_price'] ?? '') }}" placeholder="Fixed price vendors accept or decline">
                     <div class="form-text">Required for Option A. This is the fixed price vendors accept or decline.</div>
                     @error('offer_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">GASQ Cost to Protect&trade; status <span class="text-danger">*</span></label>
+                    <select name="cost_to_protect_status" class="form-select @error('cost_to_protect_status') is-invalid @enderror" required>
+                        <option value="">Choose...</option>
+                        <option value="validated" @selected(old('cost_to_protect_status', $prefill['cost_to_protect_status'] ?? '') === 'validated')>Validated</option>
+                        <option value="pending" @selected(old('cost_to_protect_status', $prefill['cost_to_protect_status'] ?? '') === 'pending')>Pending</option>
+                        <option value="not_required" @selected(old('cost_to_protect_status', $prefill['cost_to_protect_status'] ?? '') === 'not_required')>Not required for this service</option>
+                    </select>
+                    <input type="hidden" name="cost_to_protect_required" value="yes">
+                    <div class="form-text">Standard GASQ opportunities require Cost to Protect validation before vendor solicitation.</div>
+                    @error('cost_to_protect_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 
