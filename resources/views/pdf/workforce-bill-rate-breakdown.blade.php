@@ -29,53 +29,33 @@
             }
         }
     }
-    $totalBudget = (float) data_get($meta, 'annualBudget', 0);
-    $baselineWage = (float) (data_get($meta, 'baselineWage')
-        ?? data_get($meta, 'governmentShouldCostHourly')
-        ?? 25.00);
+    // ---------- GASQ Cost to Protect™ figures ----------
+    // Shared with pdf.cost-to-protect-estimate (the master estimate) so the two
+    // documents can never report different numbers off the same scenario.
+    $estimate = app(\App\Services\CostToProtectEstimate::class)->build((array) ($scenario ?? []), $user ?? null);
 
-    $scope = (array) data_get($meta, 'scope', []);
-    $hoursPerDay = max(0.5, min(24, (float) (data_get($scope, 'hoursOfCoveragePerDay') ?? data_get($meta, 'hoursPerDay') ?? 24)));
-    $daysPerWeek = max(1, min(7, (float) (data_get($scope, 'daysOfCoveragePerWeek') ?? data_get($meta, 'daysPerWeek') ?? 7)));
-    $weeksPerYear = max(1, min(52, (float) (data_get($scope, 'weeksOfCoverage') ?? data_get($meta, 'weeksPerYear') ?? 52)));
-    $staffPerShift = max(1, min(100, (float) (data_get($scope, 'staffPerShift') ?? data_get($meta, 'staffPerShift') ?? 1)));
-
-    // ---------- GASQ TCO formula ----------
-    $EMPLOYER_FRINGE_FACTOR = 0.70;
-    $PAID_HOURS_PER_FTE = 3744;
-    $BILLABLE_HOURS_PER_FTE = 1456;
-    $VENDOR_DISCOUNT_FACTOR = (float) config('budget_calculator.vendor_discount_factor', 0.70);
-    $OT_MULTIPLIER = 1.5;
-
-    $loadedWage = $baselineWage / $EMPLOYER_FRINGE_FACTOR;
-    $annualWorkforceCost = $loadedWage * $PAID_HOURS_PER_FTE;
-    $internalTcoHourly = $annualWorkforceCost / $BILLABLE_HOURS_PER_FTE;
-    $vendorTcoHourly = $internalTcoHourly * $VENDOR_DISCOUNT_FACTOR;
-
-    // Weekly coverage = the operating-week hours (includes all staff on post),
-    // so weekly × weeks-per-year = annual. (Previously omitted staff / divided
-    // annual by a hard-coded 52, which misreported weekly hours and costs.)
-    $weeklyCoverageHours = $hoursPerDay * $daysPerWeek * $staffPerShift;
-    $monthlyCoverageHours = (int) round(($weeklyCoverageHours * $weeksPerYear) / 12);
-    $annualCoverageHours = $weeklyCoverageHours * $weeksPerYear;
-    // Staff required = operating-week coverage hours ÷ a guard's weekly billable
-    // hours (1456/52 = 28), rounded UP. e.g. 96 hrs/week ÷ 28 = 3.42 → 4 staff.
-    $ftesRequired = max(1, (int) ceil($weeklyCoverageHours / ($BILLABLE_HOURS_PER_FTE / 52)));
-
-    $annualPerInt = $internalTcoHourly * $BILLABLE_HOURS_PER_FTE;
-    $annualPerVend = $vendorTcoHourly * $BILLABLE_HOURS_PER_FTE;
-    $internalOt = $internalTcoHourly * $OT_MULTIPLIER;
-    $vendorOt = $vendorTcoHourly * $OT_MULTIPLIER;
-
-    $totalAnnualInt = $internalTcoHourly * $annualCoverageHours;
-    $totalAnnualVend = $vendorTcoHourly * $annualCoverageHours;
-    $totalWeeklyInt = $totalAnnualInt / $weeksPerYear;
-    $totalWeeklyVend = $totalAnnualVend / $weeksPerYear;
-    $totalMonthlyInt = $totalAnnualInt / 12;
-    $totalMonthlyVend = $totalAnnualVend / 12;
-    $annualCapitalRecovery = $totalAnnualInt - $totalAnnualVend;
-    $recoveryPct = $totalAnnualInt > 0 ? round(100 * $annualCapitalRecovery / $totalAnnualInt) : 0;
-    $paybackMonths = $totalMonthlyInt > 0.01 ? round($totalAnnualVend / $totalMonthlyInt, 1) : 0;
+    $totalBudget          = $estimate['annualBudget'];
+    $baselineWage         = $estimate['baselineWage'];
+    $weeksPerYear         = $estimate['weeksPerYear'];
+    $weeklyCoverageHours  = $estimate['weeklyCoverageHours'];
+    $monthlyCoverageHours = $estimate['monthlyCoverageHours'];
+    $annualCoverageHours  = $estimate['annualCoverageHours'];
+    $ftesRequired         = $estimate['ftesRequired'];
+    $internalTcoHourly    = $estimate['internalTcoHourly'];
+    $vendorTcoHourly      = $estimate['vendorTcoHourly'];
+    $internalOt           = $estimate['internalOtHourly'];
+    $vendorOt             = $estimate['vendorOtHourly'];
+    $annualPerInt         = $estimate['annualPerInternalFte'];
+    $annualPerVend        = $estimate['annualPerVendorFte'];
+    $totalWeeklyInt       = $estimate['totalWeeklyInternal'];
+    $totalWeeklyVend      = $estimate['totalWeeklyVendor'];
+    $totalMonthlyInt      = $estimate['totalMonthlyInternal'];
+    $totalMonthlyVend     = $estimate['totalMonthlyVendor'];
+    $totalAnnualInt       = $estimate['totalAnnualInternal'];
+    $totalAnnualVend      = $estimate['totalAnnualVendor'];
+    $annualCapitalRecovery = $estimate['annualCapitalRecovery'];
+    $recoveryPct          = $estimate['recoveryPct'];
+    $paybackMonths        = $estimate['paybackMonths'];
 
     // ---------- Allocation group totals ----------
     $directLaborKeys = ['baseDirectLaborWage', 'localityPay', 'laborMarketAdjustment', 'hwCash', 'shiftDifferential', 'otHolidayPremium', 'donDoff'];
@@ -131,14 +111,12 @@
     }
 
     // ---------- Identity ----------
-    // Prefer contact details entered on the calculator; fall back to the
-    // signed-in vendor's account info when a field is left blank.
-    $c = (array) data_get($scenario ?? [], 'meta.contact', []);
-    $contactName    = trim((string) ($c['contactName'] ?? '')) ?: ($user?->name ?? null);
-    $contactCompany = trim((string) ($c['companyName'] ?? '')) ?: ($user?->company ?? ($user?->vendorProfile?->company_name ?? null));
-    $contactAddress = trim((string) ($c['contactAddress'] ?? '')) ?: ($user?->vendorProfile?->address ?? trim(implode(', ', array_filter([$user?->city, $user?->state, $user?->zip_code]))));
-    $contactEmail   = trim((string) ($c['contactEmail'] ?? '')) ?: ($user?->email ?? null);
-    $contactPhone   = trim((string) ($c['contactPhone'] ?? '')) ?: ($user?->phone ?? ($user?->vendorProfile?->phone ?? null));
+    // Calculator contact first, signed-in vendor account as the fallback.
+    $contactName    = $estimate['contact']['name'];
+    $contactCompany = $estimate['contact']['company'];
+    $contactAddress = $estimate['contact']['address'];
+    $contactEmail   = $estimate['contact']['email'];
+    $contactPhone   = $estimate['contact']['phone'];
 
     $reportNumber = $reportNumber ?? ('GASQ ' . now()->format('Y-m-d') . '-V' . ((int) ($vendorId ?? 0)));
 

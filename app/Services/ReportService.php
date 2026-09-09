@@ -46,10 +46,12 @@ class ReportService
             'mobile-patrol-buyer' => 'pdf.mobile-patrol',
             'mobile-patrol-comparison' => 'pdf.mobile-patrol-comparison',
             'mobile-patrol-hit-calculator' => 'pdf.mobile-patrol-hit-calculator',
-            // Know Before You Bid Calculator → branded Workforce-to-Post report.
-            // Two reports off the same data: 'main' (summary + comparison) and
-            // 'allocation' (allocation group totals + line-item breakdown).
-            'budget-calculator' => 'pdf.workforce-bill-rate-breakdown',
+            // Know Before You Bid Calculator → two documents off the same data:
+            //   'budget-calculator'            → the master Cost to Protect estimate
+            //     dashboard, the paid deliverable a vendor sends to a buyer;
+            //   'budget-calculator-allocation' → Workforce-to-Post allocation totals
+            //     and line-item breakdown.
+            'budget-calculator' => 'pdf.cost-to-protect-estimate',
             'budget-calculator-allocation' => 'pdf.workforce-bill-rate-breakdown',
             // Generic standalone calculators (server-rendered PDF from latest session payload)
             'mobile-patrol-analysis',
@@ -123,7 +125,13 @@ class ReportService
      */
     public function filenameForCalculator(string $type, ?User $user = null): string
     {
-        $slug = str_replace(' ', '-', $type);
+        // The master estimate goes to a buyer under its own name, not the
+        // internal calculator slug.
+        $slug = match ($type) {
+            'budget-calculator' => 'Cost-to-Protect-Estimate',
+            'budget-calculator-allocation' => 'Workforce-to-Post-Allocation',
+            default => str_replace(' ', '-', $type),
+        };
         $stamp = now()->format('Y-m-d-His');
         $vendorTag = $user ? '-V' . (int) $user->id : '';
         return "GASQ-{$slug}-{$stamp}{$vendorTag}.pdf";

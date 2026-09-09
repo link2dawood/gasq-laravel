@@ -434,8 +434,8 @@
     </div>
   </div>
 
-  <x-report-actions reportType="budget-calculator" label="Cost to Protect Summary report — download or email" />
-  <x-report-actions reportType="budget-calculator-allocation" label="Allocation & Line-Item Breakdown report — download or email" />
+  <x-report-actions reportType="budget-calculator" label="Master Estimate — the 4-page Cost to Protect™ Estimate Dashboard a vendor sends to the buyer. Download or email" />
+  <x-report-actions reportType="budget-calculator-allocation" label="Workforce-to-Post™ Allocation &amp; Line-Item Breakdown report — download or email" />
 
 </div>
 </div>

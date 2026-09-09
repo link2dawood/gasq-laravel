@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\ReportPdfMail;
 use App\Models\CalculatorState;
 use App\Models\Transaction;
+use App\Services\CostToProtectEstimate;
 use App\Services\ReportService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
@@ -258,26 +259,22 @@ class ReportController extends Controller
             return ['emails.report-pdf', []];
         }
 
-        // Shared with pdf.workforce-bill-rate-breakdown: vendor TCO is this fraction
-        // of internal TCO, so capital recovery is the remainder and payback is
-        // (factor * 12) months. Reading the same config keeps email + PDF in sync.
-        $vendorDiscountFactor = (float) config('budget_calculator.vendor_discount_factor', 0.70);
-
-        $meta = (array) data_get($payload, 'scenario.meta', []);
-        $contact = (array) data_get($payload, 'scenario.meta.contact', []);
+        // Same figures the attached PDF prints, from the same service, so the
+        // covering email can never quote a different number than the estimate.
         $user = $payload['user'] ?? null;
-        $inHouse = (float) ($meta['annualBudget'] ?? 0);
+        $estimate = app(CostToProtectEstimate::class)->build((array) data_get($payload, 'scenario', []), $user);
+        $inHouse = (float) $estimate['totalAnnualInternal'];
 
         return ['emails.cost-to-protect', [
             // Greet the report's Contact (entered on the calculator) first; fall
             // back to the company, then the signed-in vendor's name.
-            'clientName'     => trim((string) ($contact['contactName'] ?? $contact['companyName'] ?? $user?->name ?? '')) ?: null,
-            'propertyName'   => trim((string) ($meta['siteName'] ?? $contact['siteName'] ?? '')) ?: null,
+            'clientName'     => $estimate['contact']['name'] ?: ($estimate['contact']['company'] ?: null),
+            'propertyName'   => $estimate['contact']['site'],
             'reportNumber'   => $payload['reportNumber'] ?? null,
             'datePrepared'   => now()->format('F j, Y'),
             'inHouseCost'    => $inHouse > 0 ? $inHouse : null,
-            'capitalRecovery' => $inHouse > 0 ? $inHouse * (1 - $vendorDiscountFactor) : null,
-            'paybackPeriod'  => $inHouse > 0 ? round($vendorDiscountFactor * 12, 1) . ' months' : null,
+            'capitalRecovery' => $inHouse > 0 ? $estimate['annualCapitalRecovery'] : null,
+            'paybackPeriod'  => $inHouse > 0 ? $estimate['paybackMonths'] . ' months' : null,
         ]];
     }
 
