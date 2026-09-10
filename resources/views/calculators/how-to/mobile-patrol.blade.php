@@ -224,7 +224,7 @@
     <div class="text-center text-gasq-muted small mt-4 mb-2">
       <strong>GASQ — "Know Before You Buy" Pricing Tools</strong><br>
       Built for CFO-Level Cost Analysis.<br>
-      The Kelly Blue Book for Security Services Pricing.
+      The Financial Procurement System for Security Services&trade;
     </div>
 
     <div class="text-center mb-5">

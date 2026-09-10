@@ -16,7 +16,7 @@
         ['calendar', $num($d['weeklyCoverageHours']), 'Weekly Hours'],
         ['calendar', $num($d['monthlyCoverageHours']), 'Monthly Hours'],
         ['$', $money($d['baselineWage']), 'Workforce Baseline Assumption Labor Rate'],
-        ['%', $d['recoveryPct'] . '%', 'Operational Capital Recovered'],
+        ['%', $num($d['recoveryPct']) . '%', 'Operational Capital Recovered'],
         ['trend', $numDec($d['paybackMonths'], 1) . ' months', 'Payback & Recovery Period'],
     ];
 
@@ -51,7 +51,7 @@
   <div class="body-pad">
 
     {{-- ── Title + report meta ─────────────────────────────── --}}
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:{{ $masked ? 4 : 16 }}px;">
       <tr>
         <td style="vertical-align:top;">
           <p class="h1">GASQ COST TO PROTECT</p>
@@ -84,9 +84,9 @@
       <tr>
         @foreach([
             ['user', 'Vendor Contact', $d['contact']['name'] ?: '—', $d['contact']['company'], '25%'],
-            ['mail', 'Email', $d['contact']['email'] ?: '—', null, '25%'],
-            ['phone', 'Phone', $d['contact']['phone'] ?: '—', null, '24%'],
-            ['doc', 'Report Type', $reportType, null, '26%'],
+            ['mail', 'Email', $d['contact']['email'] ?: '—', null, '24%'],
+            ['phone', 'Phone', $d['contact']['phone'] ?: '—', null, '22%'],
+            ['doc', 'Report Type', $reportType, null, '29%'],
         ] as $i => [$icon, $label, $value, $second, $w])
           <td width="{{ $w }}" class="{{ $i === 3 ? 'last' : '' }}">
             <table width="100%" cellpadding="0" cellspacing="0">
@@ -109,12 +109,12 @@
       $kpiRows = [
         [
           ['stack', 'Buyer Internal Cost to Protect', 'bg-navy', 'tint-navy', $moneyK($d['totalAnnualInternal']), 'Total annual in-house cost', false],
-          ['chart', 'Annual Capital Recovery', 'bg-green', 'tint-green', $moneyK($d['annualCapitalRecovery']), $d['recoveryPct'] . '% recovered vs in-house', true],
+          ['chart', 'Annual Capital Recovery', 'bg-green', 'tint-green', $moneyK($d['annualCapitalRecovery']), $num($d['recoveryPct']) . '% recovered vs in-house', true],
           ['users', 'Vendor Outsourcing Cost to Protect', 'bg-orange', 'tint-orange', $moneyK($d['totalAnnualVendor']), 'Total annual vendor cost', false],
         ],
         [
           ['clock', 'Buyer Internal Cost to Protect Hourly Rate', 'bg-navy', 'tint-navy', $money($d['internalTcoHourly']), 'Buyer in-house cost per hour', false],
-          ['users', 'Total Staff Required', 'bg-navy', 'tint-navy', $d['ftesRequired'] . ' FTEs', 'To deliver scope', false],
+          ['users', 'Total Staff Required', 'bg-navy', 'tint-navy', $num($d['ftesRequired']) . ' FTEs', 'To deliver scope', false],
           ['clock', 'Vendor Outsourcing Cost to Protect Hourly Rate', 'bg-orange', 'tint-orange', $money($d['vendorTcoHourly']), 'Vendor rate offered', false],
         ],
       ];
@@ -157,12 +157,12 @@
             @foreach($assumptions as $i => [$icon, $value, $label])
               <td width="16.6%" style="padding:11px 6px; text-align:center; border-right:{{ $i === 5 ? '0' : '1px solid #e6ebf3' }};">
                 @if(in_array($icon, ['$', '%'], true))
-                  <p style="font-size:16px; font-weight:bold; color:#12294f; line-height:1;">{{ $icon }}</p>
+                  <p style="font-size:17px; font-weight:bold; color:#12294f; line-height:1;">{{ $icon }}</p>
                 @else
                   <table cellpadding="0" cellspacing="0" align="center"><tr><td><img src="{{ ReportSvg::icon($icon, '#12294f') }}" style="width:16px;height:16px;"></td></tr></table>
                 @endif
-                <p style="font-size:13.5px; font-weight:bold; color:#12294f; margin-top:5px;">{{ $value }}</p>
-                <p style="font-size:7px; color:#5b6779; margin-top:3px; line-height:1.35;">{{ $label }}</p>
+                <p style="font-size:14.5px; font-weight:bold; color:#12294f; margin-top:5px;">{{ $value }}</p>
+                <p style="font-size:7.5px; color:#5b6779; margin-top:3px; line-height:1.35;">{{ $label }}</p>
               </td>
             @endforeach
           </tr>
@@ -202,7 +202,7 @@
                       @foreach([[$d['totalAnnualInternal'], '#12294f'], [$d['totalAnnualVendor'], '#ef6c1f']] as [$val, $color])
                         <td width="50%" style="vertical-align:top; text-align:center;">
                           <div style="height:{{ $plotH - $barH($val) }}px;"></div>
-                          <p style="font-size:9px; font-weight:bold; color:#12294f; height:13px;">{{ $moneyK($val) }}</p>
+                          <p style="font-size:9.5px; font-weight:bold; color:#12294f; height:13px;">{{ $moneyK($val) }}</p>
                           <table cellpadding="0" cellspacing="0" width="58" align="center">
                             <tr><td style="height:{{ $barH($val) }}px; background:{{ $color }};"></td></tr>
                           </table>
@@ -220,8 +220,8 @@
                 <div style="margin-left:{{ $axisW }}px; width:{{ $plotW }}px; margin-top:6px;">
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                      <td width="50%" style="text-align:center;"><p style="font-size:7px; color:#5b6779; line-height:1.35;">Buyer Internal<br>Cost to Protect</p></td>
-                      <td width="50%" style="text-align:center;"><p style="font-size:7px; color:#5b6779; line-height:1.35;">Vendor Outsourcing<br>Cost to Protect</p></td>
+                      <td width="50%" style="text-align:center;"><p style="font-size:7.5px; color:#5b6779; line-height:1.35;">Buyer Internal<br>Cost to Protect</p></td>
+                      <td width="50%" style="text-align:center;"><p style="font-size:7.5px; color:#5b6779; line-height:1.35;">Vendor Outsourcing<br>Cost to Protect</p></td>
                     </tr>
                   </table>
                 </div>
@@ -232,12 +232,12 @@
                 <div style="margin-left:262px; width:126px; background:#e8f5ec; border:1px solid #bfe0cb; padding:14px 8px; text-align:center;">
                   <table cellpadding="0" cellspacing="0" align="center"><tr>
                     <td style="vertical-align:middle;"><img src="{{ ReportSvg::icon('arrow-down', '#16794a', 2.4) }}" style="width:20px;height:20px;"></td>
-                    <td style="vertical-align:middle; padding-left:3px;"><p style="font-size:27px; font-weight:bold; color:#16794a; line-height:1;">{{ $d['recoveryPct'] }}%</p></td>
+                    <td style="vertical-align:middle; padding-left:3px;"><p style="font-size:27px; font-weight:bold; color:#16794a; line-height:1;">{{ $num($d['recoveryPct']) }}%</p></td>
                   </tr></table>
-                  <p style="font-size:8px; font-weight:bold; color:#15794a; letter-spacing:.06em; margin-top:6px; line-height:1.4;">LOWER COST WITH<br>VENDOR OUTSOURCING</p>
+                  <p style="font-size:8.5px; font-weight:bold; color:#15794a; letter-spacing:.06em; margin-top:6px; line-height:1.4;">LOWER COST WITH<br>VENDOR OUTSOURCING</p>
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0;"><tr><td style="height:1px; background:#bfe0cb;"></td></tr></table>
                   <p style="font-size:17px; font-weight:bold; color:#16794a;">{{ $moneyK($d['annualCapitalRecovery']) }}</p>
-                  <p style="font-size:7px; color:#3f6b53; margin-top:4px; line-height:1.4;">in capital recovered<br>vs in-house</p>
+                  <p style="font-size:7.5px; color:#3f6b53; margin-top:4px; line-height:1.4;">in capital recovered<br>vs in-house</p>
                 </div>
               </div>
             </td></tr>
@@ -278,7 +278,7 @@
                 </div>
                 <div style="margin-top:-{{ max(0, $ringCursor - $centreTop) }}px; text-align:center;">
                   <p style="font-size:11.5px; font-weight:bold; color:#12294f;">{{ $moneyK($d['combinedAnnual']) }}</p>
-                  <p style="font-size:6.5px; color:#5b6779; margin-top:3px; line-height:1.35;">Total Combined<br>Annual Cost</p>
+                  <p style="font-size:7px; color:#5b6779; margin-top:3px; line-height:1.35;">Total Combined<br>Annual Cost</p>
                 </div>
               </div>
               {{-- legend --}}
@@ -291,8 +291,8 @@
                     <td width="14" style="vertical-align:middle; padding:4px 0;">
                       <table cellpadding="0" cellspacing="0" width="8"><tr><td style="height:8px; background:{{ $legend[0] }};"></td></tr></table>
                     </td>
-                    <td style="vertical-align:middle; padding:4px 0;"><p style="font-size:7.5px; color:#3c4a5e;">{{ $legend[1] }}</p></td>
-                    <td style="vertical-align:middle; padding:4px 0; text-align:right;"><p style="font-size:8px; font-weight:bold; color:#12294f;">{{ $moneyK($legend[2]) }}</p></td>
+                    <td style="vertical-align:middle; padding:4px 0;"><p style="font-size:8px; color:#3c4a5e;">{{ $legend[1] }}</p></td>
+                    <td style="vertical-align:middle; padding:4px 0; text-align:right;"><p style="font-size:8.5px; font-weight:bold; color:#12294f;">{{ $moneyK($legend[2]) }}</p></td>
                   </tr>
                 @endforeach
               </table>

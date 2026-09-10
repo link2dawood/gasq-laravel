@@ -32,8 +32,11 @@ class ReportService
      * Generate PDF for a calculator report by type.
      *
      * @param  array<string, mixed>  $payload  Must contain 'result' and optionally 'title', 'inputs', etc.
+     * @param  string|null  $openPassword  When set, the recipient must enter this
+     *         password to OPEN the file. The vendor chooses it per send and passes
+     *         it to the buyer out of band.
      */
-    public function calculatorPdf(string $type, array $payload): \Barryvdh\DomPDF\PDF
+    public function calculatorPdf(string $type, array $payload, ?string $openPassword = null): \Barryvdh\DomPDF\PDF
     {
         $view = match ($type) {
             'instant-estimator' => 'pdf.instant-estimator',
@@ -52,6 +55,9 @@ class ReportService
             //   'budget-calculator-allocation' → Workforce-to-Post allocation totals
             //     and line-item breakdown.
             'budget-calculator' => 'pdf.cost-to-protect-estimate',
+            // Same document with every figure masked — the free teaser a vendor
+            // sends before the buyer unlocks the real estimate.
+            'budget-calculator-preview' => 'pdf.cost-to-protect-estimate',
             'budget-calculator-allocation' => 'pdf.workforce-bill-rate-breakdown',
             // Generic standalone calculators (server-rendered PDF from latest session payload)
             'mobile-patrol-analysis',
@@ -71,23 +77,36 @@ class ReportService
             'reportType' => $type,
             'isBuyer' => $type === 'mobile-patrol-buyer',
             'reportScope' => $type === 'budget-calculator-allocation' ? 'allocation' : 'main',
+            'masked' => $type === 'budget-calculator-preview',
         ]);
 
         $pdf = $this->pdf()->loadView($view, $data)->setPaper('a4')->setWarnings(false);
 
-        return $this->restrictCopyAndPrint($pdf);
+        // The masked preview is meant to be forwarded freely, so it is never
+        // locked shut — there are no figures in it to protect.
+        return $this->restrictCopyAndPrint(
+            $pdf,
+            $type === 'budget-calculator-preview' ? null : $openPassword,
+        );
     }
 
     /**
-     * Apply PDF permission flags that disable copying text and printing.
+     * Encrypt the report: optionally require a password to open it, and restrict
+     * what a recipient may do once it is open.
      *
-     * Note: these are advisory restrictions honoured by compliant readers
-     * (Acrobat, Preview, Chrome). They are a deterrent, not true security —
-     * they can be stripped by third-party tools and never stop screenshots.
-     * A random owner password locks the permissions; recipients still open
-     * the file without any password (empty user password).
+     * Printing is ALLOWED. Copying, modifying and annotating are denied. A buyer
+     * who has paid for the estimate needs to be able to print it; the earlier
+     * blanket print ban only produced a password prompt at the printer.
+     *
+     * Note: permissions are advisory — honoured by compliant readers (Acrobat,
+     * Preview, Chrome), strippable by third-party tools, and never a defence
+     * against a screenshot. The open password is the real lock: without it the
+     * file's contents cannot be read at all.
+     *
+     * @param  string|null  $openPassword  Non-empty ⇒ the reader must enter it to
+     *         open the document. Null/empty ⇒ opens freely, as before.
      */
-    private function restrictCopyAndPrint(\Barryvdh\DomPDF\PDF $pdf): \Barryvdh\DomPDF\PDF
+    private function restrictCopyAndPrint(\Barryvdh\DomPDF\PDF $pdf, ?string $openPassword = null): \Barryvdh\DomPDF\PDF
     {
         // The canvas only exists after rendering, so render up front; the
         // wrapper sets its "rendered" flag, so download()/output() won't
@@ -96,14 +115,22 @@ class ReportService
 
         $canvas = $pdf->getDomPDF()->getCanvas();
         if (method_exists($canvas, 'get_cpdf')) {
-            // Empty permissions array grants nothing beyond viewing:
-            // print, copy, modify and annotate are all denied for recipients
-            // (they open with no password). The OWNER password is the master
-            // override — anyone who enters it in a PDF reader can print/copy.
-            // If no master password is configured, fall back to a random one
-            // (fully locked, no override).
+            // The OWNER password is GASQ's master override — entering it in a PDF
+            // reader lifts the restrictions below. Without one configured we fall
+            // back to a random password, i.e. nobody can lift them.
             $ownerPassword = (string) (config('services.gasq.report_master_password') ?: \Illuminate\Support\Str::random(32));
-            $canvas->get_cpdf()->setEncryption('', $ownerPassword, []);
+
+            // PDF passwords are truncated to 32 bytes by the format itself; trim
+            // rather than silently hand the recipient a password that will not work.
+            $userPassword = mb_substr(trim((string) $openPassword), 0, 32);
+
+            // An owner password identical to the user password would let the
+            // recipient lift every restriction just by opening the file.
+            if ($userPassword !== '' && $userPassword === $ownerPassword) {
+                $ownerPassword = \Illuminate\Support\Str::random(32);
+            }
+
+            $canvas->get_cpdf()->setEncryption($userPassword, $ownerPassword, ['print']);
         }
 
         return $pdf;
@@ -129,6 +156,7 @@ class ReportService
         // internal calculator slug.
         $slug = match ($type) {
             'budget-calculator' => 'Cost-to-Protect-Estimate',
+            'budget-calculator-preview' => 'Cost-to-Protect-Estimate-LOCKED-PREVIEW',
             'budget-calculator-allocation' => 'Workforce-to-Post-Allocation',
             default => str_replace(' ', '-', $type),
         };

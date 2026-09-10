@@ -383,7 +383,9 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
 
     // PDF reports: download receipt, download/email calculator report
     Route::get('/reports/receipt/{transaction}', [App\Http\Controllers\ReportController::class, 'downloadReceipt'])->name('reports.receipt');
-    Route::get('/reports/download', [App\Http\Controllers\ReportController::class, 'downloadReport'])->name('reports.download');
+    // GET keeps every existing download link working; POST exists so a report
+    // carrying an open-password submits it in the body rather than the URL.
+    Route::match(['get', 'post'], '/reports/download', [App\Http\Controllers\ReportController::class, 'downloadReport'])->name('reports.download');
     Route::post('/reports/email', [App\Http\Controllers\ReportController::class, 'emailReport'])->name('reports.email');
 });
 

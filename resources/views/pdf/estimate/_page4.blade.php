@@ -31,7 +31,7 @@
   <div class="body-pad">
 
     {{-- ── Title + report information ──────────────────────── --}}
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:{{ $masked ? 4 : 16 }}px;">
       <tr>
         <td style="vertical-align:top;">
           <p class="h1" style="font-size:25px;">CERTIFICATION, INTELLECTUAL</p>

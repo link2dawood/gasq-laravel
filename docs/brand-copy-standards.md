@@ -16,7 +16,7 @@ Use these terms for these purposes — do not blur the levels.
 |---|---|---|
 | Company / brand | **GetASecurityQuoteNow** / **GASQ** | The company. Full name on first mention; "GASQ" thereafter. |
 | Category | **Security Procurement Intelligence** | What kind of product GASQ is. |
-| Platform positioning | **The Financial Operating System for Security Procurement™** | Supporting positioning line — never the *sole* explanation of the product. |
+| Platform positioning | **The Financial Procurement System for Security Services™** | Supporting positioning line — never the *sole* explanation of the product. |
 | Primary methodology | **Cost to Protect™** | GASQ's independent cost calculation. |
 | Procurement process | **Validate Before You Estimate™** | The order of operations we teach buyers. |
 | Workforce / pricing analysis | **Workforce-to-Post™** | The staffing/bill-rate breakdown. |
@@ -41,11 +41,30 @@ Write these **exactly** as shown:
 - **GASQ Certified™**
 - **Validate Before You Estimate™**
 - **Know Before You Buy** (buyers) · **Know Before You Bid** (vendors) — pick the one that matches the audience
-- **The Financial Operating System for Security Procurement™**
+- **The Financial Procurement System for Security Services™**
 
 Do **not** write: "cost to protect" (lowercase as a product name), "Cost To
 Protect" (over-capitalized "To"), "Workforce to Post" (missing hyphens),
 "GASQ certified" (lowercase c).
+
+### Retired — never use
+
+- **"The Kelley Blue Book of Security Pricing"** — and any variant, including the
+  misspelled *"Kelly Blue Book"* and *"the Kelley Blue Book for Security Services
+  Pricing"*. Kelley Blue Book is another company's trademark; comparing GASQ to it
+  in any form is out. Use *The Financial Procurement System for Security Services™*
+  in its place.
+- **"The Financial Operating System for Security Procurement"** — superseded by
+  *The Financial Procurement System for Security Services™*. One positioning line,
+  not two near-identical ones.
+
+### Approved brand structure
+
+Use these three lines together, in this order, wherever the brand is introduced:
+
+> **Get A Security Quote™**
+> **The Financial Procurement System for Security Services™**
+> **Know Before You Buy. Qualifications First. Price Last.**
 
 ---
 
@@ -109,7 +128,7 @@ as a lead marketplace or a quote aggregator.
 - **Know What Security Should Cost Before You Buy.** (primary buyer promise / H1)
 - **Know Before You Buy.** (buyers) · **Know Before You Bid.** (vendors)
 - **Built for CFO-Level Cost Analysis.**
-- **The Kelley Blue Book of Security Pricing™** · **The Industry Pricing Referee™**
+- **The Financial Procurement System for Security Services™** · **The Industry Pricing Referee™**
 
 ---
 

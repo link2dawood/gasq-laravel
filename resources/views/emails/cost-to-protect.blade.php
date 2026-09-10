@@ -69,9 +69,12 @@
 Get A Security Quote (GASQ) Team</p>
 
 <p style="color:#475569;">
-    The Kelley Blue Book of Security Pricing™<br>
+    Get A Security Quote™<br>
+    The Financial Procurement System for Security Services™<br>
     The Industry Pricing Referee™
 </p>
+
+<p style="color:#475569; font-weight:bold;">Know Before You Buy. Qualifications First. Price Last.</p>
 
 <hr style="border:none; border-top:1px solid #cbd5e1; margin:20px 0;">
 

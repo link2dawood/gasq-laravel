@@ -13,7 +13,7 @@
         ['Total Annual Hours of Coverage', $num($d['annualCoverageHours']), $num($d['annualCoverageHours'])],
         ['Total Weeks of Coverage', $num($d['weeksPerYear']), $num($d['weeksPerYear'])],
         ['Total Months of Coverage', $numDec($d['monthsOfCoverage'], 1), $numDec($d['monthsOfCoverage'], 1)],
-        ['Total Workforce Required for Coverage', (string) $d['ftesRequired'], (string) $d['ftesRequired']],
+        ['Total Workforce Required for Coverage', $num($d['ftesRequired']), $num($d['ftesRequired'])],
         ['Total Weekly Cost', $money($d['totalWeeklyInternal']), $money($d['totalWeeklyVendor'])],
         ['Total Monthly Cost', $money($d['totalMonthlyInternal']), $money($d['totalMonthlyVendor'])],
     ];
@@ -34,7 +34,7 @@
     // axis, the rest for the plot.
     $axisW = 52;
     $groupPlotW = 299;
-    $groupPlotH = 118;
+    $groupPlotH = 108;
 @endphp
 
 <div class="page page-break">
@@ -42,7 +42,7 @@
 
   <div class="body-pad">
 
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:{{ $masked ? 4 : 14 }}px;">
       <tr>
         <td style="vertical-align:top;">
           <p class="h1" style="font-size:25px;">DETAILED COST APPRAISAL COMPARISON</p>
@@ -57,8 +57,8 @@
         @foreach([
             ['stack', 'Buyer Internal Annual Cost', 'bg-navy', 'tint-navy', $moneyK($d['totalAnnualInternal']), 'Total annual in-house cost', false],
             ['users', 'Vendor Outsourcing Annual Cost', 'bg-orange', 'tint-orange', $moneyK($d['totalAnnualVendor']), 'Total annual vendor cost', false],
-            ['chart', 'Operational Capital Recovered', 'bg-green', 'tint-green', $moneyK($d['annualCapitalRecovery']), $d['recoveryPct'] . '% recovered vs in-house', true],
-            ['users', 'Total Staff Required', 'bg-navy', 'tint-navy', (string) $d['ftesRequired'], 'FTEs to deliver scope', false],
+            ['chart', 'Operational Capital Recovered', 'bg-green', 'tint-green', $moneyK($d['annualCapitalRecovery']), $num($d['recoveryPct']) . '% recovered vs in-house', true],
+            ['users', 'Total Staff Required', 'bg-navy', 'tint-navy', $num($d['ftesRequired']), 'FTEs to deliver scope', false],
         ] as $c => [$icon, $label, $headClass, $bodyClass, $value, $sub, $isGreen])
           @if($c > 0)<td width="8"></td>@endif
           <td width="24%" style="vertical-align:top;">
@@ -70,7 +70,7 @@
                 </tr></table>
               </td></tr>
               <tr><td class="kpi-body {{ $bodyClass }} {{ $isGreen ? 'green' : '' }}" style="padding:12px 8px 11px;">
-                <p class="num" style="font-size:22px;">{{ $value }}</p>
+                <p class="num" style="font-size:23px;">{{ $value }}</p>
                 <p class="sub">{{ $sub }}</p>
               </td></tr>
             </table>
@@ -91,8 +91,8 @@
     <table class="dtable" cellpadding="0" cellspacing="0">
       <tr class="head">
         <td>Description</td>
-        <td class="v" width="180">Buyer Internal Cost to Protect</td>
-        <td class="v" width="180">Vendor Outsourcing Cost to Protect</td>
+        <td class="v" width="168">Buyer Internal Cost to Protect</td>
+        <td class="v" width="168">Vendor Outsourcing Cost to Protect</td>
       </tr>
       @foreach($rows as $i => [$label, $internal, $vendor])
         <tr class="{{ $i % 2 === 1 ? 'alt' : '' }}">
@@ -114,7 +114,7 @@
       <tr class="recover">
         <td>Operational Capital Recovered (%)</td>
         <td class="v">—</td>
-        <td class="v">{{ $d['recoveryPct'] }}%</td>
+        <td class="v">{{ $num($d['recoveryPct']) }}%</td>
       </tr>
       <tr class="recover">
         <td>Payback &amp; Recovery Period</td>
@@ -151,7 +151,7 @@
                 <tr>
                   @foreach([['#12294f', 'Buyer Internal Cost'], ['#ef6c1f', 'Vendor Outsourcing Cost']] as $lg)
                     <td width="12" style="vertical-align:middle;"><table cellpadding="0" cellspacing="0" width="7"><tr><td style="height:7px; background:{{ $lg[0] }};"></td></tr></table></td>
-                    <td style="vertical-align:middle; padding-right:12px;"><p style="font-size:6.5px; color:#3c4a5e;">{{ $lg[1] }}</p></td>
+                    <td style="vertical-align:middle; padding-right:12px;"><p style="font-size:7px; color:#3c4a5e;">{{ $lg[1] }}</p></td>
                   @endforeach
                 </tr>
               </table>
@@ -171,7 +171,7 @@
                             @foreach([[$g[1], '#12294f'], [$g[2], '#ef6c1f']] as [$val, $color])
                               <td width="50%" style="vertical-align:top; text-align:center;">
                                 <div style="height:{{ $groupPlotH - $gBarH($val) }}px;"></div>
-                                <p style="font-size:6.5px; font-weight:bold; color:#12294f; height:11px;">{{ $moneyK($val) }}</p>
+                                <p style="font-size:7px; font-weight:bold; color:#12294f; height:11px;">{{ $moneyK($val) }}</p>
                                 <table cellpadding="0" cellspacing="0" width="24" align="center">
                                   <tr><td style="height:{{ $gBarH($val) }}px; background:{{ $color }};"></td></tr>
                                 </table>
@@ -195,7 +195,7 @@
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     @foreach($groups as $g)
-                      <td width="33%" style="text-align:center;"><p style="font-size:6.5px; color:#5b6779;">{{ $g[0] }}</p></td>
+                      <td width="33%" style="text-align:center;"><p style="font-size:7px; color:#5b6779;">{{ $g[0] }}</p></td>
                     @endforeach
                   </tr>
                 </table>

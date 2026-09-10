@@ -1,4 +1,11 @@
-@props(['reportType', 'label' => 'Download or email this report'])
+@props([
+    'reportType',
+    'label' => 'Download or email this report',
+    // Offer the vendor a password that the buyer must type to OPEN the PDF.
+    // The password is never emailed with the file — the vendor passes it on
+    // separately (phone/text), which is the whole point of setting one.
+    'passwordProtect' => false,
+])
 @php
     $type = $reportType; // calculator type used by ReportController/ReportService
     // Only preparers (vendors/admins) can attach on-site survey notes/photos.
@@ -14,7 +21,16 @@
          calculator inputs on it — survive an email send. --}}
     <div class="report-email-status alert py-2 px-3 small d-none" role="status"></div>
     <div class="d-flex flex-wrap gap-2 align-items-start">
-        <a href="{{ route('reports.download', ['type' => $type]) }}" class="report-download-link btn btn-sm btn-outline-primary">Download PDF</a>
+        {{-- POST when a password may be attached, so it travels in the body and
+             never lands in browser history or the server's access log. --}}
+        <form action="{{ route('reports.download') }}" method="{{ $passwordProtect ? 'POST' : 'GET' }}" class="report-download-form">
+            @if($passwordProtect)
+                @csrf
+                <input type="hidden" name="pdf_password" class="report-password-mirror" value="">
+            @endif
+            <input type="hidden" name="type" value="{{ $type }}">
+            <button type="submit" class="report-download-link btn btn-sm btn-outline-primary">Download PDF</button>
+        </form>
         <form action="{{ route('reports.email') }}" method="POST" enctype="multipart/form-data" class="report-email-form d-flex flex-column gap-2">
             @csrf
             <input type="hidden" name="type" value="{{ $type }}">
@@ -23,6 +39,12 @@
                 <input type="text" name="email2" class="form-control form-control-sm" placeholder="Second email (optional)" style="width: 200px;">
                 <button type="submit" class="report-email-submit btn btn-sm btn-outline-secondary">Email report</button>
             </div>
+            @if($passwordProtect)
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <input type="text" name="pdf_password" class="report-password-input form-control form-control-sm" placeholder="Password to open the PDF (optional)" maxlength="32" autocomplete="off" style="width: 260px;">
+                    <span class="form-text mb-0">Leave blank and the PDF opens normally. If you set one, the buyer must type it to open the file &mdash; give it to them by phone or text, not in this email.</span>
+                </div>
+            @endif
             @if($canAttach)
                 {{-- On-site survey: attach notes + photos/files that email with the report. --}}
                 <details class="small">
@@ -108,6 +130,17 @@ document.addEventListener('submit', async function (event) {
             button.textContent = originalLabel || 'Email report';
         }
     }
+});
+
+// Keep the Download button's hidden password in step with the one typed in the
+// email row, so both routes produce an identically locked file.
+document.addEventListener('input', function (event) {
+    const field = event.target.closest('.report-password-input');
+    if (!field) return;
+
+    const block = field.closest('.report-actions');
+    const mirror = block?.querySelector('.report-password-mirror');
+    if (mirror) mirror.value = field.value;
 });
 </script>
 @endpush

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'GASQ® — The Financial Operating System for Security Procurement™')
+@section('title', 'GASQ® — The Financial Procurement System for Security Services™')
 
 @push('styles')
 <style>

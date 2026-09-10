@@ -29,3 +29,23 @@
     </td>
   </tr>
 </table>
+
+@if(! empty($masked))
+  {{-- Locked preview: unmistakable on every page, so a masked teaser is never
+       mistaken for the real estimate. --}}
+  <table width="794" cellpadding="0" cellspacing="0" style="background:#12294f;">
+    <tr>
+      <td style="padding:5px 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td width="22" style="vertical-align:middle;"><img src="{{ \App\Support\ReportSvg::icon('shield', '#ef6c1f') }}" style="width:13px;height:13px;"></td>
+          <td style="vertical-align:middle;">
+            <p style="font-size:8px; font-weight:bold; color:#ffffff; letter-spacing:.09em;">LOCKED PREVIEW — FIGURES WITHHELD</p>
+          </td>
+          <td style="vertical-align:middle; text-align:right;">
+            <p style="font-size:7.5px; color:#a9bad4;">Unlock this estimate to reveal every figure</p>
+          </td>
+        </tr></table>
+      </td>
+    </tr>
+  </table>
+@endif

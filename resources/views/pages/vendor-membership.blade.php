@@ -233,7 +233,7 @@
   <section class="vm-hero">
     <div class="vm-wrap">
       <div>
-        <div class="vm-eyebrow">The Financial Operating System for Security Procurement&trade;</div>
+        <div class="vm-eyebrow">The Financial Procurement System for Security Services&trade;</div>
         <h1>Win <span class="vm-accent">verified</span> security contracts. Never pay for another dead lead.</h1>
         <p class="vm-lead">
           GASQ Procurement Credits&trade; give qualified security providers verified opportunities, independent
@@ -286,7 +286,7 @@
           </ul>
         </div>
         <div class="vm-new">
-          <span class="vm-tag">GASQ Financial Operating System&trade;</span>
+          <span class="vm-tag">GASQ Procurement System&trade;</span>
           <h3>Procurement-based participation</h3>
           <ul>
             <li><span class="vm-c">&checkmark;</span><span>Verified decision-maker, approved budget, scope &amp; start date</span></li>

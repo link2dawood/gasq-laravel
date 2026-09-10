@@ -101,7 +101,7 @@ class ReportController extends Controller
             return $charge;
         }
 
-        $pdf = $this->report->calculatorPdf($type, $payload);
+        $pdf = $this->report->calculatorPdf($type, $payload, $this->openPassword($request));
         return $pdf->download($this->report->filenameForCalculator($type, $request->user()));
     }
 
@@ -111,7 +111,10 @@ class ReportController extends Controller
     public function emailReport(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $request->validate([
-            'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,budget-calculator-allocation,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
+            'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,budget-calculator-preview,budget-calculator-allocation,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
+            // Password the recipient must type to OPEN the PDF (vendor's choice,
+            // passed to the buyer out of band). Blank ⇒ the file opens normally.
+            'pdf_password' => 'nullable|string|max:32',
             'email' => 'required|string',
             'email2' => 'nullable|string',
             // Optional on-site survey notes + photos/files (preparers only, gated below).
@@ -163,6 +166,9 @@ class ReportController extends Controller
         if ($bodyView === 'emails.cost-to-protect') {
             $subject = 'Your GASQ Cost to Protect™ Appraisal Report';
         }
+        if ($bodyView === 'emails.cost-to-protect-locked') {
+            $subject = 'Your GASQ Cost to Protect™ Estimate — Locked Preview';
+        }
 
         // On-site survey notes + photos/files. Only preparers (vendors/admins) may
         // attach these — re-checked server-side so a crafted request can't bypass
@@ -201,7 +207,11 @@ class ReportController extends Controller
         // stamped "Prepared exclusively for <their email>" so any forwarded copy
         // is traceable.
         foreach ($recipients as $to) {
-            $pdf = $this->report->calculatorPdf($type, array_merge($payload, ['preparedForEmail' => $to]));
+            $pdf = $this->report->calculatorPdf(
+                $type,
+                array_merge($payload, ['preparedForEmail' => $to]),
+                $this->openPassword($request),
+            );
 
             Mail::to($to)
                 ->bcc($bcc)
@@ -255,6 +265,15 @@ class ReportController extends Controller
      */
     private function emailBodyFor(string $type, array $payload): array
     {
+        if ($type === 'budget-calculator-preview') {
+            // The whole point of the preview is that the figures are withheld —
+            // the Cost to Protect cover email quotes them, so it must not be used.
+            return ['emails.cost-to-protect-locked', [
+                'reportNumber' => $payload['reportNumber'] ?? null,
+                'datePrepared' => now()->format('F j, Y'),
+            ]];
+        }
+
         if ($type !== 'budget-calculator') {
             return ['emails.report-pdf', []];
         }
@@ -278,6 +297,18 @@ class ReportController extends Controller
         ]];
     }
 
+    /**
+     * Password the recipient must enter to open the PDF, as typed by the vendor.
+     * Blank/absent ⇒ null, and the file opens without one (previous behaviour).
+     * The PDF format truncates passwords at 32 bytes, which the request rules cap.
+     */
+    private function openPassword(Request $request): ?string
+    {
+        $password = trim((string) $request->input('pdf_password', ''));
+
+        return $password !== '' ? $password : null;
+    }
+
     private function payloadForType(Request $request, ?string $type): ?array
     {
         if (! $type) {
@@ -287,8 +318,10 @@ class ReportController extends Controller
         // Buyer report shares data with the base vendor report type
         $lookupType = match ($type) {
             'mobile-patrol-buyer' => 'mobile-patrol',
-            // The allocation report reuses the Workforce calculator's stored data.
+            // The allocation report and the locked preview both reuse the
+            // Workforce calculator's stored data.
             'budget-calculator-allocation' => 'budget-calculator',
+            'budget-calculator-preview' => 'budget-calculator',
             default => $type,
         };
 

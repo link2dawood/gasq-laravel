@@ -16,19 +16,29 @@
 
     $d = app(CostToProtectEstimate::class)->build((array) ($scenario ?? []), $user ?? null);
 
+    // Locked preview: every figure keeps its shape but loses its digits
+    // ($538,769 → $•••,•••), so the buyer sees the full analysis and none of the
+    // numbers. A PDF cannot reveal content on a password — encryption is
+    // all-or-nothing — so the unlocked figures live in a separate document.
+    $masked = (bool) ($masked ?? false);
+
     // ReportService passes the calculator slug as $reportType; the document shows
     // the human label instead.
-    $reportType = 'Vendor — Full Report';
+    $reportType = $masked ? 'Locked Preview — Figures Withheld' : 'Vendor — Full Report';
     $pages = 4;
     $reportNumber = $reportNumber ?? ('GASQ-' . now()->format('Ymd-His') . '-V' . (int) ($vendorId ?? 0));
     $reportDate = now()->format('F j, Y');
     $orgName = $d['contact']['company'] ?: 'GASQ Security';
-    $docTitle = 'GASQ Cost to Protect Estimate Dashboard';
+    $docTitle = 'GASQ Cost to Protect Estimate Dashboard' . ($masked ? ' (Locked Preview)' : '');
 
-    $money   = fn ($v) => Currency::format($v, 2);
-    $moneyK  = fn ($v) => Currency::format($v, 0);
-    $num     = fn ($v) => number_format((float) $v);
-    $numDec  = fn ($v, $dp = 1) => number_format((float) $v, $dp);
+    $veil = fn (string $formatted) => $masked
+        ? preg_replace('/\d/', '•', $formatted)
+        : $formatted;
+
+    $money   = fn ($v) => $veil(Currency::format($v, 2));
+    $moneyK  = fn ($v) => $veil(Currency::format($v, 0));
+    $num     = fn ($v) => $veil(number_format((float) $v));
+    $numDec  = fn ($v, $dp = 1) => $veil(number_format((float) $v, $dp));
 
     /**
      * Chart axis that lands on human numbers: step snapped to 1/2/2.5/5/10 × the
