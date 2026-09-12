@@ -219,6 +219,7 @@ DEPLOY_WORKFLOW ?= deploy.yml
 DEPLOY_BRANCH ?= main
 BETA_URL ?= https://beta.getasecurityquotenow.com
 GH_API = https://api.github.com/repos/$(REPO)
+GH_ACTIONS_URL = https://github.com/$(REPO)/actions
 TOKEN = $(or $(GITHUB_TOKEN),$(GH_TOKEN))
 CURL_GH = curl -sS -H "Accept: application/vnd.github+json" $(if $(TOKEN),-H "Authorization: Bearer $(TOKEN)",)
 
@@ -229,7 +230,7 @@ deploy:
 	@test -z "$$(git status --porcelain)" \
 		|| (echo "ERROR: working tree is dirty — commit or stash first"; git status --short; exit 1)
 	git push origin $(DEPLOY_BRANCH)
-	@$(MAKE) --no-print-directory deploy-watch
+	@$(MAKE) --no-print-directory deploy-watch DEPLOY_SHA=$$(git rev-parse HEAD)
 
 # Re-deploy the current main without a new commit (manual workflow_dispatch).
 deploy-run:
@@ -237,7 +238,6 @@ deploy-run:
 	@$(CURL_GH) -X POST "$(GH_API)/actions/workflows/$(DEPLOY_WORKFLOW)/dispatches" \
 		-d '{"ref":"$(DEPLOY_BRANCH)"}' \
 		&& echo "Deploy requested on $(DEPLOY_BRANCH)."
-	@sleep 5
 	@$(MAKE) --no-print-directory deploy-watch
 
 # Last five deploy runs: when, status, commit.
@@ -245,20 +245,34 @@ deploy-status:
 	@$(CURL_GH) "$(GH_API)/actions/workflows/$(DEPLOY_WORKFLOW)/runs?per_page=5" \
 		| jq -r '.workflow_runs[] | "\(.created_at)  \(.status)/\(.conclusion // "-")  \(.head_sha[0:7])  \(.head_commit.message | split("\n")[0])"'
 
-# Poll the newest deploy run until it finishes.
+# Poll a deploy run until it finishes. DEPLOY_SHA=<sha> waits for the run for
+# that commit — without it a just-pushed commit reports the PREVIOUS run's
+# result, because GitHub takes a few seconds to register the new one.
 # The JSON goes to a temp file rather than a shell variable: `echo` mangles the
 # escaped newlines inside commit messages and jq then chokes on the result.
 deploy-watch:
-	@tmp=$$(mktemp); \
+	@tmp=$$(mktemp); waited=0; \
 	while :; do \
-		$(CURL_GH) "$(GH_API)/actions/workflows/$(DEPLOY_WORKFLOW)/runs?per_page=1" -o "$$tmp"; \
-		status=$$(jq -r '.workflow_runs[0].status' "$$tmp"); \
-		concl=$$(jq -r '.workflow_runs[0].conclusion // "-"' "$$tmp"); \
-		url=$$(jq -r '.workflow_runs[0].html_url' "$$tmp"); \
-		echo "  $$status/$$concl  $$url"; \
-		if [ "$$status" = "completed" ]; then \
+		$(CURL_GH) "$(GH_API)/actions/workflows/$(DEPLOY_WORKFLOW)/runs?per_page=10" -o "$$tmp"; \
+		if [ -n "$(DEPLOY_SHA)" ]; then \
+			row=$$(jq -r --arg sha "$(DEPLOY_SHA)" '.workflow_runs[] | select(.head_sha==$$sha) | "\(.status) \(.conclusion // "-") \(.html_url)"' "$$tmp" | head -1); \
+		else \
+			row=$$(jq -r '.workflow_runs[0] | "\(.status) \(.conclusion // "-") \(.html_url)"' "$$tmp"); \
+		fi; \
+		if [ -z "$$row" ]; then \
+			waited=$$((waited + 10)); \
+			if [ $$waited -gt 180 ]; then \
+				echo "No run for $(DEPLOY_SHA) after 3 minutes — check $(GH_ACTIONS_URL)"; \
+				rm -f "$$tmp"; exit 1; \
+			fi; \
+			echo "  waiting for the run to start ($${waited}s)"; \
+			sleep 10; continue; \
+		fi; \
+		set -- $$row; \
+		echo "  $$1/$$2  $$3"; \
+		if [ "$$1" = "completed" ]; then \
 			rm -f "$$tmp"; \
-			[ "$$concl" = "success" ] || { echo "Deploy failed — see the run above."; exit 1; }; \
+			[ "$$2" = "success" ] || { echo "Deploy failed — open the run above."; exit 1; }; \
 			break; \
 		fi; \
 		sleep 15; \
