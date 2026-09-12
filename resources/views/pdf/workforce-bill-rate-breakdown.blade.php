@@ -1,5 +1,23 @@
+{{--
+    GASQ Workforce-to-Post™ Report — ALLOCATION & LINE-ITEM DASHBOARD.
+
+    The companion document to the master Cost to Protect™ estimate: it breaks the
+    vendor contract value down into allocation groups and line items. Pages:
+      1. Executive cost dashboard   — stated total, group totals, allocation mix
+      2. Line-item cost composition — full breakdown + stated-included elements
+      3. GASQ Certified™ statement  — methodology, certification, IP, disclaimer
+
+    Every figure comes from App\Services\CostToProtectEstimate so this document
+    and the master estimate can never disagree. Percentages and amounts are shown
+    exactly as the scenario carries them: where the displayed group amounts do not
+    add up to the stated contract value, the report flags the variance rather than
+    quietly adjusting a figure.
+--}}
 @php
-    // ---------- Pull inputs from the calculator's session scenario ----------
+    use App\Services\CostToProtectEstimate;
+    use App\Support\Currency;
+
+    // ---------- Allocation percentages from the calculator's session scenario ----------
     $meta = data_get($scenario ?? [], 'meta', []);
     $alloc = (array) data_get($meta, 'allocations', []);
 
@@ -29,67 +47,27 @@
             }
         }
     }
+
     // ---------- GASQ Cost to Protect™ figures ----------
-    // Shared with pdf.cost-to-protect-estimate (the master estimate) so the two
-    // documents can never report different numbers off the same scenario.
-    $estimate = app(\App\Services\CostToProtectEstimate::class)->build((array) ($scenario ?? []), $user ?? null);
-
-    $totalBudget          = $estimate['annualBudget'];
-    $baselineWage         = $estimate['baselineWage'];
-    $weeksPerYear         = $estimate['weeksPerYear'];
-    $weeklyCoverageHours  = $estimate['weeklyCoverageHours'];
-    $monthlyCoverageHours = $estimate['monthlyCoverageHours'];
-    $annualCoverageHours  = $estimate['annualCoverageHours'];
-    $ftesRequired         = $estimate['ftesRequired'];
-    $internalTcoHourly    = $estimate['internalTcoHourly'];
-    $vendorTcoHourly      = $estimate['vendorTcoHourly'];
-    $internalOt           = $estimate['internalOtHourly'];
-    $vendorOt             = $estimate['vendorOtHourly'];
-    $annualPerInt         = $estimate['annualPerInternalFte'];
-    $annualPerVend        = $estimate['annualPerVendorFte'];
-    $totalWeeklyInt       = $estimate['totalWeeklyInternal'];
-    $totalWeeklyVend      = $estimate['totalWeeklyVendor'];
-    $totalMonthlyInt      = $estimate['totalMonthlyInternal'];
-    $totalMonthlyVend     = $estimate['totalMonthlyVendor'];
-    $totalAnnualInt       = $estimate['totalAnnualInternal'];
-    $totalAnnualVend      = $estimate['totalAnnualVendor'];
-    $annualCapitalRecovery = $estimate['annualCapitalRecovery'];
-    $recoveryPct          = $estimate['recoveryPct'];
-    $paybackMonths        = $estimate['paybackMonths'];
-
-    // ---------- Allocation group totals ----------
-    $directLaborKeys = ['baseDirectLaborWage', 'localityPay', 'laborMarketAdjustment', 'hwCash', 'shiftDifferential', 'otHolidayPremium', 'donDoff'];
-    $fringeKeys = ['ficaMedicare', 'futa', 'suta', 'workersCompensation', 'healthWelfare', 'vacation', 'paidHolidays', 'sickLeave'];
-    $opsKeys = ['recruitingHiring', 'trainingCertification', 'uniformsEquipment', 'fieldSupervision', 'contractManagement', 'qualityAssurance', 'vehiclesPatrol', 'technologySystems', 'generalLiabilityInsurance', 'umbrellaOtherInsurance'];
-    $ohKeys = ['administrativeHrPayroll', 'accountingLegal', 'corporateOverhead', 'ga', 'profitFee'];
-
-    $sumGroup = static function (array $keys, array $alloc): float {
-        $sum = 0.0;
-        foreach ($keys as $k) {
-            if (isset($alloc[$k]) && is_numeric($alloc[$k])) $sum += (float) $alloc[$k];
-        }
-        return $sum;
-    };
-
-    $directLaborPct = $sumGroup($directLaborKeys, $alloc);
-    $fringePct = $sumGroup($fringeKeys, $alloc);
-    $opsPct = $sumGroup($opsKeys, $alloc);
-    $ohPct = $sumGroup($ohKeys, $alloc);
-
-    $totalKnownPct = $directLaborPct + $fringePct + $opsPct + $ohPct;
-    if ($totalKnownPct > 0 && abs(100 - $totalKnownPct) > 0.1) {
-        $factor = 100 / $totalKnownPct;
-        $directLaborPct *= $factor; $fringePct *= $factor; $opsPct *= $factor; $ohPct *= $factor;
-    }
+    $estimate = app(CostToProtectEstimate::class)->build((array) ($scenario ?? []), $user ?? null);
 
     // Allocation 100% base = the VENDOR total (not the buyer in-house total):
     // the line-item allocations break down the vendor's contract value.
-    $allocationBase = $totalAnnualVend;
+    $allocationBase = $estimate['totalAnnualVendor'];
 
-    // Line items
+    // ---------- Allocation groups and line items ----------
+    // Mix colours and the short labels the dashboard bars use, per config group.
+    $groupStyles = [
+        'directLabor'       => ['#1e3558', 'Direct Labor', 'direct labor'],
+        'fringeBurden'      => ['#d2a03f', 'Fringe & Burden', 'fringe and employer burden'],
+        'operationsSupport' => ['#9fb4d4', 'Ops & Support', 'operations and contract support'],
+        'overheadProfit'    => ['#64789c', 'OH, G&A & Profit', 'overhead, G&A and profit'],
+    ];
+    $fallbackColors = ['#1e3558', '#d2a03f', '#9fb4d4', '#64789c', '#3f6ea8', '#8aa0c0'];
+
     $budgetConfig = (array) config('budget_calculator', []);
     $lineGroups = [];
-    foreach (($budgetConfig['groups'] ?? []) as $cfgGroup) {
+    foreach (($budgetConfig['groups'] ?? []) as $g => $cfgGroup) {
         $items = [];
         $groupPct = 0.0;
         foreach (($cfgGroup['items'] ?? []) as $item) {
@@ -101,13 +79,120 @@
             if (round($itemAmount, 2) <= 0) continue;
             $items[] = ['label' => $item['label'] ?? $key, 'pct' => $itemPct, 'amount' => $itemAmount];
         }
+        [$color, $short, $readoutName] = $groupStyles[$cfgGroup['key'] ?? ''] ?? [
+            $fallbackColors[$g % count($fallbackColors)],
+            $cfgGroup['label'] ?? '',
+            mb_strtolower($cfgGroup['label'] ?? ''),
+        ];
         $lineGroups[] = [
             'label' => $cfgGroup['label'] ?? '',
-            'description' => $cfgGroup['description'] ?? '',
+            'short' => $short,
+            'readout' => $readoutName,
+            'color' => $color,
+            // Descriptions read as sentences in config; the table row is a label.
+            'description' => rtrim((string) ($cfgGroup['description'] ?? ''), '.'),
             'pct' => $groupPct,
             'amount' => $allocationBase * $groupPct / 100,
             'items' => $items,
         ];
+    }
+
+    // ---------- Dashboard reads ----------
+    $displayedSubtotal = array_sum(array_column($lineGroups, 'amount'));
+    $displayedPctTotal = array_sum(array_column($lineGroups, 'pct'));
+    $variance = $displayedSubtotal - $allocationBase;
+    $reconciles = abs($variance) < 0.005;
+    $percentsReconcile = abs(100 - $displayedPctTotal) < 0.005;
+
+    // Direct labor + fringe / employer burden: the share of the contract that is
+    // workforce pay rather than overhead — the first number a CFO looks for.
+    $laborFringePct = collect($lineGroups)
+        ->whereIn('short', ['Direct Labor', 'Fringe & Burden'])
+        ->sum('pct');
+
+    $money = fn ($v) => Currency::format($v, 2);
+    $pct = fn ($v) => number_format((float) $v, 2) . '%';
+
+    // $17,379,651.67 → $17.380M; small totals stay in full.
+    $compact = function ($v) {
+        $abs = abs((float) $v);
+        if ($abs >= 1000000) return Currency::format((float) $v / 1000000, 3) . 'M';
+        if ($abs >= 100000) return Currency::format((float) $v / 1000, 1) . 'K';
+        return Currency::format($v, 0);
+    };
+
+    $indicators = [
+        [$pct($laborFringePct), 'Direct labor + fringe / employer burden'],
+        [$compact($displayedSubtotal), 'Displayed allocation subtotal'],
+        [
+            $money(abs($variance)),
+            $reconciles
+                ? 'Reconciled to the stated total'
+                : ($variance > 0 ? 'Variance above stated total' : 'Variance below stated total'),
+        ],
+    ];
+
+    $reconciliationNote = $reconciles
+        ? 'The displayed allocation amounts total ' . $money($displayedSubtotal) . ', matching the stated contract / budget value. Source figures are presented exactly as calculated.'
+        : 'The displayed allocation amounts total ' . $money($displayedSubtotal) . ', which is ' . $money(abs($variance))
+          . ($variance > 0 ? ' above' : ' below') . ' the stated contract / budget value of ' . $money($allocationBase)
+          . '. This report preserves the source figures exactly rather than silently changing them.';
+
+    $sourceNote = 'Displayed group percentages total ' . $pct($displayedPctTotal)
+        . '. This report does not alter the original percentages or amounts.';
+
+    // Plain-language read of the mix, largest driver first.
+    $ranked = collect($lineGroups)->sortByDesc('pct')->values();
+    $executiveReadout = $ranked->isEmpty()
+        ? 'No allocation percentages were captured for this scenario.'
+        : ucfirst($ranked->first()['readout']) . ' is the dominant cost driver at ' . $pct($ranked->first()['pct'])
+          . ($ranked->count() > 1
+              ? ', followed by ' . $ranked->slice(1)->values()->map(fn ($g, $i) => ($i === $ranked->count() - 2 ? 'and ' : '') . $g['readout'] . ' at ' . $pct($g['pct']))->implode(', ')
+              : '')
+          . '.';
+
+    // Elements the certification statement says the price includes — several are
+    // covered inside a broader line rather than itemised on their own.
+    $costElements = [
+        'Livable base wages', 'FICA / FUTA / SUTA',
+        'Workers compensation', 'General liability',
+        'Unemployment insurance', 'Paid time off',
+        'Healthcare & fringe', 'Uniforms & equipment',
+        'Onboarding & training', 'Site supervision',
+        'Quality assurance', 'Management / admin',
+        '24/7 dispatch', 'Labor-law compliance',
+        'Open-post protection', 'Replacement / price lock',
+    ];
+
+    // ---------- Line-item rows, paginated ----------
+    // Rows are laid out on fixed-height pages, so a long breakdown is split
+    // across continuation pages instead of being clipped. The closing page also
+    // carries the cost-element and note blocks, so it holds fewer rows.
+    $rows = [];
+    foreach ($lineGroups as $group) {
+        if (empty($group['items'])) continue;
+        $rows[] = ['type' => 'group', 'label' => $group['label'], 'description' => $group['description'], 'amount' => $group['amount'], 'pct' => $group['pct']];
+        foreach ($group['items'] as $j => $item) {
+            $rows[] = ['type' => 'item', 'label' => $item['label'], 'amount' => $item['amount'], 'pct' => $item['pct'], 'alt' => $j % 2 === 1];
+        }
+    }
+
+    $capacityFull = 37;  // rows on a page carrying nothing below the table
+    $capacityLast = 24;  // rows on the page that also carries the closing blocks
+    $rowChunks = array_chunk($rows, $capacityFull) ?: [[]];
+    $lastChunk = array_pop($rowChunks);
+    if (count($lastChunk) > $capacityLast) {
+        $rowChunks[] = array_slice($lastChunk, 0, $capacityLast);
+        $lastChunk = array_slice($lastChunk, $capacityLast);
+    }
+    $rowChunks[] = $lastChunk;
+    // Never end a page on a group header with none of its items under it.
+    foreach ($rowChunks as $i => $chunk) {
+        if ($i === count($rowChunks) - 1 || empty($chunk)) continue;
+        if (($chunk[count($chunk) - 1]['type'] ?? '') === 'group') {
+            $rowChunks[$i + 1] = array_merge([array_pop($chunk)], $rowChunks[$i + 1]);
+            $rowChunks[$i] = $chunk;
+        }
     }
 
     // ---------- Identity ----------
@@ -118,221 +203,21 @@
     $contactEmail   = $estimate['contact']['email'];
     $contactPhone   = $estimate['contact']['phone'];
 
-    $reportNumber = $reportNumber ?? ('GASQ ' . now()->format('Y-m-d') . '-V' . ((int) ($vendorId ?? 0)));
-
-    $money = fn ($v) => \App\Support\Currency::format($v, 2);
-    $moneyK = fn ($v) => \App\Support\Currency::format($v, 0);
-    $num = fn ($v) => number_format((float) $v);
-
-    // Two reports off the same data:
-    //   'main'       → Budget Summary (stat grid) + Cost to Protect Comparison
-    //   'allocation' → Allocation Group Totals + Line-Item Breakdown
-    // Both end with the GASQ Certified Statement.
-    $reportScope    = $reportScope ?? 'main';
-    $showStatGrid   = $reportScope === 'main';
-    $showComparison = $reportScope === 'main';
-    $showAllocation = $reportScope === 'allocation';
-    $showLineItem   = $reportScope === 'allocation';
-    $reportSubtitle = $reportScope === 'allocation'
-        ? 'Allocation Group Totals · Line-Item Breakdown'
-        : 'Bill Rate Breakdown · Buyer Internal vs Vendor Outsourcing Cost to Protect';
+    // ReportService passes the calculator slug as $reportType; the document shows
+    // the human label instead.
+    $reportType = 'Vendor — Full Report';
+    $reportNumber = $reportNumber ?? ('GASQ-' . now()->format('Ymd-His') . '-V' . (int) ($vendorId ?? 0));
+    $reportDate = now()->format('F j, Y');
+    $generatedTime = now()->format('g:i A');
+    $orgName = $contactCompany ?: 'GASQ Security';
+    $docTitle = 'GASQ Workforce-to-Post Report';
+    $pages = 2 + count($rowChunks);
 @endphp
 
-@extends('pdf.layouts.gasq-report', [
-    'title' => 'GASQ Workforce-to-Post Report',
-    'subtitle' => $reportSubtitle,
-    'reportNumber' => $reportNumber,
-    'reportType' => 'Vendor — Full Report',
-    'contactName' => $contactName,
-    'contactCompany' => $contactCompany,
-    'contactAddress' => $contactAddress,
-    'contactEmail' => $contactEmail,
-    'contactPhone' => $contactPhone,
-    'showStatGrid' => $showStatGrid,
-])
+@extends('pdf.workforce.layout')
 
-@section('stat_grid')
-<table width="100%" cellpadding="0" cellspacing="0">
-  <tr>
-    <td width="33%" class="stat-grid-label"><p>Buyer Internal Cost to Protect</p></td>
-    <td width="34%" class="stat-grid-label"><p>Annual Capital Recovery</p></td>
-    <td width="33%" class="stat-grid-label last"><p>Vendor Outsourcing Cost to Protect</p></td>
-  </tr>
-  <tr>
-    <td class="stat-grid-value bg-blue">
-      <p class="num">{{ $moneyK($totalBudget) }}</p>
-      <p class="sub">{{ $num($annualCoverageHours) }} annual coverage hrs</p>
-    </td>
-    <td class="stat-grid-value bg-green">
-      <p class="num">{{ $moneyK($annualCapitalRecovery) }}</p>
-      <p class="sub">{{ $recoveryPct }}% recovered vs in-house</p>
-    </td>
-    <td class="stat-grid-value bg-pink last">
-      <p class="num">{{ $moneyK($totalAnnualVend) }}</p>
-      <p class="sub">total annual vendor cost</p>
-    </td>
-  </tr>
-  <tr>
-    <td class="stat-grid-label"><p>Buyer Internal Cost to Protect Hourly Rate</p></td>
-    <td class="stat-grid-label"><p>Total Staff Required</p></td>
-    <td class="stat-grid-label last"><p>Vendor Outsourcing Cost to Protect Hourly Rate</p></td>
-  </tr>
-  <tr>
-    <td class="stat-grid-value bg-purple">
-      <p class="num">{{ $money($internalTcoHourly) }}</p>
-      <p class="sub">buyer in-house cost</p>
-    </td>
-    <td class="stat-grid-value bg-sky">
-      <p class="num">{{ $ftesRequired }}</p>
-      <p class="sub">FTEs to deliver scope</p>
-    </td>
-    <td class="stat-grid-value bg-peach last">
-      <p class="num">{{ $money($vendorTcoHourly) }}</p>
-      <p class="sub">vendor rate offered</p>
-    </td>
-  </tr>
-</table>
-@endsection
-
-@section('content')
-
-<style>
-  /* Compact KV rows so the Budget Summary stat grid + the full Cost to Protect
-     Comparison fit together on page 1. */
-  .gasq-kv td { padding-top: 4px !important; padding-bottom: 4px !important; }
-</style>
-
-@if($showComparison)
-{{-- MAIN REPORT — Budget Summary (stat grid above) + Cost to Protect Comparison --}}
-<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
-  <tr><td class="gasq-section-band"><p>Cost to Protect Appraisal Comparison</p></td></tr>
-</table>
-<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
-  <tr style="background:#f0f4fb;">
-    <td style="font-weight:bold; color:#1e3558;">Description</td>
-    <td class="v" style="color:#1e3558;">Buyer Internal Cost to Protect</td>
-    <td class="v" style="color:#1e3558;">Vendor Outsourcing Cost to Protect</td>
-  </tr>
-  @php
-    $rows = [
-        ['Workforce Baseline Assumption Labor Rate', $money($baselineWage), $money($baselineWage)],
-        ['Workforce Cost to Protect Hourly Rate', $money($internalTcoHourly), $money($vendorTcoHourly)],
-        ['Overtime / Holiday Rate', $money($internalOt), $money($vendorOt)],
-        ['Workforce Annual Cost per Security Professional', $money($annualPerInt), $money($annualPerVend)],
-        ['Total Weekly Hours of Coverage', $num($weeklyCoverageHours), $num($weeklyCoverageHours)],
-        ['Total Monthly Hours of Coverage', $num($monthlyCoverageHours), $num($monthlyCoverageHours)],
-        ['Total Annual Hours of Coverage', $num($annualCoverageHours), $num($annualCoverageHours)],
-        ['Total Weeks of Coverage', number_format($weeksPerYear, 0), number_format($weeksPerYear, 0)],
-        ['Total Months of Coverage', number_format($weeksPerYear * 12 / 52, 1), number_format($weeksPerYear * 12 / 52, 1)],
-        ['Total Workforce Required for Coverage', (string) $ftesRequired, (string) $ftesRequired],
-        ['Total Weekly Cost', $money($totalWeeklyInt), $money($totalWeeklyVend)],
-        ['Total Monthly Cost', $money($totalMonthlyInt), $money($totalMonthlyVend)],
-        ['Total Annual Cost', $money($totalAnnualInt), $money($totalAnnualVend)],
-    ];
-  @endphp
-  @foreach($rows as $i => [$label, $intVal, $vendVal])
-    <tr class="{{ $i % 2 === 1 ? 'alt' : '' }}">
-      <td>{{ $label }}</td>
-      <td class="v">{{ $intVal }}</td>
-      <td class="v">{{ $vendVal }}</td>
-    </tr>
-  @endforeach
-  <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558; border-top:2px solid #1e3558;">Operational Capital Recovered</td><td class="v" style="border-top:2px solid #1e3558;">—</td><td class="v" style="color:#1e3558; font-size:12px; border-top:2px solid #1e3558;">{{ $money($annualCapitalRecovery) }}</td></tr>
-  <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Operational Capital Recovered (%)</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ $recoveryPct }}%</td></tr>
-  <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Payback &amp; Recovery Period</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ number_format($paybackMonths, 1) }} months</td></tr>
-</table>
-@endif
-
-@if($showAllocation)
-{{-- ALLOCATION REPORT — Allocation Group Totals (percentages) --}}
-<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
-  <tr><td class="gasq-section-band"><p>Allocation Group Totals</p></td></tr>
-</table>
-<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
-  @foreach($lineGroups as $i => $group)
-    <tr class="{{ $i % 2 === 1 ? 'alt' : '' }}">
-      <td>
-        <span style="font-weight:bold; color:#1e3558;">{{ $group['label'] }}</span>
-        @if($group['description'])
-          <span style="display:block; font-size:9px; color:#6b7280; margin-top:1px;">{{ $group['description'] }}</span>
-        @endif
-      </td>
-      <td class="v">{{ $money($group['amount']) }}<span style="font-weight:normal; color:#6b7280; margin-left:8px;">{{ number_format($group['pct'], 2) }}%</span></td>
-    </tr>
-  @endforeach
-  <tr class="total">
-    <td>Total Contract / Budget Value</td>
-    <td class="v">{{ $money($allocationBase) }}<span style="margin-left:8px;">100%</span></td>
-  </tr>
-</table>
-@endif
-
-@if($showLineItem)
-{{-- ALLOCATION REPORT — Line-Item Breakdown on its own page --}}
-<div style="page-break-before: always;"></div>
-<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
-  <tr><td class="gasq-section-band"><p>Line-Item Breakdown</p></td></tr>
-</table>
-@foreach($lineGroups as $group)
-@continue(empty($group['items']))
-<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px; border:1px solid #d8dff0; border-collapse:collapse;">
-  <tr style="background:#1e3558;">
-    <td style="padding:7px 16px; font-size:10.5px; font-weight:bold; color:#fff;">{{ $group['label'] }}</td>
-    <td style="padding:7px 16px; font-size:10.5px; font-weight:bold; color:#fff; text-align:right;">{{ $money($group['amount']) }} · {{ number_format($group['pct'], 2) }}%</td>
-  </tr>
-  @foreach($group['items'] as $j => $item)
-    <tr style="background:{{ $j % 2 === 0 ? '#fff' : '#f6f8fb' }};">
-      <td style="padding:5px 16px; font-size:10px; color:#374151; border-bottom:1px solid #e8edf5;">{{ $item['label'] }}</td>
-      <td style="padding:5px 16px; font-size:10px; color:#1e3558; font-weight:bold; text-align:right; font-variant-numeric:tabular-nums; border-bottom:1px solid #e8edf5;">{{ $money($item['amount']) }}<span style="font-weight:normal; color:#6b7280; margin-left:8px;">{{ number_format($item['pct'], 2) }}%</span></td>
-    </tr>
-  @endforeach
-</table>
-@endforeach
-@endif
-
-{{-- GASQ Certified Statement — formal appendix on its own page (with the
-     standard pricing disclaimer note) --}}
-@php
-    $stmtHead = 'font-weight:bold; color:#1e3558; font-size:11px; letter-spacing:0.5px; margin:16px 0 4px;';
-    $stmtRule = 'border:none; border-top:1px solid #cbd5e1; margin:14px 0;';
-@endphp
-<div style="page-break-before: always;"></div>
-
-<p class="gasq-note">
-    All price calculations include the full cost of workforce staffing and support services, including livable base wages, employer-paid payroll taxes (FICA, FUTA, SUTA), workers compensation, general liability insurance, unemployment insurance, paid time off, healthcare and fringe benefits, uniforms and equipment, onboarding and training, site supervision, quality assurance oversight, management and administrative support, 24/7 dispatch capability, compliance with local, state, and federal labor laws, and all service-level guarantees, including open post protection, vendor replacement, and price lock guarantees, unless otherwise specified.
-</p>
-
-<table width="100%" cellpadding="0" cellspacing="0">
-  <tr><td class="gasq-section-band"><p>GASQ Certified™ Statement</p></td></tr>
-</table>
-
-<p style="{{ $stmtHead }} margin-top:14px;">EXECUTIVE SUMMARY</p>
-<p class="gasq-note" style="margin-top:0;">This report was prepared using the GASQ Cost to Protect™ methodology and includes a side-by-side comparison of the estimated cost to perform security services in-house versus outsourcing to a qualified security provider.</p>
-<p class="gasq-note">The purpose of this report is to establish a realistic protection budget, identify staffing requirements, evaluate workforce availability, and determine the most cost-effective method to achieve the desired level of protection.</p>
-
-<hr style="{{ $stmtRule }}">
-
-<p style="{{ $stmtHead }}">GASQ CERTIFICATION STATEMENT</p>
-<p class="gasq-note" style="margin-top:0;">This report has been generated using the GASQ Cost to Protect™ Model and has been reviewed for pricing realism, workforce availability requirements, staffing assumptions, and coverage sustainability.</p>
-<p class="gasq-note">The calculations contained within this report are derived from proprietary methodologies, benchmarks, staffing algorithms, and analytical frameworks developed by GASQ.</p>
-<p class="gasq-note">This report is intended solely for the use of the named recipient.</p>
-
-<hr style="{{ $stmtRule }}">
-
-<p style="{{ $stmtHead }}">INTELLECTUAL PROPERTY NOTICE</p>
-<p class="gasq-note" style="margin-top:0;">The concepts, methodologies, calculations, presentation formats, and analytical frameworks contained within this report constitute proprietary intellectual property of GASQ.</p>
-<p class="gasq-note">Unauthorized reproduction, reverse engineering, redistribution, resale, modification, commercial use, or creation of derivative works is prohibited without written authorization.</p>
-
-<hr style="{{ $stmtRule }}">
-
-<p style="{{ $stmtHead }}">DISCLAIMER</p>
-<p class="gasq-note" style="margin-top:0;">This report is intended for budgeting, procurement planning, staffing analysis, and cost comparison purposes only. Actual wages, benefits, insurance costs, turnover rates, supervision requirements, market conditions, and customer-specific requirements may impact final pricing.</p>
-<p class="gasq-note">GASQ makes no guarantee that any vendor will provide services at the estimated pricing levels shown within this report.</p>
-
-<p style="text-align:center; color:#1e3558; font-size:10px; font-weight:bold; margin-top:18px; line-height:1.7;">
-    © 2026 GASQ &nbsp;·&nbsp; ALL RIGHTS RESERVED<br>
-    BUILT FOR CFO-LEVEL COST ANALYSIS.<br>
-    THE INDUSTRY PRICING REFEREE™
-</p>
-
+@section('pages')
+    @include('pdf.workforce._page1')
+    @include('pdf.workforce._page2')
+    @include('pdf.workforce._page3')
 @endsection
