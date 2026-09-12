@@ -23,42 +23,75 @@ class CostToProtectEstimateLockTest extends TestCase
             'result' => [],
             'user' => null,
             'vendorId' => 1,
-            'reportNumber' => 'GASQ-20260910-010135-V1',
+            'reportNumber' => 'GASQ-20260912-010135-V1',
         ];
     }
 
-    public function test_locked_preview_masks_every_figure_but_keeps_the_analysis(): void
+    private function buyerEdition(): string
     {
-        $html = view('pdf.cost-to-protect-estimate', array_merge($this->payload(), [
+        return view('pdf.cost-to-protect-estimate', array_merge($this->payload(), [
             'reportType' => 'budget-calculator-preview',
             'masked' => true,
         ]))->render();
+    }
 
-        // Figures are veiled, digit for digit
-        $this->assertStringNotContainsString('$538,769', $html);
-        $this->assertStringNotContainsString('$377,138', $html);
-        $this->assertStringNotContainsString('$107.93', $html);
-        $this->assertStringContainsString('$•••,•••', $html);
+    public function test_buyer_edition_shows_every_buyer_internal_figure(): void
+    {
+        $html = $this->buyerEdition();
 
-        // …and the document still says what it is
-        $this->assertStringContainsString('LOCKED PREVIEW', $html);
-        $this->assertStringContainsString('Locked Preview — Figures Withheld', $html);
+        $this->assertStringContainsString('$538,769', $html, 'buyer internal annual cost');
+        $this->assertStringContainsString('$107.93', $html, 'buyer internal hourly rate');
+        $this->assertStringContainsString('4 FTEs', $html, 'total staff required');
+        $this->assertStringContainsString('4,992', $html, 'annual coverage hours');
+        $this->assertStringContainsString('96', $html, 'weekly hours');
+        $this->assertStringContainsString('416', $html, 'monthly hours');
+    }
 
-        // The analysis itself is intact
+    public function test_buyer_edition_withholds_every_vendor_and_savings_figure(): void
+    {
+        $html = $this->buyerEdition();
+
+        $this->assertStringNotContainsString('$377,138', $html, 'vendor annual cost');
+        $this->assertStringNotContainsString('$75.55', $html, 'vendor hourly rate');
+        $this->assertStringNotContainsString('$113.32', $html, 'vendor overtime rate');
+        $this->assertStringNotContainsString('$161,630', $html, 'capital recovered');
+        $this->assertStringNotContainsString('8.4 months', $html, 'payback period');
+        $this->assertStringContainsString('•', $html, 'withheld figures are veiled, not removed');
+    }
+
+    public function test_buyer_edition_charts_drop_the_vendor_series(): void
+    {
+        $html = $this->buyerEdition();
+
+        // A vendor bar drawn to scale would reveal the saving even unlabelled, so
+        // the buyer edition must not paint one at all.
+        $this->assertStringNotContainsString('Vendor Outsourcing<br>Cost to Protect', $html);
+        // Bars are tall filled cells; the brand bar's 3px accent rule is not one.
+        $this->assertDoesNotMatchRegularExpression('/height:\d{2,}px; background:#ef6c1f/', $html, 'no orange bar drawn');
+    }
+
+    public function test_buyer_edition_says_what_it_is_and_keeps_the_analysis(): void
+    {
+        $html = $this->buyerEdition();
+
+        $this->assertStringContainsString('BUYER EDITION', $html);
+        $this->assertStringContainsString('Buyer Edition — In-House Figures Only', $html);
         $this->assertStringContainsString('Buyer Internal Cost to Protect', $html);
         $this->assertStringContainsString('Payback &amp; Recovery Period', $html);
         $this->assertStringContainsString('Page 4 of 4', $html);
     }
 
-    public function test_the_full_report_still_shows_its_figures(): void
+    public function test_the_full_report_still_shows_everything(): void
     {
         $html = view('pdf.cost-to-protect-estimate', array_merge($this->payload(), [
             'reportType' => 'budget-calculator',
         ]))->render();
 
         $this->assertStringContainsString('$538,769', $html);
+        $this->assertStringContainsString('$377,138', $html);
+        $this->assertStringContainsString('$75.55', $html);
         $this->assertStringNotContainsString('•••', $html);
-        $this->assertStringNotContainsString('LOCKED PREVIEW', $html);
+        $this->assertStringNotContainsString('BUYER EDITION', $html);
         $this->assertStringContainsString('Vendor — Full Report', $html);
     }
 
@@ -68,16 +101,14 @@ class CostToProtectEstimateLockTest extends TestCase
             ->calculatorPdf('budget-calculator', $this->payload(), 'Northgate2026')
             ->output();
 
-        // An encrypted PDF still carries a header and an /Encrypt dictionary, but
-        // none of the page text survives in the clear.
         $this->assertStringStartsWith('%PDF-', $locked);
         $this->assertStringContainsString('/Encrypt', $locked);
         $this->assertStringNotContainsString('Buyer Internal Cost to Protect', $locked);
     }
 
-    public function test_the_locked_preview_is_never_password_protected(): void
+    public function test_the_buyer_edition_is_never_password_protected(): void
     {
-        // It is the teaser — it must open for anyone the vendor forwards it to.
+        // It is the free version the buyer may forward; it must open for anyone.
         $preview = app(ReportService::class)
             ->calculatorPdf('budget-calculator-preview', $this->payload(), 'IgnoreMe')
             ->output();
@@ -90,6 +121,6 @@ class CostToProtectEstimateLockTest extends TestCase
         $service = app(ReportService::class);
 
         $this->assertStringContainsString('Cost-to-Protect-Estimate', $service->filenameForCalculator('budget-calculator'));
-        $this->assertStringContainsString('LOCKED-PREVIEW', $service->filenameForCalculator('budget-calculator-preview'));
+        $this->assertStringContainsString('BUYER-EDITION', $service->filenameForCalculator('budget-calculator-preview'));
     }
 }

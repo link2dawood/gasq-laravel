@@ -1,31 +1,33 @@
 {{--
-    Covering email for the LOCKED PREVIEW of the Cost to Protect estimate.
+    Covering email for the BUYER EDITION of the Cost to Protect estimate.
 
-    Deliberately quotes no figures: the attachment masks every number, so a cover
-    email that stated the savings would hand over exactly what the preview
-    withholds. The unlocked report goes out separately.
+    Quotes no vendor figures: the attachment shows the buyer's own in-house cost
+    in full and withholds the vendor cost, the capital recovered and the payback
+    period. A cover email that stated the savings would hand over exactly what
+    the edition withholds. The complete report goes out separately.
 --}}
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>GASQ Cost to Protect™ Estimate — Locked Preview</title></head>
+<head><meta charset="utf-8"><title>GASQ Cost to Protect™ Estimate — Buyer Edition</title></head>
 <body style="font-family: Arial, Helvetica, sans-serif; color:#1e293b; font-size:14px; line-height:1.55;">
 
 <p>Dear Valued Client,</p>
 
-<p>Attached is a preview of your GASQ Certified™ Cost to Protect™ Estimate.</p>
+<p>Attached is your GASQ Certified™ Cost to Protect™ Estimate, Buyer Edition.</p>
 
 <p style="margin-left:8px;">
     @if(!empty($reportNumber))<strong>Report Number:</strong> {{ $reportNumber }}<br>@endif
     <strong>Date Prepared:</strong> {{ $datePrepared }}
 </p>
 
-<p>The preview shows the complete analysis — the methodology, the coverage
-assumptions, the comparison structure and every category of cost included in the
-estimate. <strong>The figures themselves are withheld.</strong></p>
+<p>This edition reports <strong>your own in-house Cost to Protect in full</strong>: what this
+scope costs to deliver with your own workforce annually and per hour, the staff
+required, and the coverage hours behind both figures. It also sets out the full
+methodology and every category of cost the estimate accounts for.</p>
 
-<p>To release the unlocked report, with the full Buyer Internal and Vendor
-Outsourcing Cost to Protect figures, the capital recovery and the payback period,
-please reply to this email or contact your GASQ representative.</p>
+<p>The vendor outsourcing cost, the operational capital recovered and the payback
+period are withheld. To release the complete estimate with those figures, please
+reply to this email or contact your GASQ representative.</p>
 
 @if(!empty($surveyorNotes))
 <p><strong>Notes from your GASQ representative:</strong></p>

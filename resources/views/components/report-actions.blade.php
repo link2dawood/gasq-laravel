@@ -42,7 +42,7 @@
             @if($passwordProtect)
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                     <input type="text" name="pdf_password" class="report-password-input form-control form-control-sm" placeholder="Password to open the PDF (optional)" maxlength="32" autocomplete="off" style="width: 260px;">
-                    <span class="form-text mb-0">Leave blank and the PDF opens normally. If you set one, the buyer must type it to open the file &mdash; give it to them by phone or text, not in this email.</span>
+                    <span class="form-text mb-0" style="max-width:340px;">Leave blank and the PDF opens normally. If you set one, the buyer must type it to open the file &mdash; give it to them by phone or text, not in this email.</span>
                 </div>
             @endif
             @if($canAttach)

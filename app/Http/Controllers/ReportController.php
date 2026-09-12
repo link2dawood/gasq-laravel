@@ -167,7 +167,7 @@ class ReportController extends Controller
             $subject = 'Your GASQ Cost to Protect™ Appraisal Report';
         }
         if ($bodyView === 'emails.cost-to-protect-locked') {
-            $subject = 'Your GASQ Cost to Protect™ Estimate — Locked Preview';
+            $subject = 'Your GASQ Cost to Protect™ Estimate — Buyer Edition';
         }
 
         // On-site survey notes + photos/files. Only preparers (vendors/admins) may
@@ -266,8 +266,8 @@ class ReportController extends Controller
     private function emailBodyFor(string $type, array $payload): array
     {
         if ($type === 'budget-calculator-preview') {
-            // The whole point of the preview is that the figures are withheld —
-            // the Cost to Protect cover email quotes them, so it must not be used.
+            // The buyer edition withholds the vendor cost and the savings — the
+            // Cost to Protect cover email quotes them, so it must not be used.
             return ['emails.cost-to-protect-locked', [
                 'reportNumber' => $payload['reportNumber'] ?? null,
                 'datePrepared' => now()->format('F j, Y'),

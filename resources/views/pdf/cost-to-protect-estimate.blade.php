@@ -16,29 +16,35 @@
 
     $d = app(CostToProtectEstimate::class)->build((array) ($scenario ?? []), $user ?? null);
 
-    // Locked preview: every figure keeps its shape but loses its digits
-    // ($538,769 → $•••,•••), so the buyer sees the full analysis and none of the
-    // numbers. A PDF cannot reveal content on a password — encryption is
-    // all-or-nothing — so the unlocked figures live in a separate document.
+    // BUYER EDITION (the free version a vendor gives the buyer). The buyer's own
+    // in-house figures are shown in full — their cost to protect, hourly rate,
+    // staff required and coverage hours — while everything that belongs to the
+    // vendor's offer is withheld: vendor cost, capital recovered, payback.
+    // Withheld figures keep their shape but lose their digits ($538,769 →
+    // $•••,•••). A PDF cannot reveal content on a password (encryption is
+    // all-or-nothing), so the unlocked figures live in a separate document.
     $masked = (bool) ($masked ?? false);
 
     // ReportService passes the calculator slug as $reportType; the document shows
     // the human label instead.
-    $reportType = $masked ? 'Locked Preview — Figures Withheld' : 'Vendor — Full Report';
+    $reportType = $masked ? 'Buyer Edition — In-House Figures Only' : 'Vendor — Full Report';
     $pages = 4;
     $reportNumber = $reportNumber ?? ('GASQ-' . now()->format('Ymd-His') . '-V' . (int) ($vendorId ?? 0));
     $reportDate = now()->format('F j, Y');
     $orgName = $d['contact']['company'] ?: 'GASQ Security';
-    $docTitle = 'GASQ Cost to Protect Estimate Dashboard' . ($masked ? ' (Locked Preview)' : '');
+    $docTitle = 'GASQ Cost to Protect Estimate Dashboard' . ($masked ? ' (Buyer Edition)' : '');
 
-    $veil = fn (string $formatted) => $masked
+    $money   = fn ($v) => Currency::format($v, 2);
+    $moneyK  = fn ($v) => Currency::format($v, 0);
+    $num     = fn ($v) => number_format((float) $v);
+    $numDec  = fn ($v, $dp = 1) => number_format((float) $v, $dp);
+
+    // Withhold a figure in the buyer edition. Wrap ONLY vendor-side and
+    // savings-side values with this: vendor cost and rates, capital recovered,
+    // recovery percentage, payback. Buyer-internal values are never wrapped.
+    $lock = fn (string $formatted) => $masked
         ? preg_replace('/\d/', '•', $formatted)
         : $formatted;
-
-    $money   = fn ($v) => $veil(Currency::format($v, 2));
-    $moneyK  = fn ($v) => $veil(Currency::format($v, 0));
-    $num     = fn ($v) => $veil(number_format((float) $v));
-    $numDec  = fn ($v, $dp = 1) => $veil(number_format((float) $v, $dp));
 
     /**
      * Chart axis that lands on human numbers: step snapped to 1/2/2.5/5/10 × the

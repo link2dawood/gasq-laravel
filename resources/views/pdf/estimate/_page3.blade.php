@@ -4,10 +4,10 @@
 
     $cards = [
         ['stack', 'Buyer Internal Cost to Protect', 'bg-navy', 'tint-navy', $moneyK($d['totalAnnualInternal']), 'Total annual in-house cost', false],
-        ['users', 'Vendor Outsourcing Cost to Protect', 'bg-orange', 'tint-orange', $moneyK($d['totalAnnualVendor']), 'Total annual vendor cost', false],
-        ['chart', 'Capital Recovered', 'bg-green', 'tint-green', $moneyK($d['annualCapitalRecovery']), 'Recovered vs in-house', true],
-        ['pie', 'Operational Capital Recovered', 'bg-green', 'tint-green', $num($d['recoveryPct']) . '%', 'Lower cost with vendor outsourcing', true],
-        ['clock', 'Payback & Recovery Period', 'bg-navy', 'tint-navy', $numDec($d['paybackMonths'], 1), 'Months to recover capital investment', false],
+        ['users', 'Vendor Outsourcing Cost to Protect', 'bg-orange', 'tint-orange', $lock($moneyK($d['totalAnnualVendor'])), 'Total annual vendor cost', false],
+        ['chart', 'Capital Recovered', 'bg-green', 'tint-green', $lock($moneyK($d['annualCapitalRecovery'])), 'Recovered vs in-house', true],
+        ['pie', 'Operational Capital Recovered', 'bg-green', 'tint-green', $lock($num($d['recoveryPct']) . '%'), 'Lower cost with vendor outsourcing', true],
+        ['clock', 'Payback & Recovery Period', 'bg-navy', 'tint-navy', $lock($numDec($d['paybackMonths'], 1)), 'Months to recover capital investment', false],
         ['calendar', 'Total Annual Coverage Hours', 'bg-navy', 'tint-navy', $num($d['annualCoverageHours']), 'Hours of security coverage', false],
     ];
 
@@ -32,9 +32,18 @@
     // Savings chart (same basis as page 1, sized for this panel).
     $sAxis = $niceAxis(max($d['totalAnnualInternal'], $d['totalAnnualVendor']), 7);
     $sPlotW = 176;
-    $sPlotH = 112;
+    $sPlotH = $masked ? 100 : 112;
+    $sBlockH = $masked ? 144 : 156;
     $sAxisW = 52;
     $sBarH = fn (float $v) => max(2, (int) round($sPlotH * ($sAxis['max'] > 0 ? $v / $sAxis['max'] : 0)));
+
+    // Buyer edition plots the buyer's own cost alone — see page 1.
+    $sSeries = $masked
+        ? [[$d['totalAnnualInternal'], '#12294f', 'Buyer Internal<br>Cost to Protect']]
+        : [
+            [$d['totalAnnualInternal'], '#12294f', 'Buyer Internal<br>Cost to Protect'],
+            [$d['totalAnnualVendor'], '#ef6c1f', 'Vendor Outsourcing<br>Cost to Protect'],
+        ];
 
     // Payback rail runs over a 12-month horizon (clamped for longer paybacks).
     $paybackHorizon = max(12, ceil($d['paybackMonths']));
@@ -106,7 +115,13 @@
       <tr><td style="padding:9px 14px 10px;">
         <p class="prose">This report was prepared using the GASQ Cost to Protect™ methodology and includes a side-by-side comparison of the estimated cost to perform security services in-house versus outsourcing to a qualified security provider.</p>
         <p class="prose">The purpose of this report is to establish a realistic protection budget, identify staffing requirements, evaluate workforce availability, and determine the most cost-effective method to achieve the desired level of protection.</p>
-        <p class="prose">The analysis shows that outsourcing security services can reduce annual costs by {{ $num($d['recoveryPct']) }}%, resulting in {{ $moneyK($d['annualCapitalRecovery']) }} in capital recovered compared to an in-house model, with a payback period of {{ $numDec($d['paybackMonths'], 1) }} months. These findings support a more efficient, scalable, and financially responsible approach to security operations.</p>
+        @if($masked)
+          {{-- One paragraph, not two: a third block of prose pushes the panels
+               below into the footer. --}}
+          <p class="prose">This edition reports your in-house Cost to Protect in full — the annual and hourly cost of delivering this scope with your own workforce, the staff required, and the coverage hours behind both figures. The vendor outsourcing cost, the operational capital recovered and the payback period are withheld; unlock the complete estimate to see them set against the figures shown here.</p>
+        @else
+          <p class="prose">The analysis shows that outsourcing security services can reduce annual costs by {{ $num($d['recoveryPct']) }}%, resulting in {{ $moneyK($d['annualCapitalRecovery']) }} in capital recovered compared to an in-house model, with a payback period of {{ $numDec($d['paybackMonths'], 1) }} months. These findings support a more efficient, scalable, and financially responsible approach to security operations.</p>
+        @endif
       </td></tr>
     </table>
 
@@ -124,7 +139,7 @@
           @foreach(array_chunk($includes, 5) as $chunk)
             <tr>
               @foreach($chunk as [$icon, $label])
-                <td width="20%" style="padding:4px 6px; vertical-align:top; text-align:center;">
+                <td width="20%" style="padding:{{ $masked ? 3 : 4 }}px 6px; vertical-align:top; text-align:center;">
                   <table cellpadding="0" cellspacing="0" align="center">
                     <tr><td style="width:24px; height:24px; background:#eaf0f9; border-radius:12px; text-align:center; vertical-align:middle;">
                       @if($icon === '$')
@@ -157,7 +172,7 @@
             {{-- Chart in a fixed-height block, callout laid over it to the right:
                  table cells here get re-proportioned by dompdf and floats inside a
                  cell do not grow it, so both push the callout out of the panel. --}}
-            <div style="height:156px;">
+            <div style="height:{{ $sBlockH }}px;">
               <div style="height:12px;"></div>
               <div style="margin-left:{{ $sAxisW }}px; width:{{ $sPlotW }}px;">
                 <img src="{{ ReportSvg::gridlines($sPlotW, $sPlotH, count($sAxis['labels']) - 1) }}" style="width:{{ $sPlotW }}px; height:{{ $sPlotH }}px;">
@@ -165,8 +180,8 @@
               <div style="margin-top:-{{ $sPlotH + 12 }}px; margin-left:{{ $sAxisW }}px; width:{{ $sPlotW }}px; height:{{ $sPlotH + 12 }}px;">
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    @foreach([[$d['totalAnnualInternal'], '#12294f'], [$d['totalAnnualVendor'], '#ef6c1f']] as [$val, $color])
-                      <td width="50%" style="vertical-align:top; text-align:center;">
+                    @foreach($sSeries as [$val, $color, $sLabel])
+                      <td width="{{ (int) round(100 / count($sSeries)) }}%" style="vertical-align:top; text-align:center;">
                         <div style="height:{{ $sPlotH - $sBarH($val) }}px;"></div>
                         <p style="font-size:8px; font-weight:bold; color:#12294f; height:12px;">{{ $moneyK($val) }}</p>
                         <table cellpadding="0" cellspacing="0" width="46" align="center">
@@ -186,14 +201,25 @@
               <div style="margin-left:{{ $sAxisW }}px; width:{{ $sPlotW }}px; margin-top:5px;">
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td width="50%" style="text-align:center;"><p style="font-size:7px; color:#5b6779; line-height:1.35;">Buyer Internal<br>Cost to Protect</p></td>
-                    <td width="50%" style="text-align:center;"><p style="font-size:7px; color:#5b6779; line-height:1.35;">Vendor Outsourcing<br>Cost to Protect</p></td>
+                    @foreach($sSeries as [$val, $color, $sLabel])
+                      <td width="{{ (int) round(100 / count($sSeries)) }}%" style="text-align:center;"><p style="font-size:7px; color:#5b6779; line-height:1.35;">{!! $sLabel !!}</p></td>
+                    @endforeach
                   </tr>
                 </table>
               </div>
             </div>
-            <div style="margin-top:-148px; height:148px;">
+            <div style="margin-top:-{{ $sBlockH - 8 }}px; height:{{ $sBlockH - 8 }}px;">
               {{-- 238 + 97 content + 12 padding + 2 border = the panel's 351px of content --}}
+              @if($masked)
+              <div style="margin-left:238px; width:97px; background:#eef3fb; border:1px solid #c9d6ea; padding:12px 6px; text-align:center;">
+                <table cellpadding="0" cellspacing="0" align="center"><tr>
+                  <td><img src="{{ ReportSvg::icon('shield', '#ef6c1f', 2.2) }}" style="width:22px;height:22px;"></td>
+                </tr></table>
+                <p style="font-size:7.5px; font-weight:bold; color:#12294f; letter-spacing:.05em; margin-top:6px; line-height:1.4;">SAVINGS<br>WITHHELD</p>
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;"><tr><td style="height:1px; background:#c9d6ea;"></td></tr></table>
+                <p style="font-size:7px; color:#5b6779; line-height:1.5;">Unlock the full estimate to see it.</p>
+              </div>
+              @else
               <div style="margin-left:238px; width:97px; background:#e8f5ec; border:1px solid #bfe0cb; padding:12px 6px; text-align:center;">
                 <table cellpadding="0" cellspacing="0" align="center"><tr>
                   <td style="vertical-align:middle;"><img src="{{ ReportSvg::icon('arrow-down', '#16794a', 2.4) }}" style="width:16px;height:16px;"></td>
@@ -204,6 +230,7 @@
                 <p style="font-size:13px; font-weight:bold; color:#16794a;">{{ $moneyK($d['annualCapitalRecovery']) }}</p>
                 <p style="font-size:7px; color:#3f6b53; margin-top:3px; line-height:1.4;">in capital recovered<br>vs in-house</p>
               </div>
+              @endif
             </div>
           </td></tr>
         </table>
@@ -217,6 +244,16 @@
             </tr></table>
           </td></tr>
           <tr><td style="padding:14px 16px 14px; text-align:center;">
+            @if($masked)
+            {{-- The rail's knob position would reveal the payback even with the
+                 number masked, so the buyer edition replaces the whole panel. --}}
+            <table cellpadding="0" cellspacing="0" align="center" style="margin-top:10px;"><tr>
+              <td><img src="{{ ReportSvg::icon('shield', '#ef6c1f', 2.2) }}" style="width:30px;height:30px;"></td>
+            </tr></table>
+            <p style="font-size:23px; font-weight:bold; color:#8592a5; margin-top:10px;">{{ $lock($numDec($d['paybackMonths'], 1) . ' MONTHS') }}</p>
+            <p style="font-size:8.5px; font-weight:bold; color:#2f4467; letter-spacing:.06em; margin-top:4px;">TO RECOVER CAPITAL INVESTMENT</p>
+            <p class="prose" style="margin-top:14px; text-align:left;">The payback period is worked out from the vendor cost, which this edition withholds. Unlock the complete estimate to see both.</p>
+            @else
             <p style="font-size:23px; font-weight:bold; color:#12294f;">{{ $numDec($d['paybackMonths'], 1) }} MONTHS</p>
             <p style="font-size:8.5px; font-weight:bold; color:#2f4467; letter-spacing:.06em; margin-top:4px;">TO RECOVER CAPITAL INVESTMENT</p>
             <div style="margin-top:14px;">
@@ -230,6 +267,7 @@
               </tr>
             </table>
             <p class="prose" style="margin-top:12px; text-align:left;">The initial investment in outsourcing can be recovered in {{ $numDec($d['paybackMonths'], 1) }} months through annual cost savings of {{ $moneyK($d['annualCapitalRecovery']) }}, improving cash flow and operational efficiency.</p>
+            @endif
           </td></tr>
         </table>
       </div>

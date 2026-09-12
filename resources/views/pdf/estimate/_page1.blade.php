@@ -11,13 +11,22 @@
     $chartH = 205;
     $barH = fn (float $v) => max(2, (int) round($plotH * ($axis['max'] > 0 ? $v / $axis['max'] : 0)));
 
+    // Buyer edition charts the buyer's own cost alone. A vendor bar drawn to
+    // scale would give the saving away even with its value label masked.
+    $barSeries = $masked
+        ? [[$d['totalAnnualInternal'], '#12294f', 'Buyer Internal<br>Cost to Protect']]
+        : [
+            [$d['totalAnnualInternal'], '#12294f', 'Buyer Internal<br>Cost to Protect'],
+            [$d['totalAnnualVendor'], '#ef6c1f', 'Vendor Outsourcing<br>Cost to Protect'],
+        ];
+
     $assumptions = [
         ['calendar', $num($d['annualCoverageHours']), 'Annual Coverage Hours'],
         ['calendar', $num($d['weeklyCoverageHours']), 'Weekly Hours'],
         ['calendar', $num($d['monthlyCoverageHours']), 'Monthly Hours'],
         ['$', $money($d['baselineWage']), 'Workforce Baseline Assumption Labor Rate'],
-        ['%', $num($d['recoveryPct']) . '%', 'Operational Capital Recovered'],
-        ['trend', $numDec($d['paybackMonths'], 1) . ' months', 'Payback & Recovery Period'],
+        ['%', $lock($num($d['recoveryPct']) . '%'), 'Operational Capital Recovered'],
+        ['trend', $lock($numDec($d['paybackMonths'], 1) . ' months'), 'Payback & Recovery Period'],
     ];
 
     // Donut share labels sit inside the ring: place each at the mid-angle of its
@@ -56,7 +65,7 @@
         <td style="vertical-align:top;">
           <p class="h1">GASQ COST TO PROTECT</p>
           <p class="h1 h1-accent">ESTIMATE DASHBOARD</p>
-          <p class="h1-sub">Buyer Internal vs Vendor Outsourcing Cost to Protect</p>
+          <p class="h1-sub">{{ $masked ? 'Your In-House Cost to Protect — vendor figures withheld' : 'Buyer Internal vs Vendor Outsourcing Cost to Protect' }}</p>
         </td>
         <td width="248" style="vertical-align:top; padding-top:4px;">
           <table width="100%" cellpadding="0" cellspacing="0">
@@ -109,13 +118,13 @@
       $kpiRows = [
         [
           ['stack', 'Buyer Internal Cost to Protect', 'bg-navy', 'tint-navy', $moneyK($d['totalAnnualInternal']), 'Total annual in-house cost', false],
-          ['chart', 'Annual Capital Recovery', 'bg-green', 'tint-green', $moneyK($d['annualCapitalRecovery']), $num($d['recoveryPct']) . '% recovered vs in-house', true],
-          ['users', 'Vendor Outsourcing Cost to Protect', 'bg-orange', 'tint-orange', $moneyK($d['totalAnnualVendor']), 'Total annual vendor cost', false],
+          ['chart', 'Annual Capital Recovery', 'bg-green', 'tint-green', $lock($moneyK($d['annualCapitalRecovery'])), $lock($num($d['recoveryPct']) . '% recovered vs in-house'), true],
+          ['users', 'Vendor Outsourcing Cost to Protect', 'bg-orange', 'tint-orange', $lock($moneyK($d['totalAnnualVendor'])), 'Total annual vendor cost', false],
         ],
         [
           ['clock', 'Buyer Internal Cost to Protect Hourly Rate', 'bg-navy', 'tint-navy', $money($d['internalTcoHourly']), 'Buyer in-house cost per hour', false],
           ['users', 'Total Staff Required', 'bg-navy', 'tint-navy', $num($d['ftesRequired']) . ' FTEs', 'To deliver scope', false],
-          ['clock', 'Vendor Outsourcing Cost to Protect Hourly Rate', 'bg-orange', 'tint-orange', $money($d['vendorTcoHourly']), 'Vendor rate offered', false],
+          ['clock', 'Vendor Outsourcing Cost to Protect Hourly Rate', 'bg-orange', 'tint-orange', $lock($money($d['vendorTcoHourly'])), 'Vendor rate offered', false],
         ],
       ];
     @endphp
@@ -199,8 +208,8 @@
                 <div style="margin-top:-{{ $plotH + 13 }}px; margin-left:{{ $axisW }}px; width:{{ $plotW }}px; height:{{ $plotH + 13 }}px;">
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                      @foreach([[$d['totalAnnualInternal'], '#12294f'], [$d['totalAnnualVendor'], '#ef6c1f']] as [$val, $color])
-                        <td width="50%" style="vertical-align:top; text-align:center;">
+                      @foreach($barSeries as [$val, $color, $barLabel])
+                        <td width="{{ (int) round(100 / count($barSeries)) }}%" style="vertical-align:top; text-align:center;">
                           <div style="height:{{ $plotH - $barH($val) }}px;"></div>
                           <p style="font-size:9.5px; font-weight:bold; color:#12294f; height:13px;">{{ $moneyK($val) }}</p>
                           <table cellpadding="0" cellspacing="0" width="58" align="center">
@@ -220,8 +229,9 @@
                 <div style="margin-left:{{ $axisW }}px; width:{{ $plotW }}px; margin-top:6px;">
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                      <td width="50%" style="text-align:center;"><p style="font-size:7.5px; color:#5b6779; line-height:1.35;">Buyer Internal<br>Cost to Protect</p></td>
-                      <td width="50%" style="text-align:center;"><p style="font-size:7.5px; color:#5b6779; line-height:1.35;">Vendor Outsourcing<br>Cost to Protect</p></td>
+                      @foreach($barSeries as [$val, $color, $barLabel])
+                        <td width="{{ (int) round(100 / count($barSeries)) }}%" style="text-align:center;"><p style="font-size:7.5px; color:#5b6779; line-height:1.35;">{!! $barLabel !!}</p></td>
+                      @endforeach
                     </tr>
                   </table>
                 </div>
@@ -229,6 +239,16 @@
               <div style="margin-top:-{{ $chartH }}px; height:{{ $chartH }}px;">
                 <div style="height:14px;"></div>
                 {{-- 262 + 126 content + 16 padding + 2 border = the panel's 408px of content --}}
+                @if($masked)
+                <div style="margin-left:262px; width:126px; background:#eef3fb; border:1px solid #c9d6ea; padding:14px 8px; text-align:center;">
+                  <table cellpadding="0" cellspacing="0" align="center"><tr>
+                    <td><img src="{{ ReportSvg::icon('shield', '#ef6c1f', 2.2) }}" style="width:26px;height:26px;"></td>
+                  </tr></table>
+                  <p style="font-size:8.5px; font-weight:bold; color:#12294f; letter-spacing:.06em; margin-top:7px; line-height:1.4;">VENDOR COST<br>WITHHELD</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0;"><tr><td style="height:1px; background:#c9d6ea;"></td></tr></table>
+                  <p style="font-size:7.5px; color:#5b6779; line-height:1.5;">Unlock the full estimate to see the vendor cost, the capital recovered and the payback period.</p>
+                </div>
+                @else
                 <div style="margin-left:262px; width:126px; background:#e8f5ec; border:1px solid #bfe0cb; padding:14px 8px; text-align:center;">
                   <table cellpadding="0" cellspacing="0" align="center"><tr>
                     <td style="vertical-align:middle;"><img src="{{ ReportSvg::icon('arrow-down', '#16794a', 2.4) }}" style="width:20px;height:20px;"></td>
@@ -239,6 +259,7 @@
                   <p style="font-size:17px; font-weight:bold; color:#16794a;">{{ $moneyK($d['annualCapitalRecovery']) }}</p>
                   <p style="font-size:7.5px; color:#3f6b53; margin-top:4px; line-height:1.4;">in capital recovered<br>vs in-house</p>
                 </div>
+                @endif
               </div>
             </td></tr>
           </table>
@@ -249,10 +270,36 @@
             <tr><td class="panel-head">
               <table width="100%" cellpadding="0" cellspacing="0"><tr>
                 <td width="20" style="vertical-align:middle;"><img src="{{ ReportSvg::icon('pie', '#ffffff') }}" style="width:13px;height:13px;"></td>
-                <td style="vertical-align:middle;"><p>Cost Breakdown (Annual)</p></td>
+                <td style="vertical-align:middle;"><p>{{ $masked ? 'Vendor Comparison — Locked' : 'Cost Breakdown (Annual)' }}</p></td>
               </tr></table>
             </td></tr>
             <tr><td style="padding:12px 12px 14px;">
+              @if($masked)
+              {{-- Buyer edition: name what is withheld rather than charting a
+                   split that would itself reveal the vendor's share. --}}
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="text-align:center; padding-bottom:10px;">
+                  <table cellpadding="0" cellspacing="0" align="center"><tr>
+                    <td><img src="{{ ReportSvg::icon('shield', '#ef6c1f', 2.2) }}" style="width:30px;height:30px;"></td>
+                  </tr></table>
+                  <p style="font-size:8px; font-weight:bold; color:#12294f; letter-spacing:.09em; margin-top:8px;">WITHHELD IN THIS EDITION</p>
+                </td></tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e6ebf3;">
+                @foreach([
+                    ['Vendor Outsourcing Cost to Protect', $lock($moneyK($d['totalAnnualVendor']))],
+                    ['Operational Capital Recovered', $lock($moneyK($d['annualCapitalRecovery']))],
+                    ['Operational Capital Recovered (%)', $lock($num($d['recoveryPct']) . '%')],
+                    ['Payback &amp; Recovery Period', $lock($numDec($d['paybackMonths'], 1) . ' months')],
+                ] as $withheld)
+                  <tr>
+                    <td style="padding:7px 0; border-bottom:1px solid #f0f3f8;"><p style="font-size:8px; color:#3c4a5e;">{!! $withheld[0] !!}</p></td>
+                    <td style="padding:7px 0; border-bottom:1px solid #f0f3f8; text-align:right;"><p style="font-size:9px; font-weight:bold; color:#8592a5;">{{ $withheld[1] }}</p></td>
+                  </tr>
+                @endforeach
+              </table>
+              <p style="font-size:7.5px; color:#5b6779; line-height:1.55; margin-top:12px;">Your own cost to protect is shown in full above. Unlock the complete estimate to compare it against the vendor's price.</p>
+              @else
               {{-- Donut. The image is laid down first and the labels pulled back
                    over it with negative margins; the whole stack sits in a
                    fixed-height box so the legend below is unaffected by them. --}}
@@ -296,6 +343,7 @@
                   </tr>
                 @endforeach
               </table>
+              @endif
             </td></tr>
         </table>
       </div>

@@ -4,18 +4,18 @@
     use App\Support\ReportSvg;
 
     $rows = [
-        ['Workforce Baseline Assumption Labor Rate', $money($d['baselineWage']), $money($d['baselineWage'])],
-        ['Workforce Cost to Protect Hourly Rate', $money($d['internalTcoHourly']), $money($d['vendorTcoHourly'])],
-        ['Overtime / Holiday Rate', $money($d['internalOtHourly']), $money($d['vendorOtHourly'])],
-        ['Workforce Annual Cost per Security Professional', $money($d['annualPerInternalFte']), $money($d['annualPerVendorFte'])],
-        ['Total Weekly Hours of Coverage', $num($d['weeklyCoverageHours']), $num($d['weeklyCoverageHours'])],
-        ['Total Monthly Hours of Coverage', $num($d['monthlyCoverageHours']), $num($d['monthlyCoverageHours'])],
-        ['Total Annual Hours of Coverage', $num($d['annualCoverageHours']), $num($d['annualCoverageHours'])],
-        ['Total Weeks of Coverage', $num($d['weeksPerYear']), $num($d['weeksPerYear'])],
-        ['Total Months of Coverage', $numDec($d['monthsOfCoverage'], 1), $numDec($d['monthsOfCoverage'], 1)],
-        ['Total Workforce Required for Coverage', $num($d['ftesRequired']), $num($d['ftesRequired'])],
-        ['Total Weekly Cost', $money($d['totalWeeklyInternal']), $money($d['totalWeeklyVendor'])],
-        ['Total Monthly Cost', $money($d['totalMonthlyInternal']), $money($d['totalMonthlyVendor'])],
+        ['Workforce Baseline Assumption Labor Rate', $money($d['baselineWage']), $lock($money($d['baselineWage']))],
+        ['Workforce Cost to Protect Hourly Rate', $money($d['internalTcoHourly']), $lock($money($d['vendorTcoHourly']))],
+        ['Overtime / Holiday Rate', $money($d['internalOtHourly']), $lock($money($d['vendorOtHourly']))],
+        ['Workforce Annual Cost per Security Professional', $money($d['annualPerInternalFte']), $lock($money($d['annualPerVendorFte']))],
+        ['Total Weekly Hours of Coverage', $num($d['weeklyCoverageHours']), $lock($num($d['weeklyCoverageHours']))],
+        ['Total Monthly Hours of Coverage', $num($d['monthlyCoverageHours']), $lock($num($d['monthlyCoverageHours']))],
+        ['Total Annual Hours of Coverage', $num($d['annualCoverageHours']), $lock($num($d['annualCoverageHours']))],
+        ['Total Weeks of Coverage', $num($d['weeksPerYear']), $lock($num($d['weeksPerYear']))],
+        ['Total Months of Coverage', $numDec($d['monthsOfCoverage'], 1), $lock($numDec($d['monthsOfCoverage'], 1))],
+        ['Total Workforce Required for Coverage', $num($d['ftesRequired']), $lock($num($d['ftesRequired']))],
+        ['Total Weekly Cost', $money($d['totalWeeklyInternal']), $lock($money($d['totalWeeklyVendor']))],
+        ['Total Monthly Cost', $money($d['totalMonthlyInternal']), $lock($money($d['totalMonthlyVendor']))],
     ];
 
     // Grouped bar charts: [panel title, icon, axis basis, groups]
@@ -46,7 +46,7 @@
       <tr>
         <td style="vertical-align:top;">
           <p class="h1" style="font-size:25px;">DETAILED COST APPRAISAL COMPARISON</p>
-          <p class="h1-sub">Buyer Internal Cost to Protect vs Vendor Outsourcing Cost to Protect</p>
+          <p class="h1-sub">{{ $masked ? 'Buyer Internal Cost to Protect — vendor figures withheld' : 'Buyer Internal Cost to Protect vs Vendor Outsourcing Cost to Protect' }}</p>
         </td>
       </tr>
     </table>
@@ -56,8 +56,8 @@
       <tr>
         @foreach([
             ['stack', 'Buyer Internal Annual Cost', 'bg-navy', 'tint-navy', $moneyK($d['totalAnnualInternal']), 'Total annual in-house cost', false],
-            ['users', 'Vendor Outsourcing Annual Cost', 'bg-orange', 'tint-orange', $moneyK($d['totalAnnualVendor']), 'Total annual vendor cost', false],
-            ['chart', 'Operational Capital Recovered', 'bg-green', 'tint-green', $moneyK($d['annualCapitalRecovery']), $num($d['recoveryPct']) . '% recovered vs in-house', true],
+            ['users', 'Vendor Outsourcing Annual Cost', 'bg-orange', 'tint-orange', $lock($moneyK($d['totalAnnualVendor'])), 'Total annual vendor cost', false],
+            ['chart', 'Operational Capital Recovered', 'bg-green', 'tint-green', $lock($moneyK($d['annualCapitalRecovery'])), $lock($num($d['recoveryPct']) . '% recovered vs in-house'), true],
             ['users', 'Total Staff Required', 'bg-navy', 'tint-navy', $num($d['ftesRequired']), 'FTEs to deliver scope', false],
         ] as $c => [$icon, $label, $headClass, $bodyClass, $value, $sub, $isGreen])
           @if($c > 0)<td width="8"></td>@endif
@@ -104,22 +104,22 @@
       <tr class="total">
         <td>Total Annual Cost</td>
         <td class="v">{{ $money($d['totalAnnualInternal']) }}</td>
-        <td class="v">{{ $money($d['totalAnnualVendor']) }}</td>
+        <td class="v">{{ $lock($money($d['totalAnnualVendor'])) }}</td>
       </tr>
       <tr class="recover">
         <td>Operational Capital Recovered</td>
         <td class="v">—</td>
-        <td class="v">{{ $money($d['annualCapitalRecovery']) }}</td>
+        <td class="v">{{ $lock($money($d['annualCapitalRecovery'])) }}</td>
       </tr>
       <tr class="recover">
         <td>Operational Capital Recovered (%)</td>
         <td class="v">—</td>
-        <td class="v">{{ $num($d['recoveryPct']) }}%</td>
+        <td class="v">{{ $lock($num($d['recoveryPct']) . '%') }}</td>
       </tr>
       <tr class="recover">
         <td>Payback &amp; Recovery Period</td>
         <td class="v">—</td>
-        <td class="v">{{ $numDec($d['paybackMonths'], 1) }} months</td>
+        <td class="v">{{ $lock($numDec($d['paybackMonths'], 1) . ' months') }}</td>
       </tr>
     </table>
 
@@ -149,7 +149,7 @@
               {{-- legend --}}
               <table cellpadding="0" cellspacing="0" style="margin-bottom:7px;">
                 <tr>
-                  @foreach([['#12294f', 'Buyer Internal Cost'], ['#ef6c1f', 'Vendor Outsourcing Cost']] as $lg)
+                  @foreach($masked ? [['#12294f', 'Buyer Internal Cost']] : [['#12294f', 'Buyer Internal Cost'], ['#ef6c1f', 'Vendor Outsourcing Cost']] as $lg)
                     <td width="12" style="vertical-align:middle;"><table cellpadding="0" cellspacing="0" width="7"><tr><td style="height:7px; background:{{ $lg[0] }};"></td></tr></table></td>
                     <td style="vertical-align:middle; padding-right:12px;"><p style="font-size:7px; color:#3c4a5e;">{{ $lg[1] }}</p></td>
                   @endforeach
@@ -168,8 +168,8 @@
                       <td width="33%" style="vertical-align:top;">
                         <table width="100%" cellpadding="0" cellspacing="0">
                           <tr>
-                            @foreach([[$g[1], '#12294f'], [$g[2], '#ef6c1f']] as [$val, $color])
-                              <td width="50%" style="vertical-align:top; text-align:center;">
+                            @foreach($masked ? [[$g[1], '#12294f']] : [[$g[1], '#12294f'], [$g[2], '#ef6c1f']] as [$val, $color])
+                              <td width="{{ $masked ? 100 : 50 }}%" style="vertical-align:top; text-align:center;">
                                 <div style="height:{{ $groupPlotH - $gBarH($val) }}px;"></div>
                                 <p style="font-size:7px; font-weight:bold; color:#12294f; height:11px;">{{ $moneyK($val) }}</p>
                                 <table cellpadding="0" cellspacing="0" width="24" align="center">

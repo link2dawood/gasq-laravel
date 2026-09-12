@@ -440,8 +440,8 @@
       label="Master Estimate — the 4-page Cost to Protect™ Estimate Dashboard a vendor sends to the buyer. Download or email" />
   <x-report-actions
       reportType="budget-calculator-preview"
-      label="Locked Preview — the same estimate with every figure masked. Free to send; the buyer sees the analysis, not the numbers. Download or email" />
-  <x-report-actions reportType="budget-calculator-allocation" label="Workforce-to-Post™ Allocation &amp; Line-Item Breakdown report — download or email" />
+      label="Buyer Edition (free) — the buyer's own in-house Cost to Protect in full; vendor cost, capital recovered and payback withheld. Download or email" />
+  <x-report-actions reportType="budget-calculator-allocation" label="Workforce-to-Post™ Allocation & Line-Item Breakdown report — download or email" />
 
 </div>
 </div>

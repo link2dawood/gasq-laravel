@@ -55,8 +55,8 @@ class ReportService
             //   'budget-calculator-allocation' → Workforce-to-Post allocation totals
             //     and line-item breakdown.
             'budget-calculator' => 'pdf.cost-to-protect-estimate',
-            // Same document with every figure masked — the free teaser a vendor
-            // sends before the buyer unlocks the real estimate.
+            // Same document as the buyer's free edition: their in-house figures in
+            // full, the vendor's cost and the savings withheld.
             'budget-calculator-preview' => 'pdf.cost-to-protect-estimate',
             'budget-calculator-allocation' => 'pdf.workforce-bill-rate-breakdown',
             // Generic standalone calculators (server-rendered PDF from latest session payload)
@@ -82,8 +82,8 @@ class ReportService
 
         $pdf = $this->pdf()->loadView($view, $data)->setPaper('a4')->setWarnings(false);
 
-        // The masked preview is meant to be forwarded freely, so it is never
-        // locked shut — there are no figures in it to protect.
+        // The buyer edition is meant to be forwarded freely: it carries the buyer's
+        // own figures, and the vendor's are already withheld inside the document.
         return $this->restrictCopyAndPrint(
             $pdf,
             $type === 'budget-calculator-preview' ? null : $openPassword,
@@ -156,7 +156,7 @@ class ReportService
         // internal calculator slug.
         $slug = match ($type) {
             'budget-calculator' => 'Cost-to-Protect-Estimate',
-            'budget-calculator-preview' => 'Cost-to-Protect-Estimate-LOCKED-PREVIEW',
+            'budget-calculator-preview' => 'Cost-to-Protect-Estimate-BUYER-EDITION',
             'budget-calculator-allocation' => 'Workforce-to-Post-Allocation',
             default => str_replace(' ', '-', $type),
         };
