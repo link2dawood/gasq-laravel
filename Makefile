@@ -24,7 +24,8 @@ endif
 	queue-work queue-restart db-seed test serve dusk \
 	up down build rebuild fresh-start logs shell \
 	composer-install composer-update sync-react-ui \
-	storage-link tinker route-list event-list artisan
+	storage-link tinker route-list event-list artisan \
+	deploy deploy-run deploy-status deploy-watch
 
 # Default target
 help:
@@ -76,6 +77,12 @@ help:
 	@echo "  Tests"
 	@echo "    make test            - php artisan test"
 	@echo "    make dusk            - php artisan dusk (if installed)"
+	@echo ""
+	@echo "  Deploy (deploy-run needs GITHUB_TOKEN with repo+workflow scope)"
+	@echo "    make deploy          - push main and follow the deploy it triggers"
+	@echo "    make deploy-run      - re-deploy current main without a new commit"
+	@echo "    make deploy-status   - last five deploy runs"
+	@echo "    make deploy-watch    - follow the newest deploy run"
 	@echo ""
 	@echo "  Any Artisan command"
 	@echo "    make artisan cmd='migrate:status'"
@@ -200,6 +207,63 @@ test:
 
 dusk:
 	$(ARTISAN) dusk
+
+# --- Deploy (GitHub Actions -> server beta folder) ---
+# Pushing main auto-deploys; see .github/workflows/deploy.yml and
+# .github/DEPLOYMENT.md. These targets drive that workflow from the terminal.
+# Triggering a deploy needs a GitHub token with `repo` + `workflow` scope:
+#   export GITHUB_TOKEN=ghp_xxx     (GH_TOKEN also works)
+# Reading run status works without one while the repo is public.
+REPO ?= link2dawood/gasq-laravel
+DEPLOY_WORKFLOW ?= deploy.yml
+DEPLOY_BRANCH ?= main
+BETA_URL ?= https://beta.getasecurityquotenow.com
+GH_API = https://api.github.com/repos/$(REPO)
+TOKEN = $(or $(GITHUB_TOKEN),$(GH_TOKEN))
+CURL_GH = curl -sS -H "Accept: application/vnd.github+json" $(if $(TOKEN),-H "Authorization: Bearer $(TOKEN)",)
+
+# Ship what is committed: push main, then follow the deploy it triggers.
+deploy:
+	@test "$$(git rev-parse --abbrev-ref HEAD)" = "$(DEPLOY_BRANCH)" \
+		|| (echo "ERROR: on branch $$(git rev-parse --abbrev-ref HEAD), not $(DEPLOY_BRANCH)"; exit 1)
+	@test -z "$$(git status --porcelain)" \
+		|| (echo "ERROR: working tree is dirty — commit or stash first"; git status --short; exit 1)
+	git push origin $(DEPLOY_BRANCH)
+	@$(MAKE) --no-print-directory deploy-watch
+
+# Re-deploy the current main without a new commit (manual workflow_dispatch).
+deploy-run:
+	@test -n "$(TOKEN)" || (echo "ERROR: set GITHUB_TOKEN (or GH_TOKEN) to a token with repo+workflow scope"; exit 1)
+	@$(CURL_GH) -X POST "$(GH_API)/actions/workflows/$(DEPLOY_WORKFLOW)/dispatches" \
+		-d '{"ref":"$(DEPLOY_BRANCH)"}' \
+		&& echo "Deploy requested on $(DEPLOY_BRANCH)."
+	@sleep 5
+	@$(MAKE) --no-print-directory deploy-watch
+
+# Last five deploy runs: when, status, commit.
+deploy-status:
+	@$(CURL_GH) "$(GH_API)/actions/workflows/$(DEPLOY_WORKFLOW)/runs?per_page=5" \
+		| jq -r '.workflow_runs[] | "\(.created_at)  \(.status)/\(.conclusion // "-")  \(.head_sha[0:7])  \(.head_commit.message | split("\n")[0])"'
+
+# Poll the newest deploy run until it finishes.
+# The JSON goes to a temp file rather than a shell variable: `echo` mangles the
+# escaped newlines inside commit messages and jq then chokes on the result.
+deploy-watch:
+	@tmp=$$(mktemp); \
+	while :; do \
+		$(CURL_GH) "$(GH_API)/actions/workflows/$(DEPLOY_WORKFLOW)/runs?per_page=1" -o "$$tmp"; \
+		status=$$(jq -r '.workflow_runs[0].status' "$$tmp"); \
+		concl=$$(jq -r '.workflow_runs[0].conclusion // "-"' "$$tmp"); \
+		url=$$(jq -r '.workflow_runs[0].html_url' "$$tmp"); \
+		echo "  $$status/$$concl  $$url"; \
+		if [ "$$status" = "completed" ]; then \
+			rm -f "$$tmp"; \
+			[ "$$concl" = "success" ] || { echo "Deploy failed — see the run above."; exit 1; }; \
+			break; \
+		fi; \
+		sleep 15; \
+	done; \
+	echo "Live: $(BETA_URL)"
 
 # --- Any Artisan command (use: make artisan cmd="migrate:status") ---
 artisan:

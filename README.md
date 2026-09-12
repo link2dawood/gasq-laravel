@@ -116,6 +116,15 @@ post-deploy artisan commands over SSH.
 - Workflow: [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
 - Setup & required secrets: [.github/DEPLOYMENT.md](.github/DEPLOYMENT.md)
 
+From the terminal:
+
+```bash
+make deploy          # push main and follow the deploy it triggers
+make deploy-run      # re-deploy current main without a new commit
+make deploy-status   # last five deploy runs
+make deploy-watch    # follow the newest run until it finishes
+```
+
 ---
 
 ## License

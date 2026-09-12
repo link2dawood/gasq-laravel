@@ -22,6 +22,25 @@ Add these under **Repo → Settings → Secrets and variables → Actions → Ne
 | `SSH_USERNAME` | `u196501019`      |
 | `SSH_PASSWORD` | *your SSH password* |
 
+## Deploying from the terminal
+`make` targets wrap the workflow (see the `Deploy` section of `make help`):
+
+```bash
+make deploy          # push main and follow the deploy it triggers
+make deploy-run      # re-deploy the current main without a new commit
+make deploy-status   # the last five deploy runs
+make deploy-watch    # follow the newest run until it finishes
+```
+
+`deploy` refuses to run on a branch other than `main` or with a dirty working
+tree — commit first, then deploy. Reading run status needs no credentials while
+the repo is public; `deploy-run` triggers the workflow through the API and needs
+a token with `repo` + `workflow` scope:
+
+```bash
+export GITHUB_TOKEN=ghp_xxx     # GH_TOKEN works too
+```
+
 ## Notes
 - `.env` on the server is **never overwritten** (it's excluded from rsync). Set it up once on the server.
 - `storage/`, `node_modules/`, `.git`, and `tests/` are excluded from the upload.
