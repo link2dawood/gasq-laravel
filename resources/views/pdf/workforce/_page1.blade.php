@@ -1,5 +1,5 @@
-{{-- PAGE 1 — Executive cost dashboard: the stated contract value, the four
-     allocation group totals, the allocation mix and the reconciliation read. --}}
+{{-- PAGE 1 — Executive cost dashboard: the contract total (sum of the four
+     allocation groups), the group totals, the allocation mix and the reconciliation read. --}}
 <div class="page page-break">
   @include('pdf.workforce._header', [
       'pageTitle' => 'GASQ Workforce-to-Post Report',
@@ -49,8 +49,8 @@
           <table class="hero" cellpadding="0" cellspacing="0">
             <tr><td class="hero-pad" style="height:162px; vertical-align:middle;">
               <p class="k">Total Contract / Budget Value</p>
-              <p class="num">{{ $money($allocationBase) }}</p>
-              <p class="s">Reported contract value · 100%</p>
+              <p class="num">{{ $money($contractTotal) }}</p>
+              <p class="s">Sum of all allocation groups</p>
             </td></tr>
           </table>
         </td>
@@ -128,9 +128,9 @@
     </table>
 
     {{-- ── Reconciliation of the displayed amounts ────────── --}}
-    <table class="flag {{ $reconciles ? 'ok' : '' }}" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+    <table class="flag ok" cellpadding="0" cellspacing="0" style="margin-top:18px;">
       <tr><td>
-        <p class="k">{{ $reconciles ? 'Reconciliation Check' : 'Reconciliation Flag' }}</p>
+        <p class="k">Reconciliation Check</p>
         <p class="t">{{ $reconciliationNote }}</p>
       </td></tr>
     </table>

@@ -71,11 +71,34 @@ class WorkforceToPostViewTest extends TestCase
     {
         $html = view('pdf.workforce-bill-rate-breakdown', $this->payload())->render();
 
-        // Benchmark percentages total 100%, so the report reports a clean
-        // reconciliation rather than flagging a variance.
+        // Benchmark percentages total 100%, so the group sum equals the vendor base.
         $this->assertStringContainsString('Reconciliation Check', $html);
-        $this->assertStringContainsString('matching the stated contract / budget value', $html);
+        $this->assertStringContainsString('the same figure the calculator shows on screen', $html);
         $this->assertStringContainsString('Displayed group percentages total 100.00%', $html);
         $this->assertStringNotContainsString('Reconciliation Flag', $html);
+    }
+
+    public function test_contract_total_is_the_sum_of_groups_like_the_calculator_screen(): void
+    {
+        // Percentages that total 118.26% (the calculator allows it): the screen's
+        // Total Contract / Budget Value is the sum of the groups, not the vendor base.
+        $payload = $this->payload();
+        $payload['scenario']['meta']['allocations'] = [
+            'baseDirectLaborWage' => 70,
+            'ficaMedicare' => 4.67, 'futa' => 0.37, 'suta' => 1.22, 'workersCompensation' => 3.1,
+            'generalLiabilityInsurance' => 8.9,
+            'profitFee' => 30,
+        ];
+        $html = view('pdf.workforce-bill-rate-breakdown', $payload)->render();
+
+        $estimate = app(\App\Services\CostToProtectEstimate::class)->build($payload['scenario'], null);
+        $base = $estimate['totalAnnualVendor'];
+        $sum = $base * 1.1826;
+        $stated = \App\Support\Currency::format($sum, 2);
+
+        $this->assertStringContainsString($stated, $html);
+        $this->assertStringNotContainsString('Reconciliation Flag', $html);
+        $this->assertStringNotContainsString('Reported contract value', $html);
+        $this->assertStringContainsString('Displayed group percentages total 118.26%', $html);
     }
 }

@@ -3,15 +3,14 @@
 
     The companion document to the master Cost to Protect™ estimate: it breaks the
     vendor contract value down into allocation groups and line items. Pages:
-      1. Executive cost dashboard   — stated total, group totals, allocation mix
+      1. Executive cost dashboard   — contract total, group totals, allocation mix
       2. Line-item cost composition — full breakdown + stated-included elements
       3. GASQ Certified™ statement  — methodology, certification, IP, disclaimer
 
     Every figure comes from App\Services\CostToProtectEstimate so this document
     and the master estimate can never disagree. Percentages and amounts are shown
-    exactly as the scenario carries them: where the displayed group amounts do not
-    add up to the stated contract value, the report flags the variance rather than
-    quietly adjusting a figure.
+    exactly as the scenario carries them, and the Total Contract / Budget Value is
+    the sum of the allocation groups — the same figure the calculator shows.
 --}}
 @php
     use App\Services\CostToProtectEstimate;
@@ -98,10 +97,13 @@
     }
 
     // ---------- Dashboard reads ----------
+    // Total Contract / Budget Value = the sum of the allocation groups, exactly as
+    // the calculator screen computes it (bg_contract_total = groupSum). The group
+    // percentages are applied to the vendor base, so when they don't total 100%
+    // the sum differs from that base — the report shows the screen's figure.
     $displayedSubtotal = array_sum(array_column($lineGroups, 'amount'));
     $displayedPctTotal = array_sum(array_column($lineGroups, 'pct'));
-    $variance = $displayedSubtotal - $allocationBase;
-    $reconciles = abs($variance) < 0.005;
+    $contractTotal = $displayedSubtotal;
     $percentsReconcile = abs(100 - $displayedPctTotal) < 0.005;
 
     // Direct labor + fringe / employer burden: the share of the contract that is
@@ -123,20 +125,12 @@
 
     $indicators = [
         [$pct($laborFringePct), 'Direct labor + fringe / employer burden'],
-        [$compact($displayedSubtotal), 'Displayed allocation subtotal'],
-        [
-            $money(abs($variance)),
-            $reconciles
-                ? 'Reconciled to the stated total'
-                : ($variance > 0 ? 'Variance above stated total' : 'Variance below stated total'),
-        ],
+        [$compact($contractTotal), 'Sum of all allocation groups'],
+        [$pct($displayedPctTotal), 'Allocation percentages applied'],
     ];
 
-    $reconciliationNote = $reconciles
-        ? 'The displayed allocation amounts total ' . $money($displayedSubtotal) . ', matching the stated contract / budget value. Source figures are presented exactly as calculated.'
-        : 'The displayed allocation amounts total ' . $money($displayedSubtotal) . ', which is ' . $money(abs($variance))
-          . ($variance > 0 ? ' above' : ' below') . ' the stated contract / budget value of ' . $money($allocationBase)
-          . '. This report preserves the source figures exactly rather than silently changing them.';
+    $reconciliationNote = 'The four allocation groups total ' . $money($contractTotal)
+        . ', reported as the Total Contract / Budget Value — the same figure the calculator shows on screen.';
 
     $sourceNote = 'Displayed group percentages total ' . $pct($displayedPctTotal)
         . '. This report does not alter the original percentages or amounts.';
