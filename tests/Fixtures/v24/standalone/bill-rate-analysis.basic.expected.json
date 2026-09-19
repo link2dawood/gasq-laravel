@@ -1,27 +1,336 @@
 {
-  "kpis": {
-    "quick": {
-      "basePayRate": 18,
-      "benefitsAmt": 3.6,
-      "burdenedCost": 21.6,
-      "overheadAmt": 7.56,
-      "withOverhead": 29.16,
-      "billRate": 34.31,
-      "markupPct": 90.6,
-      "weeklyAt40": 1372.4
-    },
-    "components": {
-      "totalBillRate": 59.16,
-      "rows": [
-        { "key": "wages", "label": "Wages & Benefits", "value": 41.05, "pct": 69.39 },
-        { "key": "taxes", "label": "Taxes & Insurance", "value": 10.96, "pct": 18.52 },
-        { "key": "training", "label": "Training Costs", "value": 2.02, "pct": 3.41 },
-        { "key": "recruiting", "label": "Recruiting, Screening & Drug Testing", "value": 0.09, "pct": 0.15 },
-        { "key": "uniforms", "label": "Uniforms & Equipment", "value": 1.47, "pct": 2.48 },
-        { "key": "overhead", "label": "Overhead", "value": 0.5, "pct": 0.85 },
-        { "key": "profit", "label": "Profit", "value": 3.07, "pct": 5.19 }
-      ]
+    "kpis": {
+        "pricingMode": "approved",
+        "summary": {
+            "weightedWage": 26.25,
+            "fullBurden": 37.5,
+            "finalBillRate": 67.5,
+            "costToProtect": 96.42857142857143,
+            "croHourly": 28.92857142857143,
+            "annualCro": 1171607.142857143,
+            "premiumAboveCtp": 0.0,
+            "annualPremiumAboveCtp": 0.0,
+            "annualContractValue": 2733750.0,
+            "requiredManpower": 28,
+            "equivalentPosts": 4.635989010989011,
+            "manpowerPerPost": 6.0,
+            "staffingReserveCapacity": 268.0
+        },
+        "coverage": {
+            "mode": "annual",
+            "annualHours": 40500.0,
+            "scheduleHours": 8736.0,
+            "weeksPerYear": 52.0
+        },
+        "staffing": {
+            "annualHours": 40500.0,
+            "equivalentPosts": 4.635989010989011,
+            "requiredFte": 27.815934065934066,
+            "roundedHeadcount": 28,
+            "availableCapacity": 40768.0,
+            "staffingReserveCapacity": 268.0,
+            "paidHoursPerEmployee": 2080.0,
+            "availableHoursPerEmployee": 1456.0,
+            "availablePerWeek": 28.0,
+            "manpowerPerPost": 6.0
+        },
+        "layer1": {
+            "positions": [
+                {
+                    "name": "Primary Post Officers",
+                    "type": "core",
+                    "employees": 18.0,
+                    "weeklyPaidHours": 720.0,
+                    "hourlyWage": 25.2,
+                    "countsTowardCoverage": true,
+                    "annualPaidHours": 37440.0,
+                    "annualPayroll": 943488.0,
+                    "protectiveCapacity": 26208.0,
+                    "wageShare": 0.6171428571428571,
+                    "positionBillRate": 64.8
+                },
+                {
+                    "name": "Lead Officers \/ Site Supervisors",
+                    "type": "supervision",
+                    "employees": 5.0,
+                    "weeklyPaidHours": 200.0,
+                    "hourlyWage": 28.14,
+                    "countsTowardCoverage": true,
+                    "annualPaidHours": 10400.0,
+                    "annualPayroll": 292656.0,
+                    "protectiveCapacity": 7280.0,
+                    "wageShare": 0.19142857142857142,
+                    "positionBillRate": 72.36000000000001
+                },
+                {
+                    "name": "Relief \/ Float Officers",
+                    "type": "relief",
+                    "employees": 5.0,
+                    "weeklyPaidHours": 200.0,
+                    "hourlyWage": 28.14,
+                    "countsTowardCoverage": true,
+                    "annualPaidHours": 10400.0,
+                    "annualPayroll": 292656.0,
+                    "protectiveCapacity": 7280.0,
+                    "wageShare": 0.19142857142857142,
+                    "positionBillRate": 72.36000000000001
+                }
+            ],
+            "totalEmployees": 28.0,
+            "coverageEmployees": 28.0,
+            "positionCapacity": 40768.0,
+            "totalWeeklyPaidHours": 1120.0,
+            "totalAnnualPaidHours": 58240.0,
+            "totalPayroll": 1528800.0,
+            "baseWeightedWage": 26.25,
+            "compensationAdders": 0.0,
+            "weightedWage": 26.25,
+            "rateMultiplier": 2.5714285714285716
+        },
+        "layer2": {
+            "method": "ratio",
+            "fullBurden": 37.5,
+            "incrementalBurden": 11.25,
+            "wageShare": 0.7,
+            "lines": []
+        },
+        "layer3": {
+            "wmcHoursCalculated": 624.0,
+            "wmcHours": 624.0,
+            "wmcOverridden": false,
+            "wmcPerPost": 3744.0,
+            "wmcValue": 140400.0,
+            "finalBillRate": 67.5,
+            "categories": [
+                {
+                    "key": "vacation",
+                    "label": "Vacation \/ PTO replacement coverage",
+                    "hours": 0.0
+                },
+                {
+                    "key": "sick",
+                    "label": "Sick \/ call-off coverage",
+                    "hours": 0.0
+                },
+                {
+                    "key": "holiday",
+                    "label": "Holiday coverage",
+                    "hours": 0.0
+                },
+                {
+                    "key": "training",
+                    "label": "Training replacement coverage",
+                    "hours": 0.0
+                },
+                {
+                    "key": "absenteeism",
+                    "label": "Absenteeism",
+                    "hours": 0.0
+                },
+                {
+                    "key": "turnover",
+                    "label": "Turnover \/ vacancy coverage",
+                    "hours": 0.0
+                },
+                {
+                    "key": "breaks",
+                    "label": "Paid lunch \/ rest-break coverage",
+                    "hours": 0.0
+                },
+                {
+                    "key": "emergency",
+                    "label": "Emergency replacement coverage",
+                    "hours": 0.0
+                },
+                {
+                    "key": "unbillableOt",
+                    "label": "Unbillable overtime",
+                    "hours": 0.0
+                },
+                {
+                    "key": "other",
+                    "label": "Other unavailable \/ non-protective time",
+                    "hours": 0.0
+                }
+            ],
+            "categoryTotal": 0.0
+        },
+        "layer4": {
+            "hourly": 0.0,
+            "annual": 0.0,
+            "lines": [],
+            "treatment": "embedded"
+        },
+        "layer5": {
+            "hourly": 0.0,
+            "annual": 0.0,
+            "base": 37.5,
+            "lines": [],
+            "treatment": "embedded"
+        },
+        "layer6": {
+            "marginPct": 0.15,
+            "marginDivisor": 0.85,
+            "preProfit": 57.375,
+            "profitHourly": 10.125,
+            "annualProfit": 410062.5,
+            "treatment": "embedded"
+        },
+        "reconciliation": {
+            "laborBase": 37.5,
+            "odc": 0.0,
+            "ga": 0.0,
+            "profit": 10.125,
+            "embeddedTotal": 47.625,
+            "finalBillRate": 67.5,
+            "remaining": 19.875,
+            "rateOverridden": false,
+            "calculatedRate": 67.5
+        },
+        "forecast": {
+            "termYears": 5,
+            "years": [
+                {
+                    "year": 1,
+                    "wageEscalation": 0.0,
+                    "rateEscalation": 0.0,
+                    "priceLock": false,
+                    "status": "calculated",
+                    "wage": 26.25,
+                    "fullBurden": 37.5,
+                    "calculatedRate": 67.5,
+                    "finalBillRate": 67.5,
+                    "annualHours": 40500.0,
+                    "annualContractValue": 2733750.0,
+                    "costToProtect": 96.42857142857143,
+                    "croHourly": 28.92857142857143,
+                    "annualCro": 1171607.142857143,
+                    "premiumAboveCtp": 0.0,
+                    "embeddedProfit": 410062.5,
+                    "staffing": {
+                        "annualHours": 40500.0,
+                        "equivalentPosts": 4.635989010989011,
+                        "requiredFte": 27.815934065934066,
+                        "roundedHeadcount": 28,
+                        "availableCapacity": 40768.0,
+                        "staffingReserveCapacity": 268.0
+                    }
+                },
+                {
+                    "year": 2,
+                    "wageEscalation": 0.03,
+                    "rateEscalation": 0.03,
+                    "priceLock": false,
+                    "status": "calculated",
+                    "wage": 27.0375,
+                    "fullBurden": 38.625,
+                    "calculatedRate": 69.525,
+                    "finalBillRate": 69.525,
+                    "annualHours": 40500.0,
+                    "annualContractValue": 2815762.5,
+                    "costToProtect": 99.32142857142857,
+                    "croHourly": 29.796428571428564,
+                    "annualCro": 1206755.3571428568,
+                    "premiumAboveCtp": 0.0,
+                    "embeddedProfit": 422364.37500000006,
+                    "staffing": {
+                        "annualHours": 40500.0,
+                        "equivalentPosts": 4.635989010989011,
+                        "requiredFte": 27.815934065934066,
+                        "roundedHeadcount": 28,
+                        "availableCapacity": 40768.0,
+                        "staffingReserveCapacity": 268.0
+                    }
+                },
+                {
+                    "year": 3,
+                    "wageEscalation": 0.03,
+                    "rateEscalation": 0.03,
+                    "priceLock": false,
+                    "status": "calculated",
+                    "wage": 27.848625000000002,
+                    "fullBurden": 39.78375,
+                    "calculatedRate": 71.61075000000001,
+                    "finalBillRate": 71.61075000000001,
+                    "annualHours": 40500.0,
+                    "annualContractValue": 2900235.3750000005,
+                    "costToProtect": 102.30107142857143,
+                    "croHourly": 30.690321428571423,
+                    "annualCro": 1242958.0178571427,
+                    "premiumAboveCtp": 0.0,
+                    "embeddedProfit": 435035.30625,
+                    "staffing": {
+                        "annualHours": 40500.0,
+                        "equivalentPosts": 4.635989010989011,
+                        "requiredFte": 27.815934065934066,
+                        "roundedHeadcount": 28,
+                        "availableCapacity": 40768.0,
+                        "staffingReserveCapacity": 268.0
+                    }
+                },
+                {
+                    "year": 4,
+                    "wageEscalation": 0.03,
+                    "rateEscalation": 0.03,
+                    "priceLock": false,
+                    "status": "calculated",
+                    "wage": 28.684083750000003,
+                    "fullBurden": 40.9772625,
+                    "calculatedRate": 73.75907250000002,
+                    "finalBillRate": 73.75907250000002,
+                    "annualHours": 40500.0,
+                    "annualContractValue": 2987242.4362500007,
+                    "costToProtect": 105.37010357142857,
+                    "croHourly": 31.611031071428556,
+                    "annualCro": 1280246.7583928565,
+                    "premiumAboveCtp": 0.0,
+                    "embeddedProfit": 448086.36543750006,
+                    "staffing": {
+                        "annualHours": 40500.0,
+                        "equivalentPosts": 4.635989010989011,
+                        "requiredFte": 27.815934065934066,
+                        "roundedHeadcount": 28,
+                        "availableCapacity": 40768.0,
+                        "staffingReserveCapacity": 268.0
+                    }
+                },
+                {
+                    "year": 5,
+                    "wageEscalation": 0.03,
+                    "rateEscalation": 0.03,
+                    "priceLock": false,
+                    "status": "calculated",
+                    "wage": 29.544606262500004,
+                    "fullBurden": 42.206580375,
+                    "calculatedRate": 75.97184467500001,
+                    "finalBillRate": 75.97184467500001,
+                    "annualHours": 40500.0,
+                    "annualContractValue": 3076859.7093375004,
+                    "costToProtect": 108.53120667857144,
+                    "croHourly": 32.55936200357142,
+                    "annualCro": 1318654.1611446426,
+                    "premiumAboveCtp": 0.0,
+                    "embeddedProfit": 461528.95640062506,
+                    "staffing": {
+                        "annualHours": 40500.0,
+                        "equivalentPosts": 4.635989010989011,
+                        "requiredFte": 27.815934065934066,
+                        "roundedHeadcount": 28,
+                        "availableCapacity": 40768.0,
+                        "staffingReserveCapacity": 268.0
+                    }
+                }
+            ],
+            "totals": {
+                "contractValue": 14513850.020587502,
+                "annualCro": 6220221.437394641,
+                "protectiveHours": 202500.0,
+                "averageBillRate": 71.673333435,
+                "embeddedProfit": 2177077.503088125,
+                "wageGrowth": 0.12550881000000014,
+                "rateGrowth": 0.12550881000000014
+            }
+        },
+        "warnings": []
     }
-  }
 }
-

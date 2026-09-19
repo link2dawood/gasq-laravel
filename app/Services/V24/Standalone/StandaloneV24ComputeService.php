@@ -9,7 +9,7 @@ class StandaloneV24ComputeService
     public function __construct(
         private CostAnalysisEngine $costAnalysis,
         private ManpowerHoursEngine $manpowerHours,
-        private BillRateAnalysisEngine $billRateAnalysis,
+        private BillRateBreakdownEngine $billRateBreakdown,
         private EconomicJustificationEngine $economicJustification,
         private HourlyPayEngine $hourlyPay,
         private BudgetEngine $budget,
@@ -36,7 +36,7 @@ class StandaloneV24ComputeService
         return match ($type) {
             'cost-analysis' => ['kpis' => $this->costAnalysis->compute($scenario)],
             'manpower-hours' => ['kpis' => $this->manpowerHours->compute($scenario)],
-            'bill-rate-analysis' => ['kpis' => $this->billRateAnalysis->compute($scenario)],
+            'bill-rate-analysis' => ['kpis' => $this->billRateBreakdown->compute($scenario)],
             'economic-justification' => ['kpis' => $this->economicJustification->compute($scenario)],
             'hourly-pay-calculator' => ['kpis' => $this->hourlyPay->compute($scenario)],
             'budget-calculator' => ['kpis' => $this->budget->compute($scenario)],

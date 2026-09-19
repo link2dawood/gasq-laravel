@@ -5,7 +5,7 @@
     $kpis = $result['kpis'] ?? $result ?? [];
 
     $title = match ($type) {
-        'bill-rate-analysis' => 'Bill Rate Analysis',
+        'bill-rate-analysis' => 'Bill Rate Breakdown',
         'economic-justification' => 'Economic Justification',
         'budget-calculator' => 'Workforce Calculator',
         'government-contract-calculator' => 'Government Contract Calculator',
