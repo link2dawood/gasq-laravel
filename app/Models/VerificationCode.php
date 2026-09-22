@@ -14,6 +14,9 @@ class VerificationCode extends Model
         'code',
         'code_hash',
         'type',
+        // What the code is for, e.g. private_estimate:41. Lets an invited buyer
+        // with no account hold a code scoped to one estimate.
+        'context',
         'phone_number',
         'email',
         'status',
@@ -35,4 +38,3 @@ class VerificationCode extends Model
         return $this->belongsTo(User::class);
     }
 }
-

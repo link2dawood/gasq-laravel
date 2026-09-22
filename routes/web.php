@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PrivateEstimateBuyerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\AdminVendorOpportunityController;
@@ -198,6 +199,18 @@ Route::middleware(['auth'])->group(function () {
         ->name('vendor-questionnaires.save-step');
     Route::post('/vendor-questionnaires/{questionnaire}/submit', [VendorQuestionnaireController::class, 'submit'])
         ->name('vendor-questionnaires.submit');
+});
+
+// ── GASQ Private Estimate by Invitation ─────────────────────────────────────
+// Public, account-free buyer flow. The invitation token identifies the estimate;
+// a six-digit email code authorises the session (spec 41: credential separation).
+// Sending and checking codes is rate limited by IP.
+Route::prefix('private')->name('private-estimates.buyer.')->group(function () {
+    Route::get('/{token}', [PrivateEstimateBuyerController::class, 'show'])->name('show');
+    Route::post('/{token}/code', [PrivateEstimateBuyerController::class, 'sendCode'])
+        ->middleware('throttle:6,1')->name('send-code');
+    Route::post('/{token}/verify', [PrivateEstimateBuyerController::class, 'verifyCode'])
+        ->middleware('throttle:10,1')->name('verify-code');
 });
 
 // Public buyer review (tokenized, no auth required)
