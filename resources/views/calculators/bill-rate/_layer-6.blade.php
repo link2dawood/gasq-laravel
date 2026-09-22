@@ -12,5 +12,9 @@
   <div class="col-6 col-md-3"><div class="brb-stat"><div class="l">Profit / hr</div><div class="v" data-out="layer6.profitHourly" data-fmt="money"></div></div></div>
   <div class="col-6 col-md-3"><div class="brb-stat"><div class="l">Annual profit</div><div class="v" data-out="layer6.annualProfit" data-fmt="money0"></div></div></div>
 </div>
+<div class="row g-2 mt-1">
+  <div class="col-6 col-md-3"><div class="brb-stat"><div class="l">Profit margin</div><div class="v" data-out="layer6.marginPct" data-fmt="pct"></div></div></div>
+  <div class="col-6 col-md-3"><div class="brb-stat"><div class="l">Markup on cost</div><div class="v" data-out="layer6.markup" data-fmt="pct"></div></div></div>
+</div>
 <div class="brb-note mt-3" data-mode-only="approved">Profit is back-solved from the approved rate as an allocation check. It is not an extra charge.</div>
 <details class="brb-how mt-2"><summary>How calculated</summary><div class="f" id="brb_how_l6"></div></details>

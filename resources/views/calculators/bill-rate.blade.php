@@ -76,6 +76,7 @@
   .brb-warnings .item { font-size:.84rem; padding:.45rem .7rem; border-radius:.55rem; margin-bottom:.35rem; display:flex; gap:.5rem; }
   .brb-warnings .item.error { background:rgba(220,38,38,.08); color:#991b1b; }
   .brb-warnings .item.warning { background:rgba(217,119,6,.09); color:#92400e; }
+  .brb-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.72rem; font-weight:700; opacity:.7; margin-right:.3rem; }
 
   .brb-stat { border:1px solid rgba(6,45,121,.1); border-radius:.9rem; padding:.8rem 1rem; background:#fff; height:100%; }
   .brb-stat .l { font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:var(--gasq-muted); }
@@ -251,6 +252,19 @@ const BRB_POSITION_CATALOGUE = [
 const BRB_TYPE_LABELS = { core:'Core Coverage', relief:'Relief', supervision:'Supervision', specialized:'Specialized', support:'Dedicated Support', custom:'Custom' };
 const BRB_ODC_BASES = { hour:'$ / hour', employee:'$ / employee / yr', post:'$ / post / yr', month:'$ / month', year:'$ / year', contract:'Fixed contract amount' };
 const BRB_GA_METHODS = { pct:'% of subtotal', hourly:'$ / hour', annual:'Annual $ allocated' };
+const BRB_PROVIDERS = { vendor:'Vendor', buyer:'Buyer' };
+const BRB_RECOVERY = { recovered:'Recovered', absorbed:'Vendor absorbed', buyer_provided:'Buyer provided', not_applicable:'Not applicable' };
+const BRB_BURDEN_METHODS = { pct:'% of employer cost', hourly:'$ / hour' };
+
+// Spec 4.1 / 5.1 print a balancing final row so a rounded column still sums to
+// its total. Round every row but the last, then give the last the remainder.
+function balancedColumn(values, total, dp = 2){
+  const f = 10 ** dp;
+  const rounded = values.map(v => Math.round((Number(v) || 0) * f) / f);
+  const head = rounded.slice(0, -1);
+  if(rounded.length) rounded[rounded.length - 1] = Math.round((total - head.reduce((a, b) => a + b, 0)) * f) / f;
+  return rounded;
+}
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 let state = clone(BRB_DEFAULTS);
@@ -336,6 +350,11 @@ function renderPositions(){
       <td style="width:80px">${inputCell(`positions.${i}.employees`, { step:1 })}</td>
       <td style="width:95px">${inputCell(`positions.${i}.weeklyPaidHours`, { step:1 })}</td>
       <td style="width:95px">${inputCell(`positions.${i}.hourlyWage`, { step:0.01 })}</td>
+      <td style="width:90px">${inputCell(`positions.${i}.localityPay`, { step:0.01 })}</td>
+      <td style="width:90px">${inputCell(`positions.${i}.healthWelfareCash`, { step:0.01 })}</td>
+      <td style="width:90px">${inputCell(`positions.${i}.shiftDifferential`, { step:0.01 })}</td>
+      <td style="width:90px">${inputCell(`positions.${i}.positionPremium`, { step:0.01 })}</td>
+      <td class="calc" data-pcol="cashWage" data-fmt="money"></td>
       <td class="calc" data-pcol="annualPaidHours" data-fmt="int"></td>
       <td class="calc" data-pcol="annualPayroll" data-fmt="money0"></td>
       <td class="calc" data-pcol="wageShare" data-fmt="pct"></td>
@@ -352,15 +371,22 @@ function renderBurdenItems(){
   document.getElementById('brb_burden_body').innerHTML = state.burden.items.map((b, i) => `
     <tr>
       <td>${esc(b.label)}</td>
-      <td style="width:130px">${inputCell(`burden.items.${i}.method`, { kind:'select', options:{ pct:'% of wage', hourly:'$ / hour' } })}</td>
+      <td style="width:160px">${inputCell(`burden.items.${i}.method`, { kind:'select', options: BRB_BURDEN_METHODS })}</td>
       <td style="width:110px">${inputCell(`burden.items.${i}.value`, { step:0.01 })}</td>
-      <td class="calc" data-bcol="${esc(b.key)}"></td>
+      <td class="calc" data-bshare="${i}"></td>
+      <td class="calc" data-bcol="${i}"></td>
     </tr>`).join('');
 }
 
 function renderWmc(){
   document.getElementById('brb_wmc_body').innerHTML = state.wmcCategories.map((c, i) => `
-    <tr><td>${esc(c.label)}</td><td style="width:130px">${inputCell(`wmcCategories.${i}.hours`, { step:1 })}</td></tr>`).join('');
+    <tr>
+      <td>${esc(c.label)}</td>
+      <td style="width:120px">${inputCell(`wmcCategories.${i}.hours`, { step:1 })}</td>
+      <td class="calc" data-wshare="${i}"></td>
+      <td class="calc" data-wcol="${i}"></td>
+      <td class="small text-gasq-muted">${esc(c.treatment || '')}</td>
+    </tr>`).join('');
 }
 
 function renderOdc(){
@@ -370,6 +396,8 @@ function renderOdc(){
       <td style="min-width:170px">${o.custom ? inputCell(`odc.${i}.label`, { kind:'text' }) : esc(o.label) + (o.optional ? ' <span class="text-gasq-muted small">(optional)</span>' : '')}</td>
       <td style="width:170px">${inputCell(`odc.${i}.basis`, { kind:'select', options: BRB_ODC_BASES })}</td>
       <td style="width:120px">${inputCell(`odc.${i}.amount`, { step:0.01 })}</td>
+      <td style="width:120px">${inputCell(`odc.${i}.provider`, { kind:'select', options: BRB_PROVIDERS, rerender:true })}</td>
+      <td style="width:160px">${inputCell(`odc.${i}.recoveryStatus`, { kind:'select', options: BRB_RECOVERY, rerender:true })}</td>
       <td class="calc" data-ocol="annual" data-i="${i}"></td>
       <td class="calc" data-ocol="hourly" data-i="${i}"></td>
       <td>${o.custom ? `<button type="button" class="btn btn-sm btn-link text-danger p-0" data-remove="odc" data-index="${i}"><i class="fa fa-trash"></i></button>` : ''}</td>
@@ -424,7 +452,7 @@ function renderStructure(){
 function applyVisibility(){
   const schedule = state.coverage.mode === 'schedule';
   document.getElementById('brb_schedule_fields').hidden = !schedule;
-  const lineItems = state.burden.method === 'lineItems';
+  const lineItems = state.burden.method === 'detailed';
   document.getElementById('brb_burden_ratio').hidden = lineItems;
   document.getElementById('brb_burden_items').hidden = !lineItems;
   const approved = state.pricingMode !== 'buildup';
@@ -565,13 +593,52 @@ function renderResults(){
     tr.querySelectorAll('[data-pcol]').forEach(td => { td.textContent = calc ? fmtAs(td.dataset.fmt, calc[td.dataset.pcol]) : '—'; });
   });
 
-  // Burden / ODC / G&A calc columns
-  const burdenByKey = Object.fromEntries((r.layer2.lines || []).map(l => [l.key, l.hourly]));
-  document.querySelectorAll('[data-bcol]').forEach(td => { td.textContent = fmtMoney(burdenByKey[td.dataset.bcol] || 0) + '/hr'; });
+  // Layer 2: share and hourly columns, with the spec's balancing final row.
+  const bLines = r.layer2.lines || [];
+  const bHourly = balancedColumn(bLines.map(l => l.hourly), r.layer2.incrementalBurden);
+  const bShare = balancedColumn(bLines.map(l => l.share * 100), r.layer2.burdenShare * 100);
+  document.querySelectorAll('[data-bcol]').forEach(td => {
+    const i = +td.dataset.bcol;
+    td.textContent = bLines[i] ? fmtMoney(bHourly[i]) : '—';
+  });
+  document.querySelectorAll('[data-bshare]').forEach(td => {
+    const i = +td.dataset.bshare;
+    td.textContent = bLines[i] ? fmtNum(bShare[i], 2) + '%' : '—';
+  });
+  setText('brb_l2_total_share', fmtNum(r.layer2.burdenShare * 100, 2) + '%');
+  setText('brb_l2_total_hourly', fmtMoney(r.layer2.incrementalBurden));
+  const l2Badge = document.getElementById('brb_l2_badge');
+  if(r.layer2.method === 'detailed'){
+    l2Badge.hidden = false;
+    l2Badge.textContent = r.layer2.reconciles ? 'Reconciled' : 'Does not reconcile';
+    l2Badge.className = 'brb-badge ' + (r.layer2.reconciles ? 'calc' : 'over');
+  } else {
+    l2Badge.hidden = true;
+  }
+
+  // Layer 3 categories: share and rate allocation, balanced the same way.
+  const wCats = r.layer3.categories || [];
+  const wHourly = balancedColumn(wCats.map(c => c.hourly), r.layer3.rateAllocation);
+  const wShare = balancedColumn(wCats.map(c => c.share * 100), wCats.length ? 100 : 0);
+  document.querySelectorAll('[data-wcol]').forEach(td => {
+    const i = +td.dataset.wcol;
+    td.textContent = wCats[i] ? fmtMoney(wHourly[i]) : '—';
+  });
+  document.querySelectorAll('[data-wshare]').forEach(td => {
+    const i = +td.dataset.wshare;
+    td.textContent = wCats[i] ? fmtNum(wShare[i], 2) + '%' : '—';
+  });
+  setText('brb_l3_total_alloc', fmtMoney(r.layer3.rateAllocation));
+
+  // Layer 4: an absorbed or buyer-provided cost stays visible but adds nothing.
   const odcByKey = Object.fromEntries((r.layer4.lines || []).map(l => [l.key, l]));
   document.querySelectorAll('[data-ocol]').forEach(td => {
     const line = odcByKey[state.odc[td.dataset.i]?.key];
-    td.textContent = !line ? '—' : td.dataset.ocol === 'annual' ? fmtMoney(line.annual, 0) : fmtMoney(line.hourly) + '/hr';
+    if(!line){ td.textContent = '—'; return; }
+    if(td.dataset.ocol === 'annual'){ td.textContent = fmtMoney(line.annual, 0); return; }
+    td.innerHTML = line.recoverable
+      ? fmtMoney(line.hourly) + '/hr'
+      : `<span class="text-gasq-muted">${fmtMoney(line.hourly)} · not recovered</span>`;
   });
   const gaByKey = Object.fromEntries((r.layer5.lines || []).map(l => [l.key, l]));
   document.querySelectorAll('[data-gcol]').forEach(td => {
@@ -579,12 +646,11 @@ function renderResults(){
     td.textContent = line ? fmtMoney(line.hourly) + '/hr' : '—';
   });
 
-  // WMC reconciliation badge
-  const wmcOk = r.layer3.categoryTotal === 0 || Math.abs(r.layer3.categoryTotal - r.layer3.wmcHours) < 0.01;
-  const wmcBadge = document.getElementById('brb_wmc_badge');
-  wmcBadge.textContent = r.layer3.categoryTotal === 0 ? 'Not itemised' : (wmcOk ? 'Reconciled' : 'Does not reconcile');
-  wmcBadge.className = 'brb-badge ' + (wmcOk ? 'calc' : 'over');
+  // Layer 3 override status
   setText('brb_wmc_status', r.layer3.wmcOverridden ? 'Authorised override' : 'Calculated');
+  const wmcBadge = document.getElementById('brb_wmc_badge');
+  wmcBadge.textContent = r.layer3.categoriesReconcile ? 'Reconciled to ' + fmtNum(r.layer3.wmcHours) + ' hrs' : 'Does not reconcile';
+  wmcBadge.className = 'brb-badge ' + (r.layer3.categoriesReconcile ? 'calc' : 'over');
 
   // Summary: CRO vs premium
   const premium = r.summary.premiumAboveCtp > 0;
@@ -613,7 +679,7 @@ function renderResults(){
     : 'Labor subtotal (Layer 3 rate) + ODC + G&A = pre-profit cost, grossed up by the profit margin.');
 
   renderForecastResults(r.forecast);
-  renderWarnings(r.warnings || []);
+  renderValidations(r.validations || []);
   renderFormulas(r);
 }
 
@@ -668,10 +734,17 @@ function renderForecastResults(f){
   setText('brb_f_term', f.termYears);
 }
 
-function renderWarnings(list){
+function renderValidations(list){
   const box = document.getElementById('brb_warnings');
   box.hidden = list.length === 0;
-  box.innerHTML = list.map(w => `<div class="item ${w.level}"><i class="fa ${w.level === 'error' ? 'fa-circle-exclamation' : 'fa-triangle-exclamation'} mt-1"></i><span>${esc(w.message)}</span></div>`).join('');
+  const blocking = list.filter(m => m.blocking).length;
+  box.innerHTML = (blocking
+      ? `<div class="item error fw-semibold"><i class="fa fa-circle-exclamation mt-1"></i><span>${blocking} issue${blocking > 1 ? 's' : ''} ${blocking > 1 ? 'block' : 'blocks'} approval.</span></div>`
+      : '')
+    + list.map(m => `<div class="item ${m.severity}">
+        <i class="fa ${m.severity === 'error' ? 'fa-circle-exclamation' : 'fa-triangle-exclamation'} mt-1"></i>
+        <span><span class="brb-code">${esc(m.code)}</span> ${esc(m.message)}</span>
+      </div>`).join('');
 }
 
 // "How calculated" drawers, filled with the live numbers.
@@ -685,23 +758,33 @@ function renderFormulas(r){
       `Equivalent 24/7 posts = ${n(s.annualHours)} / ${n(168 * r.coverage.weeksPerYear)} = ${n(s.equivalentPosts, 3)}`,
       `Required headcount = ceiling(${n(s.annualHours)} / ${n(s.availableHoursPerEmployee)} = ${n(s.requiredFte, 4)}) = ${n(s.roundedHeadcount)}`,
       `Staffing Reserve Capacity = (${n(s.roundedHeadcount)} × ${n(s.availableHoursPerEmployee)}) − ${n(s.annualHours)} = ${n(s.staffingReserveCapacity)}`,
-      `Weighted wage = ${$(l1.totalPayroll)} / ${n(l1.totalAnnualPaidHours)} = ${$(l1.baseWeightedWage)}` + (l1.compensationAdders > 0 ? ` + ${$(l1.compensationAdders)} adders = ${$(l1.weightedWage)}` : ''),
-      `Position bill rate = wage × (${$(sm.finalBillRate)} / ${$(l1.baseWeightedWage)}) = wage × ${n(l1.rateMultiplier, 7)}`,
+      `Weighted wage = ${$(l1.totalPayroll)} / ${n(l1.totalAnnualPaidHours)} = ${$(l1.weightedWage)} (total cash wage)`,
+      `Position bill rate = position cash wage × (${$(sm.finalBillRate)} / ${$(l1.weightedWage)}) = cash wage × ${n(l1.rateMultiplier, 9)}`,
     ],
     l2: l2.method === 'ratio'
-      ? [`Employer full-burden cost = ${$(l1.weightedWage)} / ${n(l2.wageShare, 2)} = ${$(l2.fullBurden)}`, `Incremental burden = ${$(l2.fullBurden)} − ${$(l1.weightedWage)} = ${$(l2.incrementalBurden)}`]
-      : [`Employer full-burden cost = ${$(l1.weightedWage)} + ${$(l2.incrementalBurden)} line items = ${$(l2.fullBurden)}`, `Implied wage share = ${fmtPct(l2.wageShare)}`],
+      ? [
+          `Employer full-burden cost = ${$(l1.weightedWage)} / ${fmtNum(l2.wageShare, 4)} = ${$(l2.fullBurden)}`,
+          `Incremental employer burden = ${$(l2.fullBurden)} − ${$(l1.weightedWage)} = ${$(l2.incrementalBurden)}`,
+          `Line items are shares of the employer cost and total ${fmtPct(l2.burdenShare)}.`,
+        ]
+      : [
+          `Employer full-burden cost = ${$(l1.weightedWage)} / (1 − ${fmtNum(l2.burdenShare, 4)} line-item share) = ${$(l2.fullBurden)}`,
+          `Line items total ${fmtPct(l2.burdenShare)} against a configured burden share of ${fmtPct(l2.configuredBurdenShare)}.`,
+          `Incremental employer burden = ${$(l2.incrementalBurden)}`,
+        ],
     l3: [
       `WMC hours/employee = ${n(s.paidHoursPerEmployee)} − ${n(s.availableHoursPerEmployee)} = ${n(l3.wmcHoursCalculated)}` + (l3.wmcOverridden ? ` (override: ${n(l3.wmcHours, 2)})` : ''),
       `WMC hours/post = ${n(l3.wmcHours, 2)} × ${n(s.manpowerPerPost, 2)} = ${n(l3.wmcPerPost, 2)}`,
       `WMC value = ${$(l2.fullBurden)} × ${n(l3.wmcPerPost, 2)} = ${fmtMoney(l3.wmcValue)}`,
       `Final Bill Rate (baseline) = ${fmtMoney(l3.wmcValue)} / ${n(s.paidHoursPerEmployee)} = ${$(l3.finalBillRate)}`,
+      `Maintenance share of the rate = ${$(l3.finalBillRate)} − ${$(l2.fullBurden)} = ${$(l3.rateAllocation)}, split across the categories by hours`,
     ],
-    l4: [`Each line → annual cost → ÷ ${n(s.annualHours)} annual hours = $/hr`, `$/employee × ${n(s.roundedHeadcount)} headcount · $/post × ${n(s.equivalentPosts, 3)} posts · $/month × 12 · contract ÷ ${n(r.forecast.termYears)} yrs`, `Layer 4 total = ${$(r.layer4.hourly)}/hr`],
+    l4: [`Only a recovered vendor item raises the rate; absorbed and buyer-provided items show but contribute $0.`,
+      `Each line → annual cost → ÷ ${n(s.annualHours)} annual hours = $/hr`, `$/employee × ${n(s.roundedHeadcount)} headcount · $/post × ${n(s.equivalentPosts, 3)} posts · $/month × 12 · contract ÷ ${n(r.forecast.termYears)} yrs`, `Layer 4 total = ${$(r.layer4.hourly)}/hr`],
     l5: [`% items apply to the subtotal ${$(r.layer5.base)} (labor base + ODC)`, `Annual items ÷ ${n(s.annualHours)} hours`, `Layer 5 total = ${$(r.layer5.hourly)}/hr`],
     l6: r.pricingMode === 'buildup'
       ? [`Final price = ${$(l6.preProfit)} / (1 − ${fmtPct(l6.marginPct)}) = ${$(sm.finalBillRate)}`, `Profit = ${$(sm.finalBillRate)} − ${$(l6.preProfit)} = ${$(l6.profitHourly)}`, `Check: ${$(l6.profitHourly)} / ${$(sm.finalBillRate)} = ${fmtPct(sm.finalBillRate > 0 ? l6.profitHourly / sm.finalBillRate : 0)}`]
-      : [`Max pre-profit subtotal = ${$(sm.finalBillRate)} × ${n(l6.marginDivisor, 4)} = ${fmtNum(l6.preProfit, 3)}`, `Embedded profit = ${$(sm.finalBillRate)} × ${fmtPct(l6.marginPct)} = ${fmtNum(l6.profitHourly, 3)}`, `An allocation check, not an extra charge.`],
+      : [`Max pre-profit subtotal = ${$(sm.finalBillRate)} × ${n(l6.marginDivisor, 4)} = ${fmtNum(l6.preProfit, 3)}`, `Embedded profit = ${$(sm.finalBillRate)} × ${fmtPct(l6.marginPct)} = ${fmtNum(l6.profitHourly, 3)}`, `Markup on cost = ${fmtPct(l6.markup)}. An allocation check, not an extra charge.`],
     ctp: [
       `Cost to Protect = ${fmtMoney(l3.wmcValue)} / ${n(s.availableHoursPerEmployee)} = ${fmtNum(sm.costToProtect, 6)}`,
       sm.croHourly > 0
@@ -719,7 +802,8 @@ function renderFormulas(r){
 function mergeSaved(saved){
   if(!saved || typeof saved !== 'object') return;
   const d = clone(BRB_DEFAULTS);
-  ['coverage','workforce','compensation','finalRateOverride','profit','burden','forecast'].forEach(k => { d[k] = Object.assign(d[k], saved[k] || {}); });
+  ['coverage','workforce','finalRateOverride','profit','burden','forecast'].forEach(k => { d[k] = Object.assign(d[k], saved[k] || {}); });
+  if(typeof saved.wmcCategoryOverrideReason === 'string') d.wmcCategoryOverrideReason = saved.wmcCategoryOverrideReason;
   ['positions','wmcCategories','odc','ga'].forEach(k => { if(Array.isArray(saved[k])) d[k] = saved[k]; });
   if(Array.isArray(saved.burden?.items)) d.burden.items = saved.burden.items;
   if(saved.pricingMode) d.pricingMode = saved.pricingMode;

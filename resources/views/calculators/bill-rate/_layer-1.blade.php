@@ -62,8 +62,9 @@
   <table class="table brb-table">
     <thead>
       <tr>
-        <th>Position</th><th>Type</th><th>Employees</th><th>Weekly Paid Hrs</th><th>Hourly Wage</th>
-        <th class="text-end">Annual Paid Hrs</th><th class="text-end">Annual Payroll</th><th class="text-end">Wage Share</th><th class="text-end">Position Bill Rate</th><th class="text-end">Protective Capacity</th>
+        <th>Position</th><th>Type</th><th>Employees</th><th>Weekly Paid Hrs</th><th>Base Wage</th>
+        <th>Locality</th><th>H&amp;W Cash</th><th>Shift Diff.</th><th>Premium</th>
+        <th class="text-end">Total Cash Wage</th><th class="text-end">Annual Paid Hrs</th><th class="text-end">Annual Payroll</th><th class="text-end">Wage Share</th><th class="text-end">Position Bill Rate</th><th class="text-end">Protective Capacity</th>
         <th title="Counts toward protective coverage">Covers?</th><th>Status</th><th>Notes</th><th></th>
       </tr>
     </thead>
@@ -73,7 +74,8 @@
         <td>Total / Weighted Average</td><td></td>
         <td class="calc text-start" data-out="layer1.totalEmployees" data-fmt="int"></td>
         <td class="calc text-start" data-out="layer1.totalWeeklyPaidHours" data-fmt="int"></td>
-        <td class="calc text-start" data-out="layer1.baseWeightedWage" data-fmt="money"></td>
+        <td></td><td></td><td></td><td></td><td></td>
+        <td class="calc" data-out="layer1.weightedWage" data-fmt="money"></td>
         <td class="calc" data-out="layer1.totalAnnualPaidHours" data-fmt="int"></td>
         <td class="calc" data-out="layer1.totalPayroll" data-fmt="money0"></td>
         <td class="calc">100.00%</td>
@@ -86,12 +88,7 @@
 </div>
 <div class="small text-gasq-muted mb-4">Core Coverage and Relief normally count toward protective coverage; Dedicated Support normally does not. Supervision, Specialized and Custom are your call based on scope.</div>
 
-<h6 class="fw-bold mb-2">Compensation Adders <span class="fw-normal small text-gasq-muted">($/hr, added to the weighted wage)</span></h6>
-<div class="row g-3 mb-3">
-  <div class="col-sm-4"><label class="form-label small fw-medium">Locality Pay</label><input type="number" class="form-control" min="0" step="0.01" data-path="compensation.localityPay"></div>
-  <div class="col-sm-4"><label class="form-label small fw-medium">Health &amp; Welfare (Cash)</label><input type="number" class="form-control" min="0" step="0.01" data-path="compensation.healthWelfareCash"></div>
-  <div class="col-sm-4"><label class="form-label small fw-medium">Shift Differential</label><input type="number" class="form-control" min="0" step="0.01" data-path="compensation.shiftDifferential"></div>
-</div>
+<div class="brb-note warn mb-3">Cash health and welfare, locality pay, shift differential and position premiums belong to the position that earns them. Entering the same amount again as an employer benefit in Layer 2 is a duplicate cost.</div>
 
 <div class="brb-panel brb-panel-muted d-flex justify-content-between align-items-center">
   <span class="fw-semibold">Weighted Baseline Wage</span>

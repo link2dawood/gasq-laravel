@@ -41,9 +41,21 @@
 </div>
 <div class="table-responsive border rounded-3 mb-2">
   <table class="table brb-table">
-    <thead><tr><th>Category</th><th>Hours / Employee</th></tr></thead>
+    <thead><tr><th>Category</th><th>Hours / Employee</th><th class="text-end">Share</th><th class="text-end">Rate Allocation</th><th>Cost Treatment</th></tr></thead>
     <tbody id="brb_wmc_body"></tbody>
-    <tfoot><tr><td>Total (should equal <span data-out="layer3.wmcHours" data-fmt="dec2"></span>)</td><td class="calc text-start" data-out="layer3.categoryTotal" data-fmt="dec2"></td></tr></tfoot>
+    <tfoot><tr>
+      <td>Total Workforce Maintenance</td>
+      <td class="calc text-start" data-out="layer3.categoryTotal" data-fmt="dec2"></td>
+      <td class="calc">100.00%</td>
+      <td class="calc" id="brb_l3_total_alloc"></td>
+      <td></td>
+    </tr></tfoot>
   </table>
+</div>
+<div class="row g-3 mb-2">
+  <div class="col-sm-8">
+    <label class="form-label small fw-medium">Category Override Reason <span class="fw-normal text-gasq-muted">(required if the categories do not total the maintenance hours)</span></label>
+    <input type="text" class="form-control" data-kind="text" data-path="wmcCategoryOverrideReason" placeholder="None">
+  </div>
 </div>
 <details class="brb-how mt-2"><summary>How calculated</summary><div class="f" id="brb_how_l3"></div></details>

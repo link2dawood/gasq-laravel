@@ -42,6 +42,11 @@
                     "employees": 18.0,
                     "weeklyPaidHours": 720.0,
                     "hourlyWage": 25.2,
+                    "localityPay": 0.0,
+                    "healthWelfareCash": 0.0,
+                    "shiftDifferential": 0.0,
+                    "positionPremium": 0.0,
+                    "cashWage": 25.2,
                     "countsTowardCoverage": true,
                     "annualPaidHours": 37440.0,
                     "annualPayroll": 943488.0,
@@ -50,11 +55,16 @@
                     "positionBillRate": 64.8
                 },
                 {
-                    "name": "Lead Officers \/ Site Supervisors",
+                    "name": "Lead Officers",
                     "type": "supervision",
                     "employees": 5.0,
                     "weeklyPaidHours": 200.0,
                     "hourlyWage": 28.14,
+                    "localityPay": 0.0,
+                    "healthWelfareCash": 0.0,
+                    "shiftDifferential": 0.0,
+                    "positionPremium": 0.0,
+                    "cashWage": 28.14,
                     "countsTowardCoverage": true,
                     "annualPaidHours": 10400.0,
                     "annualPayroll": 292656.0,
@@ -63,11 +73,16 @@
                     "positionBillRate": 72.36000000000001
                 },
                 {
-                    "name": "Relief \/ Float Officers",
+                    "name": "Relief Officers",
                     "type": "relief",
                     "employees": 5.0,
                     "weeklyPaidHours": 200.0,
                     "hourlyWage": 28.14,
+                    "localityPay": 0.0,
+                    "healthWelfareCash": 0.0,
+                    "shiftDifferential": 0.0,
+                    "positionPremium": 0.0,
+                    "cashWage": 28.14,
                     "countsTowardCoverage": true,
                     "annualPaidHours": 10400.0,
                     "annualPayroll": 292656.0,
@@ -82,8 +97,6 @@
             "totalWeeklyPaidHours": 1120.0,
             "totalAnnualPaidHours": 58240.0,
             "totalPayroll": 1528800.0,
-            "baseWeightedWage": 26.25,
-            "compensationAdders": 0.0,
             "weightedWage": 26.25,
             "rateMultiplier": 2.5714285714285716
         },
@@ -92,7 +105,124 @@
             "fullBurden": 37.5,
             "incrementalBurden": 11.25,
             "wageShare": 0.7,
-            "lines": []
+            "burdenShare": 0.30000000000000004,
+            "configuredBurdenShare": 0.30000000000000004,
+            "lineTotal": 11.250000000000002,
+            "reconciles": true,
+            "lines": [
+                {
+                    "key": "socialSecurity",
+                    "label": "Employer Social Security",
+                    "method": "pct",
+                    "value": 4.33,
+                    "share": 0.0433,
+                    "hourly": 1.62375
+                },
+                {
+                    "key": "medicare",
+                    "label": "Employer Medicare",
+                    "method": "pct",
+                    "value": 1.02,
+                    "share": 0.0102,
+                    "hourly": 0.3825
+                },
+                {
+                    "key": "futa",
+                    "label": "Federal Unemployment Tax",
+                    "method": "pct",
+                    "value": 0.41,
+                    "share": 0.0040999999999999995,
+                    "hourly": 0.15374999999999997
+                },
+                {
+                    "key": "suta",
+                    "label": "State Unemployment Tax",
+                    "method": "pct",
+                    "value": 1.4,
+                    "share": 0.014,
+                    "hourly": 0.525
+                },
+                {
+                    "key": "workersComp",
+                    "label": "Workers Compensation",
+                    "method": "pct",
+                    "value": 2.09,
+                    "share": 0.0209,
+                    "hourly": 0.78375
+                },
+                {
+                    "key": "medical",
+                    "label": "Medical Insurance",
+                    "method": "pct",
+                    "value": 12.73,
+                    "share": 0.1273,
+                    "hourly": 4.77375
+                },
+                {
+                    "key": "dental",
+                    "label": "Dental Insurance",
+                    "method": "pct",
+                    "value": 1.02,
+                    "share": 0.0102,
+                    "hourly": 0.3825
+                },
+                {
+                    "key": "vision",
+                    "label": "Vision Insurance",
+                    "method": "pct",
+                    "value": 0.31,
+                    "share": 0.0031000000000000003,
+                    "hourly": 0.11625
+                },
+                {
+                    "key": "retirement",
+                    "label": "Retirement Contribution",
+                    "method": "pct",
+                    "value": 3.49,
+                    "share": 0.0349,
+                    "hourly": 1.30875
+                },
+                {
+                    "key": "lifeInsurance",
+                    "label": "Employer Paid Life Insurance",
+                    "method": "pct",
+                    "value": 0.31,
+                    "share": 0.0031000000000000003,
+                    "hourly": 0.11625
+                },
+                {
+                    "key": "disability",
+                    "label": "Short and Long Term Disability",
+                    "method": "pct",
+                    "value": 0.99,
+                    "share": 0.0099,
+                    "hourly": 0.37125
+                },
+                {
+                    "key": "eapWellness",
+                    "label": "Employee Assistance and Wellness",
+                    "method": "pct",
+                    "value": 0.31,
+                    "share": 0.0031000000000000003,
+                    "hourly": 0.11625
+                },
+                {
+                    "key": "hsaFsa",
+                    "label": "Employer HSA or FSA Contribution",
+                    "method": "pct",
+                    "value": 1.02,
+                    "share": 0.0102,
+                    "hourly": 0.3825
+                },
+                {
+                    "key": "otherBenefit",
+                    "label": "Other Documented Benefits",
+                    "method": "pct",
+                    "value": 0.57,
+                    "share": 0.005699999999999999,
+                    "hourly": 0.21374999999999997
+                }
+            ]
         },
         "layer3": {
             "wmcHoursCalculated": 624.0,
@@ -101,59 +231,75 @@
             "wmcPerPost": 3744.0,
             "wmcValue": 140400.0,
             "finalBillRate": 67.5,
+            "rateAllocation": 30.0,
             "categories": [
                 {
                     "key": "vacation",
-                    "label": "Vacation \/ PTO replacement coverage",
-                    "hours": 0.0
+                    "label": "Vacation and Paid Time Off",
+                    "treatment": "Replacement capacity",
+                    "hours": 120.0,
+                    "share": 0.19230769230769232,
+                    "hourly": 5.769230769230769
                 },
                 {
                     "key": "sick",
-                    "label": "Sick \/ call-off coverage",
-                    "hours": 0.0
+                    "label": "Sick Leave",
+                    "treatment": "Replacement capacity",
+                    "hours": 40.0,
+                    "share": 0.0641025641025641,
+                    "hourly": 1.923076923076923
                 },
                 {
-                    "key": "holiday",
-                    "label": "Holiday coverage",
-                    "hours": 0.0
+                    "key": "holidays",
+                    "label": "Paid Holidays",
+                    "treatment": "Replacement capacity",
+                    "hours": 80.0,
+                    "share": 0.1282051282051282,
+                    "hourly": 3.846153846153846
                 },
                 {
                     "key": "training",
-                    "label": "Training replacement coverage",
-                    "hours": 0.0
-                },
-                {
-                    "key": "absenteeism",
-                    "label": "Absenteeism",
-                    "hours": 0.0
-                },
-                {
-                    "key": "turnover",
-                    "label": "Turnover \/ vacancy coverage",
-                    "hours": 0.0
+                    "label": "Training and Recertification",
+                    "treatment": "Training replacement",
+                    "hours": 40.0,
+                    "share": 0.0641025641025641,
+                    "hourly": 1.923076923076923
                 },
                 {
                     "key": "breaks",
-                    "label": "Paid lunch \/ rest-break coverage",
-                    "hours": 0.0
+                    "label": "Paid Lunch and Rest Breaks",
+                    "treatment": "Relief requirement",
+                    "hours": 104.0,
+                    "share": 0.16666666666666666,
+                    "hourly": 5.0
                 },
                 {
-                    "key": "emergency",
-                    "label": "Emergency replacement coverage",
-                    "hours": 0.0
+                    "key": "absenteeism",
+                    "label": "Absenteeism and Call Offs",
+                    "treatment": "Emergency coverage",
+                    "hours": 80.0,
+                    "share": 0.1282051282051282,
+                    "hourly": 3.846153846153846
+                },
+                {
+                    "key": "turnover",
+                    "label": "Turnover Recruiting and Replacement",
+                    "treatment": "Continuity capacity",
+                    "hours": 80.0,
+                    "share": 0.1282051282051282,
+                    "hourly": 3.846153846153846
                 },
                 {
                     "key": "unbillableOt",
-                    "label": "Unbillable overtime",
-                    "hours": 0.0
-                },
-                {
-                    "key": "other",
-                    "label": "Other unavailable \/ non-protective time",
-                    "hours": 0.0
+                    "label": "Unbillable Overtime and Coverage Inefficiency",
+                    "treatment": "Coverage inefficiency",
+                    "hours": 80.0,
+                    "share": 0.1282051282051282,
+                    "hourly": 3.846153846153846
                 }
             ],
-            "categoryTotal": 0.0
+            "categoryTotal": 624.0,
+            "categoriesReconcile": true
         },
         "layer4": {
             "hourly": 0.0,
@@ -174,6 +320,7 @@
             "preProfit": 57.375,
             "profitHourly": 10.125,
             "annualProfit": 410062.5,
+            "markup": 0.17647058823529413,
             "treatment": "embedded"
         },
         "reconciliation": {
@@ -331,6 +478,7 @@
                 "rateGrowth": 0.12550881000000014
             }
         },
+        "validations": [],
         "warnings": []
     }
 }

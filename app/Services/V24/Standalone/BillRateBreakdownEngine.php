@@ -3,21 +3,24 @@
 namespace App\Services\V24\Standalone;
 
 /**
- * GASQ Bill Rate Breakdown — seven-layer pricing and five-year forecast engine.
+ * GASQ Seven Layer Pricing Model — calculation engine.
  *
- * Implements the "Final Developer Implementation Plan" (Sep 19, 2026):
- *   Layer 1 Direct Labor · 2 Employer Burden · 3 Workforce Maintenance (baseline
- *   Final Bill Rate) · 4 Other Direct Costs · 5 G&A · 6 Profit (margin gross-up)
- *   · 7 Five-Year Plan (forecast only, never an extra charge).
+ * Implements the "Developer Implementation Specification", Version 1.0
+ * (September 2026):
+ *   Layer 1 Direct Labor · 2 Employer Labor Burden · 3 Workforce Maintenance
+ *   (baseline Final Bill Rate) · 4 Other Direct Costs · 5 G&A · 6 Profit
+ *   (margin gross-up) · 7 Five Year Pricing Plan (forecast only).
  *
- * Every value is returned at full precision; rounding is the UI/report's job.
- * Later layers are never computed from rounded display values.
+ * Every value is returned at full precision; rounding is the UI/report's job,
+ * and annual totals are calculated from raw hourly values (spec 11.2).
  *
- * Pricing modes:
- *   approved — the Layer 3 rate (or an authorised override) IS the Final Bill Rate;
- *              Layers 4-6 are shown as embedded allocations, never added again.
- *   buildup  — Layer 3 rate is the labor subtotal; ODC and G&A are added, then the
- *              total is grossed up for profit margin.
+ * Pricing modes (spec 1.3):
+ *   approved — the Layer 3 rate (or an authorised override) IS the Final Bill
+ *              Rate; Layers 4-6 are analysed as embedded allocations and can
+ *              never be added again.
+ *   buildup  — labor, then Layers 4 and 5, then a Layer 6 margin gross-up.
+ *
+ * Validation codes VAL001-VAL018 follow spec section 14.
  */
 class BillRateBreakdownEngine
 {
@@ -29,75 +32,84 @@ class BillRateBreakdownEngine
 
     public const GA_METHODS = ['pct', 'hourly', 'annual'];
 
-    /** @return array<string, mixed> the approved GASQ baseline scenario */
+    /** Layer 4 recovery status: only a recovered vendor item can raise the rate (VAL007). */
+    public const RECOVERY_STATUSES = ['recovered', 'absorbed', 'buyer_provided', 'not_applicable'];
+
+    /** @return array<string, mixed> the approved GASQ baseline scenario (spec 2, 3.2, 4.1, 5.1) */
     public static function defaults(): array
     {
+        // Spec 4.1 — default 30% employer burden allocation, as a share of the
+        // employer full-burden cost. The shares total exactly 30.00%.
         $burdenItems = [
-            ['key' => 'socialSecurity', 'label' => 'Social Security (FICA)'],
-            ['key' => 'medicare', 'label' => 'Medicare'],
-            ['key' => 'futa', 'label' => 'FUTA'],
-            ['key' => 'suta', 'label' => 'SUTA'],
-            ['key' => 'workersComp', 'label' => 'Workers Compensation'],
-            ['key' => 'healthBenefits', 'label' => 'Employer-paid Health Benefits'],
-            ['key' => 'retirement', 'label' => 'Retirement Contribution'],
-            ['key' => 'lifeDisability', 'label' => 'Life / Disability Benefits'],
-            ['key' => 'vacation', 'label' => 'Paid Vacation / PTO Cost'],
-            ['key' => 'holidays', 'label' => 'Paid Holidays'],
-            ['key' => 'sickLeave', 'label' => 'Paid Sick Leave'],
-            ['key' => 'trainingComp', 'label' => 'Training Compensation'],
-            ['key' => 'breakComp', 'label' => 'Paid Lunch / Rest-Break Compensation'],
-            ['key' => 'otherBenefit', 'label' => 'Other Employer-Paid Labor Benefit'],
+            ['key' => 'socialSecurity', 'label' => 'Employer Social Security', 'method' => 'pct', 'value' => 4.33],
+            ['key' => 'medicare', 'label' => 'Employer Medicare', 'method' => 'pct', 'value' => 1.02],
+            ['key' => 'futa', 'label' => 'Federal Unemployment Tax', 'method' => 'pct', 'value' => 0.41],
+            ['key' => 'suta', 'label' => 'State Unemployment Tax', 'method' => 'pct', 'value' => 1.40],
+            ['key' => 'workersComp', 'label' => 'Workers Compensation', 'method' => 'pct', 'value' => 2.09],
+            ['key' => 'medical', 'label' => 'Medical Insurance', 'method' => 'pct', 'value' => 12.73, 'healthWelfare' => true],
+            ['key' => 'dental', 'label' => 'Dental Insurance', 'method' => 'pct', 'value' => 1.02, 'healthWelfare' => true],
+            ['key' => 'vision', 'label' => 'Vision Insurance', 'method' => 'pct', 'value' => 0.31, 'healthWelfare' => true],
+            ['key' => 'retirement', 'label' => 'Retirement Contribution', 'method' => 'pct', 'value' => 3.49],
+            ['key' => 'lifeInsurance', 'label' => 'Employer Paid Life Insurance', 'method' => 'pct', 'value' => 0.31],
+            ['key' => 'disability', 'label' => 'Short and Long Term Disability', 'method' => 'pct', 'value' => 0.99],
+            ['key' => 'eapWellness', 'label' => 'Employee Assistance and Wellness', 'method' => 'pct', 'value' => 0.31],
+            ['key' => 'hsaFsa', 'label' => 'Employer HSA or FSA Contribution', 'method' => 'pct', 'value' => 1.02, 'healthWelfare' => true],
+            ['key' => 'otherBenefit', 'label' => 'Other Documented Benefits', 'method' => 'pct', 'value' => 0.57],
         ];
 
+        // Spec 5.1 — default 624-hour workforce maintenance allocation.
         $wmcCategories = [
-            ['key' => 'vacation', 'label' => 'Vacation / PTO replacement coverage'],
-            ['key' => 'sick', 'label' => 'Sick / call-off coverage'],
-            ['key' => 'holiday', 'label' => 'Holiday coverage'],
-            ['key' => 'training', 'label' => 'Training replacement coverage'],
-            ['key' => 'absenteeism', 'label' => 'Absenteeism'],
-            ['key' => 'turnover', 'label' => 'Turnover / vacancy coverage'],
-            ['key' => 'breaks', 'label' => 'Paid lunch / rest-break coverage'],
-            ['key' => 'emergency', 'label' => 'Emergency replacement coverage'],
-            ['key' => 'unbillableOt', 'label' => 'Unbillable overtime'],
-            ['key' => 'other', 'label' => 'Other unavailable / non-protective time'],
+            ['key' => 'vacation', 'label' => 'Vacation and Paid Time Off', 'hours' => 120, 'treatment' => 'Replacement capacity'],
+            ['key' => 'sick', 'label' => 'Sick Leave', 'hours' => 40, 'treatment' => 'Replacement capacity'],
+            ['key' => 'holidays', 'label' => 'Paid Holidays', 'hours' => 80, 'treatment' => 'Replacement capacity'],
+            ['key' => 'training', 'label' => 'Training and Recertification', 'hours' => 40, 'treatment' => 'Training replacement'],
+            ['key' => 'breaks', 'label' => 'Paid Lunch and Rest Breaks', 'hours' => 104, 'treatment' => 'Relief requirement'],
+            ['key' => 'absenteeism', 'label' => 'Absenteeism and Call Offs', 'hours' => 80, 'treatment' => 'Emergency coverage'],
+            ['key' => 'turnover', 'label' => 'Turnover Recruiting and Replacement', 'hours' => 80, 'treatment' => 'Continuity capacity'],
+            ['key' => 'unbillableOt', 'label' => 'Unbillable Overtime and Coverage Inefficiency', 'hours' => 80, 'treatment' => 'Coverage inefficiency'],
         ];
 
+        // Spec 6 — Layer 4 catalogue. duplicateKey feeds cross-layer duplicate detection (spec 14.1).
         $odc = [
-            ['key' => 'uniforms', 'label' => 'Uniforms', 'optional' => false],
-            ['key' => 'licensing', 'label' => 'Licensing / Permits', 'optional' => false],
-            ['key' => 'backgroundChecks', 'label' => 'Background Checks', 'optional' => false],
-            ['key' => 'drugScreening', 'label' => 'Drug Screening', 'optional' => false],
-            ['key' => 'trainingCerts', 'label' => 'Training / Certifications', 'optional' => false],
-            ['key' => 'radios', 'label' => 'Radios / Communications', 'optional' => false],
-            ['key' => 'mobileDevices', 'label' => 'Mobile Devices', 'optional' => false],
-            ['key' => 'reportingTech', 'label' => 'Reporting Technology', 'optional' => false],
-            ['key' => 'dedicatedSupervisor', 'label' => 'Dedicated Supervisor', 'optional' => false],
-            ['key' => 'vehicle', 'label' => 'Vehicle', 'optional' => true],
-            ['key' => 'fuel', 'label' => 'Fuel', 'optional' => true],
-            ['key' => 'vehicleMaintenance', 'label' => 'Vehicle Maintenance', 'optional' => true],
-            ['key' => 'firearms', 'label' => 'Firearms', 'optional' => true],
-            ['key' => 'ammunition', 'label' => 'Ammunition', 'optional' => true],
-            ['key' => 'bodyArmor', 'label' => 'Body Armor', 'optional' => true],
-            ['key' => 'k9', 'label' => 'K-9 Services', 'optional' => true],
-            ['key' => 'siteEquipment', 'label' => 'Site-Specific Equipment', 'optional' => true],
-            ['key' => 'otherOdc', 'label' => 'Other Direct Cost', 'optional' => true],
+            ['key' => 'uniforms', 'label' => 'Uniforms and Replacements', 'basis' => 'employee', 'optional' => false],
+            ['key' => 'licensing', 'label' => 'Licensing and Permits', 'basis' => 'employee', 'optional' => false, 'duplicateKey' => 'permits'],
+            ['key' => 'backgroundChecks', 'label' => 'Background Checks', 'basis' => 'employee', 'optional' => false],
+            ['key' => 'drugScreening', 'label' => 'Drug Screening', 'basis' => 'employee', 'optional' => false],
+            ['key' => 'trainingCerts', 'label' => 'Training and Certifications', 'basis' => 'employee', 'optional' => false],
+            ['key' => 'radios', 'label' => 'Radios and Communications', 'basis' => 'month', 'optional' => false, 'duplicateKey' => 'siteTechnology'],
+            ['key' => 'mobileDevices', 'label' => 'Mobile Devices and Cellular', 'basis' => 'month', 'optional' => true, 'duplicateKey' => 'siteTechnology'],
+            ['key' => 'reportingTech', 'label' => 'Reporting and Guard Tour Technology', 'basis' => 'month', 'optional' => false, 'duplicateKey' => 'siteTechnology'],
+            ['key' => 'dedicatedSupervisor', 'label' => 'Dedicated Field Supervision', 'basis' => 'month', 'optional' => false, 'duplicateKey' => 'supervision'],
+            ['key' => 'siteSupplies', 'label' => 'Site Supplies', 'basis' => 'month', 'optional' => false],
+            ['key' => 'vehicle', 'label' => 'Vehicle Lease or Depreciation', 'basis' => 'month', 'optional' => true],
+            ['key' => 'fuel', 'label' => 'Fuel', 'basis' => 'month', 'optional' => true],
+            ['key' => 'vehicleMaintenance', 'label' => 'Vehicle Maintenance', 'basis' => 'month', 'optional' => true],
+            ['key' => 'vehicleInsurance', 'label' => 'Vehicle Insurance and Registration', 'basis' => 'month', 'optional' => true, 'duplicateKey' => 'insurance'],
+            ['key' => 'firearms', 'label' => 'Firearms', 'basis' => 'employee', 'optional' => true],
+            ['key' => 'ammunition', 'label' => 'Ammunition and Qualification', 'basis' => 'employee', 'optional' => true],
+            ['key' => 'bodyArmor', 'label' => 'Body Armor', 'basis' => 'employee', 'optional' => true],
+            ['key' => 'k9', 'label' => 'K9 Services', 'basis' => 'month', 'optional' => true],
+            ['key' => 'siteEquipment', 'label' => 'Site Specific Equipment', 'basis' => 'year', 'optional' => true],
+            ['key' => 'otherOdc', 'label' => 'Other Direct Cost', 'basis' => 'year', 'optional' => true],
         ];
 
+        // Spec 7 — Layer 5 catalogue.
         $ga = [
-            ['key' => 'corporateAdmin', 'label' => 'Corporate administration'],
-            ['key' => 'hr', 'label' => 'Human resources'],
-            ['key' => 'recruitingAdmin', 'label' => 'Recruiting administration'],
-            ['key' => 'payrollAdmin', 'label' => 'Payroll administration'],
-            ['key' => 'accounting', 'label' => 'Accounting / finance'],
-            ['key' => 'legal', 'label' => 'Legal / compliance'],
-            ['key' => 'corporateTech', 'label' => 'Corporate technology'],
-            ['key' => 'office', 'label' => 'Office expense'],
-            ['key' => 'branch', 'label' => 'Branch management'],
-            ['key' => 'corporateInsurance', 'label' => 'Corporate insurance not already included elsewhere'],
-            ['key' => 'qa', 'label' => 'Quality assurance'],
-            ['key' => 'contractAdmin', 'label' => 'Contract administration'],
-            ['key' => 'contingency', 'label' => 'Operating contingency'],
-            ['key' => 'otherGa', 'label' => 'Other G&A'],
+            ['key' => 'executive', 'label' => 'Executive and Corporate Management'],
+            ['key' => 'hr', 'label' => 'Human Resources'],
+            ['key' => 'recruitingAdmin', 'label' => 'Recruiting Administration'],
+            ['key' => 'payrollAdmin', 'label' => 'Payroll Administration'],
+            ['key' => 'accounting', 'label' => 'Accounting and Finance'],
+            ['key' => 'legal', 'label' => 'Legal and Compliance', 'duplicateKey' => 'permits'],
+            ['key' => 'corporateTech', 'label' => 'Corporate Technology and Cybersecurity', 'duplicateKey' => 'siteTechnology'],
+            ['key' => 'office', 'label' => 'Office and Branch Expense'],
+            ['key' => 'branch', 'label' => 'Branch Management', 'duplicateKey' => 'supervision'],
+            ['key' => 'corporateInsurance', 'label' => 'Corporate Insurance', 'duplicateKey' => 'insurance'],
+            ['key' => 'qa', 'label' => 'Quality Assurance'],
+            ['key' => 'contractAdmin', 'label' => 'Contract Administration'],
+            ['key' => 'salesMarketing', 'label' => 'Sales and Marketing'],
+            ['key' => 'contingency', 'label' => 'Operating Contingency'],
+            ['key' => 'otherGa', 'label' => 'Other General and Administrative Cost'],
         ];
 
         return [
@@ -117,20 +129,21 @@ class BillRateBreakdownEngine
                 'wmcHoursOverride' => null,
                 'wmcOverrideReason' => '',
             ],
+            // Spec 3.1 — cash compensation is carried per position.
             'positions' => [
-                ['name' => 'Primary Post Officers', 'type' => 'core', 'employees' => 18, 'weeklyPaidHours' => 720, 'hourlyWage' => 25.20, 'countsTowardCoverage' => true, 'status' => 'active', 'notes' => ''],
-                ['name' => 'Lead Officers / Site Supervisors', 'type' => 'supervision', 'employees' => 5, 'weeklyPaidHours' => 200, 'hourlyWage' => 28.14, 'countsTowardCoverage' => true, 'status' => 'active', 'notes' => ''],
-                ['name' => 'Relief / Float Officers', 'type' => 'relief', 'employees' => 5, 'weeklyPaidHours' => 200, 'hourlyWage' => 28.14, 'countsTowardCoverage' => true, 'status' => 'active', 'notes' => ''],
+                ['name' => 'Primary Post Officers', 'type' => 'core', 'employees' => 18, 'weeklyPaidHours' => 720, 'hourlyWage' => 25.20, 'localityPay' => 0, 'healthWelfareCash' => 0, 'shiftDifferential' => 0, 'positionPremium' => 0, 'countsTowardCoverage' => true, 'status' => 'active', 'notes' => ''],
+                ['name' => 'Lead Officers', 'type' => 'supervision', 'employees' => 5, 'weeklyPaidHours' => 200, 'hourlyWage' => 28.14, 'localityPay' => 0, 'healthWelfareCash' => 0, 'shiftDifferential' => 0, 'positionPremium' => 0, 'countsTowardCoverage' => true, 'status' => 'active', 'notes' => ''],
+                ['name' => 'Relief Officers', 'type' => 'relief', 'employees' => 5, 'weeklyPaidHours' => 200, 'hourlyWage' => 28.14, 'localityPay' => 0, 'healthWelfareCash' => 0, 'shiftDifferential' => 0, 'positionPremium' => 0, 'countsTowardCoverage' => true, 'status' => 'active', 'notes' => ''],
             ],
-            'compensation' => ['localityPay' => 0, 'healthWelfareCash' => 0, 'shiftDifferential' => 0],
             'burden' => [
                 'method' => 'ratio',
                 'wageSharePct' => 70,
-                'items' => array_map(fn ($i) => $i + ['method' => 'pct', 'value' => 0], $burdenItems),
+                'items' => $burdenItems,
             ],
-            'wmcCategories' => array_map(fn ($c) => $c + ['hours' => 0], $wmcCategories),
+            'wmcCategories' => $wmcCategories,
+            'wmcCategoryOverrideReason' => '',
             'finalRateOverride' => ['value' => null, 'reason' => ''],
-            'odc' => array_map(fn ($o) => $o + ['enabled' => false, 'basis' => 'hour', 'amount' => 0], $odc),
+            'odc' => array_map(fn ($o) => $o + ['enabled' => false, 'amount' => 0, 'provider' => 'vendor', 'recoveryStatus' => 'recovered'], $odc),
             'ga' => array_map(fn ($g) => $g + ['enabled' => false, 'method' => 'pct', 'value' => 0], $ga),
             'profit' => ['marginPct' => 15],
             'forecast' => [
@@ -150,37 +163,51 @@ class BillRateBreakdownEngine
     public function compute(array $scenario): array
     {
         $in = $this->resolveInputs((array) data_get($scenario, 'meta.brb', []));
-        $warnings = [];
+        $v = [];
 
         // ── Coverage ────────────────────────────────────────────────────────
         $cov = $in['coverage'];
-        $weeks = $this->pos($cov['weeksPerYear'], 'Weeks per year', $warnings) ?: 52.0;
-        $scheduleHours = $this->pos($cov['shiftLength'], 'Shift length', $warnings)
-            * $this->pos($cov['guardsPerShift'], 'Guards per shift', $warnings)
-            * $this->pos($cov['shiftsPerDay'], 'Shifts per day', $warnings)
-            * $this->pos($cov['daysPerWeek'], 'Days per week', $warnings)
+        $weeks = $this->pos($cov['weeksPerYear'], 'coverage.weeksPerYear', 'Weeks per year', $v) ?: 52.0;
+        $scheduleHours = $this->pos($cov['shiftLength'], 'coverage.shiftLength', 'Shift length', $v)
+            * $this->pos($cov['guardsPerShift'], 'coverage.guardsPerShift', 'Guards per shift', $v)
+            * $this->pos($cov['shiftsPerDay'], 'coverage.shiftsPerDay', 'Shifts per day', $v)
+            * $this->pos($cov['daysPerWeek'], 'coverage.daysPerWeek', 'Days per week', $v)
             * $weeks;
-        $annualHoursInput = $this->pos($cov['annualHours'], 'Annual protective hours', $warnings);
+        $annualHoursInput = $this->pos($cov['annualHours'], 'coverage.annualHours', 'Annual protective hours', $v);
         $scheduleMode = $cov['mode'] === 'schedule';
         $annualHours = $scheduleMode ? $scheduleHours : $annualHoursInput;
         if ($scheduleMode && $annualHoursInput > 0 && abs($annualHoursInput - $scheduleHours) > 0.5) {
-            $warnings[] = $this->warn('schedule_mismatch', 'warning',
-                'Annual hours entered (' . number_format($annualHoursInput) . ') differ from the selected shift schedule ('
-                . number_format($scheduleHours) . '). The schedule total is being used.');
+            // VAL017 — annual hours do not reconcile to the active schedule.
+            $v[] = $this->msg('VAL017', 'error', 'coverage.annualHours',
+                'Annual hours entered (' . number_format($annualHoursInput) . ') do not reconcile to the active shift schedule ('
+                . number_format($scheduleHours) . ' hours).');
         }
 
         // ── Workforce availability & staffing ──────────────────────────────
         $wf = $in['workforce'];
-        $paid = $this->pos($wf['paidHoursPerEmployee'], 'Paid hours per employee', $warnings);
-        $available = $this->pos($wf['availableHoursPerEmployee'], 'Available protective hours per employee', $warnings);
-        if ($available > $paid && $paid > 0) {
-            $warnings[] = $this->warn('available_exceeds_paid', 'error', 'Available protective hours per employee cannot exceed paid hours per employee.');
-        }
+        $paid = $this->pos($wf['paidHoursPerEmployee'], 'workforce.paidHoursPerEmployee', 'Paid hours per employee', $v);
+        $available = $this->pos($wf['availableHoursPerEmployee'], 'workforce.availableHoursPerEmployee', 'Available protective hours per employee', $v);
         $wmcCalculated = max(0.0, $paid - $available);
         $wmcOverridden = is_numeric($wf['wmcHoursOverride']) && (float) $wf['wmcHoursOverride'] >= 0;
         $wmcHours = $wmcOverridden ? (float) $wf['wmcHoursOverride'] : $wmcCalculated;
-        if ($wmcOverridden && trim((string) $wf['wmcOverrideReason']) === '') {
-            $warnings[] = $this->warn('override_reason', 'warning', 'WMC hours override needs a reason before it can be treated as authorised.');
+        $wmcReason = trim((string) $wf['wmcOverrideReason']);
+
+        if ($available > $paid && $paid > 0) {
+            $v[] = $this->msg('VAL006', 'error', 'workforce.availableHoursPerEmployee',
+                'Available protective hours per employee cannot exceed paid hours per employee.');
+        } elseif (abs($paid - ($available + $wmcHours)) > 0.001) {
+            // VAL006 — paid hours must equal available + WMC unless an override is authorised.
+            $v[] = $wmcOverridden && $wmcReason !== ''
+                ? $this->msg('VAL006', 'warning', 'workforce.wmcHoursOverride',
+                    'Workforce maintenance hours are overridden to ' . $this->num($wmcHours) . ', so paid hours no longer equal available hours plus maintenance hours.')
+                : $this->msg('VAL006', 'error', 'workforce.wmcHoursOverride',
+                    'Paid hours (' . $this->num($paid) . ') must equal available protective hours plus workforce maintenance hours ('
+                    . $this->num($available + $wmcHours) . ') unless an authorised override is recorded.');
+        }
+        if ($wmcOverridden && $wmcReason === '') {
+            // VAL016 — a manual override lacks a source or explanation.
+            $v[] = $this->msg('VAL016', 'warning', 'workforce.wmcOverrideReason',
+                'The workforce maintenance hours override needs a reason before it counts as authorised.');
         }
 
         $availablePerWeek = $weeks > 0 ? $available / $weeks : 0.0;
@@ -195,20 +222,32 @@ class BillRateBreakdownEngine
         $totalWeekly = 0.0;
         $coverageEmployees = 0.0;
         $hasSupervisionPosition = false;
+        $hwCashEntered = false;
         foreach ($in['positions'] as $i => $p) {
             if (($p['status'] ?? 'active') === 'inactive') {
                 continue;
             }
             $label = trim((string) ($p['name'] ?? '')) ?: 'Position ' . ($i + 1);
-            $employees = $this->pos($p['employees'] ?? 0, $label . ' employees', $warnings);
-            $weekly = $this->pos($p['weeklyPaidHours'] ?? 0, $label . ' weekly hours', $warnings);
-            $wage = $this->pos($p['hourlyWage'] ?? 0, $label . ' wage', $warnings);
+            $path = 'positions.' . $i;
+            $employees = $this->pos($p['employees'] ?? 0, $path . '.employees', $label . ' employees', $v);
+            $weekly = $this->pos($p['weeklyPaidHours'] ?? 0, $path . '.weeklyPaidHours', $label . ' weekly hours', $v);
+            $wage = $this->pos($p['hourlyWage'] ?? 0, $path . '.hourlyWage', $label . ' wage', $v);
+            $locality = $this->pos($p['localityPay'] ?? 0, $path . '.localityPay', $label . ' locality pay', $v);
+            $hwCash = $this->pos($p['healthWelfareCash'] ?? 0, $path . '.healthWelfareCash', $label . ' cash health and welfare', $v);
+            $shiftDiff = $this->pos($p['shiftDifferential'] ?? 0, $path . '.shiftDifferential', $label . ' shift differential', $v);
+            $premium = $this->pos($p['positionPremium'] ?? 0, $path . '.positionPremium', $label . ' position premium', $v);
+
+            // Spec 3.3 — payroll uses total cash wage, not the base wage alone.
+            $cashWage = $wage + $locality + $hwCash + $shiftDiff + $premium;
             $annualPaidHours = $weekly * $weeks;
-            $payroll = $annualPaidHours * $wage;
+            $payroll = $annualPaidHours * $cashWage;
             $type = in_array($p['type'] ?? '', self::POSITION_TYPES, true) ? $p['type'] : 'custom';
             $counts = (bool) ($p['countsTowardCoverage'] ?? ($type !== 'support'));
             if ($type === 'supervision') {
                 $hasSupervisionPosition = true;
+            }
+            if ($hwCash > 0) {
+                $hwCashEntered = true;
             }
 
             $totalPayroll += $payroll;
@@ -224,65 +263,104 @@ class BillRateBreakdownEngine
                 'employees' => $employees,
                 'weeklyPaidHours' => $weekly,
                 'hourlyWage' => $wage,
+                'localityPay' => $locality,
+                'healthWelfareCash' => $hwCash,
+                'shiftDifferential' => $shiftDiff,
+                'positionPremium' => $premium,
+                'cashWage' => $cashWage,
                 'countsTowardCoverage' => $counts,
                 'annualPaidHours' => $annualPaidHours,
                 'annualPayroll' => $payroll,
                 'protectiveCapacity' => $counts ? $employees * $available : 0.0,
             ];
         }
-        $baseWeightedWage = $totalAnnualPaid > 0 ? $totalPayroll / $totalAnnualPaid : 0.0;
-
-        $comp = $in['compensation'];
-        $locality = $this->pos($comp['localityPay'], 'Locality pay', $warnings);
-        $hwCash = $this->pos($comp['healthWelfareCash'], 'Health & Welfare cash', $warnings);
-        $shiftDiff = $this->pos($comp['shiftDifferential'], 'Shift differential', $warnings);
-        $compensationAdders = $locality + $hwCash + $shiftDiff;
-        $weightedWage = $baseWeightedWage + $compensationAdders;
+        $weightedWage = $totalAnnualPaid > 0 ? $totalPayroll / $totalAnnualPaid : 0.0;
 
         $positionCapacity = $coverageEmployees * $available;
         if ($positions && $positionCapacity + 0.0001 < $annualHours) {
-            $warnings[] = $this->warn('capacity_shortage', 'error',
+            // VAL010 — calculated staffing capacity is below required annual protective hours.
+            $v[] = $this->msg('VAL010', 'warning', 'positions',
                 'Protective capacity from positions (' . number_format($positionCapacity) . ' hrs) is below the required '
                 . number_format($annualHours) . ' contract hours.');
         }
         if ($positions && $coverageEmployees < $staffing['roundedHeadcount']) {
-            $warnings[] = $this->warn('headcount_below_minimum', 'error',
+            // VAL011 — entered headcount is below the calculated minimum.
+            $v[] = $this->msg('VAL011', 'warning', 'positions',
                 'Coverage headcount (' . $this->num($coverageEmployees) . ') is below the calculated minimum of '
                 . $staffing['roundedHeadcount'] . ' employees.');
         }
 
-        // ── Layer 2 — Employer burden ──────────────────────────────────────
+        // ── Layer 2 — Employer labor burden ────────────────────────────────
         $burden = $in['burden'];
+        $method = $burden['method'] === 'detailed' ? 'detailed' : 'ratio';
+        $wageSharePct = (float) $burden['wageSharePct'];
+        if ($wageSharePct <= 0 || $wageSharePct > 100) {
+            // VAL002 — wage share must be greater than zero and no more than one.
+            $v[] = $this->msg('VAL002', 'error', 'burden.wageSharePct', 'Employer wage share must be greater than 0% and no more than 100%.');
+            $wageSharePct = 70.0;
+        }
+        $configuredBurdenShare = 1 - $wageSharePct / 100;
+
+        // Percentage items are shares OF the employer full-burden cost, so the cost
+        // solves as (wage + fixed amounts) / (1 - share total). Spec 4.1.
+        $sharePct = 0.0;
+        $fixedHourly = 0.0;
+        foreach ($burden['items'] as $j => $item) {
+            $value = $this->pos($item['value'] ?? 0, 'burden.items.' . $j . '.value', ($item['label'] ?? 'Burden item'), $v);
+            if (($item['method'] ?? 'pct') === 'hourly') {
+                $fixedHourly += $value;
+            } else {
+                $sharePct += $value;
+            }
+        }
+        if ($method === 'detailed' && $sharePct >= 100) {
+            $v[] = $this->msg('VAL003', 'error', 'burden.items', 'Employer burden percentages cannot total 100% or more of the employer cost.');
+            $sharePct = 0.0;
+        }
+
+        $fullBurden = $method === 'detailed'
+            ? ($weightedWage + $fixedHourly) / (1 - $sharePct / 100)
+            : $weightedWage / ($wageSharePct / 100);
+
         $burdenLines = [];
-        $healthBenefitsHourly = 0.0;
-        if ($burden['method'] === 'lineItems') {
-            $burdenTotal = 0.0;
-            foreach ($burden['items'] as $item) {
-                $value = $this->pos($item['value'] ?? 0, $item['label'] ?? 'Burden item', $warnings);
-                $hourly = ($item['method'] ?? 'pct') === 'hourly' ? $value : $weightedWage * $value / 100;
-                $burdenTotal += $hourly;
-                if (($item['key'] ?? '') === 'healthBenefits') {
-                    $healthBenefitsHourly = $hourly;
-                }
-                if ($hourly > 0) {
-                    $burdenLines[] = ['key' => $item['key'] ?? '', 'label' => $item['label'] ?? '', 'hourly' => $hourly];
-                }
+        $healthBenefitHourly = 0.0;
+        $detailedTotal = 0.0;
+        foreach ($burden['items'] as $item) {
+            $value = max(0.0, (float) ($item['value'] ?? 0));
+            $hourly = ($item['method'] ?? 'pct') === 'hourly' ? $value : $fullBurden * $value / 100;
+            $detailedTotal += $hourly;
+            if (! empty($item['healthWelfare'])) {
+                $healthBenefitHourly += $hourly;
             }
-            $fullBurden = $weightedWage + $burdenTotal;
-        } else {
-            $share = (float) $burden['wageSharePct'];
-            if ($share <= 0 || $share > 100) {
-                $warnings[] = $this->warn('invalid_wage_share', 'error', 'Wage share must be greater than 0% and no more than 100%.');
-                $share = 70.0;
-            }
-            $fullBurden = $weightedWage / ($share / 100);
+            $burdenLines[] = [
+                'key' => $item['key'] ?? '',
+                'label' => $item['label'] ?? '',
+                'method' => ($item['method'] ?? 'pct') === 'hourly' ? 'hourly' : 'pct',
+                'value' => $value,
+                'share' => $fullBurden > 0 ? $hourly / $fullBurden : 0.0,
+                'hourly' => $hourly,
+            ];
         }
         $incrementalBurden = $fullBurden - $weightedWage;
         $impliedWageShare = $fullBurden > 0 ? $weightedWage / $fullBurden : 0.0;
+        $impliedBurdenShare = 1 - $impliedWageShare;
 
-        if ($hwCash > 0 && $healthBenefitsHourly > 0) {
-            $warnings[] = $this->warn('duplicate_health_welfare', 'error',
-                'Health & Welfare is entered as cash in Layer 1 and as employer-paid health benefits in Layer 2. Remove one so it is not charged twice.');
+        if ($method === 'detailed' && abs($impliedBurdenShare - $configuredBurdenShare) > 0.0001) {
+            // VAL003 — detailed percentages must reconcile to the configured burden share.
+            $v[] = $this->msg('VAL003', 'error', 'burden.items',
+                'Layer 2 line items total ' . $this->pct($impliedBurdenShare) . ' of the employer cost, not the configured '
+                . $this->pct($configuredBurdenShare) . ' burden share.');
+        }
+        if ($method === 'ratio' && abs($detailedTotal - $incrementalBurden) > 0.005) {
+            // VAL012 — a displayed layer share does not reconcile.
+            $v[] = $this->msg('VAL012', 'warning', 'burden.items',
+                'The Layer 2 breakdown totals ' . $this->money($detailedTotal) . '/hr against an employer burden of '
+                . $this->money($incrementalBurden) . '/hr. The breakdown is shown for analysis only.');
+        }
+        if ($hwCashEntered && $healthBenefitHourly > 0) {
+            // VAL004 — cash and employer benefit cannot duplicate the same health and welfare amount.
+            $v[] = $this->msg('VAL004', 'error', 'burden.items',
+                'Health and welfare is entered as cash in Layer 1 and as an employer health benefit in Layer 2. Remove one unless a documented split exists.');
         }
 
         // ── Layer 3 — Workforce maintenance & baseline Final Bill Rate ──────
@@ -290,48 +368,68 @@ class BillRateBreakdownEngine
         $wmcValue = $fullBurden * $wmcPerPost;
         $layer3Rate = $paid > 0 ? $wmcValue / $paid : 0.0;
         $costToProtect = $available > 0 ? $wmcValue / $available : 0.0;
+        // The maintenance share of the rate: $67.50 - $37.50 = $30.00 at baseline.
+        $wmcRateAllocation = $layer3Rate - $fullBurden;
 
         $wmcCategoryTotal = 0.0;
+        foreach ($in['wmcCategories'] as $k => $c) {
+            $wmcCategoryTotal += $this->pos($c['hours'] ?? 0, 'wmcCategories.' . $k . '.hours', ($c['label'] ?? 'WMC category'), $v);
+        }
         $wmcCategories = [];
         foreach ($in['wmcCategories'] as $c) {
-            $hours = $this->pos($c['hours'] ?? 0, $c['label'] ?? 'WMC category', $warnings);
-            $wmcCategoryTotal += $hours;
-            $wmcCategories[] = ['key' => $c['key'] ?? '', 'label' => $c['label'] ?? '', 'hours' => $hours];
+            $hours = max(0.0, (float) ($c['hours'] ?? 0));
+            $share = $wmcCategoryTotal > 0 ? $hours / $wmcCategoryTotal : 0.0;
+            $wmcCategories[] = [
+                'key' => $c['key'] ?? '',
+                'label' => $c['label'] ?? '',
+                'treatment' => $c['treatment'] ?? '',
+                'hours' => $hours,
+                'share' => $share,
+                'hourly' => $share * $wmcRateAllocation,
+            ];
         }
-        if ($wmcCategoryTotal > 0 && abs($wmcCategoryTotal - $wmcHours) > 0.01) {
-            $warnings[] = $this->warn('wmc_unreconciled', 'warning',
-                'WMC category hours total ' . $this->num($wmcCategoryTotal) . ', not the ' . $this->num($wmcHours)
-                . ' WMC hours per employee. Adjust the categories or save an authorised override.');
+        $categoryReason = trim((string) $in['wmcCategoryOverrideReason']);
+        if (abs($wmcCategoryTotal - $wmcHours) > 0.01) {
+            // VAL005 — category hours must equal the configured WMC hours unless overridden.
+            $v[] = $categoryReason !== ''
+                ? $this->msg('VAL005', 'warning', 'wmcCategories',
+                    'Workforce maintenance categories total ' . $this->num($wmcCategoryTotal) . ' hours against ' . $this->num($wmcHours)
+                    . ' configured hours, under an authorised override.')
+                : $this->msg('VAL005', 'error', 'wmcCategories',
+                    'Workforce maintenance categories total ' . $this->num($wmcCategoryTotal) . ' hours and must equal the configured '
+                    . $this->num($wmcHours) . ' hours, or record an authorised override.');
         }
 
-        // ── Layer 6 inputs (needed by 4-5 when G&A is % of subtotal) ────────
+        // ── Layer 6 inputs (Layer 5 percentages need the margin context) ────
         $margin = (float) $in['profit']['marginPct'] / 100;
         if ($margin < 0 || $margin >= 1) {
-            $warnings[] = $this->warn('invalid_margin', 'error', 'Profit margin must be at least 0% and less than 100%.');
+            // VAL008 — profit margin must be at least zero and less than one.
+            $v[] = $this->msg('VAL008', 'error', 'profit.marginPct', 'Profit margin must be at least 0% and less than 100%.');
             $margin = min(max($margin, 0.0), 0.99);
         }
 
         $mode = $in['pricingMode'] === 'buildup' ? 'buildup' : 'approved';
         $overrideValue = $in['finalRateOverride']['value'];
+        $overrideReason = trim((string) $in['finalRateOverride']['reason']);
         $rateOverridden = $mode === 'approved' && is_numeric($overrideValue) && (float) $overrideValue > 0;
-        if ($rateOverridden && trim((string) $in['finalRateOverride']['reason']) === '') {
-            $warnings[] = $this->warn('override_reason', 'warning', 'Final Bill Rate override needs a reason before it can be treated as authorised.');
+        if ($rateOverridden && $overrideReason === '') {
+            $v[] = $this->msg('VAL016', 'warning', 'finalRateOverride.reason',
+                'The Final Bill Rate override needs a reason before it counts as authorised.');
         }
 
-        // Labor base the embedded / additive layers stack on.
         $laborBase = $mode === 'buildup' ? $layer3Rate : $fullBurden;
         $termYears = max(1, min(10, (int) $in['forecast']['termYears']));
 
-        // ── Layer 4 — Other direct costs, normalised to $/hr ────────────────
+        // ── Layer 4 — Other direct costs, normalised to $/hr (spec 6.1) ─────
         $odcLines = [];
         $odcHourly = 0.0;
-        $hasSupervisorOdc = false;
-        $insuranceOdc = false;
-        foreach ($in['odc'] as $o) {
+        $odcAnnual = 0.0;
+        $activeDuplicateKeys = [];
+        foreach ($in['odc'] as $k => $o) {
             if (empty($o['enabled'])) {
                 continue;
             }
-            $amount = $this->pos($o['amount'] ?? 0, $o['label'] ?? 'Other direct cost', $warnings);
+            $amount = $this->pos($o['amount'] ?? 0, 'odc.' . $k . '.amount', ($o['label'] ?? 'Other direct cost'), $v);
             $basis = in_array($o['basis'] ?? '', self::ODC_BASES, true) ? $o['basis'] : 'hour';
             $annual = match ($basis) {
                 'hour' => $amount * $annualHours,
@@ -341,81 +439,105 @@ class BillRateBreakdownEngine
                 'year' => $amount,
                 'contract' => $amount / $termYears,
             };
+            $status = in_array($o['recoveryStatus'] ?? '', self::RECOVERY_STATUSES, true) ? $o['recoveryStatus'] : 'recovered';
+            $provider = ($o['provider'] ?? 'vendor') === 'buyer' ? 'buyer' : 'vendor';
+            // VAL007 — only a recovered vendor item raises the recoverable rate.
+            $recoverable = $provider === 'vendor' && $status === 'recovered';
             $hourly = $annualHours > 0 ? $annual / $annualHours : 0.0;
-            $odcHourly += $hourly;
-            if (($o['key'] ?? '') === 'dedicatedSupervisor' && $hourly > 0) {
-                $hasSupervisorOdc = true;
+            if ($recoverable) {
+                $odcHourly += $hourly;
+                $odcAnnual += $annual;
+                if (! empty($o['duplicateKey'])) {
+                    $activeDuplicateKeys[$o['duplicateKey']][] = 'Layer 4 — ' . ($o['label'] ?? '');
+                }
             }
-            if (stripos((string) ($o['label'] ?? ''), 'insurance') !== false && $hourly > 0) {
-                $insuranceOdc = true;
-            }
-            $odcLines[] = ['key' => $o['key'] ?? '', 'label' => $o['label'] ?? '', 'basis' => $basis, 'amount' => $amount, 'annual' => $annual, 'hourly' => $hourly];
+            $odcLines[] = [
+                'key' => $o['key'] ?? '', 'label' => $o['label'] ?? '', 'basis' => $basis, 'amount' => $amount,
+                'provider' => $provider, 'recoveryStatus' => $status, 'recoverable' => $recoverable,
+                'annual' => $annual, 'hourly' => $hourly,
+                'contributedHourly' => $recoverable ? $hourly : 0.0,
+            ];
         }
-        if ($hasSupervisionPosition && $hasSupervisorOdc) {
-            $warnings[] = $this->warn('duplicate_supervision', 'error',
-                'Supervision is carried as a Layer 1 position and as a Dedicated Supervisor direct cost. Remove one so it is not charged twice.');
+        if ($hasSupervisionPosition && isset($activeDuplicateKeys['supervision'])) {
+            // VAL013 — planned supervision cannot contribute in Layer 1 and Layer 4.
+            $v[] = $this->msg('VAL013', 'error', 'odc',
+                'Planned supervision is carried as a Layer 1 position and as dedicated field supervision in Layer 4. Remove one.');
         }
 
-        // ── Layer 5 — G&A, normalised to $/hr ───────────────────────────────
+        // ── Layer 5 — G&A, normalised to $/hr (spec 7.1) ────────────────────
         $gaLines = [];
         $gaHourly = 0.0;
         $gaBase = $laborBase + $odcHourly;
-        $corporateInsurance = false;
-        foreach ($in['ga'] as $g) {
+        foreach ($in['ga'] as $k => $g) {
             if (empty($g['enabled'])) {
                 continue;
             }
-            $value = $this->pos($g['value'] ?? 0, $g['label'] ?? 'G&A item', $warnings);
-            $method = in_array($g['method'] ?? '', self::GA_METHODS, true) ? $g['method'] : 'pct';
-            $hourly = match ($method) {
+            $value = $this->pos($g['value'] ?? 0, 'ga.' . $k . '.value', ($g['label'] ?? 'G&A item'), $v);
+            $gaMethod = in_array($g['method'] ?? '', self::GA_METHODS, true) ? $g['method'] : 'pct';
+            $hourly = match ($gaMethod) {
                 'pct' => $gaBase * $value / 100,
                 'hourly' => $value,
                 'annual' => $annualHours > 0 ? $value / $annualHours : 0.0,
             };
             $gaHourly += $hourly;
-            if (($g['key'] ?? '') === 'corporateInsurance' && $hourly > 0) {
-                $corporateInsurance = true;
+            if ($hourly > 0 && ! empty($g['duplicateKey'])) {
+                $activeDuplicateKeys[$g['duplicateKey']][] = 'Layer 5 — ' . ($g['label'] ?? '');
             }
-            $gaLines[] = ['key' => $g['key'] ?? '', 'label' => $g['label'] ?? '', 'method' => $method, 'value' => $value, 'hourly' => $hourly];
+            if ($hourly > 0 && preg_match('/\bprofit\b|\bmargin\b/i', (string) ($g['label'] ?? '')) === 1) {
+                // VAL015 — profit cannot be included in Layer 5 or another cost layer.
+                $v[] = $this->msg('VAL015', 'error', 'ga.' . $k,
+                    'Profit belongs in Layer 6 and cannot be carried as the G&A line "' . ($g['label'] ?? '') . '".');
+            }
+            $gaLines[] = ['key' => $g['key'] ?? '', 'label' => $g['label'] ?? '', 'method' => $gaMethod, 'value' => $value, 'hourly' => $hourly];
         }
-        if ($corporateInsurance && $insuranceOdc) {
-            $warnings[] = $this->warn('duplicate_insurance', 'warning',
-                'Insurance appears both as a contract-specific direct cost and as corporate insurance in G&A. Confirm they cover different policies.');
+        foreach ($activeDuplicateKeys as $dupKey => $sources) {
+            if (count($sources) < 2) {
+                continue;
+            }
+            // VAL014 — contract and corporate costs cannot share a duplicate key.
+            $v[] = $this->msg('VAL014', 'error', 'odc',
+                'The same cost is carried twice under "' . $dupKey . '": ' . implode(' and ', $sources) . '.');
         }
 
-        // ── Layer 6 & pricing-mode rule ─────────────────────────────────────
+        // ── Layer 6 & the pricing-mode rule (spec 8, 1.3) ───────────────────
         if ($mode === 'buildup') {
             $preProfit = $laborBase + $odcHourly + $gaHourly;
             $finalRate = $preProfit / (1 - $margin);
             $profitHourly = $finalRate - $preProfit;
         } else {
+            // VAL009 — approved mode never adds Layers 4-6 to the approved rate.
             $finalRate = $rateOverridden ? (float) $overrideValue : $layer3Rate;
             $profitHourly = $finalRate * $margin;
             $preProfit = $finalRate - $profitHourly;
         }
-        // Approved: labor is the full-burden cost and Layers 4-6 are carved out of the
-        // rate. Build-up: labor is the whole Layer 3 subtotal, so nothing remains.
+        if ($profitHourly < 0) {
+            $v[] = $this->msg('VAL008', 'warning', 'profit.marginPct',
+                'The profit result is negative. This needs an authorised override before approval.');
+        }
+        $markup = $preProfit > 0 ? $profitHourly / $preProfit : 0.0;
+
         $reconLabor = $mode === 'buildup' ? $laborBase : $fullBurden;
         $embeddedTotal = $reconLabor + $odcHourly + $gaHourly + $profitHourly;
         $remaining = $finalRate - $embeddedTotal;
         if ($mode === 'approved' && $remaining < -0.000001) {
-            $warnings[] = $this->warn('over_allocated', 'error',
-                'Embedded allocations exceed the approved Final Bill Rate. Reduce Layer 4-6 allocations or switch to Full Cost Build-Up Mode.');
+            // VAL018 — embedded allocations exceed the approved final bill rate.
+            $v[] = $this->msg('VAL018', 'warning', 'reconciliation',
+                'Embedded allocations exceed the approved Final Bill Rate by ' . $this->money(-$remaining)
+                . '/hr. Reduce Layer 4-6 allocations or switch to Full Cost Build-Up Mode.');
         }
 
-        $rateMultiplier = $baseWeightedWage > 0 ? $finalRate / $baseWeightedWage : 0.0;
+        $rateMultiplier = $weightedWage > 0 ? $finalRate / $weightedWage : 0.0;
         foreach ($positions as &$p) {
             $p['wageShare'] = $totalPayroll > 0 ? $p['annualPayroll'] / $totalPayroll : 0.0;
-            $p['positionBillRate'] = $p['hourlyWage'] * $rateMultiplier;
+            $p['positionBillRate'] = $p['cashWage'] * $rateMultiplier;
         }
         unset($p);
 
-        // ── Capital recovery & contract value ───────────────────────────────
+        // ── Buyer benchmark & capital recovery (spec 10) ─────────────────────
         $croHourly = max($costToProtect - $finalRate, 0.0);
         $premiumHourly = max($finalRate - $costToProtect, 0.0);
-        $annualContractValue = $finalRate * $annualHours;
 
-        // ── Layer 7 — Five-year plan ────────────────────────────────────────
+        // ── Layer 7 — Five year plan ────────────────────────────────────────
         $forecast = $this->forecast($in['forecast'], $termYears, [
             'wage' => $weightedWage,
             'fullBurden' => $fullBurden,
@@ -438,7 +560,7 @@ class BillRateBreakdownEngine
                 'annualCro' => $croHourly * $annualHours,
                 'premiumAboveCtp' => $premiumHourly,
                 'annualPremiumAboveCtp' => $premiumHourly * $annualHours,
-                'annualContractValue' => $annualContractValue,
+                'annualContractValue' => $finalRate * $annualHours,
                 'requiredManpower' => $staffing['roundedHeadcount'],
                 'equivalentPosts' => $staffing['equivalentPosts'],
                 'manpowerPerPost' => $manpowerPerPost,
@@ -464,16 +586,18 @@ class BillRateBreakdownEngine
                 'totalWeeklyPaidHours' => $totalWeekly,
                 'totalAnnualPaidHours' => $totalAnnualPaid,
                 'totalPayroll' => $totalPayroll,
-                'baseWeightedWage' => $baseWeightedWage,
-                'compensationAdders' => $compensationAdders,
                 'weightedWage' => $weightedWage,
                 'rateMultiplier' => $rateMultiplier,
             ],
             'layer2' => [
-                'method' => $burden['method'] === 'lineItems' ? 'lineItems' : 'ratio',
+                'method' => $method,
                 'fullBurden' => $fullBurden,
                 'incrementalBurden' => $incrementalBurden,
                 'wageShare' => $impliedWageShare,
+                'burdenShare' => $impliedBurdenShare,
+                'configuredBurdenShare' => $configuredBurdenShare,
+                'lineTotal' => $detailedTotal,
+                'reconciles' => abs($impliedBurdenShare - $configuredBurdenShare) <= 0.0001,
                 'lines' => $burdenLines,
             ],
             'layer3' => [
@@ -483,10 +607,12 @@ class BillRateBreakdownEngine
                 'wmcPerPost' => $wmcPerPost,
                 'wmcValue' => $wmcValue,
                 'finalBillRate' => $layer3Rate,
+                'rateAllocation' => $wmcRateAllocation,
                 'categories' => $wmcCategories,
                 'categoryTotal' => $wmcCategoryTotal,
+                'categoriesReconcile' => abs($wmcCategoryTotal - $wmcHours) <= 0.01,
             ],
-            'layer4' => ['hourly' => $odcHourly, 'annual' => $odcHourly * $annualHours, 'lines' => $odcLines, 'treatment' => $mode === 'buildup' ? 'additive' : 'embedded'],
+            'layer4' => ['hourly' => $odcHourly, 'annual' => $odcAnnual, 'lines' => $odcLines, 'treatment' => $mode === 'buildup' ? 'additive' : 'embedded'],
             'layer5' => ['hourly' => $gaHourly, 'annual' => $gaHourly * $annualHours, 'base' => $gaBase, 'lines' => $gaLines, 'treatment' => $mode === 'buildup' ? 'additive' : 'embedded'],
             'layer6' => [
                 'marginPct' => $margin,
@@ -494,6 +620,7 @@ class BillRateBreakdownEngine
                 'preProfit' => $preProfit,
                 'profitHourly' => $profitHourly,
                 'annualProfit' => $profitHourly * $annualHours,
+                'markup' => $markup,
                 'treatment' => $mode === 'buildup' ? 'additive' : 'embedded',
             ],
             'reconciliation' => [
@@ -508,7 +635,9 @@ class BillRateBreakdownEngine
                 'calculatedRate' => $mode === 'buildup' ? $finalRate : $layer3Rate,
             ],
             'forecast' => $forecast,
-            'warnings' => $warnings,
+            'validations' => $v,
+            // Kept so existing consumers of the previous shape keep working.
+            'warnings' => array_map(fn ($m) => ['code' => $m['code'], 'level' => $m['severity'], 'message' => $m['message']], $v),
         ];
     }
 
@@ -624,10 +753,11 @@ class BillRateBreakdownEngine
     {
         $d = self::defaults();
         $out = $d;
-        foreach (['coverage', 'workforce', 'compensation', 'finalRateOverride', 'profit'] as $group) {
+        foreach (['coverage', 'workforce', 'finalRateOverride', 'profit'] as $group) {
             $out[$group] = array_merge($d[$group], (array) ($raw[$group] ?? []));
         }
         $out['pricingMode'] = (string) ($raw['pricingMode'] ?? $d['pricingMode']);
+        $out['wmcCategoryOverrideReason'] = (string) ($raw['wmcCategoryOverrideReason'] ?? '');
         $out['burden'] = array_merge($d['burden'], (array) ($raw['burden'] ?? []));
         $out['forecast'] = array_merge($d['forecast'], (array) ($raw['forecast'] ?? []));
         // Lists are replaced wholesale when supplied (the user may add or remove rows).
@@ -643,27 +773,43 @@ class BillRateBreakdownEngine
         return $out;
     }
 
-    /** Non-negative number; negative input is rejected (treated as 0) with a warning. */
-    private function pos(mixed $value, string $label, array &$warnings): float
+    /** VAL001 — costs, hours, quantities and factors must be numeric and nonnegative. */
+    private function pos(mixed $value, string $field, string $label, array &$v): float
     {
-        $v = is_numeric($value) ? (float) $value : 0.0;
-        if ($v < 0) {
-            $warnings[] = $this->warn('negative_value', 'error', $label . ' cannot be negative; it was treated as 0.');
+        $number = is_numeric($value) ? (float) $value : 0.0;
+        if ($number < 0) {
+            $v[] = $this->msg('VAL001', 'error', $field, $label . ' cannot be negative; it was treated as 0.');
 
             return 0.0;
         }
 
-        return $v;
+        return $number;
     }
 
-    /** @return array{code: string, level: string, message: string} */
-    private function warn(string $code, string $level, string $message): array
+    /** @return array{code: string, severity: string, field: string, message: string, blocking: bool} */
+    private function msg(string $code, string $severity, string $field, string $message): array
     {
-        return ['code' => $code, 'level' => $level, 'message' => $message];
+        return [
+            'code' => $code,
+            'severity' => $severity,
+            'field' => $field,
+            'message' => $message,
+            'blocking' => $severity === 'error',
+        ];
     }
 
-    private function num(float $v): string
+    private function num(float $value): string
     {
-        return rtrim(rtrim(number_format($v, 2), '0'), '.');
+        return rtrim(rtrim(number_format($value, 2), '0'), '.');
+    }
+
+    private function money(float $value): string
+    {
+        return '$' . number_format($value, 2);
+    }
+
+    private function pct(float $ratio): string
+    {
+        return number_format($ratio * 100, 2) . '%';
     }
 }
