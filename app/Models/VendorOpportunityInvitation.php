@@ -10,13 +10,21 @@ use Illuminate\Support\Carbon;
 class VendorOpportunityInvitation extends Model
 {
     public const STATUS_NEW = 'new';
+
     public const STATUS_VIEWED = 'viewed';
+
     public const STATUS_ACCEPTED = 'accepted';
+
     public const STATUS_DECLINED = 'declined';
+
     public const STATUS_BID_SUBMITTED = 'bid_submitted';
+
     public const STATUS_UNDER_REVIEW = 'under_review';
+
     public const STATUS_AWARDED = 'awarded';
+
     public const STATUS_NOT_SELECTED = 'not_selected';
+
     public const STATUS_EXPIRED = 'expired';
 
     protected $fillable = [
@@ -40,6 +48,14 @@ class VendorOpportunityInvitation extends Model
         'first_reminder_sent_at',
         'final_notice_sent_at',
         'accepted_bid_reminder_sent_at',
+        // Vendor Access controls: limited use and revocation.
+        'max_uses',
+        'use_count',
+        'last_used_at',
+        'last_used_ip',
+        'revoked_at',
+        'revoked_by',
+        'revoked_reason',
     ];
 
     protected $casts = [
@@ -56,6 +72,10 @@ class VendorOpportunityInvitation extends Model
         'first_reminder_sent_at' => 'datetime',
         'final_notice_sent_at' => 'datetime',
         'accepted_bid_reminder_sent_at' => 'datetime',
+        'max_uses' => 'integer',
+        'use_count' => 'integer',
+        'last_used_at' => 'datetime',
+        'revoked_at' => 'datetime',
     ];
 
     public function getRouteKeyName(): string

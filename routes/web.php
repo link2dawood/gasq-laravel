@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrivateEstimateBuyerController;
+use App\Http\Controllers\VendorAccessController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\AdminVendorOpportunityController;
@@ -180,6 +181,20 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/bids/{bid}', [App\Http\Controllers\BidController::class, 'update'])->name('bids.update');
     Route::post('/bids/{bid}/respond', [App\Http\Controllers\BidController::class, 'respond'])->name('bids.respond');
     Route::post('/bids/{bid}/counter-offer', [App\Http\Controllers\BidController::class, 'counterOffer'])->name('bids.counter-offer');
+
+    // ── GASQ Vendor Access ──────────────────────────────────────────────
+    // One invited vendor, one qualified opportunity, ten stages in order.
+    // The invitation is the credential; the signed-in vendor account is the
+    // identity. Both are checked on every request in VendorAccessGate.
+    Route::prefix('vendor-access')->name('vendor-access.')->group(function () {
+        Route::get('/{invitation}', [VendorAccessController::class, 'enter'])->name('enter');
+        Route::get('/{invitation}/stage/{stage}', [VendorAccessController::class, 'stage'])->name('stage');
+        Route::post('/{invitation}/reviewed', [VendorAccessController::class, 'reviewed'])->name('reviewed');
+        Route::post('/{invitation}/accept', [VendorAccessController::class, 'accept'])->name('accept');
+        Route::post('/{invitation}/decline', [VendorAccessController::class, 'decline'])->name('decline');
+        Route::post('/{invitation}/request-adjustment', [VendorAccessController::class, 'requestAdjustment'])->name('request-adjustment');
+        Route::post('/{invitation}/qualify', [VendorAccessController::class, 'qualify'])->name('qualify');
+    });
 
     Route::post('/vendor-opportunities/{invitation}/accept', [VendorOpportunityController::class, 'accept'])
         ->name('vendor-opportunities.accept');
