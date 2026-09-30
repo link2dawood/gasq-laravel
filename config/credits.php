@@ -16,6 +16,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Calculators billed at the report, not per keystroke
+    |--------------------------------------------------------------------------
+    |
+    | These recalculate free while the user works and cost credits once, when a
+    | report is downloaded or emailed. Re-taking the same report is free; a
+    | changed assumption is a new report and a new charge.
+    |
+    | Pages with dozens of inputs belong here: charging per compute turns
+    | ordinary editing into an expensive act and teaches people not to explore.
+    |
+    */
+
+    'report_billed_types' => [
+        'budget-calculator',
+        'budget-calculator-allocation',
+        'bill-rate-analysis',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Pay As You Go credits
     |--------------------------------------------------------------------------
     |

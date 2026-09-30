@@ -46,3 +46,6 @@ Artisan::command('twilio:health {to?}', function (TwilioSmsService $sms) {
 // Schedule::command('credits:grant-free-pool', ['--amount' => 5])->monthlyOn(1, '09:00');
 Schedule::command('vendor-opportunities:process')->hourly();
 Schedule::command('jobs:send-inactivity-survey --days=14')->dailyAt('09:00');
+// Secure documents: close access when the validity period ends, so the
+// dashboard matches what a recipient would actually experience.
+Schedule::command('documents:expire')->hourly()->withoutOverlapping();

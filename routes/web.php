@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrivateEstimateBuyerController;
+use App\Http\Controllers\AdminSecureDocumentController;
 use App\Http\Controllers\SecureDocumentViewerController;
 use App\Http\Controllers\VendorAccessController;
 use App\Http\Controllers\ProfileController;
@@ -450,6 +451,18 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/analytics', [App\Http\Controllers\AnalyticsController::class, 'index'])->name('admin.analytics');
     Route::get('/admin/activity', [App\Http\Controllers\AdminActivityController::class, 'index'])->name('admin.activity');
+    // ── Secure Document Center ──────────────────────────────────────────
+    Route::get('/admin/secure-documents', [AdminSecureDocumentController::class, 'index'])->name('admin.secure-documents.index');
+    Route::get('/admin/secure-documents/create', [AdminSecureDocumentController::class, 'create'])->name('admin.secure-documents.create');
+    Route::post('/admin/secure-documents', [AdminSecureDocumentController::class, 'store'])->name('admin.secure-documents.store');
+    Route::get('/admin/secure-documents/{document}', [AdminSecureDocumentController::class, 'show'])->name('admin.secure-documents.show');
+    Route::post('/admin/secure-documents/{document}/send', [AdminSecureDocumentController::class, 'send'])->name('admin.secure-documents.send');
+    Route::post('/admin/secure-documents/{document}/recipients', [AdminSecureDocumentController::class, 'addRecipient'])->name('admin.secure-documents.recipients.add');
+    Route::post('/admin/secure-documents/{document}/recipients/{recipient}/revoke', [AdminSecureDocumentController::class, 'revokeRecipient'])->name('admin.secure-documents.recipients.revoke');
+    Route::post('/admin/secure-documents/{document}/revoke', [AdminSecureDocumentController::class, 'revoke'])->name('admin.secure-documents.revoke');
+    Route::post('/admin/secure-documents/{document}/restore', [AdminSecureDocumentController::class, 'restore'])->name('admin.secure-documents.restore');
+    Route::post('/admin/secure-document-requests/{accessRequest}', [AdminSecureDocumentController::class, 'decideRequest'])->name('admin.secure-documents.requests.decide');
+
     Route::get('/admin/vendor-opportunities', [AdminVendorOpportunityController::class, 'index'])->name('admin.vendor-opportunities.index');
     Route::get('/admin/vendor-opportunities/{opportunity}', [AdminVendorOpportunityController::class, 'show'])->name('admin.vendor-opportunities.show');
     Route::post('/admin/vendor-opportunities/{opportunity}/approve', [AdminVendorOpportunityController::class, 'approve'])->name('admin.vendor-opportunities.approve');

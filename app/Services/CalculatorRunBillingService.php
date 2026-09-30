@@ -17,6 +17,12 @@ class CalculatorRunBillingService
         return (int) config('credits.calculator_per_run');
     }
 
+    /** Current balance, for responses that did not charge anything. */
+    public function balanceFor(User $user): int
+    {
+        return $this->walletService->getBalance($user);
+    }
+
     /**
      * Charge configured credits per run, run the calculator, and roll back the charge if $run throws.
      *
@@ -34,7 +40,7 @@ class CalculatorRunBillingService
                 $user,
                 $cost,
                 $featureKey,
-                'Calculator run (' . $cost . ' credits): ' . $referenceDetail,
+                'Calculator run ('.$cost.' credits): '.$referenceDetail,
                 null,
             );
 
@@ -43,7 +49,7 @@ class CalculatorRunBillingService
                     response()->json([
                         'ok' => false,
                         'error' => 'insufficient_credits',
-                        'message' => 'Not enough credits. Each calculator run uses ' . $cost . ' credits.',
+                        'message' => 'Not enough credits. Each calculator run uses '.$cost.' credits.',
                         'credits_required' => $cost,
                     ], 402)
                 );

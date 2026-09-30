@@ -8,6 +8,8 @@ use App\Models\Transaction;
 use App\Services\CostToProtectEstimate;
 use App\Services\ReportService;
 use App\Services\WalletService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Mail;
@@ -30,22 +32,25 @@ class ReportController extends Controller
      * free to edit/preview, free to re-take the same report). Other calculators
      * keep their existing billing.
      */
-    private const REPORT_BILLED_TYPES = ['budget-calculator', 'budget-calculator-allocation'];
+    private function reportBilledTypes(): array
+    {
+        return (array) config('credits.report_billed_types', []);
+    }
 
     /**
      * Charge credits once per unique report version. Editing inputs produces a
      * new version (new charge); re-downloading/emailing the same inputs is free.
      * Returns a redirect when credits are insufficient, otherwise null.
      */
-    private function chargeForReport(Request $request, string $type, array $payload): ?\Illuminate\Http\RedirectResponse
+    private function chargeForReport(Request $request, string $type, array $payload): ?RedirectResponse
     {
-        if (! in_array($type, self::REPORT_BILLED_TYPES, true)) {
+        if (! in_array($type, $this->reportBilledTypes(), true)) {
             return null;
         }
 
         $meta = (array) data_get($payload, 'scenario.meta', []);
         unset($meta['contact'], $meta['inputs']); // contact/master-input tweaks aren't a new report
-        $hash = md5($type . '|' . json_encode($meta));
+        $hash = md5($type.'|'.json_encode($meta));
 
         $paid = (array) session('paid_report_hashes', []);
         if (in_array($hash, $paid, true)) {
@@ -83,13 +88,14 @@ class ReportController extends Controller
         }
 
         $pdf = $this->report->receiptPdf($transaction);
+
         return $pdf->download($this->report->filenameForReceipt($transaction));
     }
 
     /**
      * Download calculator report PDF (uses last result from session).
      */
-    public function downloadReport(Request $request): Response|\Illuminate\Http\RedirectResponse
+    public function downloadReport(Request $request): Response|RedirectResponse
     {
         $type = $request->input('type');
         $payload = $this->payloadForType($request, $type);
@@ -102,13 +108,14 @@ class ReportController extends Controller
         }
 
         $pdf = $this->report->calculatorPdf($type, $payload, $this->openPassword($request));
+
         return $pdf->download($this->report->filenameForCalculator($type, $request->user()));
     }
 
     /**
      * Email calculator report PDF.
      */
-    public function emailReport(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    public function emailReport(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
             'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,budget-calculator-preview,budget-calculator-allocation,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
@@ -125,7 +132,7 @@ class ReportController extends Controller
 
         // Combine the primary field (which may itself hold several addresses) with
         // the optional second-email field, then split on comma/semicolon/space.
-        $rawEmails = trim((string) $request->input('email')) . ',' . trim((string) $request->input('email2'));
+        $rawEmails = trim((string) $request->input('email')).','.trim((string) $request->input('email2'));
         $recipients = collect(preg_split('/[,;\s]+/', $rawEmails, -1, PREG_SPLIT_NO_EMPTY))
             ->map(fn ($e) => trim($e))
             ->unique()
@@ -133,7 +140,7 @@ class ReportController extends Controller
         $invalid = $recipients->reject(fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL));
         if ($recipients->isEmpty() || $invalid->isNotEmpty()) {
             $error = $invalid->isNotEmpty()
-                ? 'These email addresses look invalid: ' . $invalid->implode(', ')
+                ? 'These email addresses look invalid: '.$invalid->implode(', ')
                 : 'Enter at least one valid email address.';
 
             return $this->emailFailure($request, $error);
@@ -158,7 +165,7 @@ class ReportController extends Controller
         }
 
         $filename = $this->report->filenameForCalculator($type, $request->user());
-        $subject = 'Your GASQ Calculator Report – ' . str_replace('-', ' ', ucfirst($type));
+        $subject = 'Your GASQ Calculator Report – '.str_replace('-', ' ', ucfirst($type));
 
         // The Workforce/Budget report ships the branded "Cost to Protect" cover
         // email; everything else uses the short generic body.
@@ -186,7 +193,7 @@ class ReportController extends Controller
                 if ($file && $file->isValid()) {
                     $extraAttachments[] = [
                         'data' => (string) file_get_contents($file->getRealPath()),
-                        'name' => $file->getClientOriginalName() ?: ('attachment.' . ($file->guessExtension() ?: 'dat')),
+                        'name' => $file->getClientOriginalName() ?: ('attachment.'.($file->guessExtension() ?: 'dat')),
                         'mime' => $file->getMimeType() ?: 'application/octet-stream',
                     ];
                 }
@@ -225,7 +232,7 @@ class ReportController extends Controller
                 ));
         }
 
-        $message = 'Report sent to ' . $recipients->implode(', ');
+        $message = 'Report sent to '.$recipients->implode(', ');
 
         // Answer XHR sends with JSON so the calculator page never reloads. A full
         // reload re-initialises the calculator JS to its defaults, which wiped the
@@ -246,7 +253,7 @@ class ReportController extends Controller
      * Email failure response: JSON for XHR sends, redirect-back for the plain
      * form fallback (no JS).
      */
-    private function emailFailure(Request $request, string $error): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    private function emailFailure(Request $request, string $error): RedirectResponse|JsonResponse
     {
         if ($request->expectsJson()) {
             return response()->json(['ok' => false, 'message' => $error], 422);
@@ -287,13 +294,13 @@ class ReportController extends Controller
         return ['emails.cost-to-protect', [
             // Greet the report's Contact (entered on the calculator) first; fall
             // back to the company, then the signed-in vendor's name.
-            'clientName'     => $estimate['contact']['name'] ?: ($estimate['contact']['company'] ?: null),
-            'propertyName'   => $estimate['contact']['site'],
-            'reportNumber'   => $payload['reportNumber'] ?? null,
-            'datePrepared'   => now()->format('F j, Y'),
-            'inHouseCost'    => $inHouse > 0 ? $inHouse : null,
+            'clientName' => $estimate['contact']['name'] ?: ($estimate['contact']['company'] ?: null),
+            'propertyName' => $estimate['contact']['site'],
+            'reportNumber' => $payload['reportNumber'] ?? null,
+            'datePrepared' => now()->format('F j, Y'),
+            'inHouseCost' => $inHouse > 0 ? $inHouse : null,
             'capitalRecovery' => $inHouse > 0 ? $estimate['annualCapitalRecovery'] : null,
-            'paybackPeriod'  => $inHouse > 0 ? $estimate['paybackMonths'] . ' months' : null,
+            'paybackPeriod' => $inHouse > 0 ? $estimate['paybackMonths'].' months' : null,
         ]];
     }
 
@@ -364,8 +371,8 @@ class ReportController extends Controller
     {
         $user = $request->user();
         $vendorId = (int) ($user?->id ?? 0);
-        $reportNumber = 'GASQ-' . now()->format('Ymd-His') . '-V' . $vendorId;
-        $preparedFor = trim(($user?->name ?? '') . ($user?->company ? ' - ' . strtoupper($user->company) : ''));
+        $reportNumber = 'GASQ-'.now()->format('Ymd-His').'-V'.$vendorId;
+        $preparedFor = trim(($user?->name ?? '').($user?->company ? ' - '.strtoupper($user->company) : ''));
 
         return array_merge($payload, [
             'user' => $user,
