@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrivateEstimateBuyerController;
+use App\Http\Controllers\SecureDocumentViewerController;
 use App\Http\Controllers\VendorAccessController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
@@ -214,6 +215,23 @@ Route::middleware(['auth'])->group(function () {
         ->name('vendor-questionnaires.save-step');
     Route::post('/vendor-questionnaires/{questionnaire}/submit', [VendorQuestionnaireController::class, 'submit'])
         ->name('vendor-questionnaires.submit');
+});
+
+// ── GASQ Secure Document Center ─────────────────────────────────────────────
+// Customer-facing PDFs delivered by recipient-specific link instead of as an
+// attachment. The link identifies a recipient; the emailed code authorises
+// them. Nothing here exposes the stored file's location.
+Route::prefix('document')->name('secure-documents.')->group(function () {
+    Route::get('/{token}', [SecureDocumentViewerController::class, 'open'])->name('open');
+    Route::post('/{token}/request-access', [SecureDocumentViewerController::class, 'requestAccess'])
+        ->middleware('throttle:10,1')->name('request-access');
+    Route::post('/session/code', [SecureDocumentViewerController::class, 'sendCode'])
+        ->middleware('throttle:6,1')->name('send-code');
+    Route::post('/session/verify', [SecureDocumentViewerController::class, 'verify'])
+        ->middleware('throttle:10,1')->name('verify');
+    Route::get('/session/view', [SecureDocumentViewerController::class, 'view'])->name('view');
+    Route::get('/session/file', [SecureDocumentViewerController::class, 'file'])->name('file');
+    Route::post('/session/heartbeat', [SecureDocumentViewerController::class, 'heartbeat'])->name('heartbeat');
 });
 
 // ── GASQ Private Estimate by Invitation ─────────────────────────────────────
