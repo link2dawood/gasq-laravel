@@ -133,3 +133,32 @@ See `.env.example` and `.env.docker.example` for full lists.
 ## Queue note
 
 The app defaults to Laravel's `database` queue connection. A queue worker is required for queued bid notifications and credits-added emails to be delivered.
+
+## Scheduler note
+
+Several features are not triggered by a request and only run if cron calls the
+scheduler every minute:
+
+```
+* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Without that entry, these silently never run:
+
+| Command | What stops happening |
+|---------|----------------------|
+| `documents:expire` | Expired documents keep their `sent` status, so the dashboard and filters disagree with what a recipient experiences. Access is still refused at the door — expiry is checked on every request — so this is a reporting problem, not a security one. |
+| `documents:purge-personal-data` | Viewer IP and user-agent data is kept past the 12-month retention window. |
+| `vendor-opportunities:process` | Hourly opportunity processing. |
+| `jobs:send-inactivity-survey` | The 14-day inactivity survey. |
+
+Retention is set by `GASQ_DOCUMENT_RETENTION_MONTHS` (default 12). The sweep
+clears the identifying columns and never deletes a row, so a document's
+activity history stays auditable. Set it to `0` only as a deliberate decision:
+it switches the sweep off entirely.
+
+To check the sweep without changing anything:
+
+```
+php artisan documents:purge-personal-data --dry-run
+```

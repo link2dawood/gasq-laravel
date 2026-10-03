@@ -5,7 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/** The document trail. Append-only: never updated, never deleted. */
+/**
+ * The document trail. Append-only: never deleted, and never rewritten except
+ * by the retention sweep, which clears ip_address and user_agent once they are
+ * past the window (spec 56). What happened stays; where from does not.
+ */
 class DocumentEvent extends Model
 {
     public const UPDATED_AT = null;

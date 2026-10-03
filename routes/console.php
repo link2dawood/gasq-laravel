@@ -49,3 +49,6 @@ Schedule::command('jobs:send-inactivity-survey --days=14')->dailyAt('09:00');
 // Secure documents: close access when the validity period ends, so the
 // dashboard matches what a recipient would actually experience.
 Schedule::command('documents:expire')->hourly()->withoutOverlapping();
+// Spec 56: forget where people read from once the retention window has passed.
+// The history stays; the addresses in it do not.
+Schedule::command('documents:purge-personal-data')->dailyAt('03:30')->withoutOverlapping();
