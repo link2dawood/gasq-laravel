@@ -5,6 +5,7 @@ namespace App\Services\SecureDocument;
 use App\Models\DocumentAccessRequest;
 use App\Models\DocumentAccessToken;
 use App\Models\DocumentEvent;
+use App\Models\DocumentPageView as PageView;
 use App\Models\DocumentRecipient;
 use App\Models\DocumentSession;
 use App\Models\DocumentVersion;
@@ -201,8 +202,12 @@ class DocumentAccessService
      * A heartbeat from the open viewer. Only counts time since the last beat,
      * and only when that gap is short enough to be someone actually reading.
      */
-    public function heartbeat(DocumentSession $session, int $secondsSinceLast): DocumentSession
-    {
+    public function heartbeat(
+        DocumentSession $session,
+        int $secondsSinceLast,
+        ?int $page = null,
+        ?int $totalPages = null,
+    ): DocumentSession {
         $counted = max(0, min($secondsSinceLast, self::IDLE_SECONDS));
 
         $session->forceFill([
@@ -210,7 +215,81 @@ class DocumentAccessService
             'last_seen_at' => now(),
         ])->save();
 
+        if ($page !== null) {
+            $this->recordPageView($session, $page, $counted);
+        }
+
+        if ($totalPages !== null) {
+            $this->notePageCount($session, $totalPages);
+        }
+
         return $session;
+    }
+
+    /**
+     * How many pages the version has, as counted by the viewer that rendered
+     * it. It comes from the browser, so it is only ever used to say "11 of 16
+     * pages read" and is written once, never trusted for a decision.
+     */
+    private function notePageCount(DocumentSession $session, int $totalPages): void
+    {
+        $version = $session->version;
+
+        if ($version && $version->page_count === null && $totalPages > 0) {
+            $version->forceFill(['page_count' => $totalPages])->save();
+        }
+    }
+
+    /**
+     * Attribute a beat to the page it was read on (spec 28).
+     *
+     * The viewer reports the page that was on screen for the seconds being
+     * counted, and reports a page change straight away, so a page flicked past
+     * still registers with close to no time against it.
+     */
+    private function recordPageView(DocumentSession $session, int $page, int $seconds): PageView
+    {
+        $view = PageView::firstOrNew([
+            'document_session_id' => $session->id,
+            'page_number' => $page,
+        ]);
+
+        $firstTimeThisSession = ! $view->exists;
+
+        if ($firstTimeThisSession) {
+            $view->forceFill([
+                'document_id' => $session->document_id,
+                'document_version_id' => $session->document_version_id,
+                'document_recipient_id' => $session->document_recipient_id,
+                'started_at' => now(),
+                'active_seconds' => 0,
+                'view_count' => 1,
+            ]);
+        } elseif ((int) $session->last_page_number !== $page) {
+            // They were elsewhere and have come back: a separate arrival.
+            $view->view_count = (int) $view->view_count + 1;
+        }
+
+        $view->active_seconds = (int) $view->active_seconds + $seconds;
+        $view->save();
+
+        $session->forceFill([
+            'last_page_number' => $page,
+            'pages_viewed' => $session->pageViews()->count(),
+        ])->save();
+
+        if ($firstTimeThisSession) {
+            $this->log(
+                $session->document,
+                Flow::EVENT_PAGE_VIEWED,
+                ['session' => $session->public_id],
+                recipient: $session->recipient,
+                session: $session,
+                page: $page,
+            );
+        }
+
+        return $view;
     }
 
     public function endSession(DocumentSession $session): DocumentSession
@@ -238,7 +317,9 @@ class DocumentAccessService
      * verifying, everyone else waits for a decision.
      *
      * @return array{outcome: string, request?: DocumentAccessRequest, recipient?: DocumentRecipient}
-     *                                                                                                outcome is 'granted', 'pending' or 'closed'.
+     *                                                                                                outcome is 'approved' (admitted now, caller must issue
+     *                                                                                                their link), 'granted' (already a recipient), 'pending'
+     *                                                                                                or 'closed'.
      */
     public function requestStakeholderAccess(SecureDocument $document, string $email, ?string $name = null, ?string $company = null): array
     {
@@ -269,7 +350,7 @@ class DocumentAccessService
                 'policy' => 'same_domain',
             ], recipient: $recipient);
 
-            return ['outcome' => 'granted', 'recipient' => $recipient];
+            return ['outcome' => 'approved', 'recipient' => $recipient];
         }
 
         $request = DocumentAccessRequest::create([

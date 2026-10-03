@@ -2,7 +2,14 @@
 
 @section('content')
 <div class="sd-card">
-    @if($outcome === 'granted')
+    @if($outcome === 'approved')
+        <h1>Check your email</h1>
+        <p class="sd-note">
+            {{ $email }} is on the same organisation as this document's recipient, so we've emailed
+            your own secure link for {{ $document->public_id }}. Open it and we'll send a six-digit
+            code to confirm it's you.
+        </p>
+    @elseif($outcome === 'granted')
         <h1>You already have access</h1>
         <p class="sd-note">{{ $email }} is authorised for this document. Open your own link, or ask GASQ to resend it.</p>
     @elseif($outcome === 'closed')

@@ -59,6 +59,11 @@ class SecureDocument extends Model
         return $this->hasMany(DocumentAccessRequest::class, 'document_id');
     }
 
+    public function pageViews(): HasMany
+    {
+        return $this->hasMany(DocumentPageView::class, 'document_id');
+    }
+
     public function buyer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'buyer_id');

@@ -49,6 +49,9 @@
       ['Sessions', $engagement['sessions']],
       ['Active reading', $minutes . 'm ' . $seconds . 's'],
       ['Stakeholders', $engagement['stakeholders']],
+      ['Pages read', $engagement['page_count']
+          ? $engagement['pages_read'] . ' / ' . $engagement['page_count']
+          : $engagement['pages_read']],
       ['First viewed', $engagement['first_viewed_at'] ? \Illuminate\Support\Carbon::parse($engagement['first_viewed_at'])->format('M j, g:i A') : 'Not yet'],
       ['Last viewed', $engagement['last_viewed_at'] ? \Illuminate\Support\Carbon::parse($engagement['last_viewed_at'])->format('M j, g:i A') : '—'],
     ] as [$label, $value])
@@ -154,6 +157,42 @@
           </div>
         </div>
       @endunless
+
+        {{-- ── Page analytics (spec 28) ──────────────────────────────── --}}
+        <div class="card gasq-card mb-3">
+          <div class="card-body">
+            <h2 class="h6 fw-bold mb-1">Reading by page</h2>
+            <p class="small text-gasq-muted mb-2">
+              Active reading time only, totalled across every session.
+            </p>
+            @if(count($pages))
+              @php $busiest = max(array_column($pages, 'active_seconds')) ?: 1; @endphp
+              <table class="table table-sm align-middle mb-0">
+                <thead><tr>
+                  <th>Page</th><th>Active time</th><th>Visits</th><th>Readers</th><th style="width:30%"></th>
+                </tr></thead>
+                <tbody>
+                  @foreach($pages as $row)
+                    <tr>
+                      <td class="fw-semibold">{{ $row['page'] }}</td>
+                      <td>{{ intdiv($row['active_seconds'], 60) }}m {{ $row['active_seconds'] % 60 }}s</td>
+                      <td>{{ $row['visits'] }}</td>
+                      <td>{{ $row['readers'] }}</td>
+                      <td>
+                        <div class="progress" style="height:6px" role="img"
+                             aria-label="{{ $row['active_seconds'] }} seconds on page {{ $row['page'] }}">
+                          <div class="progress-bar" style="width:{{ round($row['active_seconds'] / $busiest * 100) }}%"></div>
+                        </div>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            @else
+              <p class="small text-gasq-muted mb-0">No pages read yet.</p>
+            @endif
+          </div>
+        </div>
     </div>
 
     {{-- ── Activity timeline ───────────────────────────────────────── --}}

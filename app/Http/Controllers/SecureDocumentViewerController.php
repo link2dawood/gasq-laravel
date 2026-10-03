@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SecureDocumentAccessRequestMail;
 use App\Mail\SecureDocumentCodeMail;
+use App\Mail\SecureDocumentSentMail;
+use App\Models\DocumentAccessRequest;
 use App\Models\DocumentRecipient;
 use App\Models\DocumentSession;
 use App\Models\SecureDocument;
@@ -165,6 +168,7 @@ class SecureDocumentViewerController extends Controller
         $validated = $request->validate([
             'seconds' => ['required', 'integer', 'min:0', 'max:300'],
             'page' => ['nullable', 'integer', 'min:1', 'max:2000'],
+            'pages' => ['nullable', 'integer', 'min:1', 'max:2000'],
             'closing' => ['nullable', 'boolean'],
         ]);
 
@@ -173,7 +177,12 @@ class SecureDocumentViewerController extends Controller
             return response()->json(['ok' => false], 409);
         }
 
-        $this->access->heartbeat($session, (int) $validated['seconds']);
+        $this->access->heartbeat(
+            $session,
+            (int) $validated['seconds'],
+            isset($validated['page']) ? (int) $validated['page'] : null,
+            isset($validated['pages']) ? (int) $validated['pages'] : null,
+        );
 
         if (! empty($validated['closing'])) {
             $this->access->endSession($session);
@@ -199,15 +208,25 @@ class SecureDocumentViewerController extends Controller
             'company' => ['nullable', 'string', 'max:160'],
         ]);
 
+        $document = $resolved['document'];
+
         $outcome = $this->access->requestStakeholderAccess(
-            $resolved['document'],
+            $document,
             $validated['email'],
             $validated['name'] ?? null,
             $validated['company'] ?? null,
         );
 
+        if ($outcome['outcome'] === 'approved') {
+            $this->sendOwnLink($document, $outcome['recipient']);
+        }
+
+        if ($outcome['outcome'] === 'pending') {
+            $this->alertGasq($document, $outcome['request']);
+        }
+
         return view('secure-documents.requested', [
-            'document' => $resolved['document'],
+            'document' => $document,
             'outcome' => $outcome['outcome'],
             'email' => $validated['email'],
         ]);
@@ -262,6 +281,36 @@ class SecureDocumentViewerController extends Controller
             now()->format('F j, Y g:i A'),
             $document->public_id,
         ];
+    }
+
+    /**
+     * A colleague the document's policy admits straight away still arrives the
+     * same way everyone else does: their own link, to their own address, which
+     * they then verify. Without this they would be authorised with no way in.
+     */
+    private function sendOwnLink(SecureDocument $document, DocumentRecipient $recipient): void
+    {
+        try {
+            $url = $this->access->issueLink($document, $recipient)['url'];
+            Mail::to($recipient->email)->send(new SecureDocumentSentMail($document, $recipient, $url));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /** The viewer is told GASQ has been notified (spec 40). Make that true. */
+    private function alertGasq(SecureDocument $document, DocumentAccessRequest $accessRequest): void
+    {
+        $address = trim((string) config('services.gasq.admin_alert_email', ''));
+        if ($address === '') {
+            return;
+        }
+
+        try {
+            Mail::to($address)->send(new SecureDocumentAccessRequestMail($document, $accessRequest));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     private function maskEmail(string $email): string

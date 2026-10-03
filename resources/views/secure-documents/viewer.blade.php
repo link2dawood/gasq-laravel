@@ -95,7 +95,11 @@
 
   async function render(n){
     if(!pdf || rendering || n < 1 || n > pdf.numPages) return;
+    // Close out the time read on the page we are leaving before the page
+    // number changes, so seconds land against the page they were spent on.
+    if(n !== page) await beat(false);
     rendering = true;
+    const previous = page;
     const p = await pdf.getPage(n);
     const width = Math.min(document.getElementById('sdv_stage').clientWidth - 28, 900);
     const base = p.getViewport({ scale: 1 });
@@ -109,7 +113,10 @@
     page = n;
     document.getElementById('sdv_page').textContent = n;
     rendering = false;
-    seen.add(n);
+
+    // Register the new page straight away, so one flicked past still appears
+    // in the page analytics with almost no time against it.
+    if(n !== previous) beat(false, true);
   }
 
   // Drawn onto the same canvas as the page, so it is part of any screenshot.
@@ -145,7 +152,6 @@
 
   // ── Reading time: only counts while the tab is visible and the reader is
   // active, so a tab left open overnight does not become "viewed all night".
-  const seen = new Set([1]);
   let lastBeat = Date.now(), active = true, idleTimer = null;
 
   function markActive(){
@@ -160,11 +166,16 @@
   });
   markActive();
 
-  async function beat(closing = false){
+  // force: report the page even with no time to add, for a page change.
+  async function beat(closing = false, force = false){
     const seconds = Math.round((Date.now() - lastBeat) / 1000);
     lastBeat = Date.now();
-    if(!closing && (!active || document.hidden || seconds <= 0)) return;
-    const body = JSON.stringify({ seconds: Math.min(seconds, 300), page, closing });
+    if(!closing && !force && (!active || document.hidden || seconds <= 0)) return;
+    const body = JSON.stringify({
+      seconds: Math.max(0, Math.min(seconds, 300)),
+      page, closing,
+      pages: pdf ? pdf.numPages : null,
+    });
     if(closing && navigator.sendBeacon){
       navigator.sendBeacon(BEAT, new Blob([body], { type: 'application/json' }));
       return;

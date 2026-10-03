@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * One viewing session. active_seconds counts time the viewer was actually in
@@ -27,6 +28,16 @@ class DocumentSession extends Model
     public function recipient(): BelongsTo
     {
         return $this->belongsTo(DocumentRecipient::class, 'document_recipient_id');
+    }
+
+    public function version(): BelongsTo
+    {
+        return $this->belongsTo(DocumentVersion::class, 'document_version_id');
+    }
+
+    public function pageViews(): HasMany
+    {
+        return $this->hasMany(DocumentPageView::class, 'document_session_id');
     }
 
     public function isOpen(): bool

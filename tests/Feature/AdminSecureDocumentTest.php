@@ -110,15 +110,21 @@ class AdminSecureDocumentTest extends TestCase
         $access = app(DocumentAccessService::class);
 
         $session = $access->startSession($document, $recipient);
-        $access->heartbeat($session, 45);
+        $access->heartbeat($session, 45, page: 1, totalPages: 12);
+        $access->heartbeat($session, 70, page: 4);
         $access->endSession($session);
 
         $this->actingAs($admin)
             ->get(route('admin.secure-documents.show', $document))
             ->assertOk()
             ->assertSee($document->public_id)
+            ->assertSee('1m 55s')              // total active reading
+            ->assertSee('john@company.test')
+            // Spec 28: which pages held them, and how much of the document.
+            ->assertSee('Reading by page')
             ->assertSee('0m 45s')
-            ->assertSee('john@company.test');
+            ->assertSee('1m 10s')
+            ->assertSee('2 / 12');
 
         $this->assertSame(Flow::SENT, $document->fresh()->status);
     }

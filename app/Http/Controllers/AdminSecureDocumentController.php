@@ -112,6 +112,7 @@ class AdminSecureDocumentController extends Controller
             'document' => $document,
             'events' => $document->events()->with('recipient')->limit(100)->get(),
             'engagement' => $this->engagement($document),
+            'pages' => $this->pageAnalytics($document),
             'requests' => $document->accessRequests()->latest()->get(),
         ]);
     }
@@ -210,6 +211,30 @@ class AdminSecureDocumentController extends Controller
             'viewers' => $recipients->where('session_count', '>', 0)->count(),
             'stakeholders' => $recipients->where('recipient_type', Flow::RECIPIENT_STAKEHOLDER)->count(),
             'downloads' => $document->events()->where('event_type', Flow::EVENT_DOWNLOAD_COMPLETED)->count(),
+            'pages_read' => $document->pageViews()->distinct()->count('page_number'),
+            'page_count' => $document->currentVersion?->page_count,
         ];
+    }
+
+    /**
+     * Which pages held attention (spec 28). Totalled across every session, so
+     * a page returned to on three visits reads as three.
+     *
+     * @return array<int, array{page: int, active_seconds: int, visits: int, readers: int}>
+     */
+    private function pageAnalytics(SecureDocument $document): array
+    {
+        return $document->pageViews()
+            ->selectRaw('page_number, SUM(active_seconds) as active_seconds, SUM(view_count) as visits, COUNT(DISTINCT document_recipient_id) as readers')
+            ->groupBy('page_number')
+            ->orderBy('page_number')
+            ->get()
+            ->map(fn ($row) => [
+                'page' => (int) $row->page_number,
+                'active_seconds' => (int) $row->active_seconds,
+                'visits' => (int) $row->visits,
+                'readers' => (int) $row->readers,
+            ])
+            ->all();
     }
 }

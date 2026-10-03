@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Mail\SecureDocumentAccessRequestMail;
 use App\Mail\SecureDocumentCodeMail;
+use App\Mail\SecureDocumentSentMail;
 use App\Models\DocumentAccessRequest;
 use App\Models\DocumentSession;
 use App\Models\SecureDocument;
@@ -286,13 +288,65 @@ class SecureDocumentTest extends TestCase
         $outcome = app(DocumentAccessService::class)
             ->requestStakeholderAccess($document, 'mary@company.test', 'Mary Jones');
 
-        $this->assertSame('granted', $outcome['outcome']);
+        $this->assertSame('approved', $outcome['outcome']);
         $this->assertNotNull($document->recipientFor('mary@company.test'));
 
         // A stranger from another company still waits for a decision.
         $other = app(DocumentAccessService::class)
             ->requestStakeholderAccess($document, 'rival@elsewhere.test');
         $this->assertSame('pending', $other['outcome']);
+    }
+
+    /**
+     * Admitted by policy is worth nothing without a link. Mary is approved on
+     * the spot, so the link has to reach her, and she still verifies on her
+     * own address before the document opens.
+     */
+    public function test_a_same_domain_colleague_is_emailed_their_own_link(): void
+    {
+        Mail::fake();
+        $document = $this->sentDocument(['stakeholder_policy' => Flow::POLICY_SAME_DOMAIN]);
+
+        $this->post(route('secure-documents.request-access', $this->linkFor($document)), [
+            'email' => 'mary@company.test',
+            'name' => 'Mary Jones',
+        ])->assertOk()->assertSee('Check your email');
+
+        Mail::assertSent(
+            SecureDocumentSentMail::class,
+            fn ($mail) => $mail->hasTo('mary@company.test'),
+        );
+        $this->assertDatabaseHas('document_access_tokens', [
+            'document_recipient_id' => $document->recipientFor('mary@company.test')->id,
+        ]);
+
+        // Her link is her own, and the code goes to her address, not John's.
+        $this->get(route('secure-documents.open', $this->linkFor($document, 'mary@company.test')))
+            ->assertOk()
+            ->assertSee('m***@company.test');
+        $this->post(route('secure-documents.send-code'));
+        Mail::assertSent(SecureDocumentCodeMail::class, fn ($mail) => $mail->hasTo('mary@company.test'));
+    }
+
+    /** Spec 40: the viewer promises GASQ was notified, so GASQ must be. */
+    public function test_a_pending_access_request_alerts_gasq(): void
+    {
+        Mail::fake();
+        config(['services.gasq.admin_alert_email' => 'admin@gasq.test']);
+        $document = $this->sentDocument();
+
+        $this->post(route('secure-documents.request-access', $this->linkFor($document)), [
+            'email' => 'mary@company.test',
+            'name' => 'Mary Jones',
+        ])->assertOk()->assertSee('GASQ has been notified');
+
+        Mail::assertSent(
+            SecureDocumentAccessRequestMail::class,
+            fn ($mail) => $mail->hasTo('admin@gasq.test')
+                && $mail->accessRequest->requester_email === 'mary@company.test',
+        );
+        // The request itself carries no document.
+        Mail::assertNotSent(SecureDocumentSentMail::class);
     }
 
     public function test_revoking_one_recipient_leaves_the_others_working(): void
@@ -364,6 +418,65 @@ class SecureDocumentTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
         app(SecureDocumentService::class)->send($document, $admin);
+    }
+
+    /**
+     * Spec 28: reading time lands against the page it was spent on, a page
+     * returned to counts as a second visit, and a page flicked past still
+     * appears with almost no time against it.
+     */
+    public function test_reading_is_recorded_page_by_page(): void
+    {
+        Mail::fake();
+        $document = $this->sentDocument();
+        $this->verifyAs($document);
+        $this->get(route('secure-documents.view'));
+
+        $beat = fn (array $body) => $this->postJson(route('secure-documents.heartbeat'), $body)->assertOk();
+
+        $beat(['seconds' => 35, 'page' => 1, 'pages' => 16]);
+        $beat(['seconds' => 0, 'page' => 2]);    // flicked to, no time yet
+        $beat(['seconds' => 18, 'page' => 2]);
+        $beat(['seconds' => 40, 'page' => 7]);
+        $beat(['seconds' => 0, 'page' => 2]);    // back to page 2: a second visit
+        $beat(['seconds' => 12, 'page' => 2]);
+
+        $session = DocumentSession::first();
+        $views = $session->pageViews()->orderBy('page_number')->get()->keyBy('page_number');
+
+        $this->assertSame([1, 2, 7], $views->keys()->all());
+        $this->assertSame(35, (int) $views[1]->active_seconds);
+        $this->assertSame(30, (int) $views[2]->active_seconds);   // 18 + 12
+        $this->assertSame(40, (int) $views[7]->active_seconds);
+        $this->assertSame(1, (int) $views[1]->view_count);
+        $this->assertSame(2, (int) $views[2]->view_count);        // left and returned
+        $this->assertSame(3, (int) $session->fresh()->pages_viewed);
+
+        // Page count comes from the viewer, so "3 of 16" can be shown.
+        $this->assertSame(16, (int) $document->currentVersion->fresh()->page_count);
+
+        // One event per page per session, not one per beat.
+        $this->assertSame(3, $document->events()->where('event_type', Flow::EVENT_PAGE_VIEWED)->count());
+        $this->assertSame(2, (int) $document->events()
+            ->where('event_type', Flow::EVENT_PAGE_VIEWED)->orderBy('id')->get()[1]->page_number);
+    }
+
+    /** A second visit is its own session, so per-page totals add up across both. */
+    public function test_page_totals_add_up_across_sessions(): void
+    {
+        Mail::fake();
+        $document = $this->sentDocument();
+        $this->verifyAs($document);
+
+        foreach ([20, 25] as $seconds) {
+            $this->get(route('secure-documents.view'));
+            $this->postJson(route('secure-documents.heartbeat'), ['seconds' => $seconds, 'page' => 3])
+                ->assertOk();
+        }
+
+        $this->assertSame(2, $document->sessions()->count());
+        $this->assertSame(45, (int) $document->pageViews()->where('page_number', 3)->sum('active_seconds'));
+        $this->assertSame(2, $document->pageViews()->where('page_number', 3)->count());
     }
 
     /** Verify as the primary recipient and leave the session in place. */
