@@ -107,7 +107,7 @@
   </div>
 
   {{-- ── Pricing mode ───────────────────────────────────── --}}
-  <div class="card gasq-card mb-3">
+  <div class="card gasq-card mb-3" id="brb_pricing_controls">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div class="brb-kicker">Pricing Mode</div>
@@ -131,15 +131,16 @@
 
   <div class="row g-4">
     {{-- ── Workspace ──────────────────────────────────── --}}
-    <div class="col-xl-8">
+    <div class="col-xl-8" id="brb_workspace">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div class="gasq-tabs-scroll d-print-none">
           <ul class="gasq-tabs-pill mb-0" role="tablist" id="brTabs">
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#brb-current"><i class="fa fa-calendar-day me-1"></i> Current Year</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#brb-forecast"><i class="fa fa-chart-line me-1"></i> Five-Year Plan</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#brb-weighted">Staffing &amp; Weighted Rate</a></li>
           </ul>
         </div>
-        <div class="d-flex gap-2 d-print-none">
+        <div class="d-flex gap-2 d-print-none" id="brb_expand_controls">
           <button type="button" class="btn btn-link btn-sm p-0" data-expand="1">Expand all</button>
           <span class="text-gasq-muted">·</span>
           <button type="button" class="btn btn-link btn-sm p-0" data-expand="0">Collapse all</button>
@@ -182,11 +183,14 @@
         <div class="tab-pane fade" id="brb-forecast">
           @include('calculators.bill-rate._layer-7')
         </div>
+        <div class="tab-pane fade" id="brb-weighted">
+          @include('calculators.bill-rate._weighted-rates')
+        </div>
       </div>
     </div>
 
     {{-- ── Pricing summary card ───────────────────────── --}}
-    <div class="col-xl-4">
+    <div class="col-xl-4" id="brb_layer_summary">
       <div class="brb-sticky d-flex flex-column gap-3">
         <div class="brb-summary">
           <div class="brb-summary-hero">
@@ -279,6 +283,7 @@ function fmtMoney(v, dp = 2){
 function fmtNum(v, dp = 0){ return new Intl.NumberFormat('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp }).format(Number(v) || 0); }
 function fmtPct(v, dp = 2){ return fmtNum((Number(v) || 0) * 100, dp) + '%'; }
 function fmtAs(kind, v){
+  if(v == null) return '—';
   switch(kind){
     case 'money': return fmtMoney(v, 2);
     case 'money0': return fmtMoney(v, 0);
@@ -450,6 +455,16 @@ function renderStructure(){
 
 // Toggle sections whose visibility depends on inputs.
 function applyVisibility(){
+  const wr = state.weightedRates;
+  document.querySelectorAll('[data-wr-target]').forEach(el => el.hidden = wr.mode === 'manual');
+  document.querySelectorAll('[data-wr-solve]').forEach(el => el.hidden = wr.mode !== 'solve');
+  document.querySelectorAll('[data-wr-generate]').forEach(el => el.hidden = wr.mode !== 'generate');
+  document.querySelectorAll('[data-wr-pay-input]').forEach(el => {
+    const calculated = wr.mode === 'generate' || wr.mode === 'solve' && +el.dataset.wrPayInput === +wr.solveIndex;
+    el.hidden = calculated;
+    el.disabled = calculated;
+    document.querySelector(`[data-wr-pay-output="${el.dataset.wrPayInput}"]`).hidden = !calculated;
+  });
   const schedule = state.coverage.mode === 'schedule';
   document.getElementById('brb_schedule_fields').hidden = !schedule;
   const lineItems = state.burden.method === 'detailed';
@@ -532,6 +547,23 @@ document.getElementById('brb_reset').addEventListener('click', () => {
   renderStructure(); scheduleCompute(0);
 });
 
+document.getElementById('wr_reset').addEventListener('click', () => {
+  state.weightedRates = clone(BRB_DEFAULTS.weightedRates);
+  writeInputs(); applyVisibility(); scheduleCompute(0);
+});
+
+document.getElementById('brTabs').addEventListener('shown.bs.tab', () => {
+  const weighted = document.getElementById('brb-weighted').classList.contains('active');
+  ['brb_layer_summary', 'brb_pricing_controls', 'brb_expand_controls'].forEach(id => {
+    const el = document.getElementById(id);
+    el.hidden = weighted;
+    el.classList.toggle('d-none', weighted);
+  });
+  document.getElementById('brb_workspace').classList.toggle('col-xl-8', !weighted);
+  document.getElementById('brb_workspace').classList.toggle('col-xl-12', weighted);
+  document.getElementById('brb_warnings').hidden = weighted || !(result?.validations || []).length;
+});
+
 // ── Compute (server engine) ─────────────────────────────
 let timer = null, inflight = null;
 function scheduleCompute(delay = 600){ clearTimeout(timer); timer = setTimeout(runCompute, delay); }
@@ -574,6 +606,7 @@ async function runCompute(){
 function renderResults(){
   const r = result;
   document.querySelectorAll('[data-out]').forEach(el => { el.textContent = fmtAs(el.dataset.fmt, getPath(r, el.dataset.out)); });
+  renderWeightedRates(r.weightedRates);
 
   // Layer headers
   const m = (v) => fmtMoney(v) + '/hr';
@@ -683,6 +716,28 @@ function renderResults(){
   renderFormulas(r);
 }
 
+function renderWeightedRates(wr){
+  const errors = document.getElementById('wr_errors');
+  errors.hidden = !wr || wr.isValid;
+  errors.textContent = (wr?.errors || []).join(' ');
+  const warnings = document.getElementById('wr_warnings');
+  warnings.hidden = !(wr?.warnings || []).length;
+  warnings.textContent = (wr?.warnings || []).join(' ');
+  document.getElementById('wr_results').hidden = !wr?.isValid;
+  document.querySelectorAll('[data-wr-row]').forEach(tr => {
+    const p = wr?.positions[+tr.dataset.wrRow];
+    tr.querySelectorAll('[data-wr-col]').forEach(td => {
+      td.textContent = p ? fmtAs(td.dataset.fmt, p[td.dataset.wrCol]) : '—';
+      if(td.dataset.wrCol === 'payRate') td.title = p ? 'Unrounded pay rate: ' + p.payRate : '';
+    });
+  });
+  if(!wr?.isValid) return;
+  const t = wr.totals;
+  setText('wr_rounding', `Annual bill cost uses unrounded rates. Billing ${fmtNum(t.annualPaidHours, 2)} paid hours at the rounded weighted rate of ${fmtMoney(t.weightedBillRate)}/hr totals ${fmtMoney(t.annualCostAtRoundedBillRate)} (difference: ${fmtMoney(t.roundingDifference)}). Billing ${fmtNum(t.annualCoverageHours, 2)} coverage hours at the rounded consolidated rate of ${fmtMoney(t.coverageBillRate)}/hr totals ${fmtMoney(t.annualCostAtRoundedCoverageBillRate)} (difference: ${fmtMoney(t.coverageRoundingDifference)}). Differences are rounded-rate totals minus the unrounded annual bill cost.`);
+  const share = 1 - state.weightedRates.employerCostSharePct / 100;
+  setText('wr_formula', `Weighted pay = combined hourly wages ÷ headcount = ${fmtMoney(t.combinedHourlyWages)} ÷ ${fmtNum(t.count)} = ${fmtNum(t.weightedPayRate, 9)}/paid hr. Employer cost = pay ÷ ${fmtNum(share, 4)}. Bill rate per paid hour = pay × (1 + ${fmtNum(state.weightedRates.markupPct, 2)} ÷ 100) ÷ ${fmtNum(share, 4)} = pay × ${fmtNum(wr.multiplier, 9)}. Weighted bill rate = ${fmtNum(t.weightedBillRate, 9)}/paid hr. Annual bill cost = unrounded weighted bill rate × ${fmtNum(t.annualPaidHours, 2)} paid hours. Coverage hours = ${fmtNum(state.weightedRates.coveragePosts)} posts × 24 × 7 × ${fmtNum(state.weightedRates.annualWeeks, 2)} weeks = ${fmtNum(t.annualCoverageHours, 2)}. Consolidated coverage bill rate = annual bill cost ÷ coverage hours = ${fmtNum(t.coverageBillRate, 9)}/coverage hr.`);
+}
+
 function renderForecastResults(f){
   document.getElementById('brb_forecast_body').innerHTML = f.years.map(y => `
     <tr>
@@ -736,7 +791,7 @@ function renderForecastResults(f){
 
 function renderValidations(list){
   const box = document.getElementById('brb_warnings');
-  box.hidden = list.length === 0;
+  box.hidden = list.length === 0 || document.getElementById('brb-weighted').classList.contains('active');
   const blocking = list.filter(m => m.blocking).length;
   box.innerHTML = (blocking
       ? `<div class="item error fw-semibold"><i class="fa fa-circle-exclamation mt-1"></i><span>${blocking} issue${blocking > 1 ? 's' : ''} ${blocking > 1 ? 'block' : 'blocks'} approval.</span></div>`
@@ -802,7 +857,7 @@ function renderFormulas(r){
 function mergeSaved(saved){
   if(!saved || typeof saved !== 'object') return;
   const d = clone(BRB_DEFAULTS);
-  ['coverage','workforce','finalRateOverride','profit','burden','forecast'].forEach(k => { d[k] = Object.assign(d[k], saved[k] || {}); });
+  ['coverage','workforce','finalRateOverride','profit','burden','forecast','weightedRates'].forEach(k => { d[k] = Object.assign(d[k], saved[k] || {}); });
   if(typeof saved.wmcCategoryOverrideReason === 'string') d.wmcCategoryOverrideReason = saved.wmcCategoryOverrideReason;
   ['positions','wmcCategories','odc','ga'].forEach(k => { if(Array.isArray(saved[k])) d[k] = saved[k]; });
   if(Array.isArray(saved.burden?.items)) d.burden.items = saved.burden.items;

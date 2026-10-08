@@ -114,6 +114,7 @@ class BillRateBreakdownEngine
 
         return [
             'pricingMode' => 'approved',
+            'weightedRates' => WeightedRatesEngine::defaults(),
             'coverage' => [
                 'mode' => 'annual',
                 'annualHours' => 40500,
@@ -551,6 +552,10 @@ class BillRateBreakdownEngine
 
         return [
             'pricingMode' => $mode,
+            // Older scenarios retain their existing result shape.
+            ...(is_array(data_get($scenario, 'meta.brb.weightedRates'))
+                ? ['weightedRates' => (new WeightedRatesEngine)->compute(data_get($scenario, 'meta.brb.weightedRates'))]
+                : []),
             'summary' => [
                 'weightedWage' => $weightedWage,
                 'fullBurden' => $fullBurden,

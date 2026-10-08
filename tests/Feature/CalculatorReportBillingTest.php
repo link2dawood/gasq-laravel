@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CalculatorState;
 use App\Models\User;
 use App\Services\WalletService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,6 +64,28 @@ class CalculatorReportBillingTest extends TestCase
             ])
             ->assertOk()
             ->assertJsonPath('credits_remaining', 320);
+    }
+
+    public function test_weighted_target_calculation_is_saved_for_reload_and_reports_without_spending_credits(): void
+    {
+        $user = $this->vendor();
+        $before = $this->balance($user);
+        $weighted = ['mode' => 'solve', 'targetType' => 'coverageBill', 'targetRate' => 35, 'solveIndex' => 2, 'coveragePosts' => 2];
+
+        $response = $this->actingAs($user)
+            ->postJson(route('backend.standalone.v24.compute', ['type' => 'bill-rate-analysis']), [
+                'version' => 'v24',
+                'scenario' => ['meta' => ['brb' => ['weightedRates' => $weighted]]],
+            ]);
+
+        $response->assertOk()->assertJsonPath('credits_spent', 0)
+            ->assertJsonPath('kpis.weightedRates.isValid', true);
+        $this->assertEqualsWithDelta(35, $response->json('kpis.weightedRates.totals.coverageBillRate'), 1e-10);
+        $state = CalculatorState::where('user_id', $user->id)->where('calculator_type', 'bill-rate-analysis')->firstOrFail();
+        $this->assertSame($weighted, data_get($state->scenario, 'meta.brb.weightedRates'));
+        $this->assertEqualsWithDelta(35, data_get($state->result, 'kpis.weightedRates.totals.coverageBillRate'), 1e-10);
+        $this->assertEqualsWithDelta(35, session('report_payload.result.kpis.weightedRates.totals.coverageBillRate'), 1e-10);
+        $this->assertSame($before, $this->balance($user));
     }
 
     public function test_calculators_not_billed_at_the_report_still_charge_per_run(): void
