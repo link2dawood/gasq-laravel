@@ -15,6 +15,9 @@
       <div class="text-gasq-muted small">Security workforce planning &amp; cost analysis</div>
     </div>
     <div class="d-flex flex-wrap gap-2 d-print-none">
+      @if(auth()->user()?->isVendor() || auth()->user()?->isAdmin())
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('vendor-weighted-rates').open = true; document.getElementById('vendor-weighted-rates').scrollIntoView({behavior:'smooth'})">Vendor Weighted Rates</button>
+      @endif
       <button class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
       <button class="btn btn-outline-secondary btn-sm" id="btnDownload" onclick="downloadReport()"><i class="fa fa-download me-1"></i> Download</button>
       <button class="btn btn-primary btn-sm" onclick="emailReport()"><i class="fa fa-envelope me-1"></i> Email Report</button>
@@ -116,6 +119,20 @@
     </div><!-- /card-body -->
   </div><!-- /card -->
 
+  @if(auth()->user()?->isVendor() || auth()->user()?->isAdmin())
+    <div class="border rounded p-3 mt-4" id="main_vendor_comparison" hidden>
+      <h2 class="h6 fw-semibold">Applied Vendor Comparison</h2>
+      <div class="small text-gasq-muted mb-2" id="main_vendor_source"></div>
+      <div class="row g-3">
+        <div class="col-md-3"><div class="small">Weighted pay wage</div><strong id="main_vendor_pay"></strong></div>
+        <div class="col-md-3"><div class="small">Weighted bill rate</div><strong id="main_vendor_bill"></strong></div>
+        <div class="col-md-3"><div class="small">Annual billable service hours</div><strong id="main_vendor_service_hours"></strong></div>
+        <div class="col-md-3"><div class="small">Project annual estimate</div><strong id="main_vendor_project"></strong></div>
+      </div>
+      <div class="small mt-2" id="main_vendor_baseline"></div>
+    </div>
+    @include('calculators.vendor-weighted-rates._module')
+  @endif
 </div>
 </div>
 @endsection
@@ -123,12 +140,13 @@
 @push('scripts')
 <script>
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
+let mainScenario = JSON.parse(JSON.stringify(savedScenario || {}));
 const masterInputs = window.__gasqMasterInputs || {};
 function fmt(v, dec = 2) {
-  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format((v)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
+  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
 }
 function fmtN(v, dec = 0) {
-  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format((v)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));
+  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
 }
 function gNum(id) {
   const el = document.getElementById(id);
@@ -144,23 +162,19 @@ function setText(id, v) {
   if (el) el.textContent = v;
 }
 
-async function computeMainMenu() {
-  const payload = {
-    version: 'v24',
-    scenario: {
-      assumptions: {},
-      scope: {},
-      posts: [],
-      vehicle: {},
-      uniform: {},
-      meta: {
+function buildMainScenario() {
+  const scenario = JSON.parse(JSON.stringify(mainScenario));
+  scenario.meta = Object.assign({}, scenario.meta || {}, {
         employeeTrueHourlyCost: gNum('ej_employeeCost'),
         weeklyHoursPerformed: gNum('ej_weeklyHours'),
         weeksInYear: gNum('ej_weeksInYear') || 52,
         monthsInYear: gNum('ej_monthsInYear') || 12,
-      },
-    },
-  };
+  });
+  return scenario;
+}
+
+async function computeMainMenu() {
+  const payload = {version:'v24',scenario:buildMainScenario()};
 
   const res = await fetch('{{ route('backend.main-menu.compute') }}', {
     method: 'POST',
@@ -195,9 +209,23 @@ function renderMainMenu(data) {
   setText('ej_r_roi', (ej.roiPct || 0).toFixed(1) + '%');
   setText('ej_r_payback', (ej.paybackMonths || 0).toFixed(1) + ' mo');
   setText('ej_r_dollar', fmt(ej.dollarForDollarReturn || 0));
+  const comparison = tabs.vendorComparison;
+  const panel = document.getElementById('main_vendor_comparison');
+  if(panel) {
+    panel.hidden = !comparison;
+    if(comparison) {
+      setText('main_vendor_pay', fmt(comparison.weightedPayWage)+'/hr');
+      setText('main_vendor_bill', fmt(comparison.weightedBillRate)+'/hr');
+      setText('main_vendor_service_hours', fmtN(comparison.annualBillableServiceHours,2));
+      setText('main_vendor_project', fmt(comparison.projectAnnualEstimate));
+      setText('main_vendor_source', comparison.rateSource+' · '+comparison.mode+' · '+comparison.wageSource);
+      setText('main_vendor_baseline', 'Buyer baseline wage: '+(comparison.buyerBaselineWage == null ? 'not entered' : fmt(comparison.buyerBaselineWage)+'/hr')+'; in-house hourly cost: '+fmt(comparison.buyerBaselineHourlyCost)+'. Roster payroll hours: '+fmtN(comparison.annualPayrollHours,2)+'.');
+    }
+  }
 }
 
 let computeTimer = null;
+function calcEJ() { scheduleCompute(); }
 function scheduleCompute() {
   clearTimeout(computeTimer);
   computeTimer = setTimeout(async () => {
@@ -228,15 +256,16 @@ function hydrateSavedMainMenu() {
   });
 }
 
-function downloadReport(){ window.print(); }
+function downloadReport(){ window.location.assign('{{ route('reports.download', ['type' => 'main-menu']) }}'); }
 function emailReport(){ alert('Email functionality: connect to POST /api/spa/mail/calculator-pdf'); }
 
 document.addEventListener('DOMContentLoaded', function () {
   hydrateSavedMainMenu();
   // Recompute on any input change on this page.
-  document.querySelectorAll('input,select,textarea').forEach(el => {
+  document.querySelectorAll('#tab-justification input,#tab-justification select,#tab-justification textarea').forEach(el => {
     el.addEventListener('input', scheduleCompute);
     el.addEventListener('change', scheduleCompute);
+    el.addEventListener('input', () => window.VendorWeightedRates?.refreshContext());
   });
   scheduleCompute();
 });

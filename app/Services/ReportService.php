@@ -38,6 +38,10 @@ class ReportService
      */
     public function calculatorPdf(string $type, array $payload, ?string $openPassword = null): \Barryvdh\DomPDF\PDF
     {
+        if ($type === 'main-menu' && data_get($payload, 'scenario.meta.vendorWeightedRates')) {
+            $payload['scenario'] = app(VendorWeightedRateApplication::class)->publicScenario($payload['scenario']);
+            $payload['result'] = app(\App\Services\V24\MainMenu\MainMenuComputeService::class)->compute($payload['scenario']);
+        }
         $view = match ($type) {
             'instant-estimator' => 'pdf.instant-estimator',
             'main-menu' => 'pdf.main-menu',

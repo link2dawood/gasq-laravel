@@ -3,8 +3,8 @@
 namespace App\Services\V24\MainMenu;
 
 use App\Services\ScenarioService;
+use App\Services\VendorWeightedRateApplication;
 use Illuminate\Support\Arr;
-use Illuminate\Validation\ValidationException;
 
 class MainMenuComputeService
 {
@@ -16,6 +16,7 @@ class MainMenuComputeService
         private BillRateEngine $billRate,
         private BillRateComponentsEngine $billRateComponents,
         private ContractSummaryEngine $contractSummary,
+        private VendorWeightedRateApplication $vendorRates,
     ) {}
 
     /**
@@ -24,6 +25,7 @@ class MainMenuComputeService
      */
     public function compute(array $scenario): array
     {
+        $scenario = $this->vendorRates->normalize($scenario);
         $assumptions = (array) ($scenario['assumptions'] ?? []);
         $scope = (array) ($scenario['scope'] ?? []);
         $posts = (array) ($scenario['posts'] ?? []);
@@ -52,6 +54,7 @@ class MainMenuComputeService
             'uniform' => $uniform,
             'meta' => $meta,
         ]);
+        $vendorComparison = $this->vendorRates->comparison($scenario, $derivedCoverage);
 
         $kpis = [
             'annualCoverageHours' => Arr::get($derivedCoverage, 'annualCoverageHours'),
@@ -68,8 +71,8 @@ class MainMenuComputeService
                 'billRate' => $tabBillRate,
                 'billRateComponents' => $tabComponents,
                 'contractSummary' => $tabSummary,
+                ...($vendorComparison ? ['vendorComparison' => $vendorComparison] : []),
             ],
         ];
     }
 }
-

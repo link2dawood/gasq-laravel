@@ -1,5 +1,16 @@
 @php
     $res = $result ?? [];
+    $flatten = function (array $values, string $prefix = '') use (&$flatten): array {
+        $out = [];
+        foreach ($values as $key => $value) {
+            if (in_array($key, ['vendorComparison', 'vendorWeightedRates'], true)) continue;
+            $label = trim($prefix . ' / ' . \Illuminate\Support\Str::headline((string) $key), ' /');
+            if (is_array($value)) $out += $flatten($value, $label);
+            else $out[$label] = $value;
+        }
+        return $out;
+    };
+    $res = $flatten($res);
     $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-MM' . str_pad((string) (rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
 @endphp
 
@@ -25,7 +36,7 @@
       <td>{{ str_replace('_', ' ', ucfirst((string) $key)) }}</td>
       <td class="v">
         @if(is_array($val))
-          {{ implode(', ', array_map(fn($v) => (string) $v, $val)) }}
+          {{ json_encode($val) }}
         @elseif(is_numeric($val) && str_contains((string) $val, '.'))
           {{ number_format((float) $val, 2) }}
         @else

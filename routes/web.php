@@ -380,6 +380,10 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
     Route::post('/_backend/main-menu-calculator', [App\Http\Controllers\MainMenuCalculatorController::class, 'index'])->name('backend.main-menu-calculator.post');
     Route::post('/_backend/main-menu/compute', \App\Http\Controllers\Backend\MainMenuComputeController::class)
         ->name('backend.main-menu.compute');
+    Route::post('/_backend/vendor-weighted-rates/compute', [\App\Http\Controllers\Backend\VendorWeightedRateController::class, 'compute'])
+        ->name('backend.vendor-weighted-rates.compute');
+    Route::post('/_backend/vendor-weighted-rates/apply', [\App\Http\Controllers\Backend\VendorWeightedRateController::class, 'apply'])
+        ->name('backend.vendor-weighted-rates.apply');
 
     Route::get('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.index');
     Route::post('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.post');

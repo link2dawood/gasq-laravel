@@ -7,6 +7,7 @@ use App\Services\CalculatorRunBillingService;
 use App\Services\CalculatorStateStore;
 use App\Services\ScenarioMasterInputsMerger;
 use App\Services\V24\MainMenu\MainMenuComputeService;
+use App\Services\VendorWeightedRateApplication;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,6 +18,7 @@ class MainMenuComputeController extends Controller
         private CalculatorRunBillingService $calculatorBilling,
         private ScenarioMasterInputsMerger $masterInputsMerger,
         private CalculatorStateStore $calculatorStateStore,
+        private VendorWeightedRateApplication $vendorRates,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -34,6 +36,17 @@ class MainMenuComputeController extends Controller
         ]);
 
         $scenario = $this->masterInputsMerger->merge($request->user(), $validated['scenario']);
+        $savedModule = data_get($request->user()->calculatorStates()->where('calculator_type', 'main-menu')->first()?->scenario, 'meta.vendorWeightedRates');
+        $hasVendorInputs = array_intersect(['vendorWeightedRates', 'vendorWeightedPayWage', 'vendorWeightedBillRate', 'vendorRateSource', 'vendorRateMode'], array_keys($scenario['meta']));
+        if ($hasVendorInputs || $savedModule) {
+            abort_unless($request->user()->isVendor() || $request->user()->isAdmin(), 403);
+            if ($savedModule) {
+                $scenario['meta']['vendorWeightedRates'] = $savedModule;
+            } else {
+                unset($scenario['meta']['vendorWeightedRates']);
+            }
+        }
+        $scenario = $this->vendorRates->normalize($scenario);
 
         [$out, $remaining] = $this->calculatorBilling->chargeAndRun(
             $request->user(),
