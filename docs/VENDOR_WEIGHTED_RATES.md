@@ -19,7 +19,7 @@ The attached PDF preset contains eight rows: prime unarmed officers (21 at 39.29
 
 Buyer `meta.basePayRate` / `meta.basePay`, employee cost, and scope/posts are preserved. Project estimates use explicit `meta.annualBillableServiceHours`, otherwise coverage hours derived from the main calculator's scope, otherwise its weekly service hours multiplied by annual weeks. Roster payroll hours never replace service hours.
 
-The existing per-user `CalculatorStateStore` saves the roster and main result atomically. No database migration is needed. Module compute/apply endpoints enforce vendor/admin access and recalculate results from inputs rather than accepting client-supplied totals. The existing main calculator retains its billing behavior; roster editing does not spend compute credits.
+The existing per-user `CalculatorStateStore` saves the roster and main result atomically. The roster uses the existing state table; electronic signing adds the `vendor_report_signatures` migration. Module compute/apply endpoints enforce vendor/admin access and recalculate results from inputs rather than accepting client-supplied totals. The existing main calculator retains its billing behavior; roster editing does not spend compute credits.
 
 ## Disclosure and verification
 
@@ -40,3 +40,13 @@ The report adds weekly and monthly bill costs. Weekly costs sum actual weekly ro
 The draft's $2,252.68 combined wages derive from multiplying rounded per-role wages. The implemented report retains the existing full-precision result of $2,252.66. It displays the entered headcount (145 in the sample); the draft's separate 208 staffing estimate has no supplied formula and is not substituted for the roster.
 
 `VendorWeightedRateReportTest` covers dynamic totals, role-hour overrides, actual wages, required passwords, protected PDF output, account isolation, and buyer access restrictions. Rendered documents were also checked for readable page layout and password rejection by a PDF reader.
+
+## Electronic signing
+
+In the module, review the saved report, enter the signer’s full name and optional title, choose **Type my name** or **Draw my signature**, confirm intent, and select **Sign Saved Report**. The next password-protected download includes the signature, signer, server signing time in UTC, consent, and unique record reference. Signing is optional for unsigned exports.
+
+Signatures belong to the authenticated vendor/admin’s own saved report. A SHA-256 fingerprint binds the record to normalized report rates, staffing, hours, report identity, mode, currency, and full-precision totals. The server rejects a stale report hash. Changes require a new signature; older records retain their report snapshot and are not carried onto a changed PDF. Records are stored separately from mutable calculator state, and contain the account identity, typed name or normalized PNG drawing, consent, signing time, and report snapshot. Passwords are excluded. Buyer baseline wages and project service hours retain their existing behavior.
+
+This is an electronic signature record, with typed or drawn marks. It does not use certificate-based PDF digital signatures or request signatures from other parties. Existing private report and sealed-price permissions continue to apply.
+
+`VendorReportSigningTest` checks consent, account isolation, stale hashes, report changes, persistent snapshots, server-controlled identity/time, drawing validation, protected signed output, and current-signature selection at download. Apply the new migration during deployment.

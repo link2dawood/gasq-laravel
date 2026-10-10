@@ -39,9 +39,13 @@
   .roster { table-layout:fixed; font-size:6.2pt; margin-top:12pt; } .roster thead { display:table-header-group; }
   .roster th { background:#19334f; color:white; font-weight:normal; padding:7pt 4pt; }
   .roster td { padding:4pt 4pt; line-height:1.25; border-bottom:0.6pt solid #d4dfeb; } .roster tr { page-break-inside:avoid; }
+  @if(isset($electronicSignature)) .roster td { padding:2.5pt 4pt; } @endif
   .roster .small { font-size:5.5pt; }
   .roster .numeric { text-align:right; } .roster .total td { background:#eaf1f8; font-weight:bold; }
   .readme { background:#eaf1f8; padding:8pt 11pt; font-size:7pt; }
+  .signature { border:0.6pt solid #d4dfeb; padding:8pt 12pt; margin-top:10pt; page-break-inside:avoid; }
+  .signature p { font-size:7pt; margin:2pt 0; line-height:1.3; }
+  .signature-mark { font-family:DejaVu Serif,serif; font-style:italic; font-size:18pt; }
 </style></head>
 <body>
 <table class="header"><tr><td width="20%"><img class="logo" src="{{ $logo }}" alt="GASQ"></td><td>INDEPENDENT. DATA-DRIVEN. HIGHER STANDARDS.</td><td style="text-align:right"><span class="orange-line">REAL DATA. REAL INSIGHTS.</span></td></tr></table>
@@ -49,7 +53,7 @@
 <p class="muted">{{ $weighted['modeLabel'] }} · {{ $weighted['rateSource'] }} · {{ $selectionLabel }}</p>
 <table class="metadata"><tr>
   <td><div class="label">Buyer / site</div>{{ $buyerSite }}</td><td><div class="label">Vendor</div>{{ $vendorName }}</td>
-  <td><div class="label">Prepared</div>{{ now()->format('F j, Y') }}</td><td><div class="label">Report version</div>GASQ v1.1</td>
+  <td><div class="label">Prepared</div>{{ isset($electronicSignature) ? $electronicSignature->signed_at->format('F j, Y') : now()->format('F j, Y') }}</td><td><div class="label">Report version</div>GASQ v1.2</td>
 </tr></table>
 <table class="cards">@foreach(array_chunk($cards, 3) as $row)<tr>@foreach($row as [$title,$value,$subtitle,$color])<td><div class="card {{ $color }}"><div class="band">{{ $title }}</div><div class="value">{{ $value }}</div><div class="sub">{{ $subtitle }}</div></div></td>@endforeach</tr>@endforeach</table>
 <div class="band">Schedule totals &amp; calculation basis</div>
@@ -92,4 +96,21 @@
 </tr></tbody></table>
 <p class="small"><strong>Wage source:</strong> {{ $weighted['wageSource'] }}. <strong>Total annual wages:</strong> {{ $money($t['annualWages']) }}. Full precision is retained before display rounding.</p>
 <p class="small muted">Private vendor working data. This document does not submit a bid or reveal sealed pricing. Buyer-facing disclosure follows the platform’s existing sealed-price reveal process.</p>
+@if(isset($electronicSignature))
+  <div class="signature">
+    <table><tr><td style="width:35%">
+      <div class="label">Electronic signature</div>
+      @if($electronicSignature->method === 'drawn')
+        <img src="{{ $electronicSignature->signature_image }}" style="width:170pt;height:42.5pt" alt="Electronic signature">
+      @else
+        <div class="signature-mark">{{ $electronicSignature->signer_name }}</div>
+      @endif
+    </td><td>
+      <p><strong>{{ $electronicSignature->signer_name }}</strong>@if($electronicSignature->signer_title) · {{ $electronicSignature->signer_title }}@endif</p>
+      <p class="small">Signed {{ $electronicSignature->signed_at->utc()->format('F j, Y H:i:s') }} UTC · {{ $electronicSignature->method === 'drawn' ? 'Drawn signature' : 'Typed signature' }}</p>
+      <p class="small">{{ $electronicSignature->consent }}</p>
+      <p class="small muted">Signature record: {{ $electronicSignature->report_id }}</p>
+    </td></tr></table>
+  </div>
+@endif
 </body></html>

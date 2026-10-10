@@ -7,6 +7,9 @@
   let inputs = clone(window.__gasqCalculatorState?.scenario?.meta?.vendorWeightedRates?.draft || presets.sample);
   let response = null, timer = null, inflight = null, revision = 0;
   const root = document.getElementById('vendor-weighted-rates');
+  let signing = false, drawing = false, hasInk = false;
+  const canvas = document.getElementById('vwr_signature_canvas');
+  const context = canvas.getContext('2d');
   const text = (id, value) => { document.getElementById(id).textContent = value; };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function format(value, kind = 'money') {
@@ -70,6 +73,9 @@
     response = null;
     document.getElementById('vwr_review').disabled = true;
     document.getElementById('vwr_report_download').disabled = true;
+    document.getElementById('vwr_signature_submit').disabled = true;
+    document.getElementById('vwr_signature_consent').checked = false;
+    text('vwr_signature_status','Save the current report before signing.');
     document.getElementById('vwr_preview').hidden = true;
     root.querySelectorAll('[data-vwr-total],[data-vwr-calculated],[data-vwr-wage-label]').forEach(el => el.textContent = '—');
     text('vwr_wage_source', ''); text('vwr_rate_source', '');
@@ -114,6 +120,7 @@
       showErrors();
       document.getElementById('vwr_review').disabled = false;
       document.getElementById('vwr_report_download').disabled = false;
+      renderSignature(data);
       text('vwr_status', apply ? 'Applied and saved as separate vendor comparison inputs.' : 'Estimate saved. Review the values below before applying to the main calculator.');
       if(apply) document.getElementById('vwr_preview').hidden = true;
     } catch(e) {
@@ -159,6 +166,75 @@
     document.getElementById('vwr_preview').scrollIntoView({block:'nearest',behavior:'smooth'});
   });
   document.getElementById('vwr_apply').addEventListener('click', () => { if(response) calculate(true); });
+  function renderSignature(data) {
+    document.getElementById('vwr_signature_submit').disabled = !response || signing;
+    if(data.signatureStatus === 'signed') {
+      const signature = data.signature;
+      text('vwr_signature_status',`Signed by ${signature.signerName} on ${new Date(signature.signedAt).toLocaleString()}. The protected PDF will include this signature.`);
+    } else {
+      text('vwr_signature_status',data.signatureStatus === 'changed'
+        ? 'The report changed since it was signed. Review and sign this version before downloading a signed PDF.'
+        : 'This saved report has not been signed.');
+    }
+  }
+  function clearDrawing() {
+    context.fillStyle = '#fff'; context.fillRect(0,0,canvas.width,canvas.height);
+    context.strokeStyle = '#19334f'; context.lineWidth = 3; context.lineCap = 'round'; context.lineJoin = 'round';
+    hasInk = false;
+  }
+  function point(event) {
+    const bounds = canvas.getBoundingClientRect();
+    return [(event.clientX - bounds.left) * canvas.width / bounds.width,(event.clientY - bounds.top) * canvas.height / bounds.height];
+  }
+  canvas.addEventListener('pointerdown', event => {
+    if(event.button !== 0 || !event.isPrimary) return;
+    drawing = true; canvas.setPointerCapture(event.pointerId);
+    context.beginPath(); context.moveTo(...point(event)); event.preventDefault();
+  });
+  canvas.addEventListener('pointermove', event => {
+    if(!drawing) return;
+    context.lineTo(...point(event)); context.stroke(); hasInk = true; event.preventDefault();
+  });
+  canvas.addEventListener('pointerup', () => drawing = false);
+  canvas.addEventListener('pointercancel', () => drawing = false);
+  document.getElementById('vwr_signature_clear').addEventListener('click',clearDrawing);
+  document.getElementById('vwr_signature_method').addEventListener('change', event => {
+    document.getElementById('vwr_draw_area').hidden = event.target.value !== 'drawn';
+  });
+  clearDrawing();
+  document.getElementById('vwr_signature_form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if(!response || signing) return;
+    const method = document.getElementById('vwr_signature_method').value;
+    if(method === 'drawn' && !hasInk) {
+      text('vwr_signature_status','Draw your signature first, or choose Type my name.'); return;
+    }
+    signing = true;
+    const submittedRevision = revision;
+    document.getElementById('vwr_signature_submit').disabled = true;
+    text('vwr_signature_status','Saving your electronic signature…');
+    try {
+      const res = await fetch('{{ route('backend.vendor-weighted-rates.sign') }}', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},
+        body:JSON.stringify({reportHash:response.reportHash,signerName:document.getElementById('vwr_signer_name').value,
+          signerTitle:document.getElementById('vwr_signer_title').value,method,
+          ...(method === 'drawn' ? {signatureImage:canvas.toDataURL('image/png')} : {}),
+          consent:document.getElementById('vwr_signature_consent').checked}),
+      });
+      const data = await res.json();
+      if(!res.ok || !data.ok) throw new Error(Object.values(data.errors || {}).flat().join(' ') || data.message || 'Unable to sign. Please try again.');
+      if(submittedRevision !== revision) return;
+      response = {...response,...data};
+      renderSignature(response);
+      document.getElementById('vwr_signature_consent').checked = false;
+    } catch(error) {
+      if(submittedRevision === revision) text('vwr_signature_status',error.message);
+    } finally {
+      signing = false;
+      document.getElementById('vwr_signature_submit').disabled = !response;
+    }
+  });
   document.getElementById('vwr_report_form').addEventListener('submit', async e => {
     e.preventDefault();
     if(!response) return;

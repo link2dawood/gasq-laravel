@@ -109,6 +109,13 @@ class ReportController extends Controller
         if (! $type || ! $payload) {
             return back()->with('error', 'No report data available. Run the calculator again and use Download PDF.');
         }
+        if ($type === 'vendor-weighted-rates') {
+            $signature = app(\App\Services\VendorReportSigningService::class)->active($payload['scenario'], $request->user());
+            $payload['electronicSignature'] = $signature;
+            if ($signature) {
+                $payload['reportNumber'] = 'GASQ-SIGNED-'.$signature->report_id;
+            }
+        }
 
         if ($charge = $this->chargeForReport($request, $type, $payload)) {
             return $charge;

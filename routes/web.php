@@ -384,6 +384,8 @@ Route::middleware(['auth', 'phone.verified'])->group(function () {
         ->name('backend.vendor-weighted-rates.compute');
     Route::post('/_backend/vendor-weighted-rates/apply', [\App\Http\Controllers\Backend\VendorWeightedRateController::class, 'apply'])
         ->name('backend.vendor-weighted-rates.apply');
+    Route::post('/_backend/vendor-weighted-rates/sign', [\App\Http\Controllers\Backend\VendorWeightedRateController::class, 'sign'])
+        ->name('backend.vendor-weighted-rates.sign');
 
     Route::get('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.index');
     Route::post('/_backend/contract-analysis', [App\Http\Controllers\ContractAnalysisController::class, 'index'])->name('backend.contract-analysis.post');

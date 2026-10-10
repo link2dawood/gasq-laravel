@@ -61,6 +61,23 @@
       <button type="button" class="btn btn-primary" id="vwr_review" disabled>Review Results to Apply</button>
     </div>
     <div id="vwr_status" class="small mb-3" role="status" aria-live="polite"></div>
+    <form id="vwr_signature_form" class="border rounded p-3 mb-3 d-print-none">
+      <h3 class="h6 fw-semibold">Electronically sign this report</h3>
+      <p class="small text-gasq-muted">Review the saved rates and staffing schedule, then sign as the vendor. Your signature is saved with this report version. Changes to its rates, staffing, or report details require a new signature.</p>
+      <div class="row g-3">
+        <div class="col-md-4"><label for="vwr_signer_name" class="form-label small">Signer’s full name</label><input id="vwr_signer_name" class="form-control" maxlength="120" required value="{{ auth()->user()?->name }}" autocomplete="name"></div>
+        <div class="col-md-4"><label for="vwr_signer_title" class="form-label small">Title (optional)</label><input id="vwr_signer_title" class="form-control" maxlength="120" autocomplete="organization-title"></div>
+        <div class="col-md-4"><label for="vwr_signature_method" class="form-label small">Signature method</label><select id="vwr_signature_method" class="form-select"><option value="typed">Type my name</option><option value="drawn">Draw my signature</option></select></div>
+      </div>
+      <div id="vwr_draw_area" class="mt-3" hidden>
+        <label for="vwr_signature_canvas" class="form-label small">Draw with your mouse, finger, or pen</label>
+        <canvas id="vwr_signature_canvas" width="720" height="180" class="border rounded d-block bg-white" style="width:100%;max-width:720px;height:160px;touch-action:none" aria-label="Draw your signature"></canvas>
+        <button id="vwr_signature_clear" type="button" class="btn btn-link btn-sm ps-0">Clear drawing</button>
+      </div>
+      <label class="d-flex align-items-start gap-2 small my-3"><input id="vwr_signature_consent" type="checkbox" class="form-check-input mt-0" required><span>{{ \App\Services\VendorReportSigningService::CONSENT }}</span></label>
+      <button id="vwr_signature_submit" class="btn btn-outline-primary" type="submit" disabled>Sign Saved Report</button>
+      <div id="vwr_signature_status" class="small mt-2" role="status" aria-live="polite"></div>
+    </form>
     <form id="vwr_report_form" class="border rounded p-3 mb-3 d-print-none">
       <h3 class="h6 fw-semibold">Vendor Weighted Rate PDF</h3>
       <p class="small text-gasq-muted">Download the saved draft as a private dashboard and staffing schedule. A password is required to open the PDF.</p>
