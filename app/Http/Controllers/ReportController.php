@@ -12,7 +12,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ReportController extends Controller
 {
@@ -110,11 +112,7 @@ class ReportController extends Controller
             return back()->with('error', 'No report data available. Run the calculator again and use Download PDF.');
         }
         if ($type === 'vendor-weighted-rates') {
-            $signature = app(\App\Services\VendorReportSigningService::class)->active($payload['scenario'], $request->user());
-            $payload['electronicSignature'] = $signature;
-            if ($signature) {
-                $payload['reportNumber'] = 'GASQ-SIGNED-'.$signature->report_id;
-            }
+            $payload = $this->withCurrentSignature($request, $payload);
         }
 
         if ($charge = $this->chargeForReport($request, $type, $payload)) {
@@ -132,7 +130,7 @@ class ReportController extends Controller
     public function emailReport(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
-            'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,budget-calculator-preview,budget-calculator-allocation,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack',
+            'type' => 'required|string|in:instant-estimator,main-menu,contract-analysis,security-billing,mobile-patrol,mobile-patrol-buyer,mobile-patrol-comparison,mobile-patrol-hit-calculator,mobile-patrol-analysis,gasq-tco-calculator,government-contract-calculator,budget-calculator,budget-calculator-preview,budget-calculator-allocation,economic-justification,bill-rate-analysis,workforce-appraisal-report,buyer-fit-index,gasq-direct-labor-build-up,gasq-additional-cost-stack,vendor-weighted-rates',
             // Password the recipient must type to OPEN the PDF (vendor's choice,
             // passed to the buyer out of band). Blank ⇒ the file opens normally.
             'pdf_password' => 'nullable|string|max:32',
@@ -143,6 +141,15 @@ class ReportController extends Controller
             'attachments' => 'nullable|array|max:8',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,heic,heif,webp,gif,pdf,doc,docx,txt|max:8192',
         ]);
+
+        $type = $request->input('type');
+        $privateWeightedReport = $type === 'vendor-weighted-rates';
+        if ($privateWeightedReport) {
+            abort_unless($request->user()->isVendor() || $request->user()->isAdmin(), 403);
+            \Illuminate\Support\Facades\Validator::make($request->post(), [
+                'pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/'],
+            ])->validate();
+        }
 
         // Combine the primary field (which may itself hold several addresses) with
         // the optional second-email field, then split on comma/semicolon/space.
@@ -160,10 +167,20 @@ class ReportController extends Controller
             return $this->emailFailure($request, $error);
         }
 
-        $type = $request->input('type');
+        if ($privateWeightedReport && ($recipients->count() !== 1 || strcasecmp($recipients->first(), (string) $request->user()->email) !== 0)) {
+            return $this->emailFailure($request, 'Private weighted reports can only be emailed to your account email. Buyer disclosures use the sealed-price reveal process.');
+        }
+        if (! app()->environment('testing') && in_array(config('mail.default'), ['log', 'array'], true)) {
+            return $this->emailFailure($request, 'Email delivery is not configured. Please contact GASQ support.', 503);
+        }
+
         $payload = $this->payloadForType($request, $type);
         if (! $payload) {
             return $this->emailFailure($request, 'No report data available. Run the calculator again and use Email report.');
+        }
+
+        if ($privateWeightedReport) {
+            $payload = $this->withCurrentSignature($request, $payload);
         }
 
         if ($charge = $this->chargeForReport($request, $type, $payload)) {
@@ -195,7 +212,7 @@ class ReportController extends Controller
         // attach these — re-checked server-side so a crafted request can't bypass
         // the hidden UI. Notes render in the email body; files ride as attachments.
         $user = $request->user();
-        $canAttach = $user && (
+        $canAttach = ! $privateWeightedReport && $user && (
             (method_exists($user, 'isVendor') && $user->isVendor())
             || (method_exists($user, 'isAdmin') && $user->isAdmin())
         );
@@ -222,7 +239,7 @@ class ReportController extends Controller
 
         // BCC the GASQ inbox (record of each send) and the HubSpot "log to CRM"
         // address (auto-logs the report onto the contact's HubSpot timeline).
-        $bcc = array_values(array_filter([self::ESTIMATE_BCC, config('services.hubspot.bcc')]));
+        $bcc = $privateWeightedReport ? [] : array_values(array_filter([self::ESTIMATE_BCC, config('services.hubspot.bcc')]));
 
         // Send each recipient their own copy (so they don't see each other),
         // stamped "Prepared exclusively for <their email>" so any forwarded copy
@@ -234,16 +251,27 @@ class ReportController extends Controller
                 $this->openPassword($request),
             );
 
-            Mail::to($to)
-                ->bcc($bcc)
-                ->send(new ReportPdfMail(
-                    subjectLine: $subject,
-                    pdf: $pdf->output(),
-                    filename: $filename,
-                    bodyView: $bodyView,
-                    bodyData: $bodyData,
-                    extraAttachments: $extraAttachments,
-                ));
+            try {
+                Mail::to($to)
+                    ->bcc($bcc)
+                    ->send(new ReportPdfMail(
+                        subjectLine: $subject,
+                        pdf: $pdf->output(),
+                        filename: $filename,
+                        bodyView: $bodyView,
+                        bodyData: $bodyData,
+                        extraAttachments: $extraAttachments,
+                    ));
+            } catch (TransportExceptionInterface $exception) {
+                Log::warning('Calculator report email transport failed.', ['report_type' => $type, 'user_id' => $user->id, 'exception_class' => get_class($exception)]);
+                $sent = $recipients->take($recipients->search($to));
+                $message = 'The email service could not send the report. Please try again or contact GASQ support.';
+                if ($sent->isNotEmpty()) {
+                    $message = 'Report sent to '.$sent->implode(', ').'. Delivery failed for the remaining recipients; retry only those addresses.';
+                }
+
+                return $this->emailFailure($request, $message, 502);
+            }
         }
 
         $message = 'Report sent to '.$recipients->implode(', ');
@@ -263,14 +291,25 @@ class ReportController extends Controller
         return back()->with('success', $message);
     }
 
+    private function withCurrentSignature(Request $request, array $payload): array
+    {
+        $signature = app(\App\Services\VendorReportSigningService::class)->active($payload['scenario'], $request->user());
+        $payload['electronicSignature'] = $signature;
+        if ($signature) {
+            $payload['reportNumber'] = 'GASQ-SIGNED-'.$signature->report_id;
+        }
+
+        return $payload;
+    }
+
     /**
      * Email failure response: JSON for XHR sends, redirect-back for the plain
      * form fallback (no JS).
      */
-    private function emailFailure(Request $request, string $error): RedirectResponse|JsonResponse
+    private function emailFailure(Request $request, string $error, int $status = 422): RedirectResponse|JsonResponse
     {
         if ($request->expectsJson()) {
-            return response()->json(['ok' => false, 'message' => $error], 422);
+            return response()->json(['ok' => false, 'message' => $error], $status);
         }
 
         return back()->with('error', $error);

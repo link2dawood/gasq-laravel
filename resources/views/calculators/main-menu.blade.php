@@ -24,6 +24,11 @@
     </div>
   </div>
 
+  <details id="main-report-email" class="border rounded p-3 mb-4 d-print-none">
+    <summary class="fw-semibold">Email main calculator report</summary>
+    <x-report-actions report-type="main-menu" label="Email the saved main calculator report. Private vendor wage details are excluded." :password-protect="true" />
+  </details>
+
   {{-- Economic Justification --}}
   <div class="card gasq-card">
     <div class="card-body p-4">
@@ -226,17 +231,36 @@ function renderMainMenu(data) {
   }
 }
 
-let computeTimer = null;
+let computeTimer = null, mainReportReady = false, mainComputeRevision = 0;
+function setMainReportReady(ready, message = '') {
+  mainReportReady = ready;
+  const panel = document.getElementById('main-report-email');
+  panel.querySelectorAll('.report-email-submit,.report-download-link').forEach(button => {
+    button.disabled = !ready;
+    button.classList.toggle('disabled',!ready);
+  });
+  const warning = panel.querySelector('.report-stale-warning');
+  warning.textContent = message;
+  warning.classList.toggle('d-none',!message);
+}
+document.addEventListener('submit', event => {
+  if(event.target.closest('#main-report-email') && !mainReportReady) {
+    event.preventDefault(); event.stopImmediatePropagation();
+  }
+},true);
 function calcEJ() { scheduleCompute(); }
 function scheduleCompute() {
   clearTimeout(computeTimer);
+  const submittedRevision = ++mainComputeRevision;
+  setMainReportReady(false,'Saving current calculator inputs before sending…');
   computeTimer = setTimeout(async () => {
     try {
       const data = await computeMainMenu();
+      if(submittedRevision !== mainComputeRevision) return;
       renderMainMenu(data);
+      setMainReportReady(true);
     } catch (e) {
-      // Keep UI stable; log for debugging
-      console.error(e);
+      if(submittedRevision === mainComputeRevision) setMainReportReady(false,'Unable to save current inputs. '+e.message);
     }
   }, 150);
 }
@@ -264,7 +288,13 @@ function downloadReport(){
   if(window.VendorWeightedRates) window.VendorWeightedRates.requestReport();
   else window.location.assign('{{ route('reports.download', ['type' => 'main-menu']) }}');
 }
-function emailReport(){ alert('Email functionality: connect to POST /api/spa/mail/calculator-pdf'); }
+function emailReport(){
+  if(window.VendorWeightedRates) { window.VendorWeightedRates.requestEmailReport(); return; }
+  const panel = document.getElementById('main-report-email');
+  panel.open = true;
+  panel.scrollIntoView({block:'center',behavior:'smooth'});
+  panel.querySelector('[name=email]').focus({preventScroll:true});
+}
 
 document.addEventListener('DOMContentLoaded', function () {
   hydrateSavedMainMenu();

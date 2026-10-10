@@ -33,7 +33,7 @@ The sample reproduces 145 employees, 5,800 weekly hours, 25,133.33 monthly hours
 
 The main Download button opens the module's password form. **Download Protected PDF** exports the account's saved draft using the supplied dashboard-and-schedule design, with a landscape legal layout for readable schedules. Longer rosters continue across pages with repeated column headings and page numbers.
 
-The private `vendor-weighted-rates` report reuses the account's `main-menu` saved state and recalculates from its inputs. It uses the existing report download system, with vendor/admin access enforced. Downloads require POST and an 8–32 character ASCII open password supplied in the request body. Passwords are cleared after download and are excluded from validation flash data; they are not stored in estimates or URLs. The renderer fails if required encryption is unavailable. Ordinary main reports keep their existing privacy filtering, and the private report is not added to buyer email/reveal flows.
+The private `vendor-weighted-rates` report reuses the account's `main-menu` saved state and recalculates from its inputs. It uses the existing report download system, with vendor/admin access enforced. Downloads require POST and an 8–32 character ASCII open password supplied in the request body. Passwords are cleared after download and are excluded from validation flash data; they are not stored in estimates or URLs. The renderer fails if required encryption is unavailable. Ordinary main reports keep their existing privacy filtering, and private weighted email copies are restricted to the authenticated vendor/admin’s account email and are not added to buyer email/reveal flows.
 
 The report adds weekly and monthly bill costs. Weekly costs sum actual weekly role hours multiplied by the role rate; monthly costs divide annual costs by 12, including role-specific weeks. Its rate-build explanation uses annual wage and hour weights. The rounding note compares the exact annual bill cost against the displayed rounded bill rate times payroll hours.
 
@@ -50,3 +50,11 @@ Signatures belong to the authenticated vendor/admin’s own saved report. A SHA-
 This is an electronic signature record, with typed or drawn marks. It does not use certificate-based PDF digital signatures or request signatures from other parties. Existing private report and sealed-price permissions continue to apply.
 
 `VendorReportSigningTest` checks consent, account isolation, stale hashes, report changes, persistent snapshots, server-controlled identity/time, drawing validation, protected signed output, and current-signature selection at download. Apply the new migration during deployment.
+
+## Report email
+
+The main calculator’s **Email Report** button opens the weighted report password controls for vendor/admin accounts. **Email Protected PDF to Me** emails the saved draft and its current signature to the account email, using the existing configured mail service. It requires the same opening password as download and clears the field after success. The password is excluded from the covering email and saved state. Private copies have no automatic GASQ/CRM BCC or survey attachments. The server rejects extra recipients and buyer access.
+
+The separate **Email main calculator report** panel uses the platform’s existing recipient, optional password, survey attachments, and BCC behavior. Buyer accounts open this panel from the header button. Its send/download controls wait for the main calculator’s current inputs to save; ordinary report privacy filtering remains in place. Neither email action reloads the calculator.
+
+SMTP failures produce an inline error, and partial multi-recipient sends identify who already received the report. Production log/array mailers report that delivery is unconfigured rather than claiming success. `CalculatorReportEmailTest` covers actual PDF generation with mocked transport, signature selection, encryption, permissions, invalid recipients/passwords, account isolation, and delivery errors. Browser checks use mocked mail delivery; they do not establish delivery to a live inbox.

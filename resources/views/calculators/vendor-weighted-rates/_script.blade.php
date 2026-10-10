@@ -7,7 +7,7 @@
   let inputs = clone(window.__gasqCalculatorState?.scenario?.meta?.vendorWeightedRates?.draft || presets.sample);
   let response = null, timer = null, inflight = null, revision = 0;
   const root = document.getElementById('vendor-weighted-rates');
-  let signing = false, drawing = false, hasInk = false;
+  let signing = false, drawing = false, hasInk = false, emailing = false;
   const canvas = document.getElementById('vwr_signature_canvas');
   const context = canvas.getContext('2d');
   const text = (id, value) => { document.getElementById(id).textContent = value; };
@@ -73,6 +73,7 @@
     response = null;
     document.getElementById('vwr_review').disabled = true;
     document.getElementById('vwr_report_download').disabled = true;
+    document.getElementById('vwr_report_email').disabled = true;
     document.getElementById('vwr_signature_submit').disabled = true;
     document.getElementById('vwr_signature_consent').checked = false;
     text('vwr_signature_status','Save the current report before signing.');
@@ -120,6 +121,7 @@
       showErrors();
       document.getElementById('vwr_review').disabled = false;
       document.getElementById('vwr_report_download').disabled = false;
+      document.getElementById('vwr_report_email').disabled = emailing;
       renderSignature(data);
       text('vwr_status', apply ? 'Applied and saved as separate vendor comparison inputs.' : 'Estimate saved. Review the values below before applying to the main calculator.');
       if(apply) document.getElementById('vwr_preview').hidden = true;
@@ -235,6 +237,35 @@
       document.getElementById('vwr_signature_submit').disabled = !response;
     }
   });
+  document.getElementById('vwr_report_email').addEventListener('click', async () => {
+    if(!response || emailing) return;
+    const passwordField = document.getElementById('vwr_pdf_password');
+    const password = passwordField.value.trim();
+    if(password.length < 8 || password.length > 32 || !/^[\x20-\x7E]+$/.test(password)) {
+      text('vwr_report_status','Use an 8–32 character password with standard letters, numbers, or symbols.');
+      passwordField.focus(); return;
+    }
+    emailing = true;
+    const button = document.getElementById('vwr_report_email');
+    button.disabled = true;
+    text('vwr_report_status','Emailing your protected report…');
+    try {
+      const res = await fetch('{{ route('reports.email') }}', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},
+        body:JSON.stringify({type:'vendor-weighted-rates',email:{{ \Illuminate\Support\Js::from(auth()->user()?->email) }},pdf_password:password}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok || !data.ok) throw new Error(Object.values(data.errors || {}).flat().join(' ') || data.message || 'Unable to email the report. Please try again.');
+      passwordField.value = '';
+      text('vwr_report_status',data.message+'. Use your chosen password to open the attachment; it is not included in the email.');
+    } catch(error) {
+      text('vwr_report_status',error.message);
+    } finally {
+      emailing = false;
+      button.disabled = !response;
+    }
+  });
   document.getElementById('vwr_report_form').addEventListener('submit', async e => {
     e.preventDefault();
     if(!response) return;
@@ -273,6 +304,10 @@
   });
   window.VendorWeightedRates = {
     refreshContext(){ invalidate(); schedule(); },
+    requestEmailReport(){
+      this.requestReport();
+      text('vwr_report_status','Enter a PDF opening password, then select Email Protected PDF to Me.');
+    },
     requestReport(){
       root.open = true;
       document.getElementById('vwr_report_form').scrollIntoView({block:'center',behavior:'smooth'});
