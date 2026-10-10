@@ -69,9 +69,12 @@
     inflight?.abort();
     response = null;
     document.getElementById('vwr_review').disabled = true;
+    document.getElementById('vwr_report_download').disabled = true;
     document.getElementById('vwr_preview').hidden = true;
     root.querySelectorAll('[data-vwr-total],[data-vwr-calculated],[data-vwr-wage-label]').forEach(el => el.textContent = '—');
     text('vwr_wage_source', ''); text('vwr_rate_source', '');
+    text('vwr_status','Inputs changed. Recalculate and save before applying or downloading.');
+    text('vwr_report_status','');
     showErrors();
   }
   function schedule() {
@@ -110,6 +113,7 @@
       text('vwr_wage_source', data.result.wageSource); text('vwr_rate_source', data.result.rateSource);
       showErrors();
       document.getElementById('vwr_review').disabled = false;
+      document.getElementById('vwr_report_download').disabled = false;
       text('vwr_status', apply ? 'Applied and saved as separate vendor comparison inputs.' : 'Estimate saved. Review the values below before applying to the main calculator.');
       if(apply) document.getElementById('vwr_preview').hidden = true;
     } catch(e) {
@@ -155,7 +159,50 @@
     document.getElementById('vwr_preview').scrollIntoView({block:'nearest',behavior:'smooth'});
   });
   document.getElementById('vwr_apply').addEventListener('click', () => { if(response) calculate(true); });
-  window.VendorWeightedRates = {refreshContext(){ invalidate(); schedule(); }};
+  document.getElementById('vwr_report_form').addEventListener('submit', async e => {
+    e.preventDefault();
+    if(!response) return;
+    const passwordField = document.getElementById('vwr_pdf_password');
+    const password = passwordField.value.trim();
+    if(password.length < 8 || password.length > 32 || !/^[\x20-\x7E]+$/.test(password)) {
+      text('vwr_report_status','Use an 8–32 character password with standard letters, numbers, or symbols.');
+      return;
+    }
+    const button = document.getElementById('vwr_report_download');
+    button.disabled = true;
+    text('vwr_report_status','Preparing protected PDF…');
+    try {
+      const res = await fetch('{{ route('reports.download') }}', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},
+        body:JSON.stringify({type:'vendor-weighted-rates',pdf_password:password}),
+      });
+      if(!res.ok || !res.headers.get('Content-Type')?.includes('application/pdf')) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(Object.values(data.errors || {}).flat().join(' ') || data.message || 'Unable to download the report. Please try again.');
+      }
+      const url = URL.createObjectURL(await res.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = res.headers.get('Content-Disposition')?.match(/filename="?([^";]+)/)?.[1] || 'GASQ-Vendor-Weighted-Rate-Dashboard.pdf';
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      passwordField.value = '';
+      text('vwr_report_status','Protected PDF downloaded. Keep the password separately; it is not saved with the estimate.');
+    } catch(error) {
+      text('vwr_report_status',error.message);
+    } finally {
+      button.disabled = !response;
+    }
+  });
+  window.VendorWeightedRates = {
+    refreshContext(){ invalidate(); schedule(); },
+    requestReport(){
+      root.open = true;
+      document.getElementById('vwr_report_form').scrollIntoView({block:'center',behavior:'smooth'});
+      document.getElementById('vwr_pdf_password').focus({preventScroll:true});
+    },
+  };
   document.addEventListener('DOMContentLoaded', () => {
     renderRows();
     if(location.hash === '#vendor-weighted-rates') root.open = true;

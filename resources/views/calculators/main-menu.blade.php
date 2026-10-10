@@ -165,6 +165,8 @@ function setText(id, v) {
 function buildMainScenario() {
   const scenario = JSON.parse(JSON.stringify(mainScenario));
   scenario.meta = Object.assign({}, scenario.meta || {}, {
+        companyName: gVal('ej_company'),
+        preparedBy: gVal('ej_preparedBy'),
         employeeTrueHourlyCost: gNum('ej_employeeCost'),
         weeklyHoursPerformed: gNum('ej_weeklyHours'),
         weeksInYear: gNum('ej_weeksInYear') || 52,
@@ -243,6 +245,8 @@ function hydrateSavedMainMenu() {
   const meta = savedScenario?.meta || {};
 
   const map = {
+    ej_company: meta.companyName,
+    ej_preparedBy: meta.preparedBy,
     ej_employeeCost: meta.employeeTrueHourlyCost,
     ej_weeklyHours: meta.weeklyHoursPerformed,
     ej_weeksInYear: meta.weeksInYear,
@@ -256,7 +260,10 @@ function hydrateSavedMainMenu() {
   });
 }
 
-function downloadReport(){ window.location.assign('{{ route('reports.download', ['type' => 'main-menu']) }}'); }
+function downloadReport(){
+  if(window.VendorWeightedRates) window.VendorWeightedRates.requestReport();
+  else window.location.assign('{{ route('reports.download', ['type' => 'main-menu']) }}');
+}
 function emailReport(){ alert('Email functionality: connect to POST /api/spa/mail/calculator-pdf'); }
 
 document.addEventListener('DOMContentLoaded', function () {

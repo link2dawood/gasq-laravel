@@ -28,3 +28,15 @@ The module does not submit bids, reveal sealed prices, or publish wages. Ordinar
 `VendorWeightedRateEngineTest` covers the sample acceptance totals, unequal hours, actual overrides, fixed model constants, zero bills, validation, baseline/service preservation, and existing main-calculator behavior. `VendorWeightedRateModuleTest` covers save/reopen/apply, draft versus applied state, vendor/admin access, user isolation, invalid saves, untrusted posted totals, and report filtering. Browser checks also exercise modes, presets, custom roles, hour overrides, inline errors, reopening, and mobile table scrolling.
 
 The sample reproduces 145 employees, 5,800 weekly hours, 25,133.33 monthly hours, 301,600 annual payroll hours, $12,048,524.80 annual bill cost, $39.95 weighted bill rate, $15.54 weighted implied wage, and 38.89% implied wage share.
+
+## Protected vendor dashboard PDF
+
+The main Download button opens the module's password form. **Download Protected PDF** exports the account's saved draft using the supplied dashboard-and-schedule design, with a landscape legal layout for readable schedules. Longer rosters continue across pages with repeated column headings and page numbers.
+
+The private `vendor-weighted-rates` report reuses the account's `main-menu` saved state and recalculates from its inputs. It uses the existing report download system, with vendor/admin access enforced. Downloads require POST and an 8–32 character ASCII open password supplied in the request body. Passwords are cleared after download and are excluded from validation flash data; they are not stored in estimates or URLs. The renderer fails if required encryption is unavailable. Ordinary main reports keep their existing privacy filtering, and the private report is not added to buyer email/reveal flows.
+
+The report adds weekly and monthly bill costs. Weekly costs sum actual weekly role hours multiplied by the role rate; monthly costs divide annual costs by 12, including role-specific weeks. Its rate-build explanation uses annual wage and hour weights. The rounding note compares the exact annual bill cost against the displayed rounded bill rate times payroll hours.
+
+The draft's $2,252.68 combined wages derive from multiplying rounded per-role wages. The implemented report retains the existing full-precision result of $2,252.66. It displays the entered headcount (145 in the sample); the draft's separate 208 staffing estimate has no supplied formula and is not substituted for the roster.
+
+`VendorWeightedRateReportTest` covers dynamic totals, role-hour overrides, actual wages, required passwords, protected PDF output, account isolation, and buyer access restrictions. Rendered documents were also checked for readable page layout and password rejection by a PDF reader.

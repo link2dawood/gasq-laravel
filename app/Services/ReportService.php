@@ -38,6 +38,12 @@ class ReportService
      */
     public function calculatorPdf(string $type, array $payload, ?string $openPassword = null): \Barryvdh\DomPDF\PDF
     {
+        if ($type === 'vendor-weighted-rates') {
+            if (strlen(trim((string) $openPassword)) < 8 || strlen((string) $openPassword) > 32 || ! preg_match('/^[\x20-\x7E]+$/', (string) $openPassword)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['pdf_password' => ['Use an 8–32 character PDF password with standard letters, numbers, or symbols.']]);
+            }
+            $payload = app(VendorWeightedRateReport::class)->prepare($payload);
+        }
         if ($type === 'main-menu' && data_get($payload, 'scenario.meta.vendorWeightedRates')) {
             $payload['scenario'] = app(VendorWeightedRateApplication::class)->publicScenario($payload['scenario']);
             $payload['result'] = app(\App\Services\V24\MainMenu\MainMenuComputeService::class)->compute($payload['scenario']);
@@ -45,6 +51,7 @@ class ReportService
         $view = match ($type) {
             'instant-estimator' => 'pdf.instant-estimator',
             'main-menu' => 'pdf.main-menu',
+            'vendor-weighted-rates' => 'pdf.vendor-weighted-rates',
             'contract-analysis' => 'pdf.contract-analysis',
             'security-billing' => 'pdf.security-billing',
             'mobile-patrol' => 'pdf.mobile-patrol',
@@ -84,13 +91,24 @@ class ReportService
             'masked' => $type === 'budget-calculator-preview',
         ]);
 
-        $pdf = $this->pdf()->loadView($view, $data)->setPaper('a4')->setWarnings(false);
+        $pdf = $this->pdf()->loadView($view, $data)
+            ->setPaper($type === 'vendor-weighted-rates' ? 'legal' : 'a4', $type === 'vendor-weighted-rates' ? 'landscape' : 'portrait')
+            ->setWarnings(false);
+        if ($type === 'vendor-weighted-rates') {
+            $pdf->render();
+            $dompdf = $pdf->getDomPDF();
+            $canvas = $dompdf->getCanvas();
+            $canvas->page_text(30, $canvas->get_height() - 21,
+                'CONFIDENTIAL | VENDOR WEIGHTED RATE REPORT | '.($payload['reportNumber'] ?? 'GASQ').' | Page {PAGE_NUM} of {PAGE_COUNT}',
+                $dompdf->getFontMetrics()->getFont('DejaVu Sans'), 6, [0.38, 0.46, 0.55]);
+        }
 
         // The buyer edition is meant to be forwarded freely: it carries the buyer's
         // own figures, and the vendor's are already withheld inside the document.
         return $this->restrictCopyAndPrint(
             $pdf,
             $type === 'budget-calculator-preview' ? null : $openPassword,
+            $type === 'vendor-weighted-rates',
         );
     }
 
@@ -110,7 +128,7 @@ class ReportService
      * @param  string|null  $openPassword  Non-empty ⇒ the reader must enter it to
      *         open the document. Null/empty ⇒ opens freely, as before.
      */
-    private function restrictCopyAndPrint(\Barryvdh\DomPDF\PDF $pdf, ?string $openPassword = null): \Barryvdh\DomPDF\PDF
+    private function restrictCopyAndPrint(\Barryvdh\DomPDF\PDF $pdf, ?string $openPassword = null, bool $requireEncryption = false): \Barryvdh\DomPDF\PDF
     {
         // The canvas only exists after rendering, so render up front; the
         // wrapper sets its "rendered" flag, so download()/output() won't
@@ -135,6 +153,8 @@ class ReportService
             }
 
             $canvas->get_cpdf()->setEncryption($userPassword, $ownerPassword, ['print']);
+        } elseif ($requireEncryption) {
+            throw new \RuntimeException('This PDF renderer does not support the required password protection.');
         }
 
         return $pdf;
@@ -162,6 +182,7 @@ class ReportService
             'budget-calculator' => 'Cost-to-Protect-Estimate',
             'budget-calculator-preview' => 'Cost-to-Protect-Estimate-BUYER-EDITION',
             'budget-calculator-allocation' => 'Workforce-to-Post-Allocation',
+            'vendor-weighted-rates' => 'Vendor-Weighted-Rate-Dashboard',
             default => str_replace(' ', '-', $type),
         };
         $stamp = now()->format('Y-m-d-His');

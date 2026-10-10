@@ -98,6 +98,13 @@ class ReportController extends Controller
     public function downloadReport(Request $request): Response|RedirectResponse
     {
         $type = $request->input('type');
+        if ($type === 'vendor-weighted-rates') {
+            abort_unless($request->user()->isVendor() || $request->user()->isAdmin(), 403);
+            abort_unless($request->isMethod('post'), 405);
+            \Illuminate\Support\Facades\Validator::make($request->post(), [
+                'pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/'],
+            ])->validate();
+        }
         $payload = $this->payloadForType($request, $type);
         if (! $type || ! $payload) {
             return back()->with('error', 'No report data available. Run the calculator again and use Download PDF.');
@@ -324,6 +331,7 @@ class ReportController extends Controller
 
         // Buyer report shares data with the base vendor report type
         $lookupType = match ($type) {
+            'vendor-weighted-rates' => 'main-menu',
             'mobile-patrol-buyer' => 'mobile-patrol',
             // The allocation report and the locked preview both reuse the
             // Workforce calculator's stored data.
@@ -333,7 +341,7 @@ class ReportController extends Controller
         };
 
         $payload = session('report_payload');
-        if ($payload && ($payload['type'] ?? null) === $lookupType) {
+        if ($type !== 'vendor-weighted-rates' && $payload && ($payload['type'] ?? null) === $lookupType) {
             return $this->withIdentity($request, array_merge($payload, ['type' => $type]));
         }
 

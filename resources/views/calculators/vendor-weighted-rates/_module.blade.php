@@ -61,6 +61,18 @@
       <button type="button" class="btn btn-primary" id="vwr_review" disabled>Review Results to Apply</button>
     </div>
     <div id="vwr_status" class="small mb-3" role="status" aria-live="polite"></div>
+    <form id="vwr_report_form" class="border rounded p-3 mb-3 d-print-none">
+      <h3 class="h6 fw-semibold">Vendor Weighted Rate PDF</h3>
+      <p class="small text-gasq-muted">Download the saved draft as a private dashboard and staffing schedule. A password is required to open the PDF.</p>
+      <div class="d-flex flex-wrap align-items-end gap-2">
+        <div>
+          <label for="vwr_pdf_password" class="form-label small">PDF open password</label>
+          <input id="vwr_pdf_password" class="form-control" type="password" minlength="8" maxlength="32" required autocomplete="new-password" aria-describedby="vwr_report_status" placeholder="8–32 letters, numbers or symbols">
+        </div>
+        <button id="vwr_report_download" class="btn btn-outline-primary" type="submit" disabled>Download Protected PDF</button>
+      </div>
+      <div id="vwr_report_status" class="small mt-2" role="status" aria-live="polite"></div>
+    </form>
     <div class="border rounded p-3 mb-3" id="vwr_preview" hidden>
       <h3 class="h6 fw-semibold">Values to transfer to the main calculator</h3>
       <dl class="row small mb-2">
