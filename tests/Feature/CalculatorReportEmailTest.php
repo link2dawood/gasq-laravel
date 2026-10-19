@@ -46,7 +46,7 @@ class CalculatorReportEmailTest extends TestCase
         $vendor = $this->user();
         app(MasterInputsService::class)->getOrCreate($vendor)->update(['is_complete' => true]);
         $response = $this->actingAs($vendor)->get(route('main-menu-calculator.index'))->assertOk();
-        $response->assertSee('main-report-email')->assertSee('Email Protected PDF to Me')->assertSee(route('reports.email'))->assertDontSee('Email functionality: connect');
+        $response->assertSee('main-report-email')->assertSee('Email Protected PDF to Me')->assertSee('with CC to info@getasecurityquote.com')->assertSee(route('reports.email'))->assertDontSee('Email functionality: connect');
     }
 
     public function test_main_report_can_be_emailed_to_multiple_valid_recipients(): void
@@ -58,17 +58,20 @@ class CalculatorReportEmailTest extends TestCase
         $this->actingAs($vendor)->postJson(route('reports.email'), ['type' => 'main-menu', 'email' => 'first@example.test; second@example.test', 'email2' => 'first@example.test'])->assertOk()->assertJsonPath('ok', true)->assertJsonCount(2, 'recipients');
         Mail::assertSent(ReportPdfMail::class, 2);
         Mail::assertSent(ReportPdfMail::class, fn ($mail) => $mail->hasTo('first@example.test') && $mail->hasBcc('info@getasecurityquotenow.com') && str_starts_with($mail->pdf, '%PDF-'));
+        Mail::assertSent(ReportPdfMail::class, fn ($mail) => $mail->cc === [] && $mail->bodyView === 'emails.report-pdf');
         $this->assertSame($before, $vendor->calculatorStates()->first()->scenario);
     }
 
-    public function test_private_signed_report_uses_own_saved_data_is_encrypted_and_has_no_bcc_or_password_in_body(): void
+    public function test_private_signed_report_uses_own_saved_data_is_encrypted_and_ccs_gasq_without_bcc_or_password_in_body(): void
     {
         Mail::fake();
+        $this->travelTo(now()->setDate(2026, 10, 12)->setTime(10, 0));
         config(['services.hubspot.bcc' => 'crm@example.test']);
         $vendor = $this->user();
         $scenario = $this->save($vendor);
         $service = app(VendorReportSigningService::class);
         $signature = $service->sign($scenario, $vendor, ['reportHash' => $service->status($scenario, $vendor)['reportHash'], 'signerName' => 'Vendor signer', 'method' => 'typed']);
+        $this->travel(4)->days();
         $payload = null;
         $this->partialMock(ReportService::class, function ($mock) use (&$payload) {
             $mock->shouldReceive('calculatorPdf')->once()->andReturnUsing(function ($type, $data, $password) use (&$payload) {
@@ -77,21 +80,55 @@ class CalculatorReportEmailTest extends TestCase
                 return (new ReportService)->calculatorPdf($type, $data, $password);
             });
         });
-        $this->actingAs($vendor)->withSession(['report_payload' => ['type' => 'main-menu', 'scenario' => ['meta' => ['companyName' => 'Foreign session']]]])->postJson(route('reports.email'), ['type' => 'vendor-weighted-rates', 'email' => $vendor->email, 'pdf_password' => 'LocalTestPassword', 'notes' => 'Do not include', 'electronicSignature' => ['signer_name' => 'forged']])->assertOk()->assertJsonPath('recipients.0', $vendor->email);
+        $this->actingAs($vendor)->withSession(['report_payload' => ['type' => 'main-menu', 'scenario' => ['meta' => ['companyName' => 'Foreign session']]]])->postJson(route('reports.email'), ['type' => 'vendor-weighted-rates', 'email' => $vendor->email, 'pdf_password' => 'LocalTestPassword', 'notes' => 'Do not include', 'electronicSignature' => ['signer_name' => 'forged']])->assertOk()->assertJsonPath('recipients.0', $vendor->email)->assertJsonPath('cc.0', 'info@getasecurityquote.com');
         $this->assertSame($signature->report_id, $payload['electronicSignature']->report_id);
         $html = view('pdf.vendor-weighted-rates', app(VendorWeightedRateReport::class)->prepare($payload))->render();
         $this->assertStringContainsString('Vendor signer', $html);
+        $this->assertStringContainsString('October 12, 2026', $html);
         $this->assertStringNotContainsString('Foreign session', $html);
         Mail::assertSent(ReportPdfMail::class, function ($mail) use ($vendor) {
             $this->assertSame([], $mail->bcc);
             $this->assertSame([], $mail->extraAttachments);
+            $this->assertSame('GASQ Vendor Weighted Rate Report', $mail->subjectLine);
+            $this->assertTrue($mail->hasCc('info@getasecurityquote.com'));
+            $this->assertTrue($mail->hasReplyTo('info@getasecurityquote.com'));
             $this->assertStringContainsString('/Encrypt', $mail->pdf);
+            $this->assertStringContainsString('Hello '.e($vendor->name).',', $mail->render());
+            $this->assertStringContainsString('dated October 12, 2026', $mail->render());
+            $this->assertStringContainsString('Reply “ACCESS”', $mail->render());
             $this->assertStringNotContainsString('LocalTestPassword', $mail->render());
             $this->assertStringNotContainsString('Do not include', $mail->render());
 
             return $mail->hasTo($vendor->email);
         });
         $this->assertStringNotContainsString('LocalTestPassword', json_encode($vendor->calculatorStates()->first()->scenario));
+    }
+
+    public function test_unsigned_weighted_report_cover_uses_current_report_date_and_requested_message(): void
+    {
+        Mail::fake();
+        $this->travelTo(now()->setDate(2026, 10, 16)->setTime(10, 0));
+        $vendor = $this->user();
+        $this->save($vendor);
+        $pdf = Mockery::mock(PDF::class);
+        $pdf->shouldReceive('output')->andReturn('%PDF-test');
+        $this->partialMock(ReportService::class)->shouldReceive('calculatorPdf')->once()
+            ->withArgs(fn ($type, $data, $password) => $data['datePrepared'] === 'October 16, 2026' && $password === 'LocalTestPassword')
+            ->andReturn($pdf);
+
+        $this->actingAs($vendor)->postJson(route('reports.email'), [
+            'type' => 'vendor-weighted-rates', 'email' => $vendor->email, 'pdf_password' => 'LocalTestPassword',
+        ])->assertOk()->assertJsonPath('cc', ['info@getasecurityquote.com']);
+
+        Mail::assertSent(ReportPdfMail::class, function ($mail) {
+            $body = $mail->render();
+            foreach (['dated October 16, 2026', 'For buyers:', 'For vendors:', 'staffing and payroll hours', '10-minute walkthrough', 'Please forward this email', 'Know Before You Buy. Know Before You Bid.', '(470) 633-2816'] as $text) {
+                $this->assertStringContainsString($text, $body);
+            }
+            $this->assertStringNotContainsString('LocalTestPassword', $body);
+
+            return $mail->hasCc('info@getasecurityquote.com');
+        });
     }
 
     public function test_private_reports_reject_other_recipients_buyers_missing_passwords_and_invalid_addresses(): void

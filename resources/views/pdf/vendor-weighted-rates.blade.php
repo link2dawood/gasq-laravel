@@ -53,7 +53,7 @@
 <p class="muted">{{ $weighted['modeLabel'] }} · {{ $weighted['rateSource'] }} · {{ $selectionLabel }}</p>
 <table class="metadata"><tr>
   <td><div class="label">Buyer / site</div>{{ $buyerSite }}</td><td><div class="label">Vendor</div>{{ $vendorName }}</td>
-  <td><div class="label">Prepared</div>{{ isset($electronicSignature) ? $electronicSignature->signed_at->format('F j, Y') : now()->format('F j, Y') }}</td><td><div class="label">Report version</div>GASQ v1.2</td>
+  <td><div class="label">Prepared</div>{{ $datePrepared ?? (isset($electronicSignature) ? $electronicSignature->signed_at->format('F j, Y') : now()->format('F j, Y')) }}</td><td><div class="label">Report version</div>GASQ v1.2</td>
 </tr></table>
 <table class="cards">@foreach(array_chunk($cards, 3) as $row)<tr>@foreach($row as [$title,$value,$subtitle,$color])<td><div class="card {{ $color }}"><div class="band">{{ $title }}</div><div class="value">{{ $value }}</div><div class="sub">{{ $subtitle }}</div></div></td>@endforeach</tr>@endforeach</table>
 <div class="band">Schedule totals &amp; calculation basis</div>

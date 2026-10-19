@@ -153,7 +153,7 @@
               </div>
               <div class="d-flex flex-column gap-3">
                 <div>
-                  <label class="form-label fw-medium">Employee True Hourly Cost ({{ \App\Support\Currency::symbol() }}/hr)</label>
+                  <label class="form-label fw-medium" for="ej_empCost">Employer Hourly Cost to Protect ({{ \App\Support\Currency::symbol() }}):</label>
                   <input type="number" id="ej_empCost" class="form-control" value="133.00" step="0.01" oninput="scheduleEJ()">
                   <div class="form-text">Includes wages, payroll taxes, benefits, HR overhead.</div>
                 </div>
@@ -248,6 +248,17 @@
 
             <div class="ej-panel p-3 mb-4" style="border-top:4px solid var(--gasq-primary)">
               <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2"><i class="fa fa-chart-line text-primary"></i> Customer Return on Investment Savings</h5>
+              <div class="table-responsive mb-3">
+                <table class="table table-sm align-middle mb-0">
+                  <thead><tr><th>Metric</th><th class="text-center">In-House</th><th class="text-center">Vendor</th></tr></thead>
+                  <tbody>
+                    @foreach(['WeeklyHours' => 'Total Weekly Hours', 'MonthlyHours' => 'Total Monthly Hours', 'AnnualHours' => 'Total Annual Hours', 'StaffRequired' => 'Total Staff Required'] as $key => $label)
+                      <tr><td class="small text-gasq-muted">{{ $label }}</td><td class="text-center ej-mono" id="r_ih{{ $key }}">0</td><td class="text-center ej-mono" id="r_v{{ $key }}">0</td></tr>
+                    @endforeach
+                  </tbody>
+                </table>
+                <div class="form-text">Staff required is rounded up using 28 hours per staff member per week.</div>
+              </div>
               <div class="row g-3">
                 <div class="col-md-3">
                   <div class="rounded p-3 text-center" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3)">
@@ -315,13 +326,14 @@
 <script>
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
 function fmt(v){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{style:'currency',currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD',minimumFractionDigits:2}).format((v || 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));}
-function fmtN(v,dec=0){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format((v || 0)*((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.rate)||1));}
+function fmtN(v,dec=0){return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v || 0);}
 function g(id){return parseFloat(document.getElementById(id)?.value)||0;}
 function t(id){return (document.getElementById(id)?.value || '').trim();}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
 let ejTimer = null;
 let ejInflight = null;
+let ejRevision = 0;
 function ejSetError(msg){
   const el = document.getElementById('ej_error');
   if(!el) return;
@@ -331,11 +343,14 @@ function ejSetError(msg){
 }
 
 function scheduleEJ(){
+  ++ejRevision;
+  if(ejInflight) ejInflight.abort();
   clearTimeout(ejTimer);
   ejTimer = setTimeout(calcEJ, 300);
 }
 
 async function calcEJ(){
+  const submittedRevision = ++ejRevision;
   const empCost = g('ej_empCost');
   const weeklyHours = g('ej_weeklyHours');
   const weeksInYear = g('ej_weeksInYear');
@@ -366,6 +381,7 @@ async function calcEJ(){
     });
     let data = null;
     try { data = await res.json(); } catch { data = null; }
+    if(submittedRevision !== ejRevision) return;
     if(!res.ok || !data || !data.ok){
       if (data && data.error === 'insufficient_credits') {
         ejSetError(data.message || 'Not enough credits to run this calculator.');
@@ -387,8 +403,13 @@ async function calcEJ(){
     const payback = out.paybackMonths||0;
     const dollar = out.dollarForDollar||0;
 
-    const projHrs = weeklyHours * weeksInYear;
-    const staffRequired = Math.ceil(weeklyHours / 28);
+    const projHrs = out.totalAnnualHours || 0;
+    const staffRequired = out.totalStaffRequired || 0;
+    ['WeeklyHours', 'MonthlyHours', 'AnnualHours', 'StaffRequired'].forEach(key => {
+      const value = fmtN(out['total' + key] || 0, key === 'StaffRequired' ? 0 : 2);
+      setText('r_ih' + key, value);
+      setText('r_v' + key, value);
+    });
 
     setText('r_ihWeekly', fmt(out.inHouseWeekly||0));
     setText('r_ihMonthly', fmt(out.inHouseMonthly||0));
@@ -432,7 +453,7 @@ async function calcEJ(){
     const printComp = document.getElementById('print_company');
     if(printComp) printComp.textContent = companyName;
   }catch(e){
-    if(e?.name === 'AbortError') return;
+    if(e?.name === 'AbortError' || submittedRevision !== ejRevision) return;
     console.error(e);
     ejSetError('Unable to calculate right now. Please try again.');
   }

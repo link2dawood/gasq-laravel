@@ -22,6 +22,10 @@
       "coverageDerived": {}
     },
     "economicJustification": {
+      "totalWeeklyHours": 168,
+      "totalMonthlyHours": 728,
+      "totalAnnualHours": 8736,
+      "totalStaffRequired": 6,
       "inHouseHourly": 133,
       "vendorHourly": 93.1,
       "inHouseWeekly": 22344,
@@ -56,23 +60,23 @@
     },
     "contractSummary": {
       "tableRows": [
-        { "label": "Weekly Hours", "value": 0 },
-        { "label": "Weekly Billings", "value": 0 },
+        { "label": "Weekly Hours", "value": 168 },
+        { "label": "Weekly Billings", "value": 15640.8 },
         { "label": "Blended Straight Time Pay Rate", "value": 25.23 },
-        { "label": "Blended Straight Time Bill Rate", "value": 29.57 },
-        { "label": "Overtime Bill Rate", "value": 44.36 },
-        { "label": "Holiday Bill Rate", "value": 44.36 },
-        { "label": "Total Annual Revenue (hourly billings)", "value": 0 },
+        { "label": "Blended Straight Time Bill Rate", "value": 93.1 },
+        { "label": "Overtime Bill Rate", "value": 139.65 },
+        { "label": "Holiday Bill Rate", "value": 139.65 },
+        { "label": "Total Annual Revenue (hourly billings)", "value": 813321.6 },
         { "label": "Vehicle & Other Pass-Through Billings", "value": 12000 },
-        { "label": "Total Annual Contract Revenue", "value": 12000, "highlight": true },
-        { "label": "Direct Expense", "value": 0 },
+        { "label": "Total Annual Contract Revenue", "value": 825321.6, "highlight": true },
+        { "label": "Direct Expense", "value": 220409.28 },
         { "label": "Vehicle & Other Pass-Through Costs", "value": 163286 },
-        { "label": "Total Annual Costs", "value": 163286, "highlight": true },
+        { "label": "Total Annual Costs", "value": 383695.28, "highlight": true },
         { "label": "Working Capital Requirement", "value": 0 }
       ],
-      "contributoryProfit": -151286,
-      "profitPctOfRevenue": -1260.7,
-      "profitPerHour": 0
+      "contributoryProfit": 441626.32,
+      "profitPctOfRevenue": 53.5,
+      "profitPerHour": 50.55
     }
   }
 }

@@ -50,8 +50,9 @@
                 <input type="text" id="ej_preparedBy" class="form-control" placeholder="Your name" oninput="calcEJ()">
               </div>
               <div class="col-md-6">
-                <label class="form-label fw-medium">Employee True Hourly Cost ({{ \App\Support\Currency::symbol() }}/hr)</label>
+                <label class="form-label fw-medium" for="ej_employeeCost">Employer Hourly Cost to Protect ({{ \App\Support\Currency::symbol() }}):</label>
                 <input type="number" id="ej_employeeCost" class="form-control" value="133.00" step="0.01" oninput="calcEJ()">
+                <div class="form-text">Vendor hourly cost is 70% of this amount unless vendor weighted rates are applied.</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-medium">Weekly Hours Performed</label>
@@ -82,6 +83,9 @@
                   </tr>
                 </thead>
                 <tbody>
+                  @foreach(['WeeklyHours' => 'Total Weekly Hours', 'MonthlyHours' => 'Total Monthly Hours', 'AnnualHours' => 'Total Annual Hours', 'StaffRequired' => 'Total Staff Required'] as $key => $label)
+                    <tr><td class="small text-gasq-muted">{{ $label }}</td><td class="text-center small fw-medium" id="ej_r_ih{{ $key }}">0</td><td class="text-center small fw-medium" id="ej_r_v{{ $key }}">0</td></tr>
+                  @endforeach
                   <tr><td class="small text-gasq-muted">Hourly Cost</td><td class="text-center small fw-medium" id="ej_r_ihHourly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vHourly">{{ \App\Support\Currency::format(0) }}</td></tr>
                   <tr><td class="small text-gasq-muted">Weekly Cost</td><td class="text-center small fw-medium" id="ej_r_ihWeekly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vWeekly">{{ \App\Support\Currency::format(0) }}</td></tr>
                   <tr><td class="small text-gasq-muted">Monthly Cost</td><td class="text-center small fw-medium" id="ej_r_ihMonthly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vMonthly">{{ \App\Support\Currency::format(0) }}</td></tr>
@@ -89,6 +93,7 @@
                 </tbody>
               </table>
             </div>
+            <div class="form-text">Staff required is rounded up using 28 hours per staff member per week.</div>
 
             <div class="row g-3 mt-2">
               <div class="col-6">
@@ -177,6 +182,10 @@ function buildMainScenario() {
         weeksInYear: gNum('ej_weeksInYear') || 52,
         monthsInYear: gNum('ej_monthsInYear') || 12,
   });
+  // Saved comparison rates must not freeze the live 70/30 calculation.
+  if (!scenario.meta.vendorWeightedRates?.applied) {
+    delete scenario.meta.vendorTrueHourlyCost;
+  }
   return scenario;
 }
 
@@ -204,6 +213,11 @@ function renderMainMenu(data) {
   const tabs = data.tabs || {};
 
   const ej = tabs.economicJustification || {};
+  ['WeeklyHours', 'MonthlyHours', 'AnnualHours', 'StaffRequired'].forEach(key => {
+    const value = fmtN(ej['total' + key] || 0, key === 'StaffRequired' ? 0 : 2);
+    setText('ej_r_ih' + key, value);
+    setText('ej_r_v' + key, value);
+  });
   setText('ej_r_ihHourly', fmt(ej.inHouseHourly || 0));
   setText('ej_r_vHourly', fmt(ej.vendorHourly || 0));
   setText('ej_r_ihWeekly', fmt(ej.inHouseWeekly || 0));

@@ -6,7 +6,7 @@ Open **Vendor Weighted Rates** from the calculator menu or main calculator. Vend
 
 - **Current Bill Rate Analysis:** enter a current bill rate per role. An empty actual wage uses `bill × 7 / 18`, labeled **Implied pay wage — model estimate**. Entering an actual wage replaces only the wage estimate; it does not change the current bill rate.
 - **GASQ Wage-Based Pricing:** enter actual wages. Bill rates use the fixed GASQ 6:1 model, `wage / 0.70 × 3,744 / 2,080 = wage × 18 / 7`. Changing employees or staffing hours does not change these constants.
-- Shared defaults are 40 hours per employee per week and 52 weeks. Each row can override these assumptions, allowing unequal role hours. Monthly payroll hours are annual role hours divided by 12.
+- Shared defaults are 40 hours per employee per week and 52 weeks. Edit **Weekly hours** directly in each row to set the total for that position's headcount; clearing it restores the shared default. The saved per-employee assumption is the entered total divided by headcount, so changing headcount scales the row's hours. Rows with zero employees show zero hours and disable the hours input. Weeks can be overridden under **Role weeks override**. Monthly payroll hours are annual role hours divided by 12.
 - Rates are weighted by annual role hours. Calculations and saved results retain full precision; only displayed currency and percentages are rounded. Zero bill rates have unavailable wage shares.
 
 The attached PDF preset contains eight rows: prime unarmed officers (21 at 39.29), subcontractor unarmed officers (72 at 39.29), video surveillance (14 at 40.58), security console (16 at 40.58), mobile patrol (11 at 40.58), armed officers (9 at 42.86), badging clerk (1 at 43.70), and armed supervisor (1 at 45.37). The six-person preset uses 3 Security Officers, 2 Lead/Supervisors, and 1 Management employee, with the previously specified model wages.
@@ -53,7 +53,9 @@ This is an electronic signature record, with typed or drawn marks. It does not u
 
 ## Report email
 
-The main calculator’s **Email Report** button opens the weighted report password controls for vendor/admin accounts. **Email Protected PDF to Me** emails the saved draft and its current signature to the account email, using the existing configured mail service. It requires the same opening password as download and clears the field after success. The password is excluded from the covering email and saved state. Private copies have no automatic GASQ/CRM BCC or survey attachments. The server rejects extra recipients and buyer access.
+The main calculator’s **Email Report** button opens the weighted report password controls for vendor/admin accounts. **Email Protected PDF to Me** emails the saved draft and its current signature to the account email, with a CC to **info@getasecurityquote.com**, using the existing configured mail service. Replies also go to that inbox. The cover message greets the account owner, explains the report for buyers and vendors, and requests a separate password exchange by replying “ACCESS.” Its date matches the PDF's signing date for signed reports or generation date for unsigned reports. If the account email is already the CC address, no duplicate CC is added.
+
+Email requires the same opening password as download and clears the field after success. The password is excluded from the covering email and saved state. Private copies have no automatic GASQ/CRM BCC or survey attachments. The server rejects additional user-supplied recipients and buyer access.
 
 The separate **Email main calculator report** panel uses the platform’s existing recipient, optional password, survey attachments, and BCC behavior. Buyer accounts open this panel from the header button. Its send/download controls wait for the main calculator’s current inputs to save; ordinary report privacy filtering remains in place. Neither email action reloads the calculator.
 

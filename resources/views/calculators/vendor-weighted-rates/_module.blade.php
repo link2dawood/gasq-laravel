@@ -37,7 +37,7 @@
     <div class="small text-danger mb-2" data-vwr-error="roles"></div>
     <div class="table-responsive border rounded mb-3">
       <table class="table table-sm align-middle mb-0 vwr-table">
-        <caption class="px-2 small">Full precision is used for calculations. Currency and percentages are rounded only for display. Monthly staffing hours are annual role hours ÷ 12.</caption>
+        <caption class="px-2 small">Edit Weekly hours for each position’s total headcount. Leave blank to use headcount × the shared weekly hours per employee. Monthly staffing hours are annual role hours ÷ 12. Full precision is used for calculations; currency and percentages are rounded only for display.</caption>
         <thead><tr>
           <th>Position / classification</th><th>Headcount</th><th>Pay rate/hr</th><th>Combined hourly wages</th><th>Wage share of bill rate</th><th>Weekly hours</th><th>Monthly hours</th><th>Annual role hours</th><th>Bill rate/hr</th><th>Total annual bill cost</th><th></th>
         </tr></thead>
@@ -89,7 +89,7 @@
         <button type="button" id="vwr_report_email" class="btn btn-primary" disabled>Email Protected PDF to Me</button>
         <button id="vwr_report_download" class="btn btn-outline-primary" type="submit" disabled>Download Protected PDF</button>
       </div>
-      <p class="small text-gasq-muted mt-2 mb-0">Email copy to {{ auth()->user()?->email }}. The password is kept out of the email. The current signature is included when this report version is signed.</p>
+      <p class="small text-gasq-muted mt-2 mb-0">Email copy to {{ auth()->user()?->email }}, with CC to info@getasecurityquote.com. The password is kept out of the email. The current signature is included when this report version is signed.</p>
       <div id="vwr_report_status" class="small mt-2" role="status" aria-live="polite"></div>
     </form>
     <div class="border rounded p-3 mb-3" id="vwr_preview" hidden>

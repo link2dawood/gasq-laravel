@@ -18,10 +18,10 @@
     if(kind === 'percent') return new Intl.NumberFormat('en-US', {style:'percent',minimumFractionDigits:2,maximumFractionDigits:2}).format(value);
     return new Intl.NumberFormat('en-US', {maximumFractionDigits:2,minimumFractionDigits:kind === 'decimal' ? 2 : 0}).format(value);
   }
-  function cell(path, type, options = '') {
+  function cell(path, type, options = '', labelOverride = '') {
     const id = 'vwr_' + path.replaceAll('.', '_');
     const name = path.split('.').pop();
-    const label = name.replace(/([A-Z])/g, ' $1').toLowerCase();
+    const label = labelOverride || name.replace(/([A-Z])/g, ' $1').toLowerCase();
     const attributes = `id="${id}" data-vwr-path="${path}" aria-label="Role ${+path.split('.')[1] + 1} ${esc(label)}" aria-describedby="${id}_error"`;
     const input = type === 'select'
       ? `<select class="form-select form-select-sm" ${attributes}>${Object.entries(classifications).map(([key,label]) => `<option value="${key}">${esc(label)}</option>`).join('')}</select>`
@@ -31,6 +31,18 @@
   function writeInputs() {
     root.querySelectorAll('[data-vwr-path]').forEach(el => {
       el.value = el.dataset.vwrPath.split('.').reduce((value,key) => value?.[key], inputs) ?? '';
+    });
+    syncWeeklyHoursInputs();
+  }
+  function syncWeeklyHoursInputs(skip = null) {
+    root.querySelectorAll('[data-vwr-weekly-hours]').forEach(el => {
+      const role = inputs.roles[+el.dataset.vwrPath.split('.')[1]];
+      const headcount = Number(role.headcount) || 0;
+      const defaultHours = headcount * inputs.weeklyHoursPerEmployee;
+      el.disabled = headcount <= 0;
+      el.max = headcount * 168;
+      el.placeholder = `Default: ${defaultHours}`;
+      if(el !== skip) el.value = headcount * (role.weeklyHoursPerEmployee ?? inputs.weeklyHoursPerEmployee);
     });
   }
   function renderRows() {
@@ -42,9 +54,7 @@
       <tr data-vwr-row="${i}">
         <td class="vwr-classification">${cell(`roles.${i}.classification`, 'select')}
           <div class="mt-1">${cell(`roles.${i}.label`, 'text', 'placeholder="Classification label / custom role"')}</div>
-          <details class="small mt-2"><summary>Role hour overrides</summary>
-            <label class="mt-1" for="vwr_roles_${i}_weeklyHoursPerEmployee">Hours per employee/week</label>
-            ${cell(`roles.${i}.weeklyHoursPerEmployee`, 'number', `min="0" max="168" step="any" placeholder="Default: ${esc(inputs.weeklyHoursPerEmployee)}"`)}
+          <details class="small mt-2"><summary>Role weeks override</summary>
             <label class="mt-1" for="vwr_roles_${i}_weeksPerYear">Weeks</label>
             ${cell(`roles.${i}.weeksPerYear`, 'number', `min="0" max="53" step="any" placeholder="Default: ${esc(inputs.weeksPerYear)}"`)}
             <div class="text-gasq-muted">Leave blank to use the shared assumptions.</div>
@@ -54,7 +64,7 @@
         <td class="vwr-wage">${cell(`roles.${i}.actualWage`, 'number', `min="0" step="any" placeholder="${current ? 'Actual wage (optional)' : 'Actual wage (required)'}"`)}<div class="small mt-1" data-vwr-wage-label></div></td>
         <td data-vwr-calculated="combinedHourlyWages" data-format="money">—</td>
         <td data-vwr-calculated="wageShareOfBillRate" data-format="percent">—</td>
-        <td data-vwr-calculated="weeklyHours" data-format="number">—</td>
+        <td>${cell(`roles.${i}.weeklyHoursPerEmployee`, 'number', 'min="0" step="any" data-vwr-weekly-hours', 'total weekly hours')}</td>
         <td data-vwr-calculated="monthlyHours" data-format="decimal">—</td>
         <td data-vwr-calculated="annualRoleHours" data-format="number">—</td>
         <td>${current ? cell(`roles.${i}.billRate`, 'number', 'min="0" step="any"') : '<span data-vwr-calculated="billRate" data-format="money">—</span><div class="small text-gasq-muted">GASQ 6:1 model rate</div>'}</td>
@@ -117,6 +127,7 @@
         tr.querySelectorAll('[data-vwr-calculated]').forEach(el => el.textContent = format(role[el.dataset.vwrCalculated],el.dataset.format));
         tr.querySelector('[data-vwr-wage-label]').textContent = `${role.paySourceLabel}: ${format(role.payRate)}/hr`;
       });
+      syncWeeklyHoursInputs(document.activeElement);
       text('vwr_wage_source', data.result.wageSource); text('vwr_rate_source', data.result.rateSource);
       showErrors();
       document.getElementById('vwr_review').disabled = false;
@@ -135,7 +146,13 @@
     const el = e.target.closest('[data-vwr-path]'); if(!el) return;
     const path = el.dataset.vwrPath.split('.');
     const parent = path.slice(0,-1).reduce((value,key) => value[key],inputs);
-    parent[path.at(-1)] = el.type === 'number' ? (el.value === '' ? null : Number(el.value)) : el.value;
+    if(el.hasAttribute('data-vwr-weekly-hours')) {
+      // The table edits total role hours; saved assumptions use hours per employee.
+      parent.weeklyHoursPerEmployee = el.value === '' || !(parent.headcount > 0) ? null : Number(el.value) / parent.headcount;
+    } else {
+      parent[path.at(-1)] = el.type === 'number' ? (el.value === '' ? null : Number(el.value)) : el.value;
+    }
+    syncWeeklyHoursInputs(el);
     if(path.at(-1) === 'classification') inputs.roles[+path[1]].label = el.value === 'custom' ? '' : classifications[el.value];
     invalidate();
     if(el.id === 'vwr_mode' || path.at(-1) === 'classification') renderRows();

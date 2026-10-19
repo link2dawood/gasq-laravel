@@ -50,6 +50,7 @@ class MainMenuComputeService
             'coverage' => $derivedCoverage,
             'securityCost' => $tabSecurity,
             'billRate' => $tabBillRate,
+            'economicJustification' => $tabEJ,
             'vehicle' => $vehicle,
             'uniform' => $uniform,
             'meta' => $meta,

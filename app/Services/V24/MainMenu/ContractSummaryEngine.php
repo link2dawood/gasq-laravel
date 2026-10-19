@@ -18,16 +18,17 @@ class ContractSummaryEngine
         $coverage = (array) ($ctx['coverage'] ?? []);
         $sec = (array) ($ctx['securityCost'] ?? []);
         $br = (array) ($ctx['billRate'] ?? []);
+        $ej = (array) ($ctx['economicJustification'] ?? []);
 
-        // Use derived annual labor hours when present; fall back to demo manpower annual if provided.
-        $annualLaborHours = (float) (Arr::get($coverage, 'annualLaborHours') ?? 0);
-        $weeklyHours = (float) (Arr::get($coverage, 'totalWeeklyPostHours') ?? 0);
+        // Keep the summary on the same hours and comparison rates as ROI Analysis.
+        $annualLaborHours = (float) ($ej['totalAnnualHours'] ?? Arr::get($coverage, 'annualLaborHours') ?? 0);
+        $weeklyHours = (float) ($ej['totalWeeklyHours'] ?? Arr::get($coverage, 'totalWeeklyPostHours') ?? 0);
 
-        $billRate = (float) (Arr::get($br, 'finalBillRate') ?? 0);
+        $billRate = (float) ($ej['vendorHourly'] ?? Arr::get($br, 'finalBillRate') ?? 0);
         $hourlyPay = (float) (Arr::get($sec, 'hourlyRate') ?? 0);
 
-        $weeklyBillings = $weeklyHours * $billRate;
-        $annualRevenue = $weeklyBillings * 52;
+        $weeklyBillings = (float) ($ej['vendorWeekly'] ?? $weeklyHours * $billRate);
+        $annualRevenue = (float) ($ej['vendorAnnual'] ?? $weeklyBillings * 52);
 
         $vehPass = (float) (Arr::get($meta, 'vehiclePassthroughBillingsAnnual') ?? Arr::get($meta, 'cs_vehPassthrough') ?? 12000);
         $vehCosts = (float) (Arr::get($meta, 'vehiclePassthroughCostsAnnual') ?? Arr::get($meta, 'cs_vehCosts') ?? 163286);
@@ -66,4 +67,3 @@ class ContractSummaryEngine
         ];
     }
 }
-

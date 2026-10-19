@@ -7,6 +7,7 @@ use App\Models\CalculatorState;
 use App\Models\Transaction;
 use App\Services\CostToProtectEstimate;
 use App\Services\ReportService;
+use App\Services\VendorReportSigningService;
 use App\Services\WalletService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ReportController extends Controller
@@ -23,6 +25,8 @@ class ReportController extends Controller
      * GASQ retains a copy of each one sent. Change here to update globally.
      */
     private const ESTIMATE_BCC = 'info@getasecurityquotenow.com';
+
+    private const WEIGHTED_REPORT_CC = 'info@getasecurityquote.com';
 
     public function __construct(
         private ReportService $report,
@@ -103,7 +107,7 @@ class ReportController extends Controller
         if ($type === 'vendor-weighted-rates') {
             abort_unless($request->user()->isVendor() || $request->user()->isAdmin(), 403);
             abort_unless($request->isMethod('post'), 405);
-            \Illuminate\Support\Facades\Validator::make($request->post(), [
+            Validator::make($request->post(), [
                 'pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/'],
             ])->validate();
         }
@@ -146,7 +150,7 @@ class ReportController extends Controller
         $privateWeightedReport = $type === 'vendor-weighted-rates';
         if ($privateWeightedReport) {
             abort_unless($request->user()->isVendor() || $request->user()->isAdmin(), 403);
-            \Illuminate\Support\Facades\Validator::make($request->post(), [
+            Validator::make($request->post(), [
                 'pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/'],
             ])->validate();
         }
@@ -181,6 +185,7 @@ class ReportController extends Controller
 
         if ($privateWeightedReport) {
             $payload = $this->withCurrentSignature($request, $payload);
+            $payload['datePrepared'] = ($payload['electronicSignature']?->signed_at ?? now())->format('F j, Y');
         }
 
         if ($charge = $this->chargeForReport($request, $type, $payload)) {
@@ -198,14 +203,16 @@ class ReportController extends Controller
         $filename = $this->report->filenameForCalculator($type, $request->user());
         $subject = 'Your GASQ Calculator Report – '.str_replace('-', ' ', ucfirst($type));
 
-        // The Workforce/Budget report ships the branded "Cost to Protect" cover
-        // email; everything else uses the short generic body.
+        // Choose the cover message for this report.
         [$bodyView, $bodyData] = $this->emailBodyFor($type, $payload);
         if ($bodyView === 'emails.cost-to-protect') {
             $subject = 'Your GASQ Cost to Protect™ Appraisal Report';
         }
         if ($bodyView === 'emails.cost-to-protect-locked') {
             $subject = 'Your GASQ Cost to Protect™ Estimate — Buyer Edition';
+        }
+        if ($privateWeightedReport) {
+            $subject = 'GASQ Vendor Weighted Rate Report';
         }
 
         // On-site survey notes + photos/files. Only preparers (vendors/admins) may
@@ -240,6 +247,8 @@ class ReportController extends Controller
         // BCC the GASQ inbox (record of each send) and the HubSpot "log to CRM"
         // address (auto-logs the report onto the contact's HubSpot timeline).
         $bcc = $privateWeightedReport ? [] : array_values(array_filter([self::ESTIMATE_BCC, config('services.hubspot.bcc')]));
+        $cc = $privateWeightedReport && strcasecmp($recipients->first(), self::WEIGHTED_REPORT_CC) !== 0
+            ? [self::WEIGHTED_REPORT_CC] : [];
 
         // Send each recipient their own copy (so they don't see each other),
         // stamped "Prepared exclusively for <their email>" so any forwarded copy
@@ -252,16 +261,20 @@ class ReportController extends Controller
             );
 
             try {
-                Mail::to($to)
-                    ->bcc($bcc)
-                    ->send(new ReportPdfMail(
-                        subjectLine: $subject,
-                        pdf: $pdf->output(),
-                        filename: $filename,
-                        bodyView: $bodyView,
-                        bodyData: $bodyData,
-                        extraAttachments: $extraAttachments,
-                    ));
+                $pending = Mail::to($to)->bcc($bcc);
+                $mail = new ReportPdfMail(
+                    subjectLine: $subject,
+                    pdf: $pdf->output(),
+                    filename: $filename,
+                    bodyView: $bodyView,
+                    bodyData: $bodyData,
+                    extraAttachments: $extraAttachments,
+                );
+                if ($privateWeightedReport) {
+                    $pending->cc($cc);
+                    $mail->replyTo(self::WEIGHTED_REPORT_CC, 'Get A Security Quote Team');
+                }
+                $pending->send($mail);
             } catch (TransportExceptionInterface $exception) {
                 Log::warning('Calculator report email transport failed.', ['report_type' => $type, 'user_id' => $user->id, 'exception_class' => get_class($exception)]);
                 $sent = $recipients->take($recipients->search($to));
@@ -275,6 +288,9 @@ class ReportController extends Controller
         }
 
         $message = 'Report sent to '.$recipients->implode(', ');
+        if ($cc !== []) {
+            $message .= ' (CC: '.implode(', ', $cc).')';
+        }
 
         // Answer XHR sends with JSON so the calculator page never reloads. A full
         // reload re-initialises the calculator JS to its defaults, which wiped the
@@ -285,6 +301,7 @@ class ReportController extends Controller
                 'ok' => true,
                 'message' => $message,
                 'recipients' => $recipients->all(),
+                'cc' => $cc,
             ]);
         }
 
@@ -293,7 +310,7 @@ class ReportController extends Controller
 
     private function withCurrentSignature(Request $request, array $payload): array
     {
-        $signature = app(\App\Services\VendorReportSigningService::class)->active($payload['scenario'], $request->user());
+        $signature = app(VendorReportSigningService::class)->active($payload['scenario'], $request->user());
         $payload['electronicSignature'] = $signature;
         if ($signature) {
             $payload['reportNumber'] = 'GASQ-SIGNED-'.$signature->report_id;
@@ -316,15 +333,19 @@ class ReportController extends Controller
     }
 
     /**
-     * Choose the email body + data for a report type. Only the Workforce/Budget
-     * report uses the branded Cost to Protect cover; the rest fall back to the
-     * short generic body. Figures are derived from the same fixed vendor-discount
-     * the PDF uses, so the email matches the attachment.
+     * Choose the cover message and data matching the attached report.
      *
      * @return array{0: string, 1: array<string, mixed>}
      */
     private function emailBodyFor(string $type, array $payload): array
     {
+        if ($type === 'vendor-weighted-rates') {
+            return ['emails.vendor-weighted-rate-report', [
+                'recipientName' => ($payload['user'] ?? null)?->name ?: 'there',
+                'datePrepared' => $payload['datePrepared'],
+            ]];
+        }
+
         if ($type === 'budget-calculator-preview') {
             // The buyer edition withholds the vendor cost and the savings — the
             // Cost to Protect cover email quotes them, so it must not be used.

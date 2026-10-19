@@ -35,6 +35,10 @@ class EconomicJustificationEngine
         $dollar = $vAnnual > 0 ? $savings / $vAnnual : 0;
 
         return [
+            'totalWeeklyHours' => round($weeklyHours, 2),
+            'totalMonthlyHours' => round($weeklyHours * $weeksPerMonth, 2),
+            'totalAnnualHours' => round($weeklyHours * $weeksInYear, 2),
+            'totalStaffRequired' => (int) ceil($weeklyHours / 28),
             'inHouseWeekly' => round($ihWeekly, 2),
             'inHouseMonthly' => round($ihMonthly, 2),
             'inHouseAnnual' => round($ihAnnual, 2),
@@ -49,4 +53,3 @@ class EconomicJustificationEngine
         ];
     }
 }
-

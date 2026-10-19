@@ -1,5 +1,9 @@
 {
   "kpis": {
+    "totalWeeklyHours": 168,
+    "totalMonthlyHours": 728,
+    "totalAnnualHours": 8736,
+    "totalStaffRequired": 6,
     "inHouseWeekly": 22344,
     "inHouseMonthly": 96824,
     "inHouseAnnual": 1161888,
@@ -13,4 +17,3 @@
     "dollarForDollar": 0.43
   }
 }
-
