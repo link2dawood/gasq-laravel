@@ -15,7 +15,7 @@ Every push to **`main`** builds the app on GitHub and deploys it to the server `
 7. Reports scheduling preflight results and whether the deployment user's scheduler/queue worker are observed. Missing scheduling setup does not activate appraisal emails.
 8. Writes `public/deployment.json` with the deployed commit only after required deployment checks pass. Fetch `/deployment.json` over HTTPS to verify the served release.
 
-Post-deploy failures stop the workflow. An existing storage link is skipped rather than masking migration or cache failures. The release marker confirms application deployment; Calendly/Zoom and inbox acceptance still require a real test booking before enabling automated appraisal delivery.
+Post-deploy failures stop the workflow. An existing storage link is skipped rather than masking migration or cache failures. A missing link is created through the SSH shell because the shared host disables PHP's `symlink`/`exec` functions. The release marker confirms application deployment; Calendly/Zoom and inbox acceptance still require a real test booking before enabling automated appraisal delivery.
 
 ## Required GitHub Secrets
 Add these under **Repo → Settings → Secrets and variables → Actions → New repository secret**:
