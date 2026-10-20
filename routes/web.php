@@ -16,6 +16,12 @@ use App\Http\Controllers\VendorOpportunityController;
 use App\Http\Controllers\VendorQuestionnaireController;
 
 Route::get('/', [PageController::class, 'landing'])->name('landing');
+Route::post('/webhooks/calendly/appraisals', \App\Http\Controllers\CalendlyAppraisalWebhookController::class)
+    ->middleware('throttle:120,1')->name('appraisals.calendly-webhook');
+Route::get('/appraisal-appointments/{appointment}', [\App\Http\Controllers\AppraisalAppointmentController::class, 'show'])
+    ->middleware(['signed', 'throttle:60,1'])->name('appraisal-appointments.show');
+Route::post('/appraisal-appointments/{appointment}', [\App\Http\Controllers\AppraisalAppointmentController::class, 'confirm'])
+    ->middleware(['signed', 'throttle:20,1'])->name('appraisal-appointments.confirm');
 Route::get('/marketplace-landing', [PageController::class, 'marketplaceLanding'])->name('marketplace-landing');
 Route::get('/pricing', [PageController::class, 'pricing'])->name('pricing');
 Route::get('/pricing/buyers', [PageController::class, 'buyerPricing'])->name('pricing.buyers');
@@ -454,6 +460,10 @@ Route::post('/webhooks/hubspot', [App\Http\Controllers\HubSpotWebhookController:
 
 // Admin
 Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/appraisal-reviews', [\App\Http\Controllers\AdminAppraisalReviewController::class, 'index'])->name('admin.appraisal-reviews.index');
+    Route::post('/admin/appraisal-reviews', [\App\Http\Controllers\AdminAppraisalReviewController::class, 'store'])->name('admin.appraisal-reviews.store');
+    Route::post('/admin/appraisal-reviews/{review}/finalize', [\App\Http\Controllers\AdminAppraisalReviewController::class, 'finalize'])->name('admin.appraisal-reviews.finalize');
+    Route::post('/admin/appraisal-reviews/{review}/appointment', [\App\Http\Controllers\AdminAppraisalReviewController::class, 'linkAppointment'])->name('admin.appraisal-reviews.appointment');
     Route::get('/admin/dashboard', [App\Http\Controllers\AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/analytics', [App\Http\Controllers\AnalyticsController::class, 'index'])->name('admin.analytics');
     Route::get('/admin/activity', [App\Http\Controllers\AdminActivityController::class, 'index'])->name('admin.activity');
@@ -476,6 +486,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/vendor-opportunity-invitations/{invitation}/award', [AdminVendorOpportunityController::class, 'award'])->name('admin.vendor-opportunities.award');
     Route::get('/admin/settings', [App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
+    Route::post('/admin/settings/email-copies', [App\Http\Controllers\AdminSettingsController::class, 'updateEmailCopies'])->name('admin.settings.email-copies');
     Route::post('/admin/settings/logo', [App\Http\Controllers\AdminSettingsController::class, 'uploadLogo'])->name('admin.settings.logo');
     Route::post('/admin/settings/logo/remove', [App\Http\Controllers\AdminSettingsController::class, 'removeLogo'])->name('admin.settings.logo.remove');
     Route::get('/admin/twilio', [App\Http\Controllers\AdminTwilioController::class, 'show'])->name('admin.twilio.show');

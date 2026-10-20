@@ -10,7 +10,12 @@ Every push to **`main`** builds the app on GitHub and deploys it to the server `
 2. Installs Composer deps (`--no-dev`, optimized autoloader) on the runner
 3. Installs npm deps and runs `npm run production` to build assets
 4. `rsync`s the built project to the server (custom SSH port, password auth)
-5. Runs `migrate`, `config/route/view:cache`, and `storage:link` on the server
+5. Runs `migrate`, `config/route/view:cache`, creates a missing storage link, and restarts queue workers
+6. Runs `scripts/verify_report_deployment.php` against the deployed app: checks the appraisal schema/routes, scoped BCC settings, and protected vendor/buyer PDF rendering without sending mail or creating customer records
+7. Reports scheduling preflight results and whether the deployment user's scheduler/queue worker are observed. Missing scheduling setup does not activate appraisal emails.
+8. Writes `public/deployment.json` with the deployed commit only after required deployment checks pass. Fetch `/deployment.json` over HTTPS to verify the served release.
+
+Post-deploy failures stop the workflow. An existing storage link is skipped rather than masking migration or cache failures. The release marker confirms application deployment; Calendly/Zoom and inbox acceptance still require a real test booking before enabling automated appraisal delivery.
 
 ## Required GitHub Secrets
 Add these under **Repo → Settings → Secrets and variables → Actions → New repository secret**:

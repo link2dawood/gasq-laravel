@@ -84,9 +84,30 @@ jobs:
         run: |
           sshpass -e ssh -p "${{ secrets.SSH_PORT }}" -o StrictHostKeyChecking=no \
             "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" \
-            "cd ${{ env.DEPLOY_PATH }} && \
-             php artisan migrate --force && \
-             php artisan config:cache && \
-             php artisan route:cache && \
-             php artisan view:cache && \
-             php artisan storage:link || true"
+            bash -s -- "${{ env.DEPLOY_PATH }}" "$GITHUB_SHA" <<'REMOTE'
+          set -euo pipefail
+          cd "$1"
+          php artisan migrate --force
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          if [ ! -e public/storage ] && [ ! -L public/storage ]; then
+            php artisan storage:link
+          fi
+          php artisan queue:restart
+          php scripts/verify_report_deployment.php
+          if ! php artisan appraisals:preflight; then
+            echo 'Scheduling setup needs attention; see preflight results above.'
+          fi
+          if crontab -l 2>/dev/null | grep -qE 'artisan[[:space:]]+schedule:(run|work)'; then
+            echo 'Laravel scheduler: present in deployment user crontab'
+          else
+            echo 'Laravel scheduler: not observed in deployment user crontab; verify hosting scheduler before appraisal activation'
+          fi
+          if pgrep -f '[a]rtisan (queue:work|horizon)' >/dev/null; then
+            echo 'Queue worker: observed'
+          else
+            echo 'Queue worker: not observed; verify hosting worker before appraisal activation'
+          fi
+          printf '{"commit":"%s"}\n' "$2" > public/deployment.json
+          REMOTE

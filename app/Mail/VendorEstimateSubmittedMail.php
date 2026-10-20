@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\VendorEstimateSubmission;
+use App\Services\ProcessEmailCopies;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -28,6 +29,7 @@ class VendorEstimateSubmittedMail extends Mailable
 
         return new Envelope(
             subject: "{$vendorName} sent you an estimate for: {$jobTitle}",
+            bcc: app(ProcessEmailCopies::class)->recipients('estimates', array_column($this->to, 'address')),
         );
     }
 

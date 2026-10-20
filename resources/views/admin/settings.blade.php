@@ -187,6 +187,25 @@
 
         <div class="admin-layout">
             <aside class="d-grid gap-4">
+                <section class="admin-settings-section admin-tool" id="process-email-copies">
+                    <h2 class="admin-section-title">Process Email Copies (BCC)</h2>
+                    <p class="admin-section-copy">Send private internal copies only for the selected delivery processes.</p>
+                    <form action="{{ route('admin.settings.email-copies') }}" method="POST">
+                        @csrf
+                        <label class="form-label" for="process-bcc-address">BCC copy address</label>
+                        <input id="process-bcc-address" type="email" name="bcc_address" class="form-control mb-3 @error('bcc_address') is-invalid @enderror" required maxlength="254" value="{{ old('bcc_address', $emailCopies['address']) }}">
+                        @error('bcc_address')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        @foreach(\App\Services\ProcessEmailCopies::PROCESSES as $process => $definition)
+                            <input type="hidden" name="{{ $process }}" value="0">
+                            <label class="d-flex gap-2 align-items-start mb-2" for="bcc-{{ $process }}">
+                                <input id="bcc-{{ $process }}" class="form-check-input" type="checkbox" name="{{ $process }}" value="1" @checked(old($process, $emailCopies['enabled'][$process]))>
+                                <span>{{ $definition['label'] }}</span>
+                            </label>
+                        @endforeach
+                        <p class="small text-gasq-muted">Estimate PDFs and final buyer appraisal deliveries are included. Booking confirmations, reminders, invitations, access codes, and other transactional messages are excluded. Existing CRM routing is managed separately.</p>
+                        <button class="btn btn-primary btn-sm" type="submit">Save Email Copy Settings</button>
+                    </form>
+                </section>
                 <section class="admin-settings-section admin-tool">
                     <div class="admin-section-title">Platform Snapshot</div>
                     <p class="admin-section-copy">Quick read on the areas that affect branding, communications, and configuration coverage.</p>

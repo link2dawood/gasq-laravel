@@ -6,6 +6,7 @@ use App\Mail\ReportPdfMail;
 use App\Models\CalculatorState;
 use App\Models\Transaction;
 use App\Services\CostToProtectEstimate;
+use App\Services\ProcessEmailCopies;
 use App\Services\ReportService;
 use App\Services\VendorReportSigningService;
 use App\Services\WalletService;
@@ -26,7 +27,7 @@ class ReportController extends Controller
      */
     private const ESTIMATE_BCC = 'info@getasecurityquotenow.com';
 
-    private const WEIGHTED_REPORT_CC = 'info@getasecurityquote.com';
+    private const WEIGHTED_REPORT_REPLY_TO = 'info@getasecurityquote.com';
 
     public function __construct(
         private ReportService $report,
@@ -244,11 +245,11 @@ class ReportController extends Controller
             }
         }
 
-        // BCC the GASQ inbox (record of each send) and the HubSpot "log to CRM"
-        // address (auto-logs the report onto the contact's HubSpot timeline).
-        $bcc = $privateWeightedReport ? [] : array_values(array_filter([self::ESTIMATE_BCC, config('services.hubspot.bcc')]));
-        $cc = $privateWeightedReport && strcasecmp($recipients->first(), self::WEIGHTED_REPORT_CC) !== 0
-            ? [self::WEIGHTED_REPORT_CC] : [];
+        $copyProcess = ProcessEmailCopies::processForReport($type);
+        // Preserve existing report/CRM routing outside the newly managed processes.
+        $existingBcc = $privateWeightedReport ? [] : array_values(array_filter([
+            $copyProcess === 'estimates' ? null : self::ESTIMATE_BCC, config('services.hubspot.bcc'),
+        ]));
 
         // Send each recipient their own copy (so they don't see each other),
         // stamped "Prepared exclusively for <their email>" so any forwarded copy
@@ -261,6 +262,7 @@ class ReportController extends Controller
             );
 
             try {
+                $bcc = app(ProcessEmailCopies::class)->recipients($copyProcess, [$to], $existingBcc);
                 $pending = Mail::to($to)->bcc($bcc);
                 $mail = new ReportPdfMail(
                     subjectLine: $subject,
@@ -271,8 +273,7 @@ class ReportController extends Controller
                     extraAttachments: $extraAttachments,
                 );
                 if ($privateWeightedReport) {
-                    $pending->cc($cc);
-                    $mail->replyTo(self::WEIGHTED_REPORT_CC, 'Get A Security Quote Team');
+                    $mail->replyTo(self::WEIGHTED_REPORT_REPLY_TO, 'Get A Security Quote Team');
                 }
                 $pending->send($mail);
             } catch (TransportExceptionInterface $exception) {
@@ -288,9 +289,6 @@ class ReportController extends Controller
         }
 
         $message = 'Report sent to '.$recipients->implode(', ');
-        if ($cc !== []) {
-            $message .= ' (CC: '.implode(', ', $cc).')';
-        }
 
         // Answer XHR sends with JSON so the calculator page never reloads. A full
         // reload re-initialises the calculator JS to its defaults, which wiped the
@@ -301,7 +299,7 @@ class ReportController extends Controller
                 'ok' => true,
                 'message' => $message,
                 'recipients' => $recipients->all(),
-                'cc' => $cc,
+                'cc' => [],
             ]);
         }
 

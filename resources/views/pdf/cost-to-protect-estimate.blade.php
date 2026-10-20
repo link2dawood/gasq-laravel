@@ -27,12 +27,13 @@
 
     // ReportService passes the calculator slug as $reportType; the document shows
     // the human label instead.
-    $reportType = $masked ? 'Buyer Edition — In-House Figures Only' : 'Vendor — Full Report';
+    $isBuyerAppraisal = ($reportType ?? null) === 'buyer-appraisal';
+    $reportType = $isBuyerAppraisal ? 'Buyer — Final Appraisal Report' : ($masked ? 'Buyer Edition — In-House Figures Only' : 'Vendor — Full Report');
     $pages = 4;
     $reportNumber = $reportNumber ?? ('GASQ-' . now()->format('Ymd-His') . '-V' . (int) ($vendorId ?? 0));
-    $reportDate = now()->format('F j, Y');
+    $reportDate = $datePrepared ?? now()->format('F j, Y');
     $orgName = $d['contact']['company'] ?: 'GASQ Security';
-    $docTitle = 'GASQ Cost to Protect Estimate Dashboard' . ($masked ? ' (Buyer Edition)' : '');
+    $docTitle = $isBuyerAppraisal ? 'GASQ Certified™ Cost to Protect™ Appraisal Report' : 'GASQ Cost to Protect Estimate Dashboard' . ($masked ? ' (Buyer Edition)' : '');
 
     $money   = fn ($v) => Currency::format($v, 2);
     $moneyK  = fn ($v) => Currency::format($v, 0);

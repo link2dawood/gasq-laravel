@@ -63,9 +63,9 @@
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:{{ $masked ? 4 : 16 }}px;">
       <tr>
         <td style="vertical-align:top;">
-          <p class="h1">GASQ COST TO PROTECT</p>
-          <p class="h1 h1-accent">ESTIMATE DASHBOARD</p>
-          <p class="h1-sub">{{ $masked ? 'Your In-House Cost to Protect — vendor figures withheld' : 'Buyer Internal vs Vendor Outsourcing Cost to Protect' }}</p>
+          <p class="h1">{{ ($isBuyerAppraisal ?? false) ? 'GASQ CERTIFIED™' : 'GASQ COST TO PROTECT' }}</p>
+          <p class="h1 h1-accent">{{ ($isBuyerAppraisal ?? false) ? 'COST TO PROTECT™' : 'ESTIMATE DASHBOARD' }}</p>
+          <p class="h1-sub">{{ ($isBuyerAppraisal ?? false) ? 'Appraisal Report' : ($masked ? 'Your In-House Cost to Protect — vendor figures withheld' : 'Buyer Internal vs Vendor Outsourcing Cost to Protect') }}</p>
         </td>
         <td width="248" style="vertical-align:top; padding-top:4px;">
           <table width="100%" cellpadding="0" cellspacing="0">
@@ -92,7 +92,7 @@
     <table class="contact" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;">
       <tr>
         @foreach([
-            ['user', 'Vendor Contact', $d['contact']['name'] ?: '—', $d['contact']['company'], '25%'],
+            ['user', ($isBuyerAppraisal ?? false) ? 'Buyer Contact' : 'Vendor Contact', $d['contact']['name'] ?: '—', $d['contact']['company'], '25%'],
             ['mail', 'Email', $d['contact']['email'] ?: '—', null, '24%'],
             ['phone', 'Phone', $d['contact']['phone'] ?: '—', null, '22%'],
             ['doc', 'Report Type', $reportType, null, '29%'],

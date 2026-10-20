@@ -38,6 +38,9 @@ class ReportService
      */
     public function calculatorPdf(string $type, array $payload, ?string $openPassword = null): \Barryvdh\DomPDF\PDF
     {
+        if ($type === 'buyer-appraisal') {
+            validator(['pdf_password' => $openPassword], ['pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/']])->validate();
+        }
         if ($type === 'vendor-weighted-rates') {
             if (strlen(trim((string) $openPassword)) < 8 || strlen((string) $openPassword) > 32 || ! preg_match('/^[\x20-\x7E]+$/', (string) $openPassword)) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['pdf_password' => ['Use an 8–32 character PDF password with standard letters, numbers, or symbols.']]);
@@ -65,7 +68,7 @@ class ReportService
             //     dashboard, the paid deliverable a vendor sends to a buyer;
             //   'budget-calculator-allocation' → Workforce-to-Post allocation totals
             //     and line-item breakdown.
-            'budget-calculator' => 'pdf.cost-to-protect-estimate',
+            'budget-calculator', 'buyer-appraisal' => 'pdf.cost-to-protect-estimate',
             // Same document as the buyer's free edition: their in-house figures in
             // full, the vendor's cost and the savings withheld.
             'budget-calculator-preview' => 'pdf.cost-to-protect-estimate',
@@ -100,7 +103,7 @@ class ReportService
             $canvas = $dompdf->getCanvas();
             $canvas->page_text(30, $canvas->get_height() - 21,
                 'CONFIDENTIAL | VENDOR WEIGHTED RATE REPORT | '.($payload['reportNumber'] ?? 'GASQ').' | Page {PAGE_NUM} of {PAGE_COUNT}',
-                $dompdf->getFontMetrics()->getFont('DejaVu Sans'), 6, [0.38, 0.46, 0.55]);
+                $dompdf->getFontMetrics()->getFont('DejaVu Sans'), 8, [0.38, 0.46, 0.55]);
         }
 
         // The buyer edition is meant to be forwarded freely: it carries the buyer's
@@ -108,7 +111,7 @@ class ReportService
         return $this->restrictCopyAndPrint(
             $pdf,
             $type === 'budget-calculator-preview' ? null : $openPassword,
-            $type === 'vendor-weighted-rates',
+            in_array($type, ['vendor-weighted-rates', 'buyer-appraisal'], true),
         );
     }
 

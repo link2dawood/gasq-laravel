@@ -46,7 +46,7 @@ class CalculatorReportEmailTest extends TestCase
         $vendor = $this->user();
         app(MasterInputsService::class)->getOrCreate($vendor)->update(['is_complete' => true]);
         $response = $this->actingAs($vendor)->get(route('main-menu-calculator.index'))->assertOk();
-        $response->assertSee('main-report-email')->assertSee('Email Protected PDF to Me')->assertSee('with CC to info@getasecurityquote.com')->assertSee(route('reports.email'))->assertDontSee('Email functionality: connect');
+        $response->assertSee('main-report-email')->assertSee('Email Protected PDF to Me')->assertSee('Internal copies use BCC')->assertSee(route('reports.email'))->assertDontSee('Email functionality: connect');
     }
 
     public function test_main_report_can_be_emailed_to_multiple_valid_recipients(): void
@@ -62,7 +62,7 @@ class CalculatorReportEmailTest extends TestCase
         $this->assertSame($before, $vendor->calculatorStates()->first()->scenario);
     }
 
-    public function test_private_signed_report_uses_own_saved_data_is_encrypted_and_ccs_gasq_without_bcc_or_password_in_body(): void
+    public function test_private_signed_report_uses_own_saved_data_is_encrypted_and_bccs_gasq_without_password_in_body(): void
     {
         Mail::fake();
         $this->travelTo(now()->setDate(2026, 10, 12)->setTime(10, 0));
@@ -80,17 +80,18 @@ class CalculatorReportEmailTest extends TestCase
                 return (new ReportService)->calculatorPdf($type, $data, $password);
             });
         });
-        $this->actingAs($vendor)->withSession(['report_payload' => ['type' => 'main-menu', 'scenario' => ['meta' => ['companyName' => 'Foreign session']]]])->postJson(route('reports.email'), ['type' => 'vendor-weighted-rates', 'email' => $vendor->email, 'pdf_password' => 'LocalTestPassword', 'notes' => 'Do not include', 'electronicSignature' => ['signer_name' => 'forged']])->assertOk()->assertJsonPath('recipients.0', $vendor->email)->assertJsonPath('cc.0', 'info@getasecurityquote.com');
+        $this->actingAs($vendor)->withSession(['report_payload' => ['type' => 'main-menu', 'scenario' => ['meta' => ['companyName' => 'Foreign session']]]])->postJson(route('reports.email'), ['type' => 'vendor-weighted-rates', 'email' => $vendor->email, 'pdf_password' => 'LocalTestPassword', 'notes' => 'Do not include', 'electronicSignature' => ['signer_name' => 'forged']])->assertOk()->assertJsonPath('recipients.0', $vendor->email)->assertJsonPath('cc', []);
         $this->assertSame($signature->report_id, $payload['electronicSignature']->report_id);
         $html = view('pdf.vendor-weighted-rates', app(VendorWeightedRateReport::class)->prepare($payload))->render();
         $this->assertStringContainsString('Vendor signer', $html);
         $this->assertStringContainsString('October 12, 2026', $html);
         $this->assertStringNotContainsString('Foreign session', $html);
         Mail::assertSent(ReportPdfMail::class, function ($mail) use ($vendor) {
-            $this->assertSame([], $mail->bcc);
+            $this->assertSame([], $mail->cc);
             $this->assertSame([], $mail->extraAttachments);
             $this->assertSame('GASQ Vendor Weighted Rate Report', $mail->subjectLine);
-            $this->assertTrue($mail->hasCc('info@getasecurityquote.com'));
+            $this->assertTrue($mail->hasBcc('info@getasecurityquote.com'));
+            $this->assertFalse($mail->hasBcc('crm@example.test'));
             $this->assertTrue($mail->hasReplyTo('info@getasecurityquote.com'));
             $this->assertStringContainsString('/Encrypt', $mail->pdf);
             $this->assertStringContainsString('Hello '.e($vendor->name).',', $mail->render());
@@ -118,7 +119,7 @@ class CalculatorReportEmailTest extends TestCase
 
         $this->actingAs($vendor)->postJson(route('reports.email'), [
             'type' => 'vendor-weighted-rates', 'email' => $vendor->email, 'pdf_password' => 'LocalTestPassword',
-        ])->assertOk()->assertJsonPath('cc', ['info@getasecurityquote.com']);
+        ])->assertOk()->assertJsonPath('cc', []);
 
         Mail::assertSent(ReportPdfMail::class, function ($mail) {
             $body = $mail->render();
@@ -127,7 +128,7 @@ class CalculatorReportEmailTest extends TestCase
             }
             $this->assertStringNotContainsString('LocalTestPassword', $body);
 
-            return $mail->hasCc('info@getasecurityquote.com');
+            return $mail->hasBcc('info@getasecurityquote.com') && $mail->cc === [];
         });
     }
 

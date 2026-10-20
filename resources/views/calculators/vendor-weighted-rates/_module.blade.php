@@ -89,7 +89,7 @@
         <button type="button" id="vwr_report_email" class="btn btn-primary" disabled>Email Protected PDF to Me</button>
         <button id="vwr_report_download" class="btn btn-outline-primary" type="submit" disabled>Download Protected PDF</button>
       </div>
-      <p class="small text-gasq-muted mt-2 mb-0">Email copy to {{ auth()->user()?->email }}, with CC to info@getasecurityquote.com. The password is kept out of the email. The current signature is included when this report version is signed.</p>
+      <p class="small text-gasq-muted mt-2 mb-0">Email copy to {{ auth()->user()?->email }}. Internal copies use BCC according to GASQ’s process email settings. The password is kept out of the email. The current signature is included when this report version is signed.</p>
       <div id="vwr_report_status" class="small mt-2" role="status" aria-live="polite"></div>
     </form>
     <div class="border rounded p-3 mb-3" id="vwr_preview" hidden>

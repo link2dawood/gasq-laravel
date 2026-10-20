@@ -106,6 +106,7 @@
                                     @endif
                                     @if(auth()->user()->isAdmin())
                                         <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fa fa-chart-line me-2"></i>Dashboard</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.appraisal-reviews.index') }}"><i class="fa fa-calendar me-2"></i>Buyer Appraisal Reviews</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.settings') }}"><i class="fa fa-cog me-2"></i>Settings</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.tokens') }}"><i class="fa fa-shield me-2"></i>Token Admin</a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.faqs.index') }}"><i class="fa fa-question-circle me-2"></i>FAQs</a></li>

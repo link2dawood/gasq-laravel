@@ -18,34 +18,33 @@
 <head><meta charset="utf-8"><title>GASQ Vendor Weighted Rate Dashboard</title>
 <style>
   @page { margin:28pt 30pt 35pt; }
-  body { font-family:DejaVu Sans,sans-serif; color:#19334f; font-size:8pt; margin:0; }
+  body { font-family:DejaVu Sans,sans-serif; color:#19334f; font-size:10pt; line-height:12pt; margin:0; }
   table { border-collapse:collapse; width:100%; } td,th { vertical-align:top; }
-  h1 { font-size:18pt; font-weight:normal; margin:9pt 0 3pt; } h2 { font-size:15pt; font-weight:normal; margin:13pt 0 4pt; }
-  p { margin:4pt 0; line-height:1.5; } .muted { color:#61758b; } .small { font-size:7pt; }
+  h1 { font-size:21pt; line-height:26pt; font-weight:normal; margin:8pt 0 3pt; } h2 { font-size:17pt; line-height:22pt; font-weight:normal; margin:8pt 0 4pt; }
+  p { margin:4pt 0; line-height:1.4; } .muted { color:#61758b; } .small { font-size:9pt; }
   .header { border-bottom:4pt solid #19334f; background:#eaf0f8; }
-  .header td { padding:5pt 10pt; font-size:7pt; vertical-align:middle; } .logo { width:80pt; }
+  .header td { padding:3pt 10pt; font-size:8.5pt; line-height:11pt; vertical-align:middle; } .logo { width:70pt; }
   .orange-line { border-bottom:3pt solid #f26c20; display:inline-block; padding-bottom:8pt; }
-  .metadata { background:#eef3f9; margin:7pt 0 9pt; } .metadata td { padding:6pt 10pt; width:25%; }
-  .label { font-size:6.5pt; color:#61758b; text-transform:uppercase; margin-bottom:4pt; }
-  .cards { table-layout:fixed; border-spacing:0; margin-bottom:6pt; } .cards td { width:33.33%; padding:0 7pt 7pt 0; }
-  .card { background:#eef3f9; } .band { padding:5pt 10pt; color:white; background:#19334f; font-size:6.5pt; text-transform:uppercase; }
-  .value { font-size:18pt; text-align:center; padding:5pt 7pt 2pt; } .sub { text-align:center; padding:0 7pt 4pt; font-size:6.5pt; color:#61758b; }
+  .metadata { background:#eef3f9; margin:5pt 0 6pt; } .metadata td { padding:3pt 10pt; width:25%; }
+  .label { font-size:8.5pt; line-height:11pt; color:#61758b; text-transform:uppercase; margin-bottom:4pt; }
+  .cards { table-layout:fixed; border-spacing:0; margin-bottom:4pt; } .cards td { width:33.33%; padding:0 7pt 4pt 0; }
+  .card { background:#eef3f9; } .band { padding:3pt 10pt; color:white; background:#19334f; font-size:8.5pt; line-height:11pt; text-transform:uppercase; }
+  .value { font-size:22pt; line-height:27pt; text-align:center; padding:2pt 7pt 0; } .sub { text-align:center; padding:0 7pt 2pt; font-size:8.5pt; line-height:11pt; color:#61758b; }
   .orange { background:#fff0e8; } .orange .band { background:#f26c20; } .orange .value { color:#ec6018; }
   .green { background:#e8f4ed; } .green .band { background:#18834d; } .green .value { color:#18834d; }
-  .schedule td { text-align:center; padding:7pt 8pt; border-right:1pt solid #d4dfeb; width:25%; } .schedule .metric { font-size:11pt; }
-  .basis { margin:7pt 0; } .basis td { width:50%; padding-right:10pt; } .basis .content { background:#eef3f9; padding:7pt 10pt; font-size:7pt; }
-  .note { background:#fff5d9; padding:7pt 10pt; margin-top:6pt; font-size:6.5pt; line-height:1.5; }
+  .schedule td { text-align:center; padding:4pt 8pt; border-right:1pt solid #d4dfeb; width:25%; } .schedule .metric { font-size:14pt; line-height:18pt; } .schedule p { margin:2pt 0; }
+  .basis { margin:5pt 0; } .basis td { width:50%; padding-right:10pt; } .basis .content { background:#eef3f9; padding:5pt 10pt; font-size:9pt; } .basis p { margin:2pt 0; line-height:12pt; }
+  .note { background:#fff5d9; padding:6pt 10pt; margin-top:5pt; font-size:8.5pt; line-height:1.25; }
   .page-break { page-break-before:always; }
-  .roster { table-layout:fixed; font-size:6.2pt; margin-top:12pt; } .roster thead { display:table-header-group; }
-  .roster th { background:#19334f; color:white; font-weight:normal; padding:7pt 4pt; }
-  .roster td { padding:4pt 4pt; line-height:1.25; border-bottom:0.6pt solid #d4dfeb; } .roster tr { page-break-inside:avoid; }
-  @if(isset($electronicSignature)) .roster td { padding:2.5pt 4pt; } @endif
-  .roster .small { font-size:5.5pt; }
+  .roster { table-layout:fixed; font-size:8pt; margin-top:10pt; } .roster thead { display:table-header-group; }
+  .roster th { background:#19334f; color:white; font-weight:normal; padding:6pt 4pt; line-height:10pt; }
+  .roster td { padding:2pt 4pt; line-height:1.1; border-bottom:0.6pt solid #d4dfeb; } .roster tr { page-break-inside:avoid; }
+  .roster .small { font-size:7.5pt; line-height:1.1; }
   .roster .numeric { text-align:right; } .roster .total td { background:#eaf1f8; font-weight:bold; }
-  .readme { background:#eaf1f8; padding:8pt 11pt; font-size:7pt; }
-  .signature { border:0.6pt solid #d4dfeb; padding:8pt 12pt; margin-top:10pt; page-break-inside:avoid; }
-  .signature p { font-size:7pt; margin:2pt 0; line-height:1.3; }
-  .signature-mark { font-family:DejaVu Serif,serif; font-style:italic; font-size:18pt; }
+  .readme { background:#eaf1f8; padding:6pt 11pt; font-size:9pt; line-height:12.5pt; }
+  .signature { border:0.6pt solid #d4dfeb; padding:6pt 10pt; margin-top:8pt; page-break-inside:avoid; }
+  .signature p { font-size:9pt; margin:1.5pt 0; line-height:11.5pt; }
+  .signature-mark { font-family:DejaVu Serif,serif; font-style:italic; font-size:22pt; line-height:27pt; }
 </style></head>
 <body>
 <table class="header"><tr><td width="20%"><img class="logo" src="{{ $logo }}" alt="GASQ"></td><td>INDEPENDENT. DATA-DRIVEN. HIGHER STANDARDS.</td><td style="text-align:right"><span class="orange-line">REAL DATA. REAL INSIGHTS.</span></td></tr></table>
@@ -80,11 +79,11 @@
 <h2>Vendor Weighted Bill Rate · Cost to Deliver Protection</h2>
 <p class="muted">{{ $money($t['weightedPayWage']) }}/hr weighted pay · {{ $money($t['weightedBillRate']) }}/hr weighted bill · {{ $number($t['annualRoleHours'],2) }} annual payroll hours · {{ $number($t['headcount']) }} employees</p>
 <div class="readme"><strong>How to read this schedule</strong> · Wage share = role pay wage ÷ bill rate. Blank actual wages in Current Bill Rate Analysis use bill rate × 7 ÷ 18, labeled “Implied pay wage — model estimate.” These estimates are not verified employee compensation. GASQ Wage-Based Pricing uses wage × 18 ÷ 7, the fixed GASQ 6:1 model rate.</div>
-<table class="roster"><colgroup><col style="width:19%"><col style="width:4%"><col style="width:7%"><col style="width:8%"><col style="width:6%"><col style="width:7%"><col style="width:9%"><col style="width:7%"><col style="width:9%"><col style="width:8%"><col style="width:6%"><col style="width:10%"></colgroup>
-<thead><tr><th style="width:19%">Position / classification</th><th style="width:4%">Count</th><th style="width:7%">Pay rate/hr</th><th style="width:8%">Combined hourly wages</th><th style="width:6%">Wage share</th><th style="width:7%">Weekly hours</th><th style="width:9%">Weekly bill cost</th><th style="width:7%">Monthly hours</th><th style="width:9%">Monthly bill cost</th><th style="width:8%">Annual role hours</th><th style="width:6%">Bill rate/hr</th><th style="width:10%">Annual bill cost</th></tr></thead>
+<table class="roster"><colgroup><col style="width:17%"><col style="width:4%"><col style="width:7%"><col style="width:8%"><col style="width:6%"><col style="width:7%"><col style="width:9%"><col style="width:7%"><col style="width:9%"><col style="width:8%"><col style="width:7%"><col style="width:11%"></colgroup>
+<thead><tr><th style="width:17%">Position / classification</th><th style="width:4%">Count</th><th style="width:7%">Pay rate/hr</th><th style="width:8%">Combined hourly wages</th><th style="width:6%">Wage share</th><th style="width:7%">Weekly hours</th><th style="width:9%">Weekly bill cost</th><th style="width:7%">Monthly hours</th><th style="width:9%">Monthly bill cost</th><th style="width:8%">Annual role hours</th><th style="width:7%">Bill rate/hr</th><th style="width:11%">Annual bill cost</th></tr></thead>
 <tbody>@foreach($weighted['roles'] as $role)<tr>
   <td>{{ $role['label'] }}<div class="small muted">{{ $number($role['weeklyHoursPerEmployee'],2) }} hr/week × {{ $number($role['weeksPerYear'],2) }} weeks</div></td>
-  <td class="numeric">{{ $number($role['headcount']) }}</td><td class="numeric">{{ $money($role['payRate']) }}<div class="muted">{{ $role['paySource'] === 'implied' ? 'Implied estimate' : 'Actual — entered' }}</div></td>
+  <td class="numeric">{{ $number($role['headcount']) }}</td><td class="numeric">{{ $money($role['payRate']) }}<div class="small muted">{{ $role['paySource'] === 'implied' ? 'Model estimate' : 'Actual wage' }}</div></td>
   @foreach([['combinedHourlyWages','money'],['wageShareOfBillRate','percent'],['weeklyHours','number'],['weeklyBillCost','money'],['monthlyHours','number'],['monthlyBillCost','money'],['annualRoleHours','number'],['billRate','money'],['annualBillCost','money']] as [$field,$format])
     <td class="numeric">{{ $format === 'money' ? $money($role[$field]) : ($format === 'percent' ? $percent($role[$field]) : $number($role[$field],2)) }}</td>
   @endforeach
