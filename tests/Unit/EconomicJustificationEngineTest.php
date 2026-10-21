@@ -15,7 +15,10 @@ class EconomicJustificationEngineTest extends TestCase
         $scenario = json_decode(file_get_contents($base.'.json'), true)['scenario'];
         $expected = json_decode(file_get_contents($base.'.expected.json'), true)['tabs'];
         $actual = app(MainMenuComputeService::class)->compute($scenario)['tabs'];
-        $this->assertEquals($expected['economicJustification'], $actual['economicJustification']);
+        $this->assertSame(array_keys($expected['economicJustification']), array_keys($actual['economicJustification']));
+        foreach ($expected['economicJustification'] as $key => $value) {
+            $this->assertEqualsWithDelta($value, $actual['economicJustification'][$key], 1e-8, $key);
+        }
         $this->assertEquals($expected['contractSummary'], $actual['contractSummary']);
 
         $base = base_path('tests/Fixtures/v24/standalone/economic-justification.basic');

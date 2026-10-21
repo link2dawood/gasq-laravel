@@ -1,0 +1,20 @@
+{
+  "base": "USD",
+  "asOf": "2026-10-21",
+  "source": "ECB",
+  "sourceUrl": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+  "checkedAt": null,
+  "rates": {
+    "USD": 1.0,
+    "CAD": 1.404575396118925,
+    "MXN": 18.48246394872708,
+    "GBP": 0.7461723339861137,
+    "AUD": 1.4216663699483711,
+    "INR": 94.46902260993413,
+    "BRL": 5.023322058038099,
+    "ZAR": 16.372618835677407,
+    "EUR": 0.8901548869503294,
+    "CNY": 6.676072636638776,
+    "JPY": 157.87787074951044
+  }
+}

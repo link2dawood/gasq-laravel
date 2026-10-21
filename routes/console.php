@@ -54,3 +54,4 @@ Schedule::command('documents:expire')->hourly()->withoutOverlapping();
 Schedule::command('documents:purge-personal-data')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('appraisals:process')->everyMinute()->withoutOverlapping();
 Schedule::command('appraisals:process --sync')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('currency:refresh')->hourly()->withoutOverlapping();

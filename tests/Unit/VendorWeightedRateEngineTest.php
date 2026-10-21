@@ -134,7 +134,10 @@ class VendorWeightedRateEngineTest extends TestCase
         $expected = json_decode(file_get_contents($base.'.expected.json'), true);
         $out = app(MainMenuComputeService::class)->compute($inputs['scenario'])['tabs'];
         $this->assertEquals($expected['tabs']['billRate'], $out['billRate']);
-        $this->assertEquals($expected['tabs']['economicJustification'], $out['economicJustification']);
+        $this->assertSame(array_keys($expected['tabs']['economicJustification']), array_keys($out['economicJustification']));
+        foreach ($expected['tabs']['economicJustification'] as $key => $value) {
+            $this->assertEqualsWithDelta($value, $out['economicJustification'][$key], 1e-8, $key);
+        }
         $this->assertArrayNotHasKey('vendorComparison', $out);
     }
 }

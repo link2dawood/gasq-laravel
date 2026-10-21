@@ -207,6 +207,20 @@
                     </form>
                 </section>
                 <section class="admin-settings-section admin-tool">
+                    <div class="admin-section-title">Currency Exchange Rates</div>
+                    <p class="admin-section-copy">ECB daily reference · {{ $exchangeRates['asOf'] }}. Rates below show units per 1 USD. Last verified rates remain available during provider outages.</p>
+                    <table class="table table-sm small">
+                        <thead><tr><th>Currency</th><th class="text-end">Per 1 USD</th></tr></thead>
+                        <tbody>@foreach($exchangeRates['rates'] as $code => $rate)<tr><td>{{ $code }}</td><td class="text-end">{{ number_format($rate, 6) }}</td></tr>@endforeach</tbody>
+                    </table>
+                    <p class="small"><a href="{{ $exchangeRates['sourceUrl'] }}" target="_blank" rel="noopener">View ECB reference rates</a></p>
+                    <form action="{{ route('admin.settings.exchange-rates') }}" method="POST">
+                        @csrf
+                        <button class="btn btn-outline-primary btn-sm" type="submit">Refresh ECB Rates</button>
+                    </form>
+                    @error('exchange_rates')<p class="text-danger small mt-2">{{ $message }}</p>@enderror
+                </section>
+                <section class="admin-settings-section admin-tool">
                     <div class="admin-section-title">Platform Snapshot</div>
                     <p class="admin-section-copy">Quick read on the areas that affect branding, communications, and configuration coverage.</p>
                     <div class="admin-kpi-grid">

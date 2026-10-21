@@ -90,6 +90,7 @@ class VendorWeightedRateController extends Controller
             session(['report_payload' => ['type' => 'main-menu', 'scenario' => $scenario, 'result' => $out]]);
 
             return response()->json(['ok' => true, 'result' => $result, 'scenario' => $scenario, 'main' => $out, 'preview' => $preview, 'applied' => $apply,
+                'currency' => \App\Support\Currency::jsConfig(),
                 ...$this->signatures->status($scenario, $request->user()),
             ]);
         });

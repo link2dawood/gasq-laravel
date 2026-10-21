@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Currency;
 use Illuminate\Validation\ValidationException;
 
 class VendorWeightedRateReport
@@ -26,16 +27,20 @@ class VendorWeightedRateReport
             $role['monthlyBillCost'] = $role['annualBillCost'] / 12;
         }
         unset($role);
+        $ownerCurrency = ($payload['user'] ?? null)?->currency;
+        $currency = Currency::jsConfig(isset(config('currency.profiles')[$ownerCurrency ?? '']) ? $ownerCurrency : null);
         $t = &$result['totals'];
         $t['weeklyBillCost'] = array_sum(array_column($result['roles'], 'weeklyBillCost'));
         $t['monthlyBillCost'] = $t['annualBillCost'] / 12;
-        $t['roundedRateAnnualCost'] = round($t['weightedBillRate'], 2) * $t['annualRoleHours'];
+        // Reconcile the displayed local-currency rate, retaining USD model values.
+        $t['roundedRateAnnualCost'] = round(round($t['weightedBillRate'] * $currency['rate'], 10), 2) / $currency['rate'] * $t['annualRoleHours'];
         $t['roundingDifference'] = $t['roundedRateAnnualCost'] - $t['annualBillCost'];
         unset($t);
 
         return array_merge($payload, [
             'weighted' => $result,
             'weightedInputs' => $inputs,
+            'reportCurrency' => $currency,
             'selectionLabel' => isset($module['applied']) && $inputs === $module['applied']['inputs']
                 ? 'Applied vendor selection' : 'Saved vendor draft',
             'buyerSite' => data_get($scenario, 'meta.companyName') ?: data_get($scenario, 'meta.inputs.company_name') ?: 'Not supplied',

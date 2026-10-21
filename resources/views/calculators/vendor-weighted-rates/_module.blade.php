@@ -6,6 +6,7 @@
   <summary class="card-header p-3 fw-semibold">Vendor Weighted Rates</summary>
   <div class="card-body p-3 p-md-4">
     <p class="text-gasq-muted small">Enter your staffing mix and current bill rates or actual wages. The weighted rates use annual staffing hours. Applying them uses the main calculator’s billable service hours for the project estimate.</p>
+    <p class="small text-gasq-muted" id="vwr_currency_basis"></p>
     <div class="row g-3 mb-3">
       <div class="col-md-6">
         <label class="form-label" for="vwr_mode">Calculation mode</label>

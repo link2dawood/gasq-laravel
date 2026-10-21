@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\ExchangeRateService;
 use App\Services\ProcessEmailCopies;
 use App\Services\ReportService;
 use App\Services\VendorWeightedRateEngine;
@@ -47,6 +48,12 @@ if ($copies->recipients(null) !== []) {
     throw new RuntimeException('An unrelated message acquired a process BCC.');
 }
 echo "Scoped BCC and recipient privacy: verified\n";
+
+$rates = app(ExchangeRateService::class)->current();
+if ((float) $rates['rates']['USD'] !== 1.0 || count($rates['rates']) !== count(config('currency.profiles'))) {
+    throw new RuntimeException('The supported currency cross rates are incomplete.');
+}
+echo 'ECB reference sheet: '.$rates['asOf'].' | USD/CAD: '.number_format($rates['rates']['CAD'], 6)."\n";
 
 $payload = ['scenario' => ['meta' => ['vendorWeightedRates' => ['draft' => VendorWeightedRateEngine::presets()['sample']]]]];
 $service = app(ReportService::class);

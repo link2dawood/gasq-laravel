@@ -30,9 +30,17 @@
   }
   function writeInputs() {
     root.querySelectorAll('[data-vwr-path]').forEach(el => {
-      el.value = el.dataset.vwrPath.split('.').reduce((value,key) => value?.[key], inputs) ?? '';
+      const value = el.dataset.vwrPath.split('.').reduce((value,key) => value?.[key], inputs);
+      if(value != null && /\.(actualWage|billRate)$/.test(el.dataset.vwrPath)) showMoneyInput(el, value);
+      else el.value = value ?? '';
     });
     syncWeeklyHoursInputs();
+    showCurrencyBasis();
+  }
+  function showCurrencyBasis() {
+    const c = window.GASQ_CURRENCY || {code:'USD',rate:1};
+    text('vwr_currency_basis', c.code === 'USD' ? 'Enter monetary amounts in USD. Currency switching converts amounts; staffing hours and headcount stay the same.'
+      : `Enter monetary amounts in ${c.code}. 1 USD = ${Number(c.rate).toFixed(6)} ${c.code}. ${c.source} daily reference: ${c.asOf}${c.stale ? ' (last available; refresh pending)' : ''}.`);
   }
   function syncWeeklyHoursInputs(skip = null) {
     root.querySelectorAll('[data-vwr-weekly-hours]').forEach(el => {
@@ -119,6 +127,15 @@
         return;
       }
       response = data;
+      if(data.currency?.code === window.GASQ_CURRENCY?.code && data.currency.rate !== window.GASQ_CURRENCY.rate) {
+        const employerUsd = readMoneyInput('ej_employeeCost');
+        window.GASQ_CURRENCY = data.currency;
+        showMoneyInput(document.getElementById('ej_employeeCost'), employerUsd);
+        writeInputs();
+      } else if(data.currency?.code === window.GASQ_CURRENCY?.code) {
+        window.GASQ_CURRENCY = data.currency;
+        showCurrencyBasis();
+      }
       mainScenario = data.scenario;
       renderMainMenu(data.main);
       root.querySelectorAll('[data-vwr-total]').forEach(el => el.textContent = format(data.result.totals[el.dataset.vwrTotal],el.dataset.format));
@@ -150,7 +167,8 @@
       // The table edits total role hours; saved assumptions use hours per employee.
       parent.weeklyHoursPerEmployee = el.value === '' || !(parent.headcount > 0) ? null : Number(el.value) / parent.headcount;
     } else {
-      parent[path.at(-1)] = el.type === 'number' ? (el.value === '' ? null : Number(el.value)) : el.value;
+      const monetary = ['actualWage','billRate'].includes(path.at(-1));
+      parent[path.at(-1)] = el.type === 'number' ? (el.value === '' ? null : Number(el.value) / (monetary ? fxRate() : 1)) : el.value;
     }
     syncWeeklyHoursInputs(el);
     if(path.at(-1) === 'classification') inputs.roles[+path[1]].label = el.value === 'custom' ? '' : classifications[el.value];

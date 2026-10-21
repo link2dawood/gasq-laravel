@@ -101,6 +101,11 @@ class ReportService
             $pdf->render();
             $dompdf = $pdf->getDomPDF();
             $canvas = $dompdf->getCanvas();
+            $currency = $payload['reportCurrency'];
+            $fxNotice = $currency['code'] === 'USD' ? 'Currency: USD (base currency)'
+                : 'Currency: '.$currency['code'].' | 1 USD = '.number_format($currency['rate'], 6).' '.$currency['code'].' | '.$currency['source'].' reference: '.$currency['asOf'];
+            $canvas->page_text(30, $canvas->get_height() - 33, $fxNotice,
+                $dompdf->getFontMetrics()->getFont('DejaVu Sans'), 8, [0.38, 0.46, 0.55]);
             $canvas->page_text(30, $canvas->get_height() - 21,
                 'CONFIDENTIAL | VENDOR WEIGHTED RATE REPORT | '.($payload['reportNumber'] ?? 'GASQ').' | Page {PAGE_NUM} of {PAGE_COUNT}',
                 $dompdf->getFontMetrics()->getFont('DejaVu Sans'), 8, [0.38, 0.46, 0.55]);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Services\ExchangeRateService;
 use App\Services\ProcessEmailCopies;
 use App\Services\TwilioSmsService;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +25,7 @@ class AdminSettingsController extends Controller
     public function index(): View
     {
         $copyKeys = array_merge([ProcessEmailCopies::ADDRESS_KEY], array_column(ProcessEmailCopies::PROCESSES, 'key'));
-        $settings = Setting::whereNotIn('key', $copyKeys)->orderBy('group')->orderBy('key')->get()->groupBy('group');
+        $settings = Setting::whereNotIn('key', $copyKeys)->where('key', 'not like', 'exchange_rate%')->orderBy('group')->orderBy('key')->get()->groupBy('group');
         $logoPath = Setting::get(self::LOGO_SETTING_KEY);
 
         return view('admin.settings', [
@@ -32,6 +33,7 @@ class AdminSettingsController extends Controller
             'siteLogoPath' => $logoPath,
             'twilioDebug' => app(TwilioSmsService::class)->debugContext(),
             'emailCopies' => app(ProcessEmailCopies::class)->settings(),
+            'exchangeRates' => app(ExchangeRateService::class)->current(),
         ]);
     }
 
@@ -49,6 +51,9 @@ class AdminSettingsController extends Controller
             abort_if(array_key_exists($key, $data['settings'] ?? []), 422, 'Use the process email copy settings form.');
         }
 
+        foreach ($data['settings'] ?? [] as $key => $payload) {
+            abort_if(str_starts_with($key, 'exchange_rate'), 422, 'Exchange rates are managed by the dated ECB reference feed.');
+        }
         foreach ($data['settings'] ?? [] as $key => $payload) {
             $value = $payload['value'] ?? null;
             $group = $payload['group'] ?? 'general';
@@ -76,6 +81,17 @@ class AdminSettingsController extends Controller
         }
 
         return redirect()->route('admin.settings')->with('success', 'Process email BCC settings updated.');
+    }
+
+    public function refreshExchangeRates(ExchangeRateService $rates): RedirectResponse
+    {
+        try {
+            $sheet = $rates->refresh();
+        } catch (\Throwable) {
+            return back()->withErrors(['exchange_rates' => 'Could not verify the latest ECB reference sheet. Previous rates have been retained.']);
+        }
+
+        return back()->with('success', 'ECB reference exchange rates updated: '.$sheet['asOf'].'.');
     }
 
     public function uploadLogo(Request $request): RedirectResponse

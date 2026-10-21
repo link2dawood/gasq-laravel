@@ -96,6 +96,7 @@ jobs:
             ln -s "$PWD/storage/app/public" public/storage
           fi
           php artisan queue:restart
+          php artisan currency:refresh
           php scripts/verify_report_deployment.php
           if ! php artisan appraisals:preflight; then
             echo 'Scheduling setup needs attention; see preflight results above.'

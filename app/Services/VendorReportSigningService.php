@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\VendorReportSignature;
-use App\Support\Currency;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -19,13 +18,13 @@ class VendorReportSigningService
     {
         $data = $this->report->prepare(['scenario' => $scenario, 'user' => $user]);
 
-        return [
+        $document = [
             'version' => 'GASQ weighted report v1.2',
             'ownerId' => $user->id,
             'vendorName' => $data['vendorName'],
             'buyerSite' => $data['buyerSite'],
             'preparedBy' => data_get($scenario, 'meta.preparedBy'),
-            'currency' => isset(config('currency.profiles', [])[$user->currency ?? '']) ? $user->currency : Currency::code(),
+            'currency' => $data['reportCurrency']['code'],
             'selectionLabel' => $data['selectionLabel'],
             'mode' => $data['weighted']['mode'],
             'assumptions' => [
@@ -35,6 +34,11 @@ class VendorReportSigningService
             'roles' => $data['weighted']['roles'],
             'totals' => $data['weighted']['totals'],
         ];
+        if ($document['currency'] !== 'USD') {
+            $document['conversion'] = array_intersect_key($data['reportCurrency'], array_flip(['rate', 'asOf', 'source']));
+        }
+
+        return $document;
     }
 
     public function fingerprint(array $document): string

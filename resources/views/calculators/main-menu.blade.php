@@ -152,8 +152,21 @@
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
 let mainScenario = JSON.parse(JSON.stringify(savedScenario || {}));
 const masterInputs = window.__gasqMasterInputs || {};
-function fmt(v, dec = 2) {
-  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
+function fxRate() { return Number(window.GASQ_CURRENCY?.rate) || 1; }
+function fmt(v, dec = 2, convert = true) {
+  // Remove binary FX round-trip noise at half-cent boundaries for display only.
+  const amount = Number((v * (convert ? fxRate() : 1)).toFixed(10));
+  return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { style: 'currency', currency:(window.GASQ_CURRENCY&&window.GASQ_CURRENCY.code)||'USD', minimumFractionDigits: dec, maximumFractionDigits: dec }).format(amount);
+}
+function showMoneyInput(el, usd) {
+  el.value = String(Number((Number(usd) * fxRate()).toFixed(6)));
+  el.dataset.usdValue = usd;
+  el.dataset.displayValue = el.value;
+}
+function readMoneyInput(id) {
+  const el = document.getElementById(id);
+  // Recalculating or switching currency must not round the saved USD model.
+  return el.value === el.dataset.displayValue ? Number(el.dataset.usdValue) : gNum(id) / fxRate();
 }
 function fmtN(v, dec = 0) {
   return new Intl.NumberFormat((window.GASQ_CURRENCY&&window.GASQ_CURRENCY.locale)||'en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
@@ -177,7 +190,7 @@ function buildMainScenario() {
   scenario.meta = Object.assign({}, scenario.meta || {}, {
         companyName: gVal('ej_company'),
         preparedBy: gVal('ej_preparedBy'),
-        employeeTrueHourlyCost: gNum('ej_employeeCost'),
+        employeeTrueHourlyCost: readMoneyInput('ej_employeeCost'),
         weeklyHoursPerformed: gNum('ej_weeklyHours'),
         weeksInYear: gNum('ej_weeksInYear') || 52,
         monthsInYear: gNum('ej_monthsInYear') || 12,
@@ -229,7 +242,7 @@ function renderMainMenu(data) {
   setText('ej_r_savings', fmt(ej.costSavings || 0));
   setText('ej_r_roi', (ej.roiPct || 0).toFixed(1) + '%');
   setText('ej_r_payback', (ej.paybackMonths || 0).toFixed(1) + ' mo');
-  setText('ej_r_dollar', fmt(ej.dollarForDollarReturn || 0));
+  setText('ej_r_dollar', fmt(ej.dollarForDollarReturn || 0, 2, false));
   const comparison = tabs.vendorComparison;
   const panel = document.getElementById('main_vendor_comparison');
   if(panel) {
@@ -285,7 +298,6 @@ function hydrateSavedMainMenu() {
   const map = {
     ej_company: meta.companyName,
     ej_preparedBy: meta.preparedBy,
-    ej_employeeCost: meta.employeeTrueHourlyCost,
     ej_weeklyHours: meta.weeklyHoursPerformed,
     ej_weeksInYear: meta.weeksInYear,
     ej_monthsInYear: meta.monthsInYear,
@@ -296,6 +308,7 @@ function hydrateSavedMainMenu() {
     const el = document.getElementById(id);
     if (el) el.value = value;
   });
+  showMoneyInput(document.getElementById('ej_employeeCost'), meta.employeeTrueHourlyCost ?? 133);
 }
 
 function downloadReport(){

@@ -1,5 +1,7 @@
 # Buyer appraisal report reviews
 
+**October 22 update:** The user selected the existing Bookafy account instead of Calendly. Its Free plan blocks Zoom and authenticated API access. See [Bookafy account review and remaining setup](BOOKAFY_APPRAISAL_SETUP.md). The Calendly implementation below remains inactive and requires a genuine Bookafy provider adapter and live acceptance before the selected replacement can launch.
+
 ## Platform recommendation and account access
 
 Use Calendly for booking and appointment management, with its Zoom integration as the event location. GASQ sends the combined personalized email and protected PDF. Calendly's existing confirmation/calendar notification stays enabled for bookings made before the final appraisal is ready.

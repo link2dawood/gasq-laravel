@@ -487,6 +487,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/settings', [App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
     Route::post('/admin/settings/email-copies', [App\Http\Controllers\AdminSettingsController::class, 'updateEmailCopies'])->name('admin.settings.email-copies');
+    Route::post('/admin/settings/exchange-rates', [App\Http\Controllers\AdminSettingsController::class, 'refreshExchangeRates'])->name('admin.settings.exchange-rates');
     Route::post('/admin/settings/logo', [App\Http\Controllers\AdminSettingsController::class, 'uploadLogo'])->name('admin.settings.logo');
     Route::post('/admin/settings/logo/remove', [App\Http\Controllers\AdminSettingsController::class, 'removeLogo'])->name('admin.settings.logo.remove');
     Route::get('/admin/twilio', [App\Http\Controllers\AdminTwilioController::class, 'show'])->name('admin.twilio.show');
