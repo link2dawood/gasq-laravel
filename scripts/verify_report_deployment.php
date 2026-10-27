@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\BudgetSummaryService;
 use App\Services\ExchangeRateService;
 use App\Services\ProcessEmailCopies;
 use App\Services\ReportService;
@@ -54,6 +55,14 @@ if ((float) $rates['rates']['USD'] !== 1.0 || count($rates['rates']) !== count(c
     throw new RuntimeException('The supported currency cross rates are incomplete.');
 }
 echo 'ECB reference sheet: '.$rates['asOf'].' | USD/CAD: '.number_format($rates['rates']['CAD'], 6)."\n";
+
+$budget = app(BudgetSummaryService::class)->fromScenario(['meta' => ['baselineWage' => 25]]);
+$budgetScenario = ['meta' => ['roiCostBasis' => 'budget', 'budgetScenario' => $budget['budgetScenario']]];
+$budgetRoi = app(\App\Services\V24\MainMenu\EconomicJustificationEngine::class)->compute($budgetScenario);
+if ($budgetRoi !== $budget || $budget['inHouseHourly'] !== 91.84 || $budget['vendorHourly'] !== 64.29 || $budget['totalStaffRequired'] !== 6) {
+    throw new RuntimeException('Dashboard and budget ROI comparison failed.');
+}
+echo "Budget Summary and ROI cost basis: verified\n";
 
 $payload = ['scenario' => ['meta' => ['vendorWeightedRates' => ['draft' => VendorWeightedRateEngine::presets()['sample']]]]];
 $service = app(ReportService::class);

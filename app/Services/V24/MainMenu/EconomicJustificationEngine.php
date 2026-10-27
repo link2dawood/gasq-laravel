@@ -2,6 +2,7 @@
 
 namespace App\Services\V24\MainMenu;
 
+use App\Services\BudgetSummaryService;
 use Illuminate\Support\Arr;
 
 class EconomicJustificationEngine
@@ -13,6 +14,10 @@ class EconomicJustificationEngine
     public function compute(array $scenario): array
     {
         $meta = (array) ($scenario['meta'] ?? []);
+
+        if (($meta['roiCostBasis'] ?? null) === 'budget') {
+            return app(BudgetSummaryService::class)->fromScenario((array) ($meta['budgetScenario'] ?? []));
+        }
 
         $employeeCost = (float) (Arr::get($meta, 'employeeTrueHourlyCost') ?? 133.0);
         $weeklyHours = (float) (Arr::get($meta, 'weeklyHoursPerformed') ?? 168.0);

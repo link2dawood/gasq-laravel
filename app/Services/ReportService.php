@@ -4,13 +4,17 @@ namespace App\Services;
 
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\V24\MainMenu\MainMenuComputeService;
+use Barryvdh\DomPDF\PDF;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ReportService
 {
     /**
      * Get the PDF wrapper instance (barryvdh/laravel-dompdf).
      */
-    private function pdf(): \Barryvdh\DomPDF\PDF
+    private function pdf(): PDF
     {
         return app('dompdf.wrapper');
     }
@@ -18,9 +22,10 @@ class ReportService
     /**
      * Generate PDF for a credit purchase receipt.
      */
-    public function receiptPdf(Transaction $transaction): \Barryvdh\DomPDF\PDF
+    public function receiptPdf(Transaction $transaction): PDF
     {
         $transaction->loadMissing('user');
+
         return $this->pdf()->loadView('pdf.receipt', [
             'transaction' => $transaction,
             'user' => $transaction->user,
@@ -33,23 +38,29 @@ class ReportService
      *
      * @param  array<string, mixed>  $payload  Must contain 'result' and optionally 'title', 'inputs', etc.
      * @param  string|null  $openPassword  When set, the recipient must enter this
-     *         password to OPEN the file. The vendor chooses it per send and passes
-     *         it to the buyer out of band.
+     *                                     password to OPEN the file. The vendor chooses it per send and passes
+     *                                     it to the buyer out of band.
      */
-    public function calculatorPdf(string $type, array $payload, ?string $openPassword = null): \Barryvdh\DomPDF\PDF
+    public function calculatorPdf(string $type, array $payload, ?string $openPassword = null): PDF
     {
         if ($type === 'buyer-appraisal') {
             validator(['pdf_password' => $openPassword], ['pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/']])->validate();
         }
         if ($type === 'vendor-weighted-rates') {
             if (strlen(trim((string) $openPassword)) < 8 || strlen((string) $openPassword) > 32 || ! preg_match('/^[\x20-\x7E]+$/', (string) $openPassword)) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['pdf_password' => ['Use an 8–32 character PDF password with standard letters, numbers, or symbols.']]);
+                throw ValidationException::withMessages(['pdf_password' => ['Use an 8–32 character PDF password with standard letters, numbers, or symbols.']]);
             }
             $payload = app(VendorWeightedRateReport::class)->prepare($payload);
         }
         if ($type === 'main-menu' && data_get($payload, 'scenario.meta.vendorWeightedRates')) {
             $payload['scenario'] = app(VendorWeightedRateApplication::class)->publicScenario($payload['scenario']);
-            $payload['result'] = app(\App\Services\V24\MainMenu\MainMenuComputeService::class)->compute($payload['scenario']);
+            $payload['result'] = app(MainMenuComputeService::class)->compute($payload['scenario']);
+        }
+        if ($type === 'main-menu' && data_get($payload, 'scenario.meta.roiCostBasis') === 'budget') {
+            if (($payload['user'] ?? null) instanceof User) {
+                $payload['scenario'] = app(BudgetSummaryService::class)->applyToMainMenu($payload['user'], $payload['scenario']);
+            }
+            $payload['result'] = app(MainMenuComputeService::class)->compute($payload['scenario']);
         }
         $view = match ($type) {
             'instant-estimator' => 'pdf.instant-estimator',
@@ -134,9 +145,9 @@ class ReportService
      * file's contents cannot be read at all.
      *
      * @param  string|null  $openPassword  Non-empty ⇒ the reader must enter it to
-     *         open the document. Null/empty ⇒ opens freely, as before.
+     *                                     open the document. Null/empty ⇒ opens freely, as before.
      */
-    private function restrictCopyAndPrint(\Barryvdh\DomPDF\PDF $pdf, ?string $openPassword = null, bool $requireEncryption = false): \Barryvdh\DomPDF\PDF
+    private function restrictCopyAndPrint(PDF $pdf, ?string $openPassword = null, bool $requireEncryption = false): PDF
     {
         // The canvas only exists after rendering, so render up front; the
         // wrapper sets its "rendered" flag, so download()/output() won't
@@ -148,7 +159,7 @@ class ReportService
             // The OWNER password is GASQ's master override — entering it in a PDF
             // reader lifts the restrictions below. Without one configured we fall
             // back to a random password, i.e. nobody can lift them.
-            $ownerPassword = (string) (config('services.gasq.report_master_password') ?: \Illuminate\Support\Str::random(32));
+            $ownerPassword = (string) (config('services.gasq.report_master_password') ?: Str::random(32));
 
             // PDF passwords are truncated to 32 bytes by the format itself; trim
             // rather than silently hand the recipient a password that will not work.
@@ -157,7 +168,7 @@ class ReportService
             // An owner password identical to the user password would let the
             // recipient lift every restriction just by opening the file.
             if ($userPassword !== '' && $userPassword === $ownerPassword) {
-                $ownerPassword = \Illuminate\Support\Str::random(32);
+                $ownerPassword = Str::random(32);
             }
 
             $canvas->get_cpdf()->setEncryption($userPassword, $ownerPassword, ['print']);
@@ -174,6 +185,7 @@ class ReportService
     public function filenameForReceipt(Transaction $transaction): string
     {
         $date = $transaction->created_at->format('Y-m-d');
+
         return "GASQ-receipt-{$date}.pdf";
     }
 
@@ -194,7 +206,8 @@ class ReportService
             default => str_replace(' ', '-', $type),
         };
         $stamp = now()->format('Y-m-d-His');
-        $vendorTag = $user ? '-V' . (int) $user->id : '';
+        $vendorTag = $user ? '-V'.(int) $user->id : '';
+
         return "GASQ-{$slug}-{$stamp}{$vendorTag}.pdf";
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Services\BudgetSummaryService;
 use App\Services\CalculatorRunBillingService;
 use App\Services\CalculatorStateStore;
 use App\Services\ScenarioMasterInputsMerger;
@@ -36,6 +37,9 @@ class MainMenuComputeController extends Controller
         ]);
 
         $scenario = $this->masterInputsMerger->merge($request->user(), $validated['scenario']);
+        if (data_get($scenario, 'meta.roiCostBasis') === 'budget') {
+            $scenario = app(BudgetSummaryService::class)->applyToMainMenu($request->user(), $scenario);
+        }
         $savedModule = data_get($request->user()->calculatorStates()->where('calculator_type', 'main-menu')->first()?->scenario, 'meta.vendorWeightedRates');
         $hasVendorInputs = array_intersect(['vendorWeightedRates', 'vendorWeightedPayWage', 'vendorWeightedBillRate', 'vendorRateSource', 'vendorRateMode'], array_keys($scenario['meta']));
         if ($hasVendorInputs || $savedModule) {

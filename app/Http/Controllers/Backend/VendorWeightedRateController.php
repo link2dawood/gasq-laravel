@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Services\BudgetSummaryService;
 use App\Services\CalculatorStateStore;
 use App\Services\V24\MainMenu\MainMenuComputeService;
 use App\Services\VendorReportSigningService;
 use App\Services\VendorWeightedRateApplication;
 use App\Services\VendorWeightedRateEngine;
+use App\Support\Currency;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -77,6 +79,9 @@ class VendorWeightedRateController extends Controller
             }
             $scenario = array_replace($scenario, $posted);
             $scenario['meta'] = $meta;
+            if (data_get($scenario, 'meta.roiCostBasis') === 'budget') {
+                $scenario = app(BudgetSummaryService::class)->applyToMainMenu($request->user(), $scenario);
+            }
             if ($apply) {
                 $scenario = $this->application->apply($scenario, $data['inputs']);
             } else {
@@ -90,7 +95,7 @@ class VendorWeightedRateController extends Controller
             session(['report_payload' => ['type' => 'main-menu', 'scenario' => $scenario, 'result' => $out]]);
 
             return response()->json(['ok' => true, 'result' => $result, 'scenario' => $scenario, 'main' => $out, 'preview' => $preview, 'applied' => $apply,
-                'currency' => \App\Support\Currency::jsConfig(),
+                'currency' => Currency::jsConfig(),
                 ...$this->signatures->status($scenario, $request->user()),
             ]);
         });

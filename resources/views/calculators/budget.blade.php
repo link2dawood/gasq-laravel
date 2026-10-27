@@ -268,49 +268,11 @@
       <div class="card gasq-card mb-4">
         <div class="card-header py-3"><h5 class="card-title mb-0 fw-semibold">{{ $isBuyerView ? 'Know Before You Buy Summary' : 'Budget Summary' }}</h5></div>
         <div class="card-body">
-          {{-- Side-by-side comparison: Buyer Cost (left) vs Vendor Cost (right) --}}
-          <div class="row g-2 mb-3">
-            <div class="{{ $isBuyerView ? 'col-12' : 'col-6' }}">
-              <div class="p-3 rounded text-center" style="background:#fdf2f2; border:2px solid #b91c1c;">
-                <div class="text-uppercase small fw-semibold mb-1" style="color:#7f1d1d;">Buyer Cost to Protect In-house</div>
-                <div class="h4 fw-bold mb-0" style="color:#7f1d1d;" id="r_internalTco">{{ \App\Support\Currency::format(0) }}</div>
-                <div class="small text-gasq-muted mt-1">per hour (TCO)</div>
-                <hr class="my-2" style="border-color:#fecaca;">
-                <div class="text-uppercase small fw-semibold mb-1" style="color:#7f1d1d;">Annual</div>
-                <div class="fw-bold" style="color:#7f1d1d;" id="r_buyerAnnual">{{ \App\Support\Currency::format(0) }}</div>
-              </div>
-            </div>
-            @unless($isBuyerView)
-            <div class="col-6">
-              <div class="p-3 rounded text-center" style="background:#d1e7dd; border:2px solid #198754;">
-                <div class="text-uppercase small fw-semibold mb-1" style="color:#0a3622;">Buyer Cost to Protect via Outsourcing</div>
-                <div class="h4 fw-bold mb-0" style="color:#0a3622;" id="r_govShouldCost">{{ \App\Support\Currency::format(0) }}</div>
-                <div class="small text-gasq-muted mt-1">per hour (Vendor TCO)</div>
-                <hr class="my-2" style="border-color:#a3cfbb;">
-                <div class="text-uppercase small fw-semibold mb-1" style="color:#0a3622;">Annual</div>
-                <div class="fw-bold" style="color:#0a3622;" id="r_vendorAnnual">{{ \App\Support\Currency::format(0) }}</div>
-              </div>
-            </div>
-            @endunless
-          </div>
-
-          {{-- Capital Recovery callout on the right-side stream --}}
-          <div class="p-3 rounded text-center mb-4" style="background:#fff3cd; border:2px solid #f59f00;">
-            <div class="text-uppercase small fw-semibold mb-1" style="color:#664d03;">💰 Capital Recovery Opportunity</div>
-            <div class="row g-2 mt-1">
-              <div class="col-6">
-                <div class="small text-gasq-muted">Per hour</div>
-                <div class="h5 fw-bold mb-0" style="color:#664d03;" id="r_recoveryPerHr">{{ \App\Support\Currency::format(0) }}</div>
-              </div>
-              <div class="col-6">
-                <div class="small text-gasq-muted">Annual</div>
-                <div class="h5 fw-bold mb-0" style="color:#664d03;" id="r_recoveryAnnual">{{ \App\Support\Currency::format(0) }}</div>
-              </div>
-            </div>
-            <div class="small mt-2" style="color:#664d03;">
-              Saved by outsourcing at Vendor TCO instead of in-house TCO
-            </div>
-          </div>
+          <x-cost-to-protect-summary prefix="bg_summary_" :show-vendor="$canSeeOutsourcing" :show-recovery="true" :show-table="false" :show-metrics="false" :empty-state="false" :ids="[
+            'inHouseHourly' => 'r_internalTco', 'inHouseAnnual' => 'r_buyerAnnual',
+            'vendorHourly' => 'r_govShouldCost', 'vendorAnnual' => 'r_vendorAnnual',
+            'recoveryPerHour' => 'r_recoveryPerHr', 'costSavings' => 'r_recoveryAnnual',
+          ]" />
 
           <div class="d-flex justify-content-between small text-gasq-muted mb-3 px-1">
             <span>Shared Resources Safe Zone Rate: <strong id="r_loadedWage">{{ \App\Support\Currency::format(0) }}</strong></span>
@@ -793,7 +755,7 @@ function calcBudget() {
   }
 
   // Side-by-side comparison: Buyer (left, red) vs Vendor (right, green) + Capital Recovery callout.
-  const capitalRecoveryPerHour = internalTcoHourly - vendorTcoHourly;
+  const capitalRecoveryPerHour = t.capitalRecoveryPerHour ?? (internalTcoHourly - vendorTcoHourly);
   setText('r_internalTco', fmt(internalTcoHourly));      // Buyer Cost / hr (left card)
   setText('r_buyerAnnual', fmt(total));                  // Buyer annual (left card)
   setText('r_govShouldCost', fmt(vendorTcoHourly));      // Vendor Cost / hr (right card)
@@ -997,10 +959,23 @@ function hydrateSavedBudget() {
   const meta = savedScenario?.meta || {};
   const allocations = meta.allocations || {};
 
-  if (meta.governmentShouldCostHourly !== undefined) {
+  const baselineWage = meta.baselineWage ?? meta.governmentShouldCostHourly;
+  if (baselineWage !== undefined) {
     const govEl = document.getElementById('bg_govShouldCost');
-    if (govEl) govEl.value = meta.governmentShouldCostHourly;
+    if (govEl) govEl.value = baselineWage;
   }
+
+  const scope = meta.scope || {};
+  const coverageInputs = {
+    bg_hoursPerDay: scope.hoursOfCoveragePerDay ?? meta.hoursPerDay,
+    bg_daysPerWeek: scope.daysOfCoveragePerWeek ?? meta.daysPerWeek,
+    bg_weeksPerYear: scope.weeksOfCoverage ?? meta.weeksPerYear,
+    bg_staffPerShift: scope.staffPerShift ?? meta.staffPerShift,
+  };
+  Object.entries(coverageInputs).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el && value !== undefined && value !== null) el.value = value;
+  });
 
   if (meta.annualBillableHours !== undefined) {
     const hoursEl = document.getElementById('bg_annualHours');

@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Services\BudgetSummaryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,9 +25,11 @@ class EconomicJustificationViewTest extends TestCase
     public function test_both_roi_views_show_the_requested_employer_label_and_hours_and_staff_totals(): void
     {
         foreach (['calculators.main-menu', 'calculators.economic-justification'] as $view) {
-            $html = view($view)->render();
+            $html = view($view, ['budgetSummary' => app(BudgetSummaryService::class)->fromScenario(['meta' => ['baselineWage' => 25]])])->render();
 
-            $this->assertStringContainsString('Employer Hourly Cost to Protect ($):', $html);
+            $this->assertStringContainsString($view === 'calculators.main-menu'
+                ? 'Workforce Baseline Assumption Labor Rate ($):'
+                : 'Employer Hourly Cost to Protect ($):', $html);
             foreach (['Total Weekly Hours', 'Total Monthly Hours', 'Total Annual Hours', 'Total Staff Required'] as $label) {
                 $this->assertStringContainsString($label, $html);
             }

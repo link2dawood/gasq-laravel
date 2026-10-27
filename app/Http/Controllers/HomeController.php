@@ -7,9 +7,9 @@ use App\Models\JobPosting;
 use App\Models\VendorOpportunity;
 use App\Models\VendorOpportunityInvitation;
 use App\Models\VendorQuestionnaire;
+use App\Services\BudgetSummaryService;
 use App\Services\WalletService;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -41,6 +41,7 @@ class HomeController extends Controller
 
         $dashboardData = [
             'isVendorDashboard' => $isVendorDashboard,
+            'budgetSummary' => app(BudgetSummaryService::class)->forUser($user),
         ];
 
         if ($isVendorDashboard) {
@@ -178,8 +179,8 @@ class HomeController extends Controller
                 'vendorActiveLeadCount' => $activeLeadCount,
                 'vendorLeadMessage' => $leadCount > 0
                     ? ($unreadLeadCount > 0
-                        ? $unreadLeadCount . ' new lead' . ($unreadLeadCount === 1 ? '' : 's') . ' waiting for review'
-                        : $activeLeadCount . ' active lead' . ($activeLeadCount === 1 ? '' : 's') . ' in your pipeline')
+                        ? $unreadLeadCount.' new lead'.($unreadLeadCount === 1 ? '' : 's').' waiting for review'
+                        : $activeLeadCount.' active lead'.($activeLeadCount === 1 ? '' : 's').' in your pipeline')
                     : 'Your invited leads will appear here as soon as GASQ routes matching projects.',
                 'vendorTierACount' => $tierACount,
                 'vendorTierBCount' => $tierBCount,
@@ -188,7 +189,7 @@ class HomeController extends Controller
                 'vendorBidSubmittedCount' => $bidSubmittedCount,
                 'vendorDeclinedResponseCount' => $declinedResponseCount,
                 'vendorResponseMessage' => $responseCount > 0
-                    ? 'Accepted: ' . $acceptedResponseCount . ' · Submitted bids: ' . $bidSubmittedCount . ' · Declined: ' . $declinedResponseCount
+                    ? 'Accepted: '.$acceptedResponseCount.' · Submitted bids: '.$bidSubmittedCount.' · Declined: '.$declinedResponseCount
                     : 'No vendor responses recorded yet. New acceptances and bid activity will show here.',
                 'vendorWalletBalance' => $walletBalance,
                 'vendorQuestionnaireDraftCount' => $questionnaireDraftCount,
@@ -274,23 +275,23 @@ class HomeController extends Controller
         if ($heldJobCount > 0) {
             $nextAction = [
                 'tone' => 'warn',
-                'message' => $heldJobCount . ' job' . ($heldJobCount === 1 ? ' is' : 's are') . ' Pending Qualification — '
-                    . ($heldJobCount === 1 ? 'it is' : 'they are') . ' not yet visible to vendors. '
-                    . 'Update your questionnaire to qualify and release ' . ($heldJobCount === 1 ? 'it' : 'them') . '.',
+                'message' => $heldJobCount.' job'.($heldJobCount === 1 ? ' is' : 's are').' Pending Qualification — '
+                    .($heldJobCount === 1 ? 'it is' : 'they are').' not yet visible to vendors. '
+                    .'Update your questionnaire to qualify and release '.($heldJobCount === 1 ? 'it' : 'them').'.',
                 'cta' => 'Update Questionnaire',
                 'href' => $activeJobs->isNotEmpty() ? route('jobs.edit', $activeJobs->first()) : route('jobs.index'),
             ];
         } elseif ($pendingInterviews > 0) {
             $nextAction = [
                 'tone' => 'success',
-                'message' => $pendingInterviews . ' vendor' . ($pendingInterviews === 1 ? ' has' : 's have') . ' submitted bids — schedule interviews.',
+                'message' => $pendingInterviews.' vendor'.($pendingInterviews === 1 ? ' has' : 's have').' submitted bids — schedule interviews.',
                 'cta' => 'Schedule Interviews',
                 'href' => $activeJobs->isNotEmpty() ? route('jobs.show', $activeJobs->first()) : route('jobs.index'),
             ];
         } elseif ($vendorsAccepted > 0) {
             $nextAction = [
                 'tone' => 'info',
-                'message' => $vendorsAccepted . ' vendor' . ($vendorsAccepted === 1 ? '' : 's') . ' accepted your offer — bids will arrive shortly.',
+                'message' => $vendorsAccepted.' vendor'.($vendorsAccepted === 1 ? '' : 's').' accepted your offer — bids will arrive shortly.',
                 'cta' => 'View Active Jobs',
                 'href' => route('jobs.index'),
             ];
@@ -384,7 +385,7 @@ class HomeController extends Controller
             'completion' => $completion,
             'missing_count' => $missingCount,
             'message' => $missingCount > 0
-                ? 'Complete the remaining ' . $missingCount . ' profile item' . ($missingCount === 1 ? '' : 's') . ' to improve your matching quality.'
+                ? 'Complete the remaining '.$missingCount.' profile item'.($missingCount === 1 ? '' : 's').' to improve your matching quality.'
                 : 'Add a few more profile details to strengthen your lead visibility.',
             'cta' => $completion >= 70 ? 'Update profile' : 'Complete profile',
         ];

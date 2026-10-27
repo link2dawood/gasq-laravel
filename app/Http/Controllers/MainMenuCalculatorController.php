@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\BudgetSummaryService;
 use App\Services\CalculatorStateStore;
 use App\Services\MainMenuCalculatorService;
 use Illuminate\Http\Request;
@@ -61,6 +62,7 @@ class MainMenuCalculatorController extends Controller
         return view('calculators.main-menu', [
             'activeTab' => $tab,
             'result' => $result,
+            'budgetSummary' => app(BudgetSummaryService::class)->forUser($request->user()),
         ]);
     }
 }

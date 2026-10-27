@@ -29,6 +29,11 @@
     <x-report-actions report-type="main-menu" label="Email the saved main calculator report. Private vendor wage details are excluded." :password-protect="true" />
   </details>
 
+  @php($budgetSummary = $budgetSummary ?? null)
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <p class="small text-gasq-muted mb-0">This dashboard and ROI use your saved Budget Summary inputs and cost-to-protect figures.</p>
+    <a href="{{ route('budget-calculator.index') }}" class="btn btn-outline-primary btn-sm">Edit Budget Inputs</a>
+  </div>
   {{-- Economic Justification --}}
   <div class="card gasq-card">
     <div class="card-body p-4">
@@ -37,7 +42,7 @@
       {{-- ========== ECONOMIC JUSTIFICATION ========== --}}
       <div id="tab-justification">
         <div class="row g-4">
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2"><i class="fa fa-chart-line text-primary"></i> Economic Justification</h5>
 
             <div class="row g-3 mb-3">
@@ -50,77 +55,30 @@
                 <input type="text" id="ej_preparedBy" class="form-control" placeholder="Your name" oninput="calcEJ()">
               </div>
               <div class="col-md-6">
-                <label class="form-label fw-medium" for="ej_employeeCost">Employer Hourly Cost to Protect ({{ \App\Support\Currency::symbol() }}):</label>
-                <input type="number" id="ej_employeeCost" class="form-control" value="133.00" step="0.01" oninput="calcEJ()">
-                <div class="form-text">Vendor hourly cost is 70% of this amount unless vendor weighted rates are applied.</div>
+                <label class="form-label fw-medium" for="ej_employeeCost">Workforce Baseline Assumption Labor Rate ({{ \App\Support\Currency::symbol() }}):</label>
+                <input type="number" id="ej_employeeCost" class="form-control" value="{{ ($budgetSummary['baselineHourly'] ?? 0) * \App\Support\Currency::rate() }}" readonly>
+                <div class="form-text">The shared labor rate is the same in both columns; the bill rates below include the Budget Summary cost-to-protect calculation.</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-medium">Weekly Hours Performed</label>
-                <input type="number" id="ej_weeklyHours" class="form-control" value="168" oninput="calcEJ()">
+                <input type="number" id="ej_weeklyHours" class="form-control" value="{{ $budgetSummary['totalWeeklyHours'] ?? 0 }}" readonly>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-medium">Weeks in Year</label>
-                <input type="number" id="ej_weeksInYear" class="form-control" value="52" oninput="calcEJ()">
+                <input type="number" id="ej_weeksInYear" class="form-control" value="{{ $budgetSummary['weeksInYear'] ?? 52 }}" readonly>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-medium">Months in Year</label>
-                <input type="number" id="ej_monthsInYear" class="form-control" value="12" oninput="calcEJ()">
+                <input type="number" id="ej_monthsInYear" class="form-control" value="12" readonly>
               </div>
             </div>
           </div>
 
-          <div class="col-lg-6">
+          <div class="col-lg-8">
             <h5 class="fw-semibold mb-3">ROI Analysis</h5>
 
-            {{-- Two-column comparison table --}}
-            <div class="table-responsive rounded" style="background:var(--gasq-muted-bg)">
-              <table class="table table-sm mb-0">
-                <thead>
-                  <tr>
-                    <th class="small fw-semibold">Metric</th>
-                    <th class="small fw-semibold text-center">In-House</th>
-                    <th class="small fw-semibold text-center">Vendor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach(['WeeklyHours' => 'Total Weekly Hours', 'MonthlyHours' => 'Total Monthly Hours', 'AnnualHours' => 'Total Annual Hours', 'StaffRequired' => 'Total Staff Required'] as $key => $label)
-                    <tr><td class="small text-gasq-muted">{{ $label }}</td><td class="text-center small fw-medium" id="ej_r_ih{{ $key }}">0</td><td class="text-center small fw-medium" id="ej_r_v{{ $key }}">0</td></tr>
-                  @endforeach
-                  <tr><td class="small text-gasq-muted">Hourly Cost</td><td class="text-center small fw-medium" id="ej_r_ihHourly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vHourly">{{ \App\Support\Currency::format(0) }}</td></tr>
-                  <tr><td class="small text-gasq-muted">Weekly Cost</td><td class="text-center small fw-medium" id="ej_r_ihWeekly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vWeekly">{{ \App\Support\Currency::format(0) }}</td></tr>
-                  <tr><td class="small text-gasq-muted">Monthly Cost</td><td class="text-center small fw-medium" id="ej_r_ihMonthly">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small fw-medium" id="ej_r_vMonthly">{{ \App\Support\Currency::format(0) }}</td></tr>
-                  <tr class="table-light fw-semibold"><td class="small">Annual Cost</td><td class="text-center small" id="ej_r_ihAnnual">{{ \App\Support\Currency::format(0) }}</td><td class="text-center small" id="ej_r_vAnnual">{{ \App\Support\Currency::format(0) }}</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="form-text">Staff required is rounded up using 28 hours per staff member per week.</div>
+            <x-cost-to-protect-summary :summary="$budgetSummary ?? null" prefix="roi_summary_" :show-vendor="auth()->user()?->isVendor() || auth()->user()?->isAdmin()" />
 
-            <div class="row g-3 mt-2">
-              <div class="col-6">
-                <div class="rounded p-3 text-center" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3)">
-                  <div class="small text-gasq-muted mb-1">Cost Savings</div>
-                  <div class="fs-5 fw-bold text-success" id="ej_r_savings">{{ \App\Support\Currency::format(0) }}</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="rounded p-3 text-center" style="background:rgba(6,45,121,0.08);border:1px solid rgba(6,45,121,0.2)">
-                  <div class="small text-gasq-muted mb-1">ROI %</div>
-                  <div class="fs-5 fw-bold text-primary" id="ej_r_roi">0.0%</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Payback Period</div>
-                  <div class="fs-5 fw-bold" id="ej_r_payback">0.0 mo</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="rounded p-3 text-center" style="background:var(--gasq-muted-bg)">
-                  <div class="small text-gasq-muted mb-1">Dollar for Dollar Return</div>
-                  <div class="fs-5 fw-bold" id="ej_r_dollar">{{ \App\Support\Currency::format(0) }}</div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -149,6 +107,7 @@
 
 @push('scripts')
 <script>
+const budgetSummary = @json($budgetSummary);
 const savedScenario = window.__gasqCalculatorState?.scenario || null;
 let mainScenario = JSON.parse(JSON.stringify(savedScenario || {}));
 const masterInputs = window.__gasqMasterInputs || {};
@@ -190,11 +149,13 @@ function buildMainScenario() {
   scenario.meta = Object.assign({}, scenario.meta || {}, {
         companyName: gVal('ej_company'),
         preparedBy: gVal('ej_preparedBy'),
-        employeeTrueHourlyCost: readMoneyInput('ej_employeeCost'),
-        weeklyHoursPerformed: gNum('ej_weeklyHours'),
-        weeksInYear: gNum('ej_weeksInYear') || 52,
-        monthsInYear: gNum('ej_monthsInYear') || 12,
   });
+  if (budgetSummary) {
+    scenario.meta.roiCostBasis = 'budget';
+  } else {
+    delete scenario.meta.roiCostBasis;
+    delete scenario.meta.budgetScenario;
+  }
   // Saved comparison rates must not freeze the live 70/30 calculation.
   if (!scenario.meta.vendorWeightedRates?.applied) {
     delete scenario.meta.vendorTrueHourlyCost;
@@ -226,23 +187,24 @@ function renderMainMenu(data) {
   const tabs = data.tabs || {};
 
   const ej = tabs.economicJustification || {};
-  ['WeeklyHours', 'MonthlyHours', 'AnnualHours', 'StaffRequired'].forEach(key => {
-    const value = fmtN(ej['total' + key] || 0, key === 'StaffRequired' ? 0 : 2);
-    setText('ej_r_ih' + key, value);
-    setText('ej_r_v' + key, value);
+  ['inHouseHourly', 'vendorHourly', 'inHouseAnnual', 'vendorAnnual', 'recoveryPerHour', 'costSavings'].forEach(key => {
+    setText('roi_summary_' + key, fmt(ej[key] || 0));
   });
-  setText('ej_r_ihHourly', fmt(ej.inHouseHourly || 0));
-  setText('ej_r_vHourly', fmt(ej.vendorHourly || 0));
-  setText('ej_r_ihWeekly', fmt(ej.inHouseWeekly || 0));
-  setText('ej_r_vWeekly', fmt(ej.vendorWeekly || 0));
-  setText('ej_r_ihMonthly', fmt(ej.inHouseMonthly || 0));
-  setText('ej_r_vMonthly', fmt(ej.vendorMonthly || 0));
-  setText('ej_r_ihAnnual', fmt(ej.inHouseAnnual || 0));
-  setText('ej_r_vAnnual', fmt(ej.vendorAnnual || 0));
-  setText('ej_r_savings', fmt(ej.costSavings || 0));
-  setText('ej_r_roi', (ej.roiPct || 0).toFixed(1) + '%');
-  setText('ej_r_payback', (ej.paybackMonths || 0).toFixed(1) + ' mo');
-  setText('ej_r_dollar', fmt(ej.dollarForDollarReturn || 0, 2, false));
+  ['baselineHourly', 'Hourly', 'WeeklyHours', 'MonthlyHours', 'AnnualHours', 'StaffRequired', 'Weekly', 'Monthly', 'Annual'].forEach(key => {
+    const shared = key === 'baselineHourly' || key.endsWith('Hours') || key === 'StaffRequired';
+    const money = key === 'baselineHourly' || !shared;
+    const internal = ej[shared ? (key === 'baselineHourly' ? key : 'total' + key) : 'inHouse' + key] || 0;
+    const vendor = shared ? internal : (ej['vendor' + key] || 0);
+    const hours = value => new Intl.NumberFormat(window.GASQ_CURRENCY?.locale || 'en-US', {maximumFractionDigits: 2}).format(value);
+    setText('roi_summary_table_ih' + key, money ? fmt(internal) : hours(internal));
+    setText('roi_summary_table_v' + key, money ? fmt(vendor) : hours(vendor));
+  });
+  setText('roi_summary_roiPct', fmtN(ej.roiPct || 0) + '%');
+  setText('roi_summary_paybackMonths', (ej.paybackMonths || 0).toFixed(1) + ' months');
+  setText('roi_summary_dollarForDollarReturn', fmt(ej.dollarForDollarReturn || 0, 2, false));
+  showMoneyInput(document.getElementById('ej_employeeCost'), ej.baselineHourly || 0);
+  document.getElementById('ej_weeklyHours').value = ej.totalWeeklyHours || 0;
+  document.getElementById('ej_weeksInYear').value = ej.weeksInYear || 52;
   const comparison = tabs.vendorComparison;
   const panel = document.getElementById('main_vendor_comparison');
   if(panel) {
@@ -277,6 +239,7 @@ document.addEventListener('submit', event => {
 },true);
 function calcEJ() { scheduleCompute(); }
 function scheduleCompute() {
+  if (!budgetSummary) return;
   clearTimeout(computeTimer);
   const submittedRevision = ++mainComputeRevision;
   setMainReportReady(false,'Saving current calculator inputs before sending…');
@@ -298,9 +261,6 @@ function hydrateSavedMainMenu() {
   const map = {
     ej_company: meta.companyName,
     ej_preparedBy: meta.preparedBy,
-    ej_weeklyHours: meta.weeklyHoursPerformed,
-    ej_weeksInYear: meta.weeksInYear,
-    ej_monthsInYear: meta.monthsInYear,
   };
 
   Object.entries(map).forEach(([id, value]) => {
@@ -308,7 +268,7 @@ function hydrateSavedMainMenu() {
     const el = document.getElementById(id);
     if (el) el.value = value;
   });
-  showMoneyInput(document.getElementById('ej_employeeCost'), meta.employeeTrueHourlyCost ?? 133);
+  showMoneyInput(document.getElementById('ej_employeeCost'), budgetSummary?.baselineHourly ?? 0);
 }
 
 function downloadReport(){
@@ -331,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
     el.addEventListener('change', scheduleCompute);
     el.addEventListener('input', () => window.VendorWeightedRates?.refreshContext());
   });
+  setMainReportReady(false, budgetSummary ? 'Saving current budget summary…' : 'Save your Budget Calculator inputs first.');
   scheduleCompute();
 });
 </script>

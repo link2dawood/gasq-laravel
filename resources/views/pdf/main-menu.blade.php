@@ -1,5 +1,8 @@
 @php
     $res = $result ?? [];
+    $budgetRoi = data_get($scenario ?? [], 'meta.roiCostBasis') === 'budget'
+        ? data_get($res, 'tabs.economicJustification') : null;
+    if ($budgetRoi) unset($res['tabs']['economicJustification']);
     $flatten = function (array $values, string $prefix = '') use (&$flatten): array {
         $out = [];
         foreach ($values as $key => $value) {
@@ -26,6 +29,36 @@
 ])
 
 @section('content')
+
+@if($budgetRoi)
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>Budget Summary &amp; ROI Analysis</p></td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
+  <tr class="hl"><td>Metric</td><td class="v">In-House</td><td class="v">Vendor</td></tr>
+  @foreach([
+    ['Workforce Baseline Assumption Labor Rate', 'baselineHourly', 'baselineHourly', true],
+    ['Hourly Bill / Cost to Protect Rate', 'inHouseHourly', 'vendorHourly', true],
+    ['Total Weekly Hours', 'totalWeeklyHours', 'totalWeeklyHours', false],
+    ['Total Monthly Hours', 'totalMonthlyHours', 'totalMonthlyHours', false],
+    ['Total Annual Hours', 'totalAnnualHours', 'totalAnnualHours', false],
+    ['Total Staff Required', 'totalStaffRequired', 'totalStaffRequired', false],
+    ['Total Weekly Cost', 'inHouseWeekly', 'vendorWeekly', true],
+    ['Total Monthly Cost', 'inHouseMonthly', 'vendorMonthly', true],
+    ['Total Annual Cost', 'inHouseAnnual', 'vendorAnnual', true],
+  ] as [$label, $internalKey, $vendorKey, $money])
+    <tr class="{{ $loop->last ? 'total' : ($loop->even ? 'alt' : '') }}">
+      <td>{{ $label }}</td>
+      @foreach([$internalKey, $vendorKey] as $key)
+        <td class="v">{{ $money ? \App\Support\Currency::format($budgetRoi[$key]) : rtrim(rtrim(number_format($budgetRoi[$key], 2), '0'), '.') }}</td>
+      @endforeach
+    </tr>
+  @endforeach
+  <tr class="alt"><td>Capital Recovery Opportunity — Annual</td><td class="v">—</td><td class="v">{{ \App\Support\Currency::format($budgetRoi['costSavings']) }}</td></tr>
+  <tr><td>Operational Capital Recovered (%)</td><td class="v">—</td><td class="v">{{ number_format($budgetRoi['roiPct']) }}%</td></tr>
+  <tr class="alt"><td>Payback &amp; Recovery Period</td><td class="v">—</td><td class="v">{{ number_format($budgetRoi['paybackMonths'], 1) }} months</td></tr>
+</table>
+@endif
 
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
   <tr><td class="gasq-section-band"><p>Result Summary</p></td></tr>

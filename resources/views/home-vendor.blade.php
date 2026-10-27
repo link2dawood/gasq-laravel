@@ -70,6 +70,17 @@
             </div>
         </div>
 
+  <section class="card gasq-card mb-4" aria-labelledby="dashboard-budget-title">
+    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h2 class="h5 mb-0" id="dashboard-budget-title">Budget Summary &amp; ROI Analysis</h2>
+      <a href="{{ route('budget-calculator.index') }}" class="btn btn-outline-primary btn-sm">Edit Budget Inputs</a>
+    </div>
+    <div class="card-body">
+      <p class="small text-gasq-muted">Your saved Budget Summary, using the same inputs and cost-to-protect figures.</p>
+      <x-cost-to-protect-summary :summary="$budgetSummary ?? null" prefix="dashboard_summary_" :show-vendor="auth()->user()?->isVendor() || auth()->user()?->isAdmin()" />
+    </div>
+  </section>
+
         <div class="vendor-dashboard-grid">
             <section class="vendor-panel">
                 <div class="vendor-panel-head"><h2 class="h2 mb-0">Complete your profile</h2></div>
