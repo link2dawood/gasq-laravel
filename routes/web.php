@@ -18,6 +18,8 @@ use App\Http\Controllers\VendorQuestionnaireController;
 Route::get('/', [PageController::class, 'landing'])->name('landing');
 Route::post('/webhooks/calendly/appraisals', \App\Http\Controllers\CalendlyAppraisalWebhookController::class)
     ->middleware('throttle:120,1')->name('appraisals.calendly-webhook');
+Route::post('/webhooks/bookafy/appraisals/{token}', \App\Http\Controllers\BookafyAppraisalWebhookController::class)
+    ->middleware('throttle:120,1')->name('appraisals.bookafy-webhook');
 Route::get('/appraisal-appointments/{appointment}', [\App\Http\Controllers\AppraisalAppointmentController::class, 'show'])
     ->middleware(['signed', 'throttle:60,1'])->name('appraisal-appointments.show');
 Route::post('/appraisal-appointments/{appointment}', [\App\Http\Controllers\AppraisalAppointmentController::class, 'confirm'])

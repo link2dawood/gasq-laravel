@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use App\Contracts\AppraisalScheduler;
 use App\Events\CreditsGranted;
 use App\Listeners\SendCreditsGrantedNotification;
+use App\Services\BookafyAppraisalService;
 use App\Services\CalculatorViewStateResolver;
+use App\Services\CalendlyAppraisalService;
+use App\Services\ExchangeRateService;
 use App\Services\MasterInputsService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Event;
@@ -18,7 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->scoped(\App\Services\ExchangeRateService::class);
+        $this->app->scoped(ExchangeRateService::class);
+        $this->app->scoped(BookafyAppraisalService::class);
+        $this->app->bind(AppraisalScheduler::class, fn () => config('appraisal_reviews.provider') === 'bookafy'
+            ? $this->app->make(BookafyAppraisalService::class)
+            : $this->app->make(CalendlyAppraisalService::class));
     }
 
     /**

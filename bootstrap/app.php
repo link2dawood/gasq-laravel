@@ -16,12 +16,14 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\AnalyticsLogger::class,
             \App\Http\Middleware\EnsureNdaAccepted::class,
         ]);
-        // Server-to-server webhooks carry no CSRF token; each is verified by the
-        // provider's request signature inside its controller instead.
+        // Server-to-server webhooks carry no CSRF token; each is verified inside
+        // its controller instead, by the provider's request signature or, where
+        // the provider signs nothing, by a secret in the callback URL.
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
             'webhooks/hubspot',
             'webhooks/calendly/appraisals',
+            'webhooks/bookafy/appraisals/*',
         ]);
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,

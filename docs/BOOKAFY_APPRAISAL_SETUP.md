@@ -15,3 +15,76 @@ Provider documentation:
 - https://api.bookafy.com/api-docs/index.html
 - https://api.bookafy.com/api-docs/v3/swagger.yaml
 - https://bookafy.com/zoom/
+
+## Implementation — November 6, 2026
+
+The account is now on **Pro+**, and an API key was supplied and verified read-only
+against `GET https://app.bookafy.com/api/v3/me` (HTTP 200,
+`glivingston@getasecurityquote.com`). Zoom is connected and enabled per
+appointment type. A Bookafy adapter is therefore implemented alongside the
+Calendly one, selected by `APPRAISAL_SCHEDULING_PROVIDER`. Nothing switches
+provider on its own: the setting still reads `calendly`, and buyer automatic
+report emails remain disabled.
+
+### What the V3 contract forced
+
+Bookafy's API differs from Calendly's in four ways that shaped the adapter.
+
+1. **No endpoint returns one appointment.** `/api/v3/appointments` only lists by
+   staff email and date range (`GET` with `email`, `from_date`, `page`,
+   `per_page`), and the single-appointment routes are `PUT` and `DELETE` only.
+   Every read is therefore a listing from yesterday onwards, paged, keyed by id.
+2. **Nothing is signed.** A webhook subscription is a callback URL and an event
+   type; there is no secret and no signature header. The callback URL carries a
+   secret last segment compared with `hash_equals`, and the body is read only
+   for an appointment id: the booking is then re-read from the API before
+   anything is written. A wrong secret returns 404.
+3. **Time zones are Rails names**, such as `Eastern Time (US & Canada)`, not IANA
+   identifiers. `App\Support\RailsTimeZones` maps all 151 of them; a booking in
+   an unmappable zone is refused rather than displayed in the wrong zone.
+4. **A deleted appointment leaves the listing.** A booking the listing no longer
+   carries, whose end is still inside the listing window, is treated as
+   cancelled; anything already over is absent because it is old.
+
+### How a booking reaches an appraisal
+
+The buyer-specific link in the admin console carries
+`Reference=gasq_appraisal_<review id>`, which arrives in
+`appointment_customer_info` when the appointment type has a matching booking
+question. When that reference is absent, the booking is matched on the buyer's
+email: the appraisal still waiting on a date first, otherwise the buyer's most
+recent undelivered appraisal, so a second booking supersedes the first. The
+buyer email on the booking must match the review either way.
+
+Duplicate protection, supersession, attendance reset on a move, the 24-hour and
+1-hour reminders, and the manual password-release rule are unchanged: they live
+in `AppraisalReviewService` and apply to both providers.
+
+### Still outstanding
+
+- **The appraisal service id.** The account holds five services, all in category
+  46141: Security Search Support (58227), Discovery Calls (59111), Instant
+  Estimator Demo (59110), Estimate & Scope of Service Review (352084) and
+  Instant Estimator Demo clone clone (352085). No service is named "Security
+  Buyers and Vendors"; that is the category wording on the booking page.
+  Estimate & Scope of Service Review is the likely one, but it must be
+  confirmed before `BOOKAFY_APPRAISAL_SERVICE_ID` is set.
+- **The management links.** The API returns `token`, `cancel_token` and
+  `update_token`, never a URL. `BOOKAFY_CANCEL_URL` and
+  `BOOKAFY_RESCHEDULE_URL` take the patterns from a real confirmation email,
+  with `{token}`, `{cancel_token}`, `{update_token}` and `{id}` replaced per
+  booking. Both must be https on a bookafy.com host.
+- **The callback secret.** Generate 32+ characters, set `BOOKAFY_WEBHOOK_TOKEN`,
+  then register `appointment_created`, `appointment_updated` and
+  `appointment_destroyed` against
+  `https://<host>/webhooks/bookafy/appraisals/<secret>` via
+  `POST /api/v3/api_subscriptions`. No subscriptions exist yet.
+- **Bookafy's own reminders** must be turned off for the appraisal service; the
+  platform sends the 24-hour and 1-hour reminders. Keep its booking
+  confirmation.
+- **A test booking**, to confirm `zoom_join_url` populates now that Zoom is
+  connected, and to read the real management links.
+
+Run `php artisan appraisals:preflight` after each step: with the provider set to
+`bookafy` it reports the account, the named service with its duration and Zoom
+state, the registered callbacks, and the listing call, without revealing the key.

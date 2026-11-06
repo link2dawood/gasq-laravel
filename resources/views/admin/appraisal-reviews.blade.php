@@ -21,17 +21,21 @@
     <section class="border rounded p-3 mb-3">
       <h2 class="h5">{{ $review->report_number }}</h2><p>{{ $review->buyer_name }} · {{ $review->buyer_email }}</p>
       <p>Report: {{ $review->ready_at ? 'Final PDF ready' : 'Awaiting final approval' }} · Delivery: {{ $review->delivered_at ? 'Sent' : 'Pending' }}</p>
-      @if(config('appraisal_reviews.booking_url'))
-        <a href="{{ config('appraisal_reviews.booking_url').'?'.http_build_query(['name' => $review->buyer_name, 'email' => $review->buyer_email, 'utm_content' => 'gasq_appraisal_'.$review->id]) }}">Buyer-specific Calendly booking link</a>
-      @else<p>Configure the Calendly appraisal booking URL to enable buyer-specific booking links.</p>@endif
+      @if($review->bookingUrl())
+        <a href="{{ $review->bookingUrl() }}">Buyer-specific booking link</a>
+      @else<p>Configure the appraisal booking URL to enable buyer-specific booking links.</p>@endif
       @foreach($review->appointments as $appointment)
         <p>{{ $appointment->status }} · {{ $appointment->starts_at->setTimezone($appointment->timezone)->format('F j, Y g:i A T') }} · {{ $appointment->timezone }} · Attendance: {{ $appointment->confirmed_at ? 'confirmed' : 'not yet confirmed' }}</p>
       @endforeach
       <details class="mt-2"><summary>Link an appointment booked earlier</summary>
         <form method="post" action="{{ route('admin.appraisal-reviews.appointment', $review) }}">
           @csrf
-          <label for="invitee_{{ $review->id }}">Calendly invitee API URI (the buyer and event type are verified)</label>
-          <input id="invitee_{{ $review->id }}" name="invitee_uri" type="url" class="form-control mb-2" required>
+          @if(config('appraisal_reviews.provider') === 'bookafy')
+            <label for="invitee_{{ $review->id }}">Bookafy appointment reference, as bookafy:appointment:123456 (the buyer and service are verified)</label>
+          @else
+            <label for="invitee_{{ $review->id }}">Calendly invitee API URI (the buyer and event type are verified)</label>
+          @endif
+          <input id="invitee_{{ $review->id }}" name="invitee_uri" type="text" class="form-control mb-2" required>
           <button class="btn btn-outline-primary">Verify and link appointment</button>
         </form>
       </details>

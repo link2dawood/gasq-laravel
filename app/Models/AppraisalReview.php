@@ -29,4 +29,24 @@ class AppraisalReview extends Model
     {
         return $this->hasMany(AppraisalAppointment::class);
     }
+
+    /**
+     * The booking link for this buyer, carrying the review reference so the
+     * booking comes back attached to this appraisal, or null when the
+     * scheduling account is not configured yet.
+     */
+    public function bookingUrl(): ?string
+    {
+        $reference = 'gasq_appraisal_'.$this->id;
+        $bookafy = config('appraisal_reviews.provider') === 'bookafy';
+        $url = $bookafy ? config('appraisal_reviews.bookafy.booking_url') : config('appraisal_reviews.booking_url');
+        if (! $url) {
+            return null;
+        }
+        $query = ['name' => $this->buyer_name, 'email' => $this->buyer_email];
+        // The embedded Bookafy link already carries query parameters of its own.
+        $query[$bookafy ? config('appraisal_reviews.bookafy.reference_field') : 'utm_content'] = $reference;
+
+        return $url.(str_contains($url, '?') ? '&' : '?').http_build_query($query);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\AppraisalScheduler;
 use App\Models\AppraisalAppointment;
 use App\Models\AppraisalReview;
 use Illuminate\Support\Carbon;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
-class CalendlyAppraisalService
+class CalendlyAppraisalService implements AppraisalScheduler
 {
     public function resource(string $uri): array
     {

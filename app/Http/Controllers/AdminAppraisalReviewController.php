@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\AppraisalScheduler;
 use App\Models\AppraisalReview;
 use App\Models\CalculatorState;
 use App\Services\AppraisalReviewService;
-use App\Services\CalendlyAppraisalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -45,11 +45,11 @@ class AdminAppraisalReviewController extends Controller
         return back()->with('success', 'Protected final report saved. Retain the password separately and provide it personally during the appointment.');
     }
 
-    public function linkAppointment(Request $request, AppraisalReview $review, CalendlyAppraisalService $calendly): RedirectResponse
+    public function linkAppointment(Request $request, AppraisalReview $review, AppraisalScheduler $scheduler): RedirectResponse
     {
         $data = $request->validate(['invitee_uri' => 'required|string|max:255']);
-        abort_unless($calendly->ingest($data['invitee_uri'], $review->id), 422, 'The booking must match this buyer and the configured appraisal event type.');
+        abort_unless($scheduler->ingest($data['invitee_uri'], $review->id), 422, 'The booking must match this buyer and the configured appraisal event type.');
 
-        return back()->with('success', 'Existing Calendly appointment linked and verified.');
+        return back()->with('success', 'Existing appointment linked and verified.');
     }
 }
