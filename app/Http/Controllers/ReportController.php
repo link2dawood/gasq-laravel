@@ -206,6 +206,22 @@ class ReportController extends Controller
 
         // Choose the cover message for this report.
         [$bodyView, $bodyData] = $this->emailBodyFor($type, $payload);
+        if ($bodyView === 'emails.cost-to-protect' && $this->openPassword($request) !== null) {
+            $bodyView = 'emails.cost-to-protect-protected';
+            $subject = 'Your GASQ Appraisal Is Ready—Schedule Your Review to Receive PDF Access';
+        }
+        if ($type === 'budget-calculator-allocation' && $this->openPassword($request) !== null) {
+            $summary = app(\App\Services\WorkforceAllocationSummary::class)->build((array) ($payload['scenario'] ?? []), $payload['user'] ?? null);
+            $bodyView = 'emails.workforce-allocation-protected';
+            $bodyData = [
+                'clientName' => $summary['estimate']['contact']['name'] ?: ($summary['estimate']['contact']['company'] ?: 'Valued Client'),
+                'budgetTotal' => $summary['total'],
+                'allocations' => $summary['amounts'],
+                'bookingUrl' => config('appraisal_reviews.provider') === 'bookafy'
+                    ? config('appraisal_reviews.bookafy.booking_url') : config('appraisal_reviews.booking_url'),
+            ];
+            $subject = 'Your Confidential GASQ Report — Schedule Your Budget Review';
+        }
         if ($bodyView === 'emails.cost-to-protect') {
             $subject = 'Your GASQ Cost to Protect™ Appraisal Report';
         }
@@ -213,7 +229,7 @@ class ReportController extends Controller
             $subject = 'Your GASQ Cost to Protect™ Estimate — Buyer Edition';
         }
         if ($privateWeightedReport) {
-            $subject = 'GASQ Vendor Weighted Rate Report';
+            $subject = 'Your GASQ Weighted Rate Report Is Ready — Schedule Your Review';
         }
 
         // On-site survey notes + photos/files. Only preparers (vendors/admins) may
@@ -338,9 +354,14 @@ class ReportController extends Controller
     private function emailBodyFor(string $type, array $payload): array
     {
         if ($type === 'vendor-weighted-rates') {
+            $prepared = app(\App\Services\VendorWeightedRateReport::class)->prepare($payload);
             return ['emails.vendor-weighted-rate-report', [
                 'recipientName' => ($payload['user'] ?? null)?->name ?: 'there',
                 'datePrepared' => $payload['datePrepared'],
+                'totals' => $prepared['weighted']['totals'],
+                'reportCurrency' => $prepared['reportCurrency'],
+                'bookingUrl' => config('appraisal_reviews.provider') === 'bookafy'
+                    ? config('appraisal_reviews.bookafy.booking_url') : config('appraisal_reviews.booking_url'),
             ]];
         }
 
@@ -371,6 +392,9 @@ class ReportController extends Controller
             'reportNumber' => $payload['reportNumber'] ?? null,
             'datePrepared' => now()->format('F j, Y'),
             'inHouseCost' => $inHouse > 0 ? $inHouse : null,
+            'outsourcingCost' => $estimate['totalAnnualVendor'] ?? ($inHouse - $estimate['annualCapitalRecovery']),
+            'bookingUrl' => config('appraisal_reviews.provider') === 'bookafy'
+                ? config('appraisal_reviews.bookafy.booking_url') : config('appraisal_reviews.booking_url'),
             'capitalRecovery' => $inHouse > 0 ? $estimate['annualCapitalRecovery'] : null,
             'paybackPeriod' => $inHouse > 0 ? $estimate['paybackMonths'].' months' : null,
         ]];

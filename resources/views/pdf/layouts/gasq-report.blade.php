@@ -90,6 +90,7 @@
 
     .compact-row { padding:5px 16px; }
 </style>
+@yield('report_styles')
 </head>
 <body>
 

@@ -40,7 +40,7 @@
       <table class="table table-sm align-middle mb-0 vwr-table">
         <caption class="px-2 small">Edit Weekly hours for each position’s total headcount. Leave blank to use headcount × the shared weekly hours per employee. Monthly staffing hours are annual role hours ÷ 12. Full precision is used for calculations; currency and percentages are rounded only for display.</caption>
         <thead><tr>
-          <th>Position / classification</th><th>Headcount</th><th>Pay rate/hr</th><th>Combined hourly wages</th><th>Wage share of bill rate</th><th>Weekly hours</th><th>Monthly hours</th><th>Annual role hours</th><th>Bill rate/hr</th><th>Total annual bill cost</th><th></th>
+          <th>Position / classification</th><th>Headcount/Cost per Door</th><th>Pay rate/hr</th><th>Combined hourly wages</th><th>Wage share of bill rate</th><th>Weekly hours</th><th>Monthly hours</th><th>Annual role hours</th><th>Bill rate/hr</th><th>Total annual bill cost</th><th></th>
         </tr></thead>
         <tbody id="vwr_roles"></tbody>
         <tfoot><tr class="fw-semibold">

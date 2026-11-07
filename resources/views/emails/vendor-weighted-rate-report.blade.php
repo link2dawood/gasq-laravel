@@ -1,33 +1,42 @@
 @extends('emails.layouts.gasq-base', [
-    'title' => 'GASQ Vendor Weighted Rate Report',
-    'preheader' => 'Understand the staffing, wages, bill rates, and costs behind the price of protection.',
+    'title' => 'Your GASQ Weighted Rate Report Is Ready — Schedule Your Review',
+    'preheader' => 'Your confidential weighted rate dashboard is ready. Schedule your review for PDF access.',
 ])
-
+@php
+    $maskRate = static fn ($value) => preg_replace('/\d(?=[\d,]*\.)/', 'X', number_format($value, 2));
+    $maskMoney = static function ($value) use ($reportCurrency): string {
+        $formatted = number_format($value * $reportCurrency['rate'], 0);
+        $masked = str_contains($formatted, ',')
+            ? preg_replace('/\d(?=\d{3}(?:\D|$))|\d(?=\d*,\d{3})/', 'X', $formatted)
+            : preg_replace('/\d/', 'X', $formatted);
+        return $reportCurrency['symbol'].$masked;
+    };
+    $canSchedule = filter_var($bookingUrl ?? null, FILTER_VALIDATE_URL) && parse_url($bookingUrl, PHP_URL_SCHEME) === 'https';
+@endphp
 @section('content')
-<p>Hello {{ $recipientName }},</p>
-
-<p>Whether you purchase security services or provide them, understanding how the price is built supports better decisions.</p>
-
-<p>Attached is the GASQ Vendor Weighted Rate Report, dated {{ $datePrepared }}. It combines the wages and bill rates of the listed security officers and support staff into weighted averages based on each role’s scheduled hours.</p>
-
-<p>The report shows staffing positions, employee counts, scheduled hours, weighted wages and bill rates, wage share, and weekly, monthly, and annual costs.</p>
-
-<p><strong>For buyers:</strong> It helps you understand the staffing behind the price and provides a basis for comparing costs with your current security budget for equivalent coverage.</p>
-
-<p><strong>For vendors:</strong> It helps you review how each role contributes to your overall rate, assess staffing assumptions, and explain the cost to deliver protection.</p>
-
-<p>The listed hours represent staffing and payroll hours. Customer billable coverage hours and the allocation of shared or dedicated support resources should be confirmed when reviewing a specific service proposal.</p>
-
-<p><strong>The attachment is password-protected. Reply “ACCESS” or contact me directly, and I’ll provide your password separately.</strong></p>
-
-<p>I’m available for a 10-minute walkthrough to explain the figures and discuss how the report applies to your purchasing or pricing decisions.</p>
-
-<p>Please forward this email to the person responsible for your security budget or vendor pricing. If forwarding isn’t possible, let me know how best to coordinate a review.</p>
-
-<p>Thank you,</p>
-
-<p>Get A Security Quote Team<br>
-Know Before You Buy. Know Before You Bid.<br>
-<a href="tel:+14706332816">(470) 633-2816</a><br>
-<a href="mailto:info@getasecurityquote.com">info@getasecurityquote.com</a></p>
+<p>Dear {{ $recipientName }},</p>
+<p>Attached is your confidential, password-protected GASQ Vendor Weighted Rate Dashboard.</p>
+<p>The report summarizes the estimated Cost to Deliver Protection™ using the wages, staffing, and schedules entered for the listed classifications.</p>
+<h2 style="font-size:18px;color:#153a81;">Executive Summary</h2>
+<ul>
+<li><strong>Weighted average pay wage:</strong> {{ $reportCurrency['symbol'].$maskRate($totals['weightedPayWage'] * $reportCurrency['rate']) }} per hour.</li>
+<li><strong>Weighted average bill rate:</strong> {{ $reportCurrency['symbol'].$maskRate($totals['weightedBillRate'] * $reportCurrency['rate']) }} per hour.</li>
+<li><strong>Staffing and annual role hours:</strong> Included in the protected report.</li>
+<li><strong>Estimated monthly bill cost:</strong> {{ $maskMoney($totals['monthlyBillCost']) }}.</li>
+<li><strong>Estimated annual bill cost:</strong> {{ $maskMoney($totals['annualBillCost']) }}.</li>
+<li><strong>Direct wage share:</strong> {{ is_numeric($totals['overallWageShare']) ? $maskRate($totals['overallWageShare'] * 100).'%' : 'Available during your review' }} of the modeled bill cost.</li>
+</ul>
+<p>These partially concealed figures provide a preview of your analysis. Full pricing, staffing assumptions, and calculations will be explained during your scheduled review.</p>
+<p>Please schedule a review with the decision-maker authorized to approve the security budget. During the appointment, we will explain the calculations, confirm the classifications and scope, and provide the PDF password.</p>
+@if($canSchedule)
+<p><a href="{{ $bookingUrl }}" style="background:#153a81;color:#fff;padding:12px 18px;display:inline-block;text-decoration:none;border-radius:4px;">Schedule Your Estimate &amp; Scope Review</a></p>
+@else
+<p><strong>Schedule Your Estimate &amp; Scope Review</strong><br>Please reply to this email to arrange your appointment.</p>
+@endif
+<p>If someone else authorizes the budget, please forward this email and attachment to that person and include them in the appointment.</p>
+<p>This dashboard supports pricing review; it does not constitute a submitted bid or final contract price.</p>
+<p>Respectfully,</p>
+<p>Get A Security Quote (GASQ) Team</p>
+<p>Get A Security Quote™<br>The Financial Procurement System for Security Services™<br>The Industry Pricing Referee™</p>
+<p><strong>Know Before You Buy. Qualifications First. Price Last.</strong></p>
 @endsection

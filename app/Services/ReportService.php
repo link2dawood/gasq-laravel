@@ -108,6 +108,16 @@ class ReportService
         $pdf = $this->pdf()->loadView($view, $data)
             ->setPaper($type === 'vendor-weighted-rates' ? 'legal' : 'a4', $type === 'vendor-weighted-rates' ? 'landscape' : 'portrait')
             ->setWarnings(false);
+        if ($type === 'main-menu') {
+            $pdf->render();
+            $dompdf = $pdf->getDomPDF();
+            $dompdf->getCanvas()->page_script(static function ($page, $count, $canvas, $fonts): void {
+                $canvas->set_opacity(1);
+                $canvas->text(34, $canvas->get_height() - 22,
+                    "GASQ Main Menu | Confidential | Page {$page} of {$count}",
+                    $fonts->getFont('DejaVu Sans'), 8, [0.38, 0.46, 0.55]);
+            });
+        }
         if ($type === 'vendor-weighted-rates') {
             $pdf->render();
             $dompdf = $pdf->getDomPDF();

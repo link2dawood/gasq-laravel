@@ -89,14 +89,14 @@ class CalculatorReportEmailTest extends TestCase
         Mail::assertSent(ReportPdfMail::class, function ($mail) use ($vendor) {
             $this->assertSame([], $mail->cc);
             $this->assertSame([], $mail->extraAttachments);
-            $this->assertSame('GASQ Vendor Weighted Rate Report', $mail->subjectLine);
+            $this->assertSame('Your GASQ Weighted Rate Report Is Ready — Schedule Your Review', $mail->subjectLine);
             $this->assertTrue($mail->hasBcc('info@getasecurityquote.com'));
             $this->assertFalse($mail->hasBcc('crm@example.test'));
             $this->assertTrue($mail->hasReplyTo('info@getasecurityquote.com'));
             $this->assertStringContainsString('/Encrypt', $mail->pdf);
-            $this->assertStringContainsString('Hello '.e($vendor->name).',', $mail->render());
-            $this->assertStringContainsString('dated October 12, 2026', $mail->render());
-            $this->assertStringContainsString('Reply “ACCESS”', $mail->render());
+            $this->assertStringContainsString('Dear '.e($vendor->name).',', $mail->render());
+            $this->assertSame('October 12, 2026', $mail->bodyData['datePrepared']);
+            $this->assertStringContainsString('provide the PDF password', $mail->render());
             $this->assertStringNotContainsString('LocalTestPassword', $mail->render());
             $this->assertStringNotContainsString('Do not include', $mail->render());
 
@@ -123,7 +123,7 @@ class CalculatorReportEmailTest extends TestCase
 
         Mail::assertSent(ReportPdfMail::class, function ($mail) {
             $body = $mail->render();
-            foreach (['dated October 16, 2026', 'For buyers:', 'For vendors:', 'staffing and payroll hours', '10-minute walkthrough', 'Please forward this email', 'Know Before You Buy. Know Before You Bid.', '(470) 633-2816'] as $text) {
+            foreach (['Executive Summary', 'Weighted average pay wage:', 'Weighted average bill rate:', 'Direct wage share:', 'Schedule Your Estimate &amp; Scope Review', 'please forward this email', 'Know Before You Buy. Qualifications First. Price Last.'] as $text) {
                 $this->assertStringContainsString($text, $body);
             }
             $this->assertStringNotContainsString('LocalTestPassword', $body);
