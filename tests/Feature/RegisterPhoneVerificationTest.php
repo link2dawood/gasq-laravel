@@ -13,6 +13,9 @@ class RegisterPhoneVerificationTest extends TestCase
 
     public function test_registration_surfaces_twilio_send_failures_to_user(): void
     {
+        config(['beta.closes_at' => null, 'beta.invite_only' => false, 'beta.max_accounts' => 0]);
+        config(['services.twilio.verify_service_sid' => null, 'services.twilio.account_sid' => 'ACtest', 'services.twilio.auth_token' => 'test-token', 'services.twilio.from' => '+15555550100', 'services.twilio.messaging_service_sid' => null]);
+        Http::preventStrayRequests();
         Http::fake([
             'https://api.twilio.com/*' => Http::response(['message' => 'Twilio error'], 500),
         ]);

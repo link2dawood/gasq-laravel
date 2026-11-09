@@ -31,6 +31,20 @@ Route::get('/pricing/vendors', [PageController::class, 'vendorPricing'])->name('
 Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 // Buyer/Vendor FAQs are dashboard-only (accessed while logged in), not public.
 Route::middleware('auth')->group(function () {
+    Route::get('/vendor/estimates', [\App\Http\Controllers\VendorLeadEstimateController::class, 'index'])->name('vendor-estimates.index');
+    Route::get('/vendor/buyer-leads/{lead}/estimates/create', [\App\Http\Controllers\VendorLeadEstimateController::class, 'create'])->name('vendor-estimates.create');
+    Route::post('/vendor/buyer-leads/{lead}/estimates', [\App\Http\Controllers\VendorLeadEstimateController::class, 'store'])->name('vendor-estimates.store');
+    Route::get('/vendor/estimates/{estimate}/edit', [\App\Http\Controllers\VendorLeadEstimateController::class, 'edit'])->name('vendor-estimates.edit');
+    Route::patch('/vendor/estimates/{estimate}', [\App\Http\Controllers\VendorLeadEstimateController::class, 'update'])->name('vendor-estimates.update');
+    Route::post('/vendor/estimates/{estimate}/pdf', [\App\Http\Controllers\VendorLeadEstimateController::class, 'download'])->middleware('throttle:10,1')->name('vendor-estimates.download');
+    Route::post('/vendor/estimates/{estimate}/email', [\App\Http\Controllers\VendorLeadEstimateController::class, 'send'])->middleware('throttle:5,1')->name('vendor-estimates.send');
+    Route::post('/vendor/pdf-deliveries/{delivery}/release', [\App\Http\Controllers\VendorPdfPasswordController::class, 'release'])->middleware('throttle:5,1')->name('vendor-pdf.release');
+    Route::post('/vendor/pdf-deliveries/{delivery}/revoke', [\App\Http\Controllers\VendorPdfPasswordController::class, 'revoke'])->name('vendor-pdf.revoke');
+    Route::get('/vendor/calendar', [\App\Http\Controllers\VendorCalendarController::class, 'index'])->name('vendor-calendar.index');
+    Route::post('/vendor/calendar/settings', [\App\Http\Controllers\VendorCalendarController::class, 'settings'])->name('vendor-calendar.settings');
+    Route::post('/vendor/calendar/slots', [\App\Http\Controllers\VendorCalendarController::class, 'publish'])->name('vendor-calendar.publish');
+    Route::delete('/vendor/calendar/slots/{slot}', [\App\Http\Controllers\VendorCalendarController::class, 'remove'])->name('vendor-calendar.remove');
+    Route::post('/vendor/calendar/appointments/{appointment}/cancel', [\App\Http\Controllers\VendorCalendarController::class, 'cancel'])->name('vendor-calendar.cancel');
     Route::get('/buyer-faq', [PageController::class, 'buyerFaq'])->name('buyer-faq');
     Route::get('/vendor-faq', [PageController::class, 'vendorFaq'])->name('vendor-faq');
 });
@@ -122,8 +136,26 @@ Route::get('/register/vendor', function () {
     return view('pages.register-vendor');
 })->name('register.vendor.index');
 
+Route::get('/buyer-enquiries/{token}', [\App\Http\Controllers\VendorBuyerLeadController::class, 'show'])
+    ->middleware('throttle:60,1')->name('buyer-enquiries.show');
+Route::get('/estimate-review/{token}', \App\Http\Controllers\VendorEstimateSchedulingController::class)
+    ->middleware('throttle:60,1')->name('vendor-estimate-scheduling');
+Route::post('/estimate-review/{token}', [\App\Http\Controllers\VendorEstimateBookingController::class, 'book'])->middleware('throttle:10,1')->name('vendor-review.book');
+Route::get('/review-appointments/{token}', [\App\Http\Controllers\VendorEstimateBookingController::class, 'manage'])->middleware('throttle:60,1')->name('vendor-review.manage');
+Route::post('/review-appointments/{token}/cancel', [\App\Http\Controllers\VendorEstimateBookingController::class, 'cancel'])->middleware('throttle:10,1')->name('vendor-review.cancel');
+Route::get('/estimate-access/{token}', [\App\Http\Controllers\VendorPdfPasswordController::class, 'show'])->middleware('throttle:60,1')->name('vendor-pdf.show');
+Route::post('/estimate-access/{token}/code', [\App\Http\Controllers\VendorPdfPasswordController::class, 'code'])->middleware('throttle:5,1')->name('vendor-pdf.code');
+Route::post('/estimate-access/{token}/verify', [\App\Http\Controllers\VendorPdfPasswordController::class, 'verify'])->middleware('throttle:10,1')->name('vendor-pdf.verify');
+Route::post('/estimate-access/{token}/reveal', [\App\Http\Controllers\VendorPdfPasswordController::class, 'reveal'])->middleware('throttle:20,1')->name('vendor-pdf.reveal');
+Route::post('/estimate-access/{token}/download', [\App\Http\Controllers\VendorPdfPasswordController::class, 'download'])->middleware('throttle:20,1')->name('vendor-pdf.download');
+Route::post('/buyer-enquiries/{token}', [\App\Http\Controllers\VendorBuyerLeadController::class, 'store'])
+    ->middleware('throttle:10,1')->name('buyer-enquiries.store');
+
 // Auth-only routes (phone verification)
 Route::middleware('auth')->group(function () {
+    Route::get('/vendor/buyer-leads', [\App\Http\Controllers\VendorBuyerLeadController::class, 'index'])->name('vendor-buyer-leads.index');
+    Route::post('/vendor/buyer-leads/invitation', [\App\Http\Controllers\VendorBuyerLeadController::class, 'rotate'])->name('vendor-buyer-leads.rotate');
+    Route::patch('/vendor/buyer-leads/{lead}', [\App\Http\Controllers\VendorBuyerLeadController::class, 'update'])->name('vendor-buyer-leads.update');
     Route::get('/vendor/leads', [VendorLeadsController::class, 'index'])->name('vendor-leads.index');
     Route::get('/vendor-opportunities/manage/{invitation}', [VendorOpportunityController::class, 'manage'])
         ->name('vendor-opportunities.manage');

@@ -26,7 +26,7 @@ class ContractAnalysisV24ParityTest extends TestCase
 
     public static function cases(): array
     {
-        $base = base_path('tests/Fixtures/v24/contract_analysis');
+        $base = dirname(__DIR__).'/Fixtures/v24/contract_analysis';
         return [
             'basic' => [$base.'/case_basic.json'],
         ];

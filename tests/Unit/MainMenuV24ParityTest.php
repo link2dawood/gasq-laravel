@@ -25,7 +25,7 @@ class MainMenuV24ParityTest extends TestCase
 
     public static function cases(): array
     {
-        $base = base_path('tests/Fixtures/v24/main_menu');
+        $base = dirname(__DIR__).'/Fixtures/v24/main_menu';
         return [
             'basic' => [$base.'/case_basic.json'],
         ];

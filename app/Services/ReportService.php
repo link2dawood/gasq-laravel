@@ -43,7 +43,7 @@ class ReportService
      */
     public function calculatorPdf(string $type, array $payload, ?string $openPassword = null): PDF
     {
-        if ($type === 'buyer-appraisal') {
+        if (in_array($type, ['buyer-appraisal', 'vendor-lead-estimate'], true)) {
             validator(['pdf_password' => $openPassword], ['pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/']])->validate();
         }
         if ($type === 'vendor-weighted-rates') {
@@ -63,6 +63,7 @@ class ReportService
             $payload['result'] = app(MainMenuComputeService::class)->compute($payload['scenario']);
         }
         $view = match ($type) {
+            'vendor-lead-estimate' => 'pdf.vendor-lead-estimate',
             'instant-estimator' => 'pdf.instant-estimator',
             'main-menu' => 'pdf.main-menu',
             'vendor-weighted-rates' => 'pdf.vendor-weighted-rates',
@@ -108,13 +109,14 @@ class ReportService
         $pdf = $this->pdf()->loadView($view, $data)
             ->setPaper($type === 'vendor-weighted-rates' ? 'legal' : 'a4', $type === 'vendor-weighted-rates' ? 'landscape' : 'portrait')
             ->setWarnings(false);
-        if ($type === 'main-menu') {
+        if (in_array($type, ['main-menu', 'vendor-lead-estimate'], true)) {
             $pdf->render();
             $dompdf = $pdf->getDomPDF();
-            $dompdf->getCanvas()->page_script(static function ($page, $count, $canvas, $fonts): void {
+            $label = $type === 'main-menu' ? 'GASQ Main Menu' : 'GASQ Vendor Estimate';
+            $dompdf->getCanvas()->page_script(static function ($page, $count, $canvas, $fonts) use ($label): void {
                 $canvas->set_opacity(1);
                 $canvas->text(34, $canvas->get_height() - 22,
-                    "GASQ Main Menu | Confidential | Page {$page} of {$count}",
+                    "{$label} | Confidential | Page {$page} of {$count}",
                     $fonts->getFont('DejaVu Sans'), 8, [0.38, 0.46, 0.55]);
             });
         }
@@ -137,7 +139,7 @@ class ReportService
         return $this->restrictCopyAndPrint(
             $pdf,
             $type === 'budget-calculator-preview' ? null : $openPassword,
-            in_array($type, ['vendor-weighted-rates', 'buyer-appraisal'], true),
+            in_array($type, ['vendor-weighted-rates', 'buyer-appraisal', 'vendor-lead-estimate'], true),
         );
     }
 

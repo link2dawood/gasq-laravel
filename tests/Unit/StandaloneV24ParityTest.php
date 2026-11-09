@@ -24,7 +24,7 @@ class StandaloneV24ParityTest extends TestCase
 
     public static function cases(): array
     {
-        $base = base_path('tests/Fixtures/v24/standalone');
+        $base = dirname(__DIR__).'/Fixtures/v24/standalone';
         return [
             'cost-analysis' => ['cost-analysis', $base.'/cost-analysis.basic.json'],
             'manpower-hours' => ['manpower-hours', $base.'/manpower-hours.basic.json'],

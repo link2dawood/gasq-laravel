@@ -40,6 +40,11 @@ class AnalyticsLogger
                     $data['status'] = $response->getStatusCode();
                 }
 
+                if ($request->routeIs('vendor-estimate-scheduling', 'vendor-review.*', 'vendor-pdf.*', 'buyer-enquiries.*')) {
+                    $data['path'] = $route?->uri();
+                    unset($data['query'], $data['params']);
+                }
+
                 AnalyticsEvent::create([
                     'event_type' => $eventType,
                     'user_id' => $request->user()?->id,

@@ -272,6 +272,10 @@
 @section('content')
 <div class="vendor-leads-shell">
     <div class="vendor-leads-container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <span class="text-gasq-muted">Invited bid opportunities</span>
+            <a class="btn btn-outline-primary" href="{{ route('vendor-buyer-leads.index') }}">Buyer enquiries &amp; invitation link</a>
+        </div>
         <div class="vendor-leads-frame">
             @if($leadItems->isEmpty())
                 <div class="lead-empty">

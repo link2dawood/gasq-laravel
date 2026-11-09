@@ -36,7 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->dontFlash(['pdf_password']);
+        $exceptions->dontFlash(['pdf_password', 'code']);
         // When the session/CSRF token has expired (e.g. after the auto-logout
         // timer fires or a form sits open too long), Laravel throws a 419
         // TokenMismatchException and renders the bare "PAGE EXPIRED" screen.

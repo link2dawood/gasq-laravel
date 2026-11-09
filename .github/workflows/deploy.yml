@@ -98,6 +98,9 @@ jobs:
           php artisan queue:restart
           php artisan currency:refresh
           php scripts/verify_report_deployment.php
+          if ! php artisan vendor-workflow:preflight --production; then
+            echo 'Vendor workflow readiness needs attention; see preflight results above.'
+          fi
           if ! php artisan appraisals:preflight; then
             echo 'Scheduling setup needs attention; see preflight results above.'
           fi
