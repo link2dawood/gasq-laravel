@@ -247,6 +247,54 @@ class CalculatorReportEmailTest extends TestCase
         Mail::assertSent(ReportPdfMail::class, fn ($mail) => $mail->bodyView === 'emails.workforce-allocation-protected' && str_contains($mail->render(), 'Schedule Your Estimate &amp; Scope Review') && ! str_contains($mail->render(), 'OptionalReviewPassword'));
     }
 
+    /**
+     * Figures and masking taken from the approved cover message for report
+     * GASQ-20261107-105838-V9, whose own totals are $782,068 in-house against
+     * $547,448 outsourced with $234,620 recovered.
+     */
+    public function test_protected_cost_to_protect_cover_matches_the_approved_comparison_and_masking(): void
+    {
+        $estimate = [
+            'baselineWage' => 24.37, 'internalTcoHourly' => 89.52, 'vendorTcoHourly' => 62.67,
+            'internalOtHourly' => 134.28, 'vendorOtHourly' => 94.00,
+            'annualPerInternalFte' => 130344.69, 'annualPerVendorFte' => 91241.28,
+            'weeklyCoverageHours' => 168, 'monthlyCoverageHours' => 728, 'annualCoverageHours' => 8736,
+            'weeksPerYear' => 52, 'monthsOfCoverage' => 12, 'ftesRequired' => 6,
+            'totalWeeklyInternal' => 15039.77, 'totalWeeklyVendor' => 10527.84,
+            'totalMonthlyInternal' => 65172.34, 'totalMonthlyVendor' => 45620.64,
+            'totalAnnualInternal' => 782068.11, 'totalAnnualVendor' => 547447.68,
+            'annualCapitalRecovery' => 234620.43, 'recoveryPct' => 30,
+        ];
+        $html = view('emails.cost-to-protect-protected', [
+            'clientName' => 'Avery Chen', 'datePrepared' => 'November 7, 2026',
+            'reportNumber' => 'GASQ-20261107-105838-V9', 'estimate' => $estimate,
+            'bookingUrl' => 'https://getasecurityquote.bookafy.com/schedule/',
+        ])->render();
+
+        // Every money figure keeps its final group and cents, and nothing else.
+        foreach (['$XX.37', '$XX.52', '$XX.67', '$XXX.28', '$XX.00', '$XXX,344.69', '$XX,241.28',
+            '$XX,039.77', '$XX,527.84', '$XX,172.34', '$XX,620.64', '$XXX,068.11', '$XXX,447.68', '$XXX,620.43'] as $masked) {
+            $this->assertStringContainsString($masked, $html, "missing masked figure {$masked}");
+        }
+        // The real amounts must never ship in the covering email.
+        foreach (['782,068', '547,447', '234,620', '130,344', '89.52', '62.67', '24.37'] as $raw) {
+            $this->assertStringNotContainsString($raw, $html, "leaked unmasked figure {$raw}");
+        }
+        // Coverage quantities are not concealed.
+        foreach (['168', '728', '8,736', '52', '12', '6 FTEs'] as $plain) {
+            $this->assertStringContainsString($plain, $html);
+        }
+        // The headline quotes the recovery without cents, the rows with them.
+        $this->assertStringContainsString('reduce estimated annual costs by 30%, creating a potential $XXX,620 annual Capital Recovery Opportunity', $html);
+        $this->assertStringContainsString('Detailed Cost Appraisal Comparison', $html);
+        $this->assertStringContainsString('Buyer In-House Cost to Protect', $html);
+        $this->assertStringContainsString('Vendor Outsourcing Cost', $html);
+        $this->assertStringContainsString('What the Estimate Includes', $html);
+        $this->assertStringContainsString('Next Step: Schedule Your Estimate &amp; Scope Review', $html);
+        $this->assertStringContainsString('before releasing the report password and complete pricing', $html);
+        $this->assertStringContainsString('href="https://getasecurityquote.bookafy.com/schedule/"', $html);
+    }
+
     public function test_buyer_edition_cover_asks_for_a_review_only_when_its_pdf_is_protected(): void
     {
         Mail::fake();

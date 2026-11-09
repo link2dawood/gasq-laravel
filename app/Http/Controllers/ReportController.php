@@ -208,7 +208,7 @@ class ReportController extends Controller
         [$bodyView, $bodyData] = $this->emailBodyFor($type, $payload);
         if ($bodyView === 'emails.cost-to-protect' && $this->openPassword($request) !== null) {
             $bodyView = 'emails.cost-to-protect-protected';
-            $subject = 'Your GASQ Appraisal Is Ready—Schedule Your Review to Receive PDF Access';
+            $subject = 'Your GASQ Security Cost Summary: Review Your Capital Recovery Opportunity';
         }
         if ($type === 'budget-calculator-allocation' && $this->openPassword($request) !== null) {
             $summary = app(\App\Services\WorkforceAllocationSummary::class)->build((array) ($payload['scenario'] ?? []), $payload['user'] ?? null);
@@ -411,6 +411,9 @@ class ReportController extends Controller
             'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),
             'capitalRecovery' => $inHouse > 0 ? $estimate['annualCapitalRecovery'] : null,
             'paybackPeriod' => $inHouse > 0 ? $estimate['paybackMonths'].' months' : null,
+            // The protected cover prints the approved side-by-side comparison, so
+            // it needs every rate and coverage figure, not just the headline totals.
+            'estimate' => $estimate,
         ]];
     }
 

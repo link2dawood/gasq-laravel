@@ -14,10 +14,11 @@ class ProtectedAppraisalEmailTest extends TestCase
             'outsourcingCost' => 547448, 'capitalRecovery' => 234620,
             'paybackPeriod' => '8.4 months', 'bookingUrl' => 'https://example.test/schedule?a=1&b=2',
         ])->render();
-        foreach (['Dear Avery Buyer', 'GASQ-TEST-123', '$XXX,068', '$XXX,448', '$XXX,620', 'https://example.test/schedule?a=1&amp;b=2', 'Schedule Your 30-Minute Appraisal &amp; Estimate Review'] as $expected) {
+        foreach (['Dear Avery Buyer', 'GASQ-TEST-123', '$XXX,068', '$XXX,448', '$XXX,620', 'https://example.test/schedule?a=1&amp;b=2', 'Schedule Your Estimate &amp; Scope Review'] as $expected) {
             $this->assertStringContainsString($expected, $html);
         }
         foreach (['782,068', '547,448', '234,620', '8.4 months'] as $secret) {
+            // The approved comparison never prints payback, and masks every amount.
             $this->assertStringNotContainsString($secret, $html);
         }
     }

@@ -25,3 +25,15 @@ Local PDF checks confirmed blank-password opening, refusal to open the protected
 The Cost to Protect Buyer Edition keeps its approved cover message, which quotes no vendor figures and offers no password control in the interface. Should a password ever reach that report, its cover now names the booked review as the route to the password instead of sending an unopenable attachment with no instructions. This keeps the rule that every password-protected PDF requires a scheduled appointment true on every email path, rather than only on the paths the interface exposes today.
 
 Every other producer of a protected PDF was reviewed against the same rule. The vendor's own estimate download requires a password and reaches no buyer. The final buyer appraisal is always encrypted and its delivery is already gated on a live scheduled appointment. The embedded calculator path emails a PDF rendered in the browser and accepts no password.
+
+## Approved Cost to Protect cover message
+
+The protected Cost to Protect cover now follows the message supplied by GASQ on November 9, 2026, written against report GASQ-20261107-105838-V9. Its subject is "Your GASQ Security Cost Summary: Review Your Capital Recovery Opportunity". The body opens with the recovery headline, prints the Detailed Cost Appraisal Comparison as a fourteen-row table of buyer in-house against vendor outsourcing figures, then the What the Estimate Includes paragraphs, then the Next Step scheduling section and the standard brand block.
+
+Every figure in that table comes from `CostToProtectEstimate`, the same service the attached PDF uses, so the cover can never quote a number the report contradicts. The controller passes the whole estimate array to the cover for this reason.
+
+Money is concealed by replacing the leading digits and keeping the final group with its cents, so $782,068.11 prints as $XXX,068.11 and $24.37 as $XX.37. The headline sentence quotes the recovery without cents, as the approved message does. Coverage quantities, staffing counts, and the recovery percentage are not concealed. `CalculatorReportEmailTest` pins all fourteen masked figures against that report's own totals and asserts no unmasked amount reaches the email.
+
+Two deliberate departures from the supplied document, both open to correction: the cover keeps a report number and date-prepared line under the greeting, for traceability and consistency with the other covers, and it retains the existing on-site survey notes and attachment blocks so the vendor survey feature keeps working.
+
+Four protected covers still carry wording written in-house rather than supplied: the Workforce-to-Post allocation, the weighted rate report, the generic report, and the lead estimate. GASQ said a message per protected document would follow.
