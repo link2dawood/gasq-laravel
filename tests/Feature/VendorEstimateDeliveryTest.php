@@ -160,4 +160,15 @@ class VendorEstimateDeliveryTest extends TestCase
         $this->get(route('vendor-estimates.edit', $estimate))->assertNotFound();
         $this->assertDatabaseCount('vendor_estimate_deliveries', 1);
     }
+
+    public function test_fallback_booking_link_uses_the_actual_provider_reference_field(): void
+    {
+        config(['appraisal_reviews.provider' => 'calendly', 'appraisal_reviews.booking_url' => null]);
+        $estimate = $this->estimate();
+        $delivery = $this->prepare($estimate);
+        $this->assertStringContainsString('https://example.bookafy.com/', $delivery->scheduling_target);
+        $this->assertStringContainsString('Reference=gasq_estimate_', $delivery->scheduling_target);
+        $this->assertStringNotContainsString('utm_content=', $delivery->scheduling_target);
+        $this->assertSame('calendly', config('appraisal_reviews.provider'));
+    }
 }

@@ -6,7 +6,6 @@
         if (!str_contains($formatted, ',')) return preg_replace('/\d/', 'X', $formatted);
         return preg_replace('/\d(?=\d{3}(?:\D|$))|\d(?=\d*,\d{3})/', 'X', $formatted);
     };
-    $canSchedule = filter_var($bookingUrl ?? null, FILTER_VALIDATE_URL) && parse_url($bookingUrl, PHP_URL_SCHEME) === 'https';
 @endphp
 @section('content')
 <p>Dear {{ $clientName ?: 'Valued Client' }},</p>
@@ -14,11 +13,7 @@
 <p>Your analysis identifies a potential annual Capital Recovery Opportunity. The financial figures below are partially concealed pending your scheduled review.</p>
 <p>Your confidential PDF report is attached and password protected. To receive the password, an appointment must be scheduled with the decision-maker and his/her designated representative authorized to approve the security budget. We will release the password after confirming the appointment and the decision-maker’s participation.</p>
 <p>If someone else authorizes the final budget, please forward this email and the attached report to them and include them in the appointment.</p>
-@if($canSchedule)
-<p><a href="{{ $bookingUrl }}" style="background:#153a81;color:#fff;padding:12px 18px;display:inline-block;text-decoration:none;border-radius:4px;">Schedule Your 30-Minute Appraisal &amp; Estimate Review</a></p>
-@else
-<p><strong>Schedule Your 30-Minute Appraisal &amp; Estimate Review</strong><br>Please reply to this email to arrange your appointment.</p>
-@endif
+@include('emails.partials.schedule-review', ['bookingUrl' => $bookingUrl ?? null, 'scheduleLabel' => 'Schedule Your 30-Minute Appraisal & Estimate Review'])
 <p>During this review, we will:</p>
 <ul>
 <li>Reveal and explain the complete financial findings.</li>

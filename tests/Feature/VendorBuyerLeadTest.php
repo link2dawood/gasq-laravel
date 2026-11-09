@@ -46,6 +46,7 @@ class VendorBuyerLeadTest extends TestCase
         $other = $this->link($this->vendor());
         $this->assertNotSame($first->token, $other->token);
         $this->assertSame(64, strlen($first->token));
+        $this->actingAs($vendor)->get(route('vendor-buyer-leads.index'))->assertOk()->assertSee('Draft invitation email')->assertSee(rawurlencode($first->invitationUrl()), false);
         auth()->forgetGuards();
         $this->get($first->invitationUrl())->assertOk()->assertSee('North Security')->assertSee('Scope of services')->assertHeader('Cache-Control', 'no-store, private');
         $this->assertDatabaseCount('vendor_lead_links', 2);

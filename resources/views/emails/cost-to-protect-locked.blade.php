@@ -29,6 +29,14 @@ methodology and every category of cost the estimate accounts for.</p>
 period are withheld. To release the complete estimate with those figures, please
 reply to this email or contact your GASQ representative.</p>
 
+@if(!empty($passwordProtected))
+<p>Your attached PDF is password protected. To receive the password, please schedule
+an Estimate &amp; Scope Review with the decision-maker authorized to approve the
+security budget. We will confirm your requirements and release the password after
+the appointment.</p>
+@include('emails.partials.schedule-review', ['bookingUrl' => $bookingUrl ?? null])
+@endif
+
 @if(!empty($surveyorNotes))
 <p><strong>Notes from your GASQ representative:</strong></p>
 <div style="margin:6px 0 10px 0; padding:10px 12px; background:#f1f5f9; border-left:3px solid #153a81; white-space:pre-line;">{{ $surveyorNotes }}</div>

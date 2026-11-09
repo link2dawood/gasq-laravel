@@ -11,7 +11,6 @@
             : preg_replace('/\d/', 'X', $formatted);
         return $reportCurrency['symbol'].$masked;
     };
-    $canSchedule = filter_var($bookingUrl ?? null, FILTER_VALIDATE_URL) && parse_url($bookingUrl, PHP_URL_SCHEME) === 'https';
 @endphp
 @section('content')
 <p>Dear {{ $recipientName }},</p>
@@ -28,11 +27,7 @@
 </ul>
 <p>These partially concealed figures provide a preview of your analysis. Full pricing, staffing assumptions, and calculations will be explained during your scheduled review.</p>
 <p>Please schedule a review with the decision-maker authorized to approve the security budget. During the appointment, we will explain the calculations, confirm the classifications and scope, and provide the PDF password.</p>
-@if($canSchedule)
-<p><a href="{{ $bookingUrl }}" style="background:#153a81;color:#fff;padding:12px 18px;display:inline-block;text-decoration:none;border-radius:4px;">Schedule Your Estimate &amp; Scope Review</a></p>
-@else
-<p><strong>Schedule Your Estimate &amp; Scope Review</strong><br>Please reply to this email to arrange your appointment.</p>
-@endif
+@include('emails.partials.schedule-review', ['bookingUrl' => $bookingUrl ?? null, 'scheduleLabel' => 'Schedule Your Estimate & Scope Review'])
 <p>If someone else authorizes the budget, please forward this email and attachment to that person and include them in the appointment.</p>
 <p>This dashboard supports pricing review; it does not constitute a submitted bid or final contract price.</p>
 <p>Respectfully,</p>

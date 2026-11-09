@@ -21,21 +21,17 @@ class VendorEstimateDeliveryService
         if ($vendor && VendorSchedulingProfile::where('vendor_id', $vendor->id)->where('enabled', true)->exists()) {
             return 'native';
         }
-        $bookafy = config('appraisal_reviews.provider') === 'bookafy';
-        $url = $bookafy ? config('appraisal_reviews.bookafy.booking_url') : config('appraisal_reviews.booking_url');
-        if (! is_string($url) || ! filter_var($url, FILTER_VALIDATE_URL) || parse_url($url, PHP_URL_SCHEME) !== 'https') {
-            return null;
-        }
-        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
-        $domain = $bookafy ? 'bookafy.com' : 'calendly.com';
 
-        return ($host === $domain || str_ends_with($host, '.'.$domain)) && ! parse_url($url, PHP_URL_USER) && ! parse_url($url, PHP_URL_FRAGMENT) ? $url : null;
+        return app(CustomerBookingLink::class)->url();
     }
 
     public function prepare(VendorLeadEstimate $estimate, string $password, string $requestKey): VendorEstimateDelivery
     {
         $password = trim($password);
-        $base = $this->schedulingBaseUrl($estimate->vendor);
+        $native = $estimate->vendor && VendorSchedulingProfile::where('vendor_id', $estimate->vendor_id)->where('enabled', true)->exists();
+        $booking = $native ? ['provider' => 'native', 'url' => 'native'] : app(CustomerBookingLink::class)->configured();
+        $base = $booking['url'] ?? null;
+        $provider = $booking['provider'] ?? null;
         if (! $base) {
             throw ValidationException::withMessages(['delivery' => 'Configure the Bookafy or Calendly appraisal booking URL before sending estimates.']);
         }
@@ -44,7 +40,7 @@ class VendorEstimateDeliveryService
         }
         $path = null;
         try {
-            $delivery = DB::transaction(function () use ($estimate, $password, $requestKey, $base, &$path) {
+            $delivery = DB::transaction(function () use ($estimate, $password, $requestKey, $base, $provider, &$path) {
                 $estimate = VendorLeadEstimate::whereKey($estimate->id)->lockForUpdate()->firstOrFail()->load('vendor');
                 $existing = VendorEstimateDelivery::where('request_key', $requestKey)->first();
                 if ($existing) {
@@ -69,7 +65,7 @@ class VendorEstimateDeliveryService
                 }
                 $token = Str::random(64);
                 $reference = 'gasq_estimate_'.$requestKey;
-                $query = [config('appraisal_reviews.provider') === 'bookafy' ? config('appraisal_reviews.bookafy.reference_field', 'Reference') : 'utm_content' => $reference];
+                $query = [$provider === 'bookafy' ? config('appraisal_reviews.bookafy.reference_field', 'Reference') : 'utm_content' => $reference];
 
                 $delivery = VendorEstimateDelivery::create([
                     'vendor_lead_estimate_id' => $estimate->id, 'request_key' => $requestKey,

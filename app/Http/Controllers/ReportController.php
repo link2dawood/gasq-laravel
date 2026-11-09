@@ -217,8 +217,7 @@ class ReportController extends Controller
                 'clientName' => $summary['estimate']['contact']['name'] ?: ($summary['estimate']['contact']['company'] ?: 'Valued Client'),
                 'budgetTotal' => $summary['total'],
                 'allocations' => $summary['amounts'],
-                'bookingUrl' => config('appraisal_reviews.provider') === 'bookafy'
-                    ? config('appraisal_reviews.bookafy.booking_url') : config('appraisal_reviews.booking_url'),
+                'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),
             ];
             $subject = 'Your Confidential GASQ Report — Schedule Your Budget Review';
         }
@@ -227,9 +226,25 @@ class ReportController extends Controller
         }
         if ($bodyView === 'emails.cost-to-protect-locked') {
             $subject = 'Your GASQ Cost to Protect™ Estimate — Buyer Edition';
+            // The buyer edition normally ships unprotected and has no password
+            // control in the UI. Should a password ever reach it, the cover must
+            // still tell the buyer how to obtain one, so the rule that every
+            // protected PDF requires a booked review holds on every path.
+            $bodyData['passwordProtected'] = $this->openPassword($request) !== null;
         }
         if ($privateWeightedReport) {
             $subject = 'Your GASQ Weighted Rate Report Is Ready — Schedule Your Review';
+        }
+        if ($bodyView === 'emails.report-pdf' && $this->openPassword($request) !== null) {
+            $bodyView = 'emails.report-pdf-protected';
+            $subject = 'Your GASQ Report Is Ready — Schedule Your Review';
+            $bodyData = [
+                'clientName' => data_get($payload, 'scenario.meta.contact.contactName') ?: 'Valued Client',
+                'reportTitle' => 'GASQ '.\Illuminate\Support\Str::headline($type).' Report',
+                'reportNumber' => $payload['reportNumber'] ?? null,
+                'datePrepared' => now()->format('F j, Y'),
+                'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),
+            ];
         }
 
         // On-site survey notes + photos/files. Only preparers (vendors/admins) may
@@ -360,8 +375,7 @@ class ReportController extends Controller
                 'datePrepared' => $payload['datePrepared'],
                 'totals' => $prepared['weighted']['totals'],
                 'reportCurrency' => $prepared['reportCurrency'],
-                'bookingUrl' => config('appraisal_reviews.provider') === 'bookafy'
-                    ? config('appraisal_reviews.bookafy.booking_url') : config('appraisal_reviews.booking_url'),
+                'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),
             ]];
         }
 
@@ -371,6 +385,7 @@ class ReportController extends Controller
             return ['emails.cost-to-protect-locked', [
                 'reportNumber' => $payload['reportNumber'] ?? null,
                 'datePrepared' => now()->format('F j, Y'),
+                'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),
             ]];
         }
 
@@ -393,8 +408,7 @@ class ReportController extends Controller
             'datePrepared' => now()->format('F j, Y'),
             'inHouseCost' => $inHouse > 0 ? $inHouse : null,
             'outsourcingCost' => $estimate['totalAnnualVendor'] ?? ($inHouse - $estimate['annualCapitalRecovery']),
-            'bookingUrl' => config('appraisal_reviews.provider') === 'bookafy'
-                ? config('appraisal_reviews.bookafy.booking_url') : config('appraisal_reviews.booking_url'),
+            'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),
             'capitalRecovery' => $inHouse > 0 ? $estimate['annualCapitalRecovery'] : null,
             'paybackPeriod' => $inHouse > 0 ? $estimate['paybackMonths'].' months' : null,
         ]];

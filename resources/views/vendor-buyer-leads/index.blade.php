@@ -13,6 +13,12 @@
         <label class="form-label small" for="invitation-url">Copy and share this link with prospective buyers.</label>
         <div class="d-flex flex-wrap gap-2"><input class="form-control" style="flex:1;min-width:220px;" id="invitation-url" readonly value="{{ $link->invitationUrl() }}" onclick="this.select()"><button class="btn btn-outline-primary" type="button" id="copy-invitation">Copy link</button><a class="btn btn-outline-secondary" href="{{ $link->invitationUrl() }}" target="_blank" rel="noopener noreferrer">Preview form</a></div>
         <p id="copy-status" class="small mt-2" role="status"></p>
+        @php
+            $invitationSubject = 'Your private security services request form';
+            $invitationBody = "Hello,\n\nPlease use my private invitation link below to share your contact details and scope of security services:\n\n".$link->invitationUrl()."\n\nOnce you submit the form, I will review your requirements and prepare an estimate. If the PDF estimate is password protected, its email will include a link to schedule a review before password access is released.\n\nThank you,\n".(auth()->user()->company ?: auth()->user()->name);
+        @endphp
+        <a class="btn btn-outline-primary btn-sm" href="mailto:?subject={{ rawurlencode($invitationSubject) }}&amp;body={{ rawurlencode($invitationBody) }}">Draft invitation email</a>
+        <p class="small text-muted mt-2 mb-0">Opens a draft in your email app. Add the buyer's email address, review the message, and send it directly.</p>
         <form method="POST" action="{{ route('vendor-buyer-leads.rotate') }}" class="mt-3">@csrf
             <details><summary>Replace this invitation link</summary><p class="small text-muted mt-2">Replacing the link disables the previous one. Existing leads are kept.</p><button class="btn btn-sm btn-outline-danger" type="submit">Generate replacement link</button></details>
         </form>

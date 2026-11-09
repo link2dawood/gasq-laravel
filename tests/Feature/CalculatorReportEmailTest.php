@@ -203,4 +203,68 @@ class CalculatorReportEmailTest extends TestCase
         $this->actingAs($vendor)->postJson(route('reports.email'), ['type' => 'main-menu', 'email' => $vendor->email])->assertStatus(503)->assertJsonPath('ok', false);
         Mail::assertNothingSent();
     }
+
+    public function test_generic_protected_customer_report_includes_a_working_configured_booking_link(): void
+    {
+        Mail::fake();
+        config(['appraisal_reviews.provider' => 'calendly', 'appraisal_reviews.booking_url' => null, 'appraisal_reviews.bookafy.booking_url' => 'https://getasecurityquote.bookafy.com/schedule/?type=iframe&category_id=security']);
+        $vendor = $this->user();
+        $this->save($vendor);
+        $pdf = Mockery::mock(PDF::class);
+        $pdf->shouldReceive('output')->andReturn('%PDF-test-protected');
+        $this->partialMock(ReportService::class)->shouldReceive('calculatorPdf')->once()->withArgs(fn ($type, $payload, $password) => $type === 'main-menu' && $password === 'SchedulingTestPassword')->andReturn($pdf);
+        $this->actingAs($vendor)->postJson(route('reports.email'), ['type' => 'main-menu', 'email' => 'buyer@example.test', 'pdf_password' => 'SchedulingTestPassword'])->assertOk();
+        Mail::assertSent(ReportPdfMail::class, function ($mail) {
+            $this->assertSame('emails.report-pdf-protected', $mail->bodyView);
+            $this->assertSame('Your GASQ Report Is Ready — Schedule Your Review', $mail->subjectLine);
+            $body = $mail->render();
+            $this->assertStringContainsString('Schedule Your Estimate &amp; Scope Review', $body);
+            $this->assertStringContainsString('href="https://getasecurityquote.bookafy.com/schedule/?type=iframe&amp;category_id=security"', $body);
+            $this->assertStringNotContainsString('SchedulingTestPassword', $body);
+
+            return $mail->hasTo('buyer@example.test');
+        });
+    }
+
+    public function test_workforce_allocation_email_password_is_optional_and_only_protected_copies_require_review(): void
+    {
+        Mail::fake();
+        config(['appraisal_reviews.provider' => 'calendly', 'appraisal_reviews.booking_url' => null, 'appraisal_reviews.bookafy.booking_url' => 'https://getasecurityquote.bookafy.com/schedule/']);
+        $vendor = $this->user();
+        app(CalculatorStateStore::class)->store($vendor, 'budget-calculator', ['meta' => ['baselineWage' => 25, 'hoursPerDay' => 8, 'daysPerWeek' => 5, 'weeksPerYear' => 52]]);
+        $pdf = Mockery::mock(PDF::class);
+        $pdf->shouldReceive('output')->andReturn('%PDF-test');
+        $passwords = [];
+        $this->partialMock(ReportService::class)->shouldReceive('calculatorPdf')->twice()->withArgs(function ($type, $payload, $password) use (&$passwords) {
+            $passwords[] = $password;
+
+            return $type === 'budget-calculator-allocation';
+        })->andReturn($pdf);
+        $this->actingAs($vendor)->postJson(route('reports.email'), ['type' => 'budget-calculator-allocation', 'email' => 'buyer@example.test'])->assertOk();
+        $this->postJson(route('reports.email'), ['type' => 'budget-calculator-allocation', 'email' => 'buyer@example.test', 'pdf_password' => 'OptionalReviewPassword'])->assertOk();
+        $this->assertSame([null, 'OptionalReviewPassword'], $passwords);
+        Mail::assertSent(ReportPdfMail::class, fn ($mail) => $mail->bodyView === 'emails.report-pdf');
+        Mail::assertSent(ReportPdfMail::class, fn ($mail) => $mail->bodyView === 'emails.workforce-allocation-protected' && str_contains($mail->render(), 'Schedule Your Estimate &amp; Scope Review') && ! str_contains($mail->render(), 'OptionalReviewPassword'));
+    }
+
+    public function test_buyer_edition_cover_asks_for_a_review_only_when_its_pdf_is_protected(): void
+    {
+        Mail::fake();
+        config(['appraisal_reviews.provider' => 'calendly', 'appraisal_reviews.booking_url' => null, 'appraisal_reviews.bookafy.booking_url' => 'https://getasecurityquote.bookafy.com/schedule/']);
+        $vendor = $this->user();
+        app(CalculatorStateStore::class)->store($vendor, 'budget-calculator', ['meta' => ['baselineWage' => 25, 'hoursPerDay' => 8, 'daysPerWeek' => 5, 'weeksPerYear' => 52]]);
+        $pdf = Mockery::mock(PDF::class);
+        $pdf->shouldReceive('output')->andReturn('%PDF-test');
+        $this->partialMock(ReportService::class)->shouldReceive('calculatorPdf')->twice()->andReturn($pdf);
+        $this->actingAs($vendor)->postJson(route('reports.email'), ['type' => 'budget-calculator-preview', 'email' => 'buyer@example.test'])->assertOk();
+        $this->postJson(route('reports.email'), ['type' => 'budget-calculator-preview', 'email' => 'buyer@example.test', 'pdf_password' => 'BuyerEditionPassword'])->assertOk();
+        // The free edition keeps its approved cover untouched.
+        Mail::assertSent(ReportPdfMail::class, fn ($mail) => $mail->bodyView === 'emails.cost-to-protect-locked' && ! str_contains($mail->render(), 'Schedule Your Estimate'));
+        // A protected copy must name the booked review as the way to the password.
+        Mail::assertSent(ReportPdfMail::class, fn ($mail) => $mail->bodyView === 'emails.cost-to-protect-locked'
+            && str_contains($mail->render(), 'Schedule Your Estimate &amp; Scope Review')
+            && str_contains($mail->render(), 'password protected')
+            && str_contains($mail->render(), 'href="https://getasecurityquote.bookafy.com/schedule/"')
+            && ! str_contains($mail->render(), 'BuyerEditionPassword'));
+    }
 }

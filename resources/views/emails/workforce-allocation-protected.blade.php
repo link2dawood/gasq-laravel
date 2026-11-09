@@ -6,7 +6,6 @@
         if (!str_contains($formatted, ',')) return preg_replace('/\d/', 'X', $formatted);
         return preg_replace('/\d(?=\d{3}(?:\D|$))|\d(?=\d*,\d{3})/', 'X', $formatted);
     };
-    $canSchedule = filter_var($bookingUrl ?? null, FILTER_VALIDATE_URL) && parse_url($bookingUrl, PHP_URL_SCHEME) === 'https';
 @endphp
 @section('content')
 <p>Dear {{ $clientName }},</p>
@@ -22,11 +21,7 @@
 <p>The amounts above are partially concealed for confidentiality. The complete figures are available in your protected report.</p>
 <p>The proposed budget accounts for the resources required to deliver security services beyond officer wages alone. Reviewing these allocations will help you evaluate proposals, confirm service expectations, and establish a realistic protection budget.</p>
 <p>To receive the PDF password, please schedule an Estimate &amp; Scope Review with the decision-maker authorized to approve the final security budget. We will explain the cost assumptions, confirm your requirements, and answer questions before releasing the password during the appointment.</p>
-@if($canSchedule)
-<p><a href="{{ $bookingUrl }}" style="background:#153a81;color:#fff;padding:12px 18px;display:inline-block;text-decoration:none;border-radius:4px;">Schedule Your Estimate &amp; Scope Review</a></p>
-@else
-<p><strong>Schedule Your Estimate &amp; Scope Review</strong><br>Please reply to this email to arrange your appointment.</p>
-@endif
+@include('emails.partials.schedule-review', ['bookingUrl' => $bookingUrl ?? null, 'scheduleLabel' => 'Schedule Your Estimate & Scope Review'])
 <p>If someone else authorizes the budget, please forward this email and the protected attachment to that person and include them in the appointment.</p>
 <p>Final pricing remains subject to confirmed scope, coverage requirements, site conditions, and vendor acceptance. Please limit distribution to authorized decision-makers.</p>
 @if(!empty($surveyorNotes))

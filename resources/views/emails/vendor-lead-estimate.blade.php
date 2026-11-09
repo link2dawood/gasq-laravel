@@ -21,7 +21,7 @@
 </table>
 <p>These financial figures are partially concealed for confidentiality. Full pricing and assumptions are available in the protected PDF and will be explained during your review.</p>
 <p>Please schedule an Estimate &amp; Scope Review with the decision-maker authorized to approve the security budget. During the appointment, we will confirm your requirements, explain the calculations, answer questions, and, after the appointment, manually release access to the PDF password.</p>
-<p><a href="{{ $delivery->schedulingUrl() }}" style="background:#153a81;color:#fff;padding:12px 18px;display:inline-block;text-decoration:none;border-radius:4px;">Schedule Your Estimate &amp; Scope Review</a></p>
+@include('emails.partials.schedule-review', ['bookingUrl' => $delivery->schedulingUrl()])
 <p>If someone else authorizes the budget, please forward this email and the protected attachment to that person and include them in the appointment.</p>
 <p>Please have your current security budget, coverage schedule, and anticipated start date available. For scheduling assistance or questions about your estimate, reply to this email.</p>
 <p>This estimate remains subject to confirmed scope, coverage requirements, site conditions, and agreement between the parties. Please limit distribution to authorized decision-makers and reference your estimate number in correspondence.</p>

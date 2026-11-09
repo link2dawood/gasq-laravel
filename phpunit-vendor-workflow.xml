@@ -13,6 +13,7 @@
         <file>tests/Feature/ProcessEmailCopiesTest.php</file>
         <file>tests/Feature/MainMenuReportFormatTest.php</file>
         <file>tests/Feature/ProtectedAppraisalEmailTest.php</file>
+        <file>tests/Feature/CustomerBookingEmailTest.php</file>
         <file>tests/Feature/WeightedRateEmailFormatTest.php</file>
         <file>tests/Feature/WorkforceAllocationEmailTest.php</file>
     </testsuite></testsuites>

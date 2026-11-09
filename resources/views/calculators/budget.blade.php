@@ -403,7 +403,7 @@
   <x-report-actions
       reportType="budget-calculator-preview"
       label="Buyer Edition (free) — the buyer's own in-house Cost to Protect in full; vendor cost, capital recovered and payback withheld. Download or email" />
-  <x-report-actions reportType="budget-calculator-allocation" label="Workforce-to-Post™ Allocation & Line-Item Breakdown report — download or email" />
+  <x-report-actions reportType="budget-calculator-allocation" :passwordProtect="true" label="Workforce-to-Post™ Allocation & Line-Item Breakdown report — optional password; download or email" />
 
 </div>
 </div>
