@@ -7,6 +7,7 @@
         <file>tests/Feature/VendorAppointmentSchedulingTest.php</file>
         <file>tests/Feature/VendorWorkflowEndToEndTest.php</file>
         <file>tests/Feature/VendorWorkflowSecurityTest.php</file>
+        <file>tests/Feature/VendorMigrationMysqlCompatibilityTest.php</file>
         <file>tests/Feature/BookafyAppraisalTest.php</file>
         <file>tests/Feature/CalculatorReportEmailTest.php</file>
         <file>tests/Feature/ProcessEmailCopiesTest.php</file>

@@ -37,3 +37,9 @@ Remaining baseline failures span legacy unit view bootstrap, stale calculator pa
 Use [VENDOR_WORKFLOW_PRODUCTION.md](VENDOR_WORKFLOW_PRODUCTION.md) for configuration, the non-sending `vendor-workflow:preflight --production` check, and staging acceptance. Confirm real inbox delivery, actual PDF/password behavior, vendor concurrency on the production DB engine, both appointment notifications, reminders with real scheduler/worker execution, and the original-recipient OTP/release/revocation flow. Resolve or explicitly disposition the existing full-suite failures before calling the entire application production verified.
 
 Offline PDF openings, forwarding, and passwords disclosed outside the application cannot be tracked or recalled. The audit history records observable application events and file checksums; it is not proof of offline reading.
+
+## MySQL deployment correction — November 9, 2026
+
+The first beta deployment exposed an automatically generated 67-character index name in the delivery migration; MySQL limits identifiers to 64 characters. The index now has an explicit shorter name. Because MySQL DDL is not transactional, the migration can rebuild the known empty partial table left by that failed attempt. It refuses to discard a nonempty delivery table.
+
+Added tests compile every workflow migration through Laravel's MySQL grammar without connecting to a database, check all identifiers against the server limit, verify complete rebuilding of an empty partial table, and verify preservation of a table with records. The migration compatibility plus estimate/delivery regression run passed: 14 tests and 745 assertions. The dedicated workflow CI includes these new checks.
