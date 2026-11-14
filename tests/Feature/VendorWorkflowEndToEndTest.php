@@ -10,6 +10,7 @@ use App\Models\VendorBuyerLead;
 use App\Models\VendorEstimateDelivery;
 use App\Models\VendorLeadEstimate;
 use App\Models\VendorLeadLink;
+use App\Support\BuyerQualificationQuestionnaire;
 use App\Models\VendorPdfAccessEvent;
 use App\Models\VendorReviewAppointment;
 use App\Models\VendorReviewSlot;
@@ -45,7 +46,18 @@ class VendorWorkflowEndToEndTest extends TestCase
         $link = VendorLeadLink::where('vendor_id', $vendor->id)->firstOrFail();
         auth()->forgetGuards();
         $this->get($link->invitationUrl())->assertOk();
-        $this->post(route('buyer-enquiries.store', $link->token), ['contact_name' => 'Avery Buyer', 'email' => 'avery@example.test', 'phone' => '+14045550123', 'site_address' => '100 Main Street', 'service_type' => 'Unarmed guarding', 'scope' => 'Lobby security.', 'weekly_hours' => 80, 'vendor_id' => $other->id])->assertRedirect();
+        $this->post(route('buyer-enquiries.store', $link->token), array_merge([
+            'company' => 'Buyer Company', 'contact_name' => 'Avery Buyer', 'contact_title' => 'Facilities Director',
+            'email' => 'avery@example.test', 'phone' => '+14045550123', 'site_address' => '100 Main Street',
+            'decision_maker_name' => 'Jordan Chief', 'decision_maker_phone' => '+14045550124', 'decision_maker_email' => 'jordan@example.test',
+            'approved_budget' => 12000, 'approved_budget_basis' => 'monthly',
+            'service_types' => ['unarmed'], 'industry' => 'Commercial property', 'preferred_contact_method' => 'email',
+            'scope' => 'Lobby security.',
+            'start_date' => now()->addDays(30)->toDateString(), 'service_end_date' => now()->addDays(395)->toDateString(),
+            'hours_per_day' => 8, 'days_per_week' => 5, 'officers_per_shift' => 2, 'number_of_weeks' => 52,
+            'answers' => array_fill_keys(array_keys(BuyerQualificationQuestionnaire::questions()), 'yes'),
+            'vendor_id' => $other->id,
+        ]))->assertRedirect()->assertSessionHasNoErrors();
         $lead = VendorBuyerLead::firstOrFail();
         $this->assertSame($vendor->id, $lead->vendor_id);
         $this->actingAs($other)->get(route('vendor-buyer-leads.index'))->assertDontSee('Avery Buyer');

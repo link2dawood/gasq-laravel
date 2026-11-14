@@ -155,6 +155,8 @@ Route::post('/buyer-enquiries/{token}', [\App\Http\Controllers\VendorBuyerLeadCo
 Route::middleware('auth')->group(function () {
     Route::get('/vendor/buyer-leads', [\App\Http\Controllers\VendorBuyerLeadController::class, 'index'])->name('vendor-buyer-leads.index');
     Route::post('/vendor/buyer-leads/invitation', [\App\Http\Controllers\VendorBuyerLeadController::class, 'rotate'])->name('vendor-buyer-leads.rotate');
+    Route::post('/vendor/buyer-leads/invitation/send', [\App\Http\Controllers\VendorBuyerLeadController::class, 'sendInvitation'])
+        ->middleware('throttle:20,1')->name('vendor-buyer-leads.send-invitation');
     Route::patch('/vendor/buyer-leads/{lead}', [\App\Http\Controllers\VendorBuyerLeadController::class, 'update'])->name('vendor-buyer-leads.update');
     Route::get('/vendor/leads', [VendorLeadsController::class, 'index'])->name('vendor-leads.index');
     Route::get('/vendor-opportunities/manage/{invitation}', [VendorOpportunityController::class, 'manage'])
