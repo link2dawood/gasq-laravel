@@ -73,6 +73,20 @@ class BudgetSummaryDashboardTest extends TestCase
         $this->assertSame(1, $user->calculatorStates()->count());
     }
 
+    public function test_vendor_dashboard_opens_the_bid_calculator_and_vendor_weighted_rates(): void
+    {
+        $this->actingAs($this->user())->get(route('home'))->assertOk()
+            ->assertSee('Open Know Before You Bid Calculator')
+            ->assertSee(route('budget-calculator.index'))
+            ->assertSee('Open Vendor Weighted Rates')
+            ->assertSee(route('main-menu-calculator.index').'#vendor-weighted-rates');
+
+        // The two panels are vendor tools: a buyer gets the buyer dashboard instead.
+        $this->actingAs($this->user('buyer'))->get(route('home'))->assertOk()
+            ->assertDontSee('Open Know Before You Bid Calculator')
+            ->assertDontSee('Open Vendor Weighted Rates');
+    }
+
     public function test_roi_uses_latest_own_budget_instead_of_old_or_forged_client_figures(): void
     {
         $user = $this->user();

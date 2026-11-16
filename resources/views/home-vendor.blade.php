@@ -294,6 +294,45 @@
             </section>
 
             <section class="vendor-panel vendor-panel-wide">
+                <div class="vendor-panel-head"><h2 class="h2 mb-0">Know Before You Bid Calculator</h2></div>
+                <div class="vendor-panel-body">
+                    <p class="text-uppercase text-gasq-muted fw-semibold mb-2">Key Features</p>
+                    <ul class="fs-5 mb-3">
+                        <li>Build the full cost to protect, line item by line item</li>
+                        <li>Baseline wage, burden, and overhead modeled in one place</li>
+                        <li>Your cost set against the buyer's budget, with the savings shown</li>
+                        <li>Master estimate PDF and workforce allocation breakdown</li>
+                    </ul>
+                    @php
+                        // Billed at the report, not per keystroke: editing is free and the
+                        // charge lands once, when a report version is downloaded or emailed.
+                        $reportCredits = (int) config('credits.calculator_per_run');
+                    @endphp
+                    <p class="vendor-meta-line mb-2">
+                        <i class="fa fa-coins text-warning me-1"></i> Free to open and edit. {{ $reportCredits }} credits per report, and re-sending the same report is free.
+                    </p>
+                    <a href="{{ route('budget-calculator.index') }}" class="vendor-cta">Open Know Before You Bid Calculator</a>
+                </div>
+            </section>
+
+            <section class="vendor-panel vendor-panel-wide">
+                <div class="vendor-panel-head"><h2 class="h2 mb-0">Vendor Weighted Rates</h2></div>
+                <div class="vendor-panel-body">
+                    <p class="text-uppercase text-gasq-muted fw-semibold mb-2">Key Features</p>
+                    <ul class="fs-5 mb-3">
+                        <li>Weighted bill and pay rates across your whole staffing mix</li>
+                        <li>The GASQ 6:1 model rate shown beside your actual rates</li>
+                        <li>Apply the weighted rates to your project estimate</li>
+                        <li>Sign and send the password-protected rate report</li>
+                    </ul>
+                    <p class="vendor-meta-line mb-2">
+                        <i class="fa fa-circle-info text-primary me-1"></i> Opens in the Main Menu Calculator. Needs completed Master Inputs and at least {{ (int) config('credits.calculator_per_run') }} credits.
+                    </p>
+                    <a href="{{ route('main-menu-calculator.index') }}#vendor-weighted-rates" class="vendor-cta">Open Vendor Weighted Rates</a>
+                </div>
+            </section>
+
+            <section class="vendor-panel vendor-panel-wide">
                 <div class="vendor-panel-head"><h2 class="h2 mb-0">Mobile Patrol Calculator</h2></div>
                 <div class="vendor-panel-body">
                     <p class="text-uppercase text-gasq-muted fw-semibold mb-2">Key Features</p>
