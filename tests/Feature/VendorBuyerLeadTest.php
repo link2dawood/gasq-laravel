@@ -6,6 +6,7 @@ use App\Mail\BuyerPrivateInvitationMail;
 use App\Mail\BuyerQualificationSubmittedMail;
 use App\Models\User;
 use App\Models\VendorBuyerLead;
+use App\Models\VendorLeadInvitation;
 use App\Models\VendorLeadLink;
 use App\Support\BuyerQualificationQuestionnaire;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -67,7 +68,7 @@ class VendorBuyerLeadTest extends TestCase
             'approved_budget_basis' => 'monthly',
             'service_types' => ['unarmed'],
             'service_type_other' => null,
-            'industry' => 'Commercial property',
+            'industry' => 'Commercial Office Buildings',
             'preferred_contact_method' => 'email',
             'scope' => 'Two officers covering the lobby on weekdays.',
             'start_date' => now()->addDays(30)->toDateString(),
@@ -151,6 +152,26 @@ class VendorBuyerLeadTest extends TestCase
         $this->assertDatabaseCount('vendor_buyer_leads', 0);
         $link->vendor->update(['user_type' => 'buyer']);
         $this->get($link->invitationUrl())->assertNotFound();
+    }
+
+    public function test_business_industry_is_chosen_from_the_published_list(): void
+    {
+        $link = $this->link($this->vendor());
+        auth()->forgetGuards();
+
+        $this->get($link->invitationUrl())->assertOk()
+            ->assertSee('id="industry" name="industry" required', false)
+            ->assertDontSee('<input class="form-control" id="industry"', false)
+            ->assertSee('Select your business industry')
+            ->assertSee('Apartment Complexes')
+            ->assertSee('High-Value Asset &amp; Cash-in-Transit Locations', false);
+
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => '']))->assertSessionHasErrors('industry');
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => 'Something we never listed']))->assertSessionHasErrors('industry');
+        $this->assertDatabaseCount('vendor_buyer_leads', 0);
+
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => 'Cannabis Dispensaries']))->assertRedirect();
+        $this->assertSame('Cannabis Dispensaries', VendorBuyerLead::firstOrFail()->industry);
     }
 
     public function test_completed_form_is_emailed_to_the_vendor_and_copied_to_gasq(): void
@@ -258,11 +279,12 @@ class VendorBuyerLeadTest extends TestCase
             return $mail->hasTo('avery@example.test')
                 && $mail->hasCc($vendor->email)
                 && $mail->hasReplyTo($vendor->email)
+                && str_contains($html, 'i='.$mail->invitation->invite_key)
                 && $mail->envelope()->subject === 'Your Private Invitation to Begin Your Security Services Estimate'
                 && str_contains($html, 'Hi Avery,')
                 && ! str_contains($html, 'Avery Buyer,')
                 && str_contains($html, 'Thank you for considering North Security for your security needs.')
-                && str_contains($html, $link->invitationUrl())
+                && str_contains($html, $link->token)
                 && str_contains($html, 'please return it directly to Morgan Vendor at')
                 && str_contains($html, '+14045559000')
                 && str_contains($html, 'GASQ Network Vendor')
@@ -373,11 +395,13 @@ class VendorBuyerLeadTest extends TestCase
 
             return true;
         });
-        $invitationUrl = $invitation->link->invitationUrl();
+        $invitationUrl = $invitation->invitation->invitationUrl();
+        $inviteToken = $invitation->invitation->link_token;
 
         $this->get($invitationUrl)->assertOk()->assertSee('Morgan Vendor');
-        $this->post(route('buyer-enquiries.store', $invitation->link->token), $this->details())
-            ->assertRedirect($invitationUrl)->assertSessionHas('enquiry_received');
+        $this->post(route('buyer-enquiries.store', $inviteToken), $this->details([
+            'invite_key' => $invitation->invitation->invite_key,
+        ]))->assertRedirect(route('buyer-enquiries.show', $inviteToken))->assertSessionHas('enquiry_received');
 
         $lead = VendorBuyerLead::firstOrFail();
         $this->assertSame($vendor->id, $lead->vendor_id);
@@ -390,6 +414,93 @@ class VendorBuyerLeadTest extends TestCase
 
         $this->actingAs($vendor)->get(route('vendor-buyer-leads.index'))->assertOk()->assertSee('Avery Buyer');
         $this->actingAs($otherVendor)->get(route('vendor-buyer-leads.index'))->assertOk()->assertDontSee('Avery Buyer');
+    }
+
+    public function test_invitation_tracks_sent_then_opened_then_completed(): void
+    {
+        $vendor = $this->vendor();
+        $link = $this->link($vendor);
+        $this->actingAs($vendor)->post(route('vendor-buyer-leads.send-invitation'), ['buyer_name' => 'Avery Buyer', 'buyer_email' => 'avery@example.test']);
+
+        $invitation = VendorLeadInvitation::firstOrFail();
+        $this->assertSame('sent', $invitation->status());
+        $this->assertSame('Invitation sent', $invitation->statusLabel());
+        $this->assertNull($invitation->opened_at);
+        $this->assertSame(0, $invitation->open_count);
+        $this->assertSame($link->token, $invitation->link_token);
+
+        auth()->forgetGuards();
+        $this->get($invitation->invitationUrl())->assertOk();
+        $invitation->refresh();
+        $firstOpen = $invitation->opened_at;
+        $this->assertNotNull($firstOpen);
+        $this->assertSame('opened', $invitation->status());
+        $this->assertSame(1, $invitation->open_count);
+
+        // A second visit counts, but the first open is the one that is kept.
+        $this->travel(5)->minutes();
+        $this->get($invitation->invitationUrl())->assertOk();
+        $invitation->refresh();
+        $this->assertSame(2, $invitation->open_count);
+        $this->assertTrue($firstOpen->equalTo($invitation->opened_at));
+
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['invite_key' => $invitation->invite_key]))
+            ->assertSessionHasNoErrors();
+        $invitation->refresh();
+        $this->assertSame('completed', $invitation->status());
+        $this->assertNotNull($invitation->completed_at);
+        $this->assertSame(VendorBuyerLead::firstOrFail()->id, $invitation->vendor_buyer_lead_id);
+
+        // Revisiting after completion shows the confirmation and must not reopen it.
+        $this->get($invitation->invitationUrl())->assertOk();
+        $this->assertSame(2, $invitation->fresh()->open_count);
+    }
+
+    public function test_the_shared_link_still_works_untracked_and_a_foreign_key_is_ignored(): void
+    {
+        $vendor = $this->vendor();
+        $link = $this->link($vendor);
+        $otherVendor = $this->vendor();
+        $this->actingAs($otherVendor)->post(route('vendor-buyer-leads.send-invitation'), ['buyer_name' => 'Someone Else', 'buyer_email' => 'else@example.test']);
+        $foreign = VendorLeadInvitation::firstOrFail();
+        auth()->forgetGuards();
+
+        // The vendor's plain link, with no invitation key, still accepts a submission.
+        $this->get($link->invitationUrl())->assertOk()->assertDontSee('name="invite_key"', false);
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details())->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('vendor_buyer_leads', ['vendor_id' => $vendor->id]);
+
+        // Another vendor's key, replayed against this link, must touch nothing.
+        $this->get(route('buyer-enquiries.show', ['token' => $link->token, 'i' => $foreign->invite_key]))->assertOk();
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['invite_key' => $foreign->invite_key]))->assertSessionHasNoErrors();
+        $foreign->refresh();
+        $this->assertNull($foreign->opened_at);
+        $this->assertNull($foreign->completed_at);
+        $this->assertSame(0, $foreign->open_count);
+
+        // A malformed key is ignored rather than rejected: the buyer still gets through.
+        $this->get(route('buyer-enquiries.show', ['token' => $link->token, 'i' => 'nonsense']))->assertOk();
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['invite_key' => 'nonsense']))->assertSessionHasErrors('invite_key');
+    }
+
+    public function test_vendor_dashboard_reports_invitation_status(): void
+    {
+        $vendor = $this->vendor();
+        $link = $this->link($vendor);
+        $this->actingAs($vendor)->post(route('vendor-buyer-leads.send-invitation'), ['buyer_name' => 'Avery Buyer', 'buyer_email' => 'avery@example.test']);
+        $this->get(route('vendor-buyer-leads.index'))->assertOk()->assertSee('Invitations sent')->assertSee('Invitation sent');
+
+        $invitation = VendorLeadInvitation::firstOrFail();
+        auth()->forgetGuards();
+        $this->get($invitation->invitationUrl())->assertOk();
+        $this->actingAs($vendor)->get(route('vendor-buyer-leads.index'))->assertOk()->assertSee('Link opened');
+
+        auth()->forgetGuards();
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['invite_key' => $invitation->invite_key]));
+        $this->actingAs($vendor)->get(route('vendor-buyer-leads.index'))->assertOk()->assertSee('Form completed');
+
+        // One vendor's invitations never appear on another's dashboard.
+        $this->actingAs($this->vendor())->get(route('vendor-buyer-leads.index'))->assertOk()->assertDontSee('avery@example.test');
     }
 
     public function test_guests_and_buyers_cannot_manage_leads_or_invitation_links(): void

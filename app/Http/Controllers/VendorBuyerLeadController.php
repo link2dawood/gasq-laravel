@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\BuyerPrivateInvitationMail;
 use App\Mail\BuyerQualificationSubmittedMail;
 use App\Models\VendorBuyerLead;
+use App\Models\VendorLeadInvitation;
 use App\Models\VendorLeadLink;
 use App\Support\BuyerQualificationQuestionnaire;
 use Carbon\Carbon;
@@ -32,7 +33,10 @@ class VendorBuyerLeadController extends Controller
             }))
             ->latest()->latest('id')->paginate(15)->withQueryString();
 
-        return view('vendor-buyer-leads.index', compact('link', 'leads'));
+        $invitations = VendorLeadInvitation::where('vendor_id', $request->user()->id)
+            ->latest('sent_at')->latest('id')->limit(25)->get();
+
+        return view('vendor-buyer-leads.index', compact('link', 'leads', 'invitations'));
     }
 
     public function rotate(Request $request)
@@ -63,13 +67,24 @@ class VendorBuyerLeadController extends Controller
 
         $link = VendorLeadLink::firstOrCreate(['vendor_id' => $vendor->id], ['token' => Str::random(64)]);
 
+        $invitation = VendorLeadInvitation::create([
+            'vendor_id' => $vendor->id,
+            'invite_key' => Str::random(32),
+            'buyer_name' => $data['buyer_name'],
+            'buyer_email' => $data['buyer_email'],
+            'link_token' => $link->token,
+            'sent_at' => now(),
+        ]);
+
         try {
             $vendorCopy = strcasecmp($vendor->email, $data['buyer_email']) === 0 ? [] : [$vendor->email];
             Mail::to($data['buyer_email'])
                 ->cc($vendorCopy)
-                ->send(new BuyerPrivateInvitationMail($vendor, $link, $data['buyer_name']));
+                ->send(new BuyerPrivateInvitationMail($invitation));
         } catch (\Throwable $e) {
             report($e);
+            // Nothing was delivered, so nothing should be reported as sent.
+            $invitation->delete();
 
             return back()->withInput()->withErrors(['buyer_email' => 'The invitation could not be sent just now. Please try again in a moment.']);
         }
@@ -77,11 +92,14 @@ class VendorBuyerLeadController extends Controller
         return back()->with('status', 'Private invitation sent to '.$data['buyer_name'].' at '.$data['buyer_email'].'. A copy is in your inbox.');
     }
 
-    public function show(string $token)
+    public function show(Request $request, string $token)
     {
         $link = $this->resolveLink($token);
+        $invitation = $this->resolveInvitation($request->string('i')->toString(), $link);
+        $invitation?->recordOpen();
 
         return response()->view('vendor-buyer-leads.capture', [
+            'inviteKey' => $invitation?->invite_key,
             'link' => $link,
             'sections' => BuyerQualificationQuestionnaire::sections(),
             'returnToName' => (string) ($link->vendor->name ?: $link->vendor->company),
@@ -142,6 +160,9 @@ class VendorBuyerLeadController extends Controller
             'qualification_submitted_at' => now(),
         ]);
 
+        $invitation = $this->resolveInvitation((string) ($data['invite_key'] ?? ''), $link);
+        $invitation?->forceFill(['completed_at' => now(), 'vendor_buyer_lead_id' => $lead->id])->save();
+
         $this->sendSubmission($lead);
 
         return redirect()->route('buyer-enquiries.show', ['token' => $token])->with('enquiry_received', true);
@@ -190,13 +211,14 @@ class VendorBuyerLeadController extends Controller
             'service_types' => ['required', 'array', 'min:1'],
             'service_types.*' => [Rule::in(array_keys(BuyerQualificationQuestionnaire::SERVICE_TYPES))],
             'service_type_other' => [Rule::requiredIf(in_array('other', $serviceTypes, true)), 'nullable', 'string', 'max:100'],
-            'industry' => ['required', 'string', 'max:255'],
+            'industry' => ['required', 'string', Rule::in(BuyerQualificationQuestionnaire::INDUSTRIES)],
             'preferred_contact_method' => ['required', Rule::in(array_keys(BuyerQualificationQuestionnaire::CONTACT_METHODS))],
             'scope' => ['required', 'string', 'max:10000'],
             // Shown on the form so the buyer can see where their answers go. The value
             // is never used for delivery: the invitation link decides the vendor, so a
             // tampered field cannot redirect a submission to an arbitrary address.
             'return_to_email' => ['nullable', 'email', 'max:255'],
+            'invite_key' => ['nullable', 'string', 'size:32'],
             'answers' => ['required', 'array'],
         ], BuyerQualificationQuestionnaire::answerRules());
     }
@@ -249,6 +271,24 @@ class VendorBuyerLeadController extends Controller
         );
 
         return in_array(strtolower($copyTo), $taken, true) ? [] : [$copyTo];
+    }
+
+    /**
+     * Match an invitation key to an invitation belonging to this link's vendor.
+     *
+     * Scoping to the vendor is what makes the key safe to accept from a query string
+     * or a hidden field: a key belonging to another vendor resolves to nothing, so a
+     * tampered value can only ever be ignored, never used to touch someone else's row.
+     */
+    private function resolveInvitation(string $key, VendorLeadLink $link): ?VendorLeadInvitation
+    {
+        if (! preg_match('/^[a-zA-Z0-9]{32}$/D', $key)) {
+            return null;
+        }
+
+        return VendorLeadInvitation::where('invite_key', $key)
+            ->where('vendor_id', $link->vendor_id)
+            ->first();
     }
 
     private function resolveLink(string $token): VendorLeadLink

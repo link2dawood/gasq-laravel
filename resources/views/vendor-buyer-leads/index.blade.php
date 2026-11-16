@@ -34,6 +34,35 @@
                 <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Send invitation</button></div>
             </form>
         </div>
+        @if($invitations->isNotEmpty())
+        <div class="border-top mt-3 pt-3">
+            <h3 class="h6">Invitations sent</h3>
+            <table class="table table-sm align-middle">
+                <thead><tr><th scope="col">Buyer</th><th scope="col">Sent</th><th scope="col">Status</th><th scope="col">Opened</th></tr></thead>
+                <tbody>
+                @foreach($invitations as $invitation)
+                <tr>
+                    <td>{{ $invitation->buyer_name }}<br><span class="small text-muted">{{ $invitation->buyer_email }}</span></td>
+                    <td class="small">{{ $invitation->sent_at?->format('M j, Y g:i A') }}</td>
+                    <td><span class="badge bg-{{ $invitation->statusBadge() }}">{{ $invitation->statusLabel() }}</span></td>
+                    <td class="small">
+                        @if($invitation->opened_at)
+                            {{ $invitation->opened_at->format('M j, Y g:i A') }}
+                            @if($invitation->open_count > 1)<br><span class="text-muted">{{ $invitation->open_count }} visits</span>@endif
+                        @else
+                            <span class="text-muted">Not yet</span>
+                        @endif
+                        @if($invitation->completed_at)
+                            <br><span class="text-success">Completed {{ $invitation->completed_at->format('M j, Y g:i A') }}</span>
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+                </tbody>
+            </table>
+            <p class="small text-muted mb-0">"Link opened" means the buyer's private link was loaded. Some corporate email filters follow links automatically, so treat a lone open as a soft signal. "Form completed" is confirmed.</p>
+        </div>
+        @endif
         <details class="mt-3"><summary class="small">Prefer to send it from your own email app?</summary>
             <a class="btn btn-outline-primary btn-sm mt-2" href="mailto:?subject={{ rawurlencode($invitationSubject) }}&amp;body={{ rawurlencode($invitationBody) }}">Draft invitation email</a>
             <p class="small text-muted mt-2 mb-0">Opens a draft in your email app. Add the buyer's email address, review the message, and send it directly.</p>

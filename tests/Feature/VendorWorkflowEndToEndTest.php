@@ -51,7 +51,7 @@ class VendorWorkflowEndToEndTest extends TestCase
             'email' => 'avery@example.test', 'phone' => '+14045550123', 'site_address' => '100 Main Street',
             'decision_maker_name' => 'Jordan Chief', 'decision_maker_phone' => '+14045550124', 'decision_maker_email' => 'jordan@example.test',
             'approved_budget' => 12000, 'approved_budget_basis' => 'monthly',
-            'service_types' => ['unarmed'], 'industry' => 'Commercial property', 'preferred_contact_method' => 'email',
+            'service_types' => ['unarmed'], 'industry' => 'Commercial Office Buildings', 'preferred_contact_method' => 'email',
             'scope' => 'Lobby security.',
             'start_date' => now()->addDays(30)->toDateString(), 'service_end_date' => now()->addDays(395)->toDateString(),
             'hours_per_day' => 8, 'days_per_week' => 5, 'officers_per_shift' => 2, 'number_of_weeks' => 52,

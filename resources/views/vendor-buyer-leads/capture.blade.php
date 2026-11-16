@@ -22,6 +22,7 @@
         @if($errors->any())<div class="alert alert-danger" role="alert">Please complete the highlighted fields. Every question must be answered.</div>@endif
         <form method="POST" action="{{ route('buyer-enquiries.store', $link->token) }}">
             @csrf
+            @if($inviteKey)<input type="hidden" name="invite_key" value="{{ $inviteKey }}">@endif
 
             <h2 class="h4 mt-4">Contact and project information</h2>
             <div class="row g-3">
@@ -32,7 +33,12 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="industry">Business industry *</label>
-                    <input class="form-control @error('industry') is-invalid @enderror" id="industry" name="industry" maxlength="255" value="{{ old('industry') }}" required>
+                    <select class="form-select @error('industry') is-invalid @enderror" id="industry" name="industry" required>
+                        <option value="" @selected(! old('industry'))>Select your business industry</option>
+                        @foreach(Form::INDUSTRIES as $industry)
+                        <option value="{{ $industry }}" @selected(old('industry') === $industry)>{{ $industry }}</option>
+                        @endforeach
+                    </select>
                     @error('industry')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">

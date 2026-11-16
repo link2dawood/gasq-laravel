@@ -33,6 +33,55 @@ class BuyerQualificationQuestionnaire
         'other' => 'Other',
     ];
 
+    /**
+     * Business types the form offers under "Business industry", in the order GASQ
+     * supplied them. The buyer picks one and the chosen label is what gets stored,
+     * so the vendor's lead list and the submission email keep reading it as text.
+     * Leads captured before this list existed hold free text and still display.
+     */
+    public const INDUSTRIES = [
+        'Apartment Complexes',
+        'Construction Sites',
+        'Commercial Office Buildings',
+        'Retail Stores & Shopping Centers',
+        'Warehouses & Distribution Centers',
+        'Hotels & Motels',
+        'Hospitals & Medical Centers',
+        'Schools & Universities',
+        'Residential Communities & HOAs',
+        'Industrial Facilities',
+        'Manufacturing Plants',
+        'Banks & Financial Institutions',
+        'Car Dealerships',
+        'Event Venues',
+        'Logistics & Trucking Companies',
+        'Property Management Companies',
+        'Vacant Properties',
+        'Fire Watch Leads',
+        'New Construction Projects',
+        'Property Owners & Real Estate Investors',
+        'Government Facilities',
+        'Churches & Religious Facilities',
+        'Gated Communities',
+        'Data Centers & Technology Facilities',
+        'Shopping Malls & Large Retail Centers',
+        'Self-Storage Facilities',
+        'Parking Garages & Parking Lots',
+        'Cannabis Dispensaries',
+        'Nightclubs & Entertainment Venues',
+        'High-Value Commercial Properties',
+        'VIP Clients & High-Net-Worth Individuals (HNWIs)',
+        'CEOs, Executives & Business Owners',
+        'Celebrities & Public Figures',
+        'Luxury Homeowners & Private Estates',
+        'Family Offices & Wealth Management Firms',
+        'Executive & Personal Protection',
+        'Private & VIP Events',
+        'Luxury Hotels & Resorts',
+        'Jewelry Stores & High-Value Retailers',
+        'High-Value Asset & Cash-in-Transit Locations',
+    ];
+
     /** How the approved budget figure should be read. */
     public const BUDGET_BASIS = [
         'monthly' => 'Monthly',

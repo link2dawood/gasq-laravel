@@ -2,8 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\User;
-use App\Models\VendorLeadLink;
+use App\Models\VendorLeadInvitation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
@@ -23,17 +22,13 @@ class BuyerPrivateInvitationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(
-        public User $vendor,
-        public VendorLeadLink $link,
-        public string $buyerName,
-    ) {}
+    public function __construct(public VendorLeadInvitation $invitation) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
             subject: 'Your Private Invitation to Begin Your Security Services Estimate',
-            replyTo: [new Address($this->vendor->email, $this->vendorContactName())],
+            replyTo: [new Address($this->vendor()->email, $this->vendorContactName())],
         );
     }
 
@@ -45,28 +40,33 @@ class BuyerPrivateInvitationMail extends Mailable
                 'buyerFirstName' => $this->buyerFirstName(),
                 'vendorContactName' => $this->vendorContactName(),
                 'vendorCompanyName' => $this->vendorCompanyName(),
-                'vendorPhone' => $this->vendor->phone,
-                'vendorEmail' => $this->vendor->email,
-                'invitationUrl' => $this->link->invitationUrl(),
+                'vendorPhone' => $this->vendor()->phone,
+                'vendorEmail' => $this->vendor()->email,
+                'invitationUrl' => $this->invitation->invitationUrl(),
             ],
         );
+    }
+
+    public function vendor(): \App\Models\User
+    {
+        return $this->invitation->vendor;
     }
 
     /** "Hi Avery," reads better than "Hi Avery Buyer," so greet with the first name only. */
     public function buyerFirstName(): string
     {
-        $first = Str::of($this->buyerName)->trim()->explode(' ')->first();
+        $first = Str::of($this->invitation->buyer_name)->trim()->explode(' ')->first();
 
-        return is_string($first) && $first !== '' ? $first : $this->buyerName;
+        return is_string($first) && $first !== '' ? $first : $this->invitation->buyer_name;
     }
 
     public function vendorContactName(): string
     {
-        return (string) ($this->vendor->name ?: $this->vendor->company);
+        return (string) ($this->vendor()->name ?: $this->vendor()->company);
     }
 
     public function vendorCompanyName(): string
     {
-        return (string) ($this->vendor->company ?: $this->vendor->name);
+        return (string) ($this->vendor()->company ?: $this->vendor()->name);
     }
 }
