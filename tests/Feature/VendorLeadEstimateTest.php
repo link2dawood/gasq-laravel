@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\VendorBuyerLead;
 use App\Models\VendorLeadEstimate;
+use App\Models\VendorPdfAccessEvent;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -93,6 +94,82 @@ class VendorLeadEstimateTest extends TestCase
         $this->post($url, ['pdf_password' => 'TestEstimatePassword'])->assertStatus(422);
         $estimate->update(['status' => 'archived']);
         $this->post($url, ['pdf_password' => 'TestEstimatePassword'])->assertStatus(422);
+    }
+
+    public function test_downloaded_protected_pdf_opens_with_the_password_the_vendor_typed(): void
+    {
+        $vendor = $this->vendor();
+        $estimate = $this->estimate($vendor, ['status' => 'ready']);
+        $response = $this->actingAs($vendor)->post(route('vendor-estimates.download', $estimate), ['pdf_password' => 'TestEstimatePassword'])->assertOk();
+        $pdf = $response->getContent();
+
+        // The real check a PDF reader makes: recompute the /U verifier from the
+        // typed password and the file's own /O, /P and /ID. A file rendered twice
+        // keeps the /U of the first render but ships the /P of the second, so this
+        // fails and the recipient is told the password is wrong.
+        $this->assertTrue($this->pdfOpensWith($pdf, 'TestEstimatePassword'), 'The typed password does not open the downloaded PDF.');
+        $this->assertFalse($this->pdfOpensWith($pdf, 'NotTheRightPassword'), 'A wrong password opened the downloaded PDF.');
+
+        // The access log must identify the file that was actually sent.
+        $this->assertSame(hash('sha256', $pdf), VendorPdfAccessEvent::where('vendor_lead_estimate_id', $estimate->id)->where('event', 'vendor_pdf_downloaded')->latest('id')->firstOrFail()->pdf_sha256);
+    }
+
+    /** Standard security handler, revision 2 (40-bit RC4), the dompdf encryption GASQ applies. */
+    private function pdfOpensWith(string $pdf, string $password): bool
+    {
+        $pad = "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
+        $start = strpos($pdf, '/Filter /Standard');
+        $this->assertNotFalse($start, 'The downloaded PDF is not password protected.');
+        $encrypt = substr($pdf, $start, strpos($pdf, 'endobj', $start) - $start);
+        preg_match('#/P (-?\d+)#', $encrypt, $permissions);
+        preg_match('#/ID\s*\[\s*<([0-9a-fA-F]+)>#', $pdf, $identifier);
+
+        $key = substr(md5(
+            substr($password.$pad, 0, 32)
+            .$this->pdfString($encrypt, 'O')
+            .pack('V', (int) $permissions[1] & 0xFFFFFFFF)
+            .hex2bin($identifier[1]),
+            true
+        ), 0, 5);
+
+        return $this->rc4($key, $pad) === $this->pdfString($encrypt, 'U');
+    }
+
+    /** Read /Key (…) from a PDF dictionary, undoing the escaping dompdf applies. */
+    private function pdfString(string $dictionary, string $key): string
+    {
+        $index = strpos($dictionary, "/$key (") + strlen("/$key (");
+        $value = '';
+        while (($character = $dictionary[$index]) !== ')') {
+            if ($character === '\\') {
+                $value .= $character.$dictionary[$index + 1];
+                $index += 2;
+
+                continue;
+            }
+            $value .= $character;
+            $index++;
+        }
+
+        return strtr($value, ['\\)' => ')', '\\(' => '(', '\\\\' => '\\', '\\r' => "\r"]);
+    }
+
+    private function rc4(string $key, string $data): string
+    {
+        $box = range(0, 255);
+        for ($i = 0, $j = 0; $i < 256; $i++) {
+            $j = ($j + $box[$i] + ord($key[$i % strlen($key)])) % 256;
+            [$box[$i], $box[$j]] = [$box[$j], $box[$i]];
+        }
+        $out = '';
+        for ($n = 0, $i = 0, $j = 0; $n < strlen($data); $n++) {
+            $i = ($i + 1) % 256;
+            $j = ($j + $box[$i]) % 256;
+            [$box[$i], $box[$j]] = [$box[$j], $box[$i]];
+            $out .= chr(ord($data[$n]) ^ $box[($box[$i] + $box[$j]) % 256]);
+        }
+
+        return $out;
     }
 
     public function test_invalid_prices_and_scope_are_rejected_and_archiving_retains_estimate(): void

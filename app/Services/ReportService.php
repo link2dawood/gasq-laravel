@@ -156,6 +156,13 @@ class ReportService
      * against a screenshot. The open password is the real lock: without it the
      * file's contents cannot be read at all.
      *
+     * IMPORTANT: output()/download()/stream() may be called only ONCE on the PDF
+     * returned from here. dompdf rewrites the permission mask (/P) on every render
+     * after the first but keeps the password verifier (/U) computed from the first,
+     * so a second render produces a file whose own password no longer opens it.
+     * Callers that need the bytes AND a response must output once and reuse those
+     * bytes (see VendorLeadEstimateController::download()).
+     *
      * @param  string|null  $openPassword  Non-empty ⇒ the reader must enter it to
      *                                     open the document. Null/empty ⇒ opens freely, as before.
      */

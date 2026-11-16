@@ -12,6 +12,7 @@ use App\Services\VendorEstimateDeliveryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 
 class VendorLeadEstimateController extends Controller
 {
@@ -95,10 +96,19 @@ class VendorLeadEstimateController extends Controller
         $data = $request->validate(['pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/']]);
         $pdf = $reports->calculatorPdf('vendor-lead-estimate', ['estimate' => $estimate->load('vendor'), 'user' => $request->user()], $data['pdf_password']);
 
+        // Render ONCE and send those exact bytes. $pdf->download() would render a
+        // second time, and dompdf rewrites the permission mask (/P) on every render
+        // after the first while leaving the password verifier (/U) as it was. The
+        // file then fails its own password check and no password opens it. The
+        // checksum we log must also be the checksum of the file actually sent.
         $bytes = $pdf->output();
         VendorPdfAccessEvent::create(['vendor_lead_estimate_id' => $estimate->id, 'actor_id' => $request->user()->id, 'event' => 'vendor_pdf_downloaded', 'pdf_sha256' => hash('sha256', $bytes), 'ip_address' => $request->ip()]);
 
-        return $pdf->download($estimate->number.'.pdf')->header('Cache-Control', 'private, no-store');
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $estimate->number.'.pdf'),
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     private function vendor(Request $request)
