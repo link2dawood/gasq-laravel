@@ -21,6 +21,7 @@
 /storage/pail
 /vendor
 /graphy
+/changes/**/*.pdf
 /graphify-out
 /my-video
 Homestead.json
