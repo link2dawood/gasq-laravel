@@ -33,11 +33,17 @@ class BuyerQualificationQuestionnaire
         'other' => 'Other',
     ];
 
+    /** The last option, which asks the buyer to name their own business type. */
+    public const INDUSTRY_OTHER = 'Other';
+
     /**
      * Business types the form offers under "Business industry", in the order GASQ
      * supplied them. The buyer picks one and the chosen label is what gets stored,
      * so the vendor's lead list and the submission email keep reading it as text.
      * Leads captured before this list existed hold free text and still display.
+     *
+     * The four campus and venue types, and "Other" with its free-text box, were
+     * added on GASQ's instruction after the first round of buyer testing.
      */
     public const INDUSTRIES = [
         'Apartment Complexes',
@@ -80,6 +86,11 @@ class BuyerQualificationQuestionnaire
         'Luxury Hotels & Resorts',
         'Jewelry Stores & High-Value Retailers',
         'High-Value Asset & Cash-in-Transit Locations',
+        'Sports Stadiums',
+        'College Campuses',
+        'School Campuses',
+        'Airports',
+        self::INDUSTRY_OTHER,
     ];
 
     /** How the approved budget figure should be read. */

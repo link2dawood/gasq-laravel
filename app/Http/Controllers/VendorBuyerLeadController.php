@@ -146,6 +146,7 @@ class VendorBuyerLeadController extends Controller
             'service_type' => implode(', ', $serviceTypes),
             'service_type_other' => in_array('other', $data['service_types'], true) ? ($data['service_type_other'] ?? null) : null,
             'industry' => $data['industry'],
+            'industry_other' => $data['industry'] === BuyerQualificationQuestionnaire::INDUSTRY_OTHER ? ($data['industry_other'] ?? null) : null,
             'preferred_contact_method' => $data['preferred_contact_method'],
             'scope' => $data['scope'],
             'start_date' => $startDate->toDateString(),
@@ -212,6 +213,10 @@ class VendorBuyerLeadController extends Controller
             'service_types.*' => [Rule::in(array_keys(BuyerQualificationQuestionnaire::SERVICE_TYPES))],
             'service_type_other' => [Rule::requiredIf(in_array('other', $serviceTypes, true)), 'nullable', 'string', 'max:100'],
             'industry' => ['required', 'string', Rule::in(BuyerQualificationQuestionnaire::INDUSTRIES)],
+            'industry_other' => [
+                Rule::requiredIf($request->input('industry') === BuyerQualificationQuestionnaire::INDUSTRY_OTHER),
+                'nullable', 'string', 'max:100',
+            ],
             'preferred_contact_method' => ['required', Rule::in(array_keys(BuyerQualificationQuestionnaire::CONTACT_METHODS))],
             'scope' => ['required', 'string', 'max:10000'],
             // Shown on the form so the buyer can see where their answers go. The value

@@ -14,8 +14,46 @@
         <p><strong>Service:</strong> {{ $lead->service_type }}<br><strong>Preferred start:</strong> {{ $lead->start_date?->format('M j, Y') ?? 'Not supplied' }}<br><strong>Requested weekly hours:</strong> {{ $lead->weekly_hours ?? 'Not supplied' }}</p>
         <div style="white-space:pre-wrap;overflow-wrap:anywhere;">{{ $lead->scope }}</div>
     </section>
+    <section class="border rounded p-3 mb-4">
+        <h2 class="h5">Know Before You Bid Calculator</h2>
+        <p class="mb-2">Build the cost to protect in the calculator, then bring the figures straight into this estimate. Your scenario saves to your account as you work, so nothing is copied by hand.</p>
+        @if($estimate->exists)
+            <p class="mb-3"><a class="btn btn-outline-primary btn-sm" href="{{ route('budget-calculator.index', ['from' => 'estimate', 'estimate' => $estimate->id]) }}">Open Know Before You Bid Calculator</a></p>
+            @if($estimate->hasBudgetDashboard())
+                <div class="alert alert-success py-2 small">
+                    <strong>Dashboard attached.</strong> Saved {{ $estimate->budget_scenario_at?->format('M j, Y g:i A') ?? 'earlier' }}. The estimate PDF carries the cost to protect summary, the budget summary and the budget line items.
+                    <br>The buyer's emailed copy withholds your vendor cost, the capital recovered and the payback period. Your own download shows them in full.
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <form method="POST" action="{{ route('vendor-estimates.budget.attach', $estimate) }}">@csrf
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">Refresh from my latest figures</button>
+                    </form>
+                    <form method="POST" action="{{ route('vendor-estimates.budget.detach', $estimate) }}">@csrf @method('DELETE')
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Remove the dashboard</button>
+                    </form>
+                </div>
+            @elseif($budgetAvailable ?? false)
+                <form method="POST" action="{{ route('vendor-estimates.budget.attach', $estimate) }}">@csrf
+                    <button type="submit" class="btn btn-primary btn-sm">Fill from my Know Before You Bid figures</button>
+                    <p class="small text-muted mt-2 mb-0">This fills the hourly bill rate, the weekly service hours and the service weeks from your saved scenario, and attaches the dashboard to the estimate PDF. Your current pricing is replaced, so review it before sending.</p>
+                </form>
+            @else
+                <p class="small text-muted mb-0">No saved scenario yet. Open the calculator, set the baseline wage and coverage, then come back and fill the pricing from it.</p>
+            @endif
+        @else
+            @if($budget ?? null)
+                <div class="alert alert-success py-2 small mb-0"><strong>Pricing filled from your Know Before You Bid figures.</strong> Review the figures below, then save. The dashboard is attached to the estimate PDF when you save.</div>
+            @else
+                <p class="mb-0">
+                    <a class="btn btn-outline-primary btn-sm" href="{{ route('budget-calculator.index', ['from' => 'estimate']) }}">Open Know Before You Bid Calculator</a>
+                    <a class="btn btn-primary btn-sm" href="{{ route('vendor-estimates.create', ['lead' => $lead, 'from_budget' => 1]) }}">Fill from my Know Before You Bid figures</a>
+                </p>
+            @endif
+        @endif
+    </section>
     <form method="POST" action="{{ $estimate->exists ? route('vendor-estimates.update', $estimate) : route('vendor-estimates.store', $lead) }}">
         @csrf @if($estimate->exists) @method('PATCH') @endif
+        @if(! $estimate->exists && ($budget ?? null))<input type="hidden" name="attach_budget" value="1">@endif
         <h2 class="h4">Estimate details</h2>
         <div class="mb-3"><label class="form-label" for="title">Estimate title *</label><input class="form-control" id="title" name="title" maxlength="255" value="{{ old('title', $estimate->title) }}" required></div>
         <div class="mb-3"><label class="form-label" for="scope">Proposed scope of services *</label><textarea class="form-control" id="scope" name="scope" rows="5" maxlength="10000" required>{{ old('scope', $estimate->scope) }}</textarea></div>

@@ -17,6 +17,9 @@
     ];
 @endphp
 <div class="footer">
+  {{-- $compact drops the value-prop band, for a page whose content needs the
+       room. Callers that pass nothing keep the full footer. --}}
+  @if(empty($compact))
   <table class="valueprops" cellpadding="0" cellspacing="0">
     <tr>
       @foreach($props as $i => [$icon, $title, $sub])
@@ -36,6 +39,7 @@
       @endforeach
     </tr>
   </table>
+  @endif
 
   <table class="footbar" cellpadding="0" cellspacing="0">
     <tr>

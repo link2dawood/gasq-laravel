@@ -42,6 +42,8 @@ class PrivateEstimate extends Model
         'monthly_cost' => 'float',
         'annual_cost' => 'float',
         'capital_recovery_opportunity' => 'float',
+        'budget_amount' => 'float',
+        'budget_approved_at' => 'datetime',
     ];
 
     public function vendor(): BelongsTo

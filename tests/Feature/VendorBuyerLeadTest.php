@@ -164,7 +164,10 @@ class VendorBuyerLeadTest extends TestCase
             ->assertDontSee('<input class="form-control" id="industry"', false)
             ->assertSee('Select your business industry')
             ->assertSee('Apartment Complexes')
-            ->assertSee('High-Value Asset &amp; Cash-in-Transit Locations', false);
+            ->assertSee('High-Value Asset &amp; Cash-in-Transit Locations', false)
+            ->assertSee('Sports Stadiums')->assertSee('College Campuses')
+            ->assertSee('School Campuses')->assertSee('Airports')
+            ->assertSee('If other, please specify');
 
         $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => '']))->assertSessionHasErrors('industry');
         $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => 'Something we never listed']))->assertSessionHasErrors('industry');
@@ -172,6 +175,27 @@ class VendorBuyerLeadTest extends TestCase
 
         $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => 'Cannabis Dispensaries']))->assertRedirect();
         $this->assertSame('Cannabis Dispensaries', VendorBuyerLead::firstOrFail()->industry);
+    }
+
+    public function test_choosing_other_as_the_industry_requires_the_buyer_to_name_it(): void
+    {
+        $link = $this->link($this->vendor());
+
+        // "Other" on its own says nothing, so it is the one choice that must be explained.
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => 'Other']))->assertSessionHasErrors('industry_other');
+        $this->assertDatabaseCount('vendor_buyer_leads', 0);
+
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => 'Other', 'industry_other' => 'Marina and boatyard']))->assertRedirect();
+        $lead = VendorBuyerLead::firstOrFail();
+        $this->assertSame('Other', $lead->industry);
+        $this->assertSame('Marina and boatyard', $lead->industry_other);
+        $this->assertSame('Other (Marina and boatyard)', $lead->industryLabel());
+
+        // Typing in the box and then picking a listed type must not leave the stray text behind.
+        $lead->delete();
+        $this->post(route('buyer-enquiries.store', $link->token), $this->details(['industry' => 'Airports', 'industry_other' => 'Marina and boatyard']))->assertRedirect();
+        $this->assertNull(VendorBuyerLead::firstOrFail()->industry_other);
+        $this->assertSame('Airports', VendorBuyerLead::firstOrFail()->industryLabel());
     }
 
     public function test_completed_form_is_emailed_to_the_vendor_and_copied_to_gasq(): void

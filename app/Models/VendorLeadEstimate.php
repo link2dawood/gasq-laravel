@@ -16,7 +16,19 @@ class VendorLeadEstimate extends Model
 
     protected function casts(): array
     {
-        return ['buyer' => 'array', 'valid_until' => 'date', 'hourly_rate' => 'decimal:2', 'weekly_hours' => 'decimal:2', 'one_time_cost' => 'decimal:2', 'weeks_per_year' => 'integer'];
+        return ['buyer' => 'array', 'valid_until' => 'date', 'hourly_rate' => 'decimal:2', 'weekly_hours' => 'decimal:2', 'one_time_cost' => 'decimal:2', 'weeks_per_year' => 'integer', 'budget_scenario' => 'array', 'budget_scenario_at' => 'datetime'];
+    }
+
+    /**
+     * Whether this estimate carries a Know Before You Bid dashboard.
+     *
+     * A scenario is only usable if it has the meta block the calculator writes;
+     * CostToProtectEstimate would otherwise fall back to its defaults and print
+     * a dashboard of invented numbers.
+     */
+    public function hasBudgetDashboard(): bool
+    {
+        return is_array($this->budget_scenario) && ! empty($this->budget_scenario['meta']);
     }
 
     public function lead(): BelongsTo

@@ -18,28 +18,41 @@
         ? $hoursPerDay * $daysPerWeek * $weeksPerYear
         : 8736;
 
-    // GASQ Side-by-side TCO formula
+    // GASQ Workforce-to-Post model, used for the BUYER's in-house should-cost only.
     $EMPLOYER_FRINGE_FACTOR = 0.70;
     $PAID_HOURS_PER_FTE = 3744;
     $BILLABLE_HOURS_PER_FTE = 1456;
     $VENDOR_DISCOUNT_FACTOR = 0.70;
 
+    // The comparison needs a baseline wage that came from the BUYER. Deriving one
+    // from the vendor's own bid would make the in-house column a restatement of
+    // the bid, and the saving against it meaningless, so when the job carries no
+    // baseline the comparison is withheld rather than invented.
     $baselineWage = (float) data_get($questionnaire, 'baseline_wage', 0);
-    if ($baselineWage <= 0 && $hourlyRate > 0) {
-        $baselineWage = $hourlyRate * $BILLABLE_HOURS_PER_FTE / $PAID_HOURS_PER_FTE;
-    }
-    if ($baselineWage <= 0) $baselineWage = 25.00;
+    $baselineKnown = $baselineWage > 0;
 
-    $loadedWage = $baselineWage / $EMPLOYER_FRINGE_FACTOR;
+    $loadedWage = $baselineKnown ? $baselineWage / $EMPLOYER_FRINGE_FACTOR : 0.0;
     $annualWorkforceCost = $loadedWage * $PAID_HOURS_PER_FTE;
-    $internalTcoHourly = $annualWorkforceCost / $BILLABLE_HOURS_PER_FTE;
-    $vendorTcoHourly = $internalTcoHourly * $VENDOR_DISCOUNT_FACTOR;
-    $capitalRecoveryPerHour = $internalTcoHourly - $vendorTcoHourly;
-    $annualCapitalRecovery = $capitalRecoveryPerHour * $annualHours;
+    $internalTcoHourly = $baselineKnown ? $annualWorkforceCost / $BILLABLE_HOURS_PER_FTE : 0.0;
     $internalShouldCost = $internalTcoHourly * $annualHours;
+
+    // GASQ benchmark for an outsourced rate. Shown as a benchmark only: the
+    // vendor column of the comparison is this vendor's actual bid.
+    $benchmarkVendorHourly = $internalTcoHourly * $VENDOR_DISCOUNT_FACTOR;
+
+    // The vendor side of every figure below is the submitted bid.
+    $vendorHourly = $hourlyRate > 0
+        ? $hourlyRate
+        : ($annualPrice > 0 && $annualHours > 0 ? $annualPrice / $annualHours : 0.0);
+    $vendorAnnual = $annualPrice > 0 ? $annualPrice : $vendorHourly * $annualHours;
+
+    $capitalRecoveryPerHour = $internalTcoHourly - $vendorHourly;
+    $annualCapitalRecovery = $internalShouldCost - $vendorAnnual;
     $savingsPct = $internalShouldCost > 0 ? round(100 * $annualCapitalRecovery / $internalShouldCost) : 0;
-    $monthlySavings = $annualCapitalRecovery / 12;
-    $paybackMonths = $monthlySavings > 0.01 ? (int) ceil($annualCapitalRecovery / $monthlySavings) : 0;
+    $internalMonthly = $internalShouldCost / 12;
+    // Months of the buyer's own in-house run rate that the bid consumes.
+    $paybackMonths = $internalMonthly > 0.01 ? round($vendorAnnual / $internalMonthly, 1) : 0;
+    $comparable = $baselineKnown && $internalShouldCost > 0 && $vendorAnnual > 0;
 
     $vendorCapability = $vendor?->vendorCapability;
 
@@ -65,7 +78,7 @@
   <tr>
     <td width="33%" class="stat-grid-label"><p>Annual Bid</p></td>
     <td width="34%" class="stat-grid-label"><p>Hourly Bill Rate</p></td>
-    <td width="33%" class="stat-grid-label last"><p>Capital Recovered</p></td>
+    <td width="33%" class="stat-grid-label last"><p>{{ ! $comparable || $annualCapitalRecovery >= 0 ? 'Capital Recovered' : 'Above In-House Cost' }}</p></td>
   </tr>
   <tr>
     <td class="stat-grid-value bg-blue">
@@ -76,9 +89,16 @@
       <p class="num">{{ $money($hourlyRate) }}</p>
       <p class="sub">per service hour</p>
     </td>
-    <td class="stat-grid-value bg-green last">
-      <p class="num">{{ $moneyK($annualCapitalRecovery) }}</p>
-      <p class="sub">{{ $savingsPct }}% vs in-house</p>
+    {{-- Headline recovery only when there is a buyer baseline to recover
+         against, and stated as additional cost when the bid sits above it. --}}
+    <td class="stat-grid-value {{ ! $comparable ? 'bg-blue' : ($annualCapitalRecovery >= 0 ? 'bg-green' : 'bg-purple') }} last">
+      @if($comparable)
+        <p class="num">{{ $moneyK(abs($annualCapitalRecovery)) }}</p>
+        <p class="sub">{{ abs($savingsPct) }}% {{ $annualCapitalRecovery >= 0 ? 'vs in-house' : 'above in-house' }}</p>
+      @else
+        <p class="num">&mdash;</p>
+        <p class="sub">no buyer baseline on file</p>
+      @endif
     </td>
   </tr>
 </table>
@@ -96,23 +116,45 @@
   <tr class="total"><td>Annual Cost</td><td class="v">{{ $money($annualPrice) }}</td></tr>
 </table>
 
+@if($comparable)
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
   <tr><td class="gasq-section-band"><p>GASQ Workforce-to-Post™ Capital Recovery Formula</p></td></tr>
 </table>
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-kv">
-  <tr><td>Baseline Wage (input)</td><td class="v">{{ $money($baselineWage) }}/hr</td></tr>
+  <tr><td>Baseline Wage (buyer input)</td><td class="v">{{ $money($baselineWage) }}/hr</td></tr>
   <tr class="alt"><td>1. Loaded Wage (÷ 0.70)</td><td class="v">{{ $money($loadedWage) }}/hr</td></tr>
   <tr><td>2. Annual Workforce Availability Cost (× 3,744)</td><td class="v">{{ $money($annualWorkforceCost) }}</td></tr>
   <tr class="alt"><td>3. Internal True Cost of Ownership (÷ 1,456)</td><td class="v">{{ $money($internalTcoHourly) }}/hr</td></tr>
-  <tr><td>4. Vendor TCO / Outsourced Rate (× 0.70)</td><td class="v">{{ $money($vendorTcoHourly) }}/hr</td></tr>
-  <tr class="hl"><td>5. Capital Recovery Opportunity / hr</td><td class="v">{{ $money($capitalRecoveryPerHour) }}</td></tr>
-  <tr class="total"><td>6. Annual Capital Recovery (× {{ number_format($annualHours, 0) }} hrs)</td><td class="v">{{ $money($annualCapitalRecovery) }}</td></tr>
+  <tr><td>4. GASQ Benchmark Outsourced Rate (× 0.70)</td><td class="v">{{ $money($benchmarkVendorHourly) }}/hr</td></tr>
+  <tr class="alt"><td>5. This Vendor's Submitted Bid Rate</td><td class="v">{{ $money($vendorHourly) }}/hr</td></tr>
+  <tr class="hl"><td>6. Capital Recovery at the Bid Rate / hr</td><td class="v">{{ $money($capitalRecoveryPerHour) }}</td></tr>
+  <tr class="total"><td>7. Annual Capital Recovery (× {{ number_format($annualHours, 0) }} hrs)</td><td class="v">{{ $money($annualCapitalRecovery) }}</td></tr>
 </table>
 
 <p class="gasq-note">
-    <strong>What this means:</strong> By outsourcing at the vendor TCO rate of {{ $money($vendorTcoHourly) }}/hr, the buyer creates a capital recovery opportunity of approximately {{ $money($capitalRecoveryPerHour) }} per service hour, or {{ $money($annualCapitalRecovery) }} annually for a {{ number_format($annualHours, 0) }}-hour post.
+    <strong>What this means:</strong> Rows 1 to 4 are the GASQ model: what the post costs in-house, and the benchmark rate an outsourced post is expected to come in at. Row 5 is what this vendor actually bid.
+    @if($annualCapitalRecovery >= 0)
+        At {{ $money($vendorHourly) }}/hr the buyer recovers approximately {{ $money($capitalRecoveryPerHour) }} per service hour, or {{ $money($annualCapitalRecovery) }} annually across {{ number_format($annualHours, 0) }} hours.
+    @else
+        At {{ $money($vendorHourly) }}/hr the bid sits {{ $money(abs($capitalRecoveryPerHour)) }} per service hour ABOVE the in-house should-cost, or {{ $money(abs($annualCapitalRecovery)) }} annually across {{ number_format($annualHours, 0) }} hours.
+    @endif
 </p>
+@else
+<table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
+  <tr><td class="gasq-section-band"><p>In-House Comparison</p></td></tr>
+</table>
+<p class="gasq-note">
+    This job carries no baseline wage from the buyer, so there is no independent in-house cost to compare this bid against. The pricing above is the vendor's submission in full. Add a baseline wage to the job and the comparison is produced automatically.
+</p>
+@endif
 
+@if($comparable)
+@php
+    // One vendor column, one vendor number: the submitted bid, the same figure
+    // the Pricing Summary above prints.
+    $recovered = $annualCapitalRecovery >= 0;
+    $recoverRow = $recovered ? '#e8f5eb' : '#fdf1ec';
+@endphp
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">
   <tr><td class="gasq-section-band"><p>Side-by-Side Annual Comparison</p></td></tr>
 </table>
@@ -120,15 +162,16 @@
   <tr style="background:#f0f4fb;">
     <td style="font-weight:bold; color:#1e3558;">Description</td>
     <td class="v" style="color:#1e3558;">Internal should-cost</td>
-    <td class="v" style="color:#1e3558;">Vendor TCO</td>
+    <td class="v" style="color:#1e3558;">This vendor's bid</td>
   </tr>
-  <tr><td>Hourly Rate</td><td class="v">{{ $money($internalTcoHourly) }}</td><td class="v">{{ $money($vendorTcoHourly) }}</td></tr>
+  <tr><td>Hourly Rate</td><td class="v">{{ $money($internalTcoHourly) }}</td><td class="v">{{ $money($vendorHourly) }}</td></tr>
   <tr class="alt"><td>Total Annual Hours of Coverage</td><td class="v">{{ number_format($annualHours, 0) }}</td><td class="v">{{ number_format($annualHours, 0) }}</td></tr>
-  <tr><td>Annual Cost</td><td class="v">{{ $money($internalShouldCost) }}</td><td class="v">{{ $money($vendorTcoHourly * $annualHours) }}</td></tr>
-  <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558; border-top:2px solid #1e3558;">Operational Capital Recovered</td><td class="v" style="border-top:2px solid #1e3558;">—</td><td class="v" style="color:#1e3558; font-size:12px; border-top:2px solid #1e3558;">{{ $money($annualCapitalRecovery) }}</td></tr>
-  <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Operational Capital Recovered (%)</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ $savingsPct }}%</td></tr>
-  <tr style="background:#e8f5eb;"><td style="font-weight:bold; color:#1e3558;">Payback &amp; Recovery Period</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ $paybackMonths }} months</td></tr>
+  <tr><td>Annual Cost</td><td class="v">{{ $money($internalShouldCost) }}</td><td class="v">{{ $money($vendorAnnual) }}</td></tr>
+  <tr style="background:{{ $recoverRow }};"><td style="font-weight:bold; color:#1e3558; border-top:2px solid #1e3558;">{{ $recovered ? 'Operational Capital Recovered' : 'Additional Cost vs In-House' }}</td><td class="v" style="border-top:2px solid #1e3558;">—</td><td class="v" style="color:#1e3558; font-size:12px; border-top:2px solid #1e3558;">{{ $money(abs($annualCapitalRecovery)) }}</td></tr>
+  <tr style="background:{{ $recoverRow }};"><td style="font-weight:bold; color:#1e3558;">{{ $recovered ? 'Operational Capital Recovered (%)' : 'Additional Cost (%)' }}</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ abs($savingsPct) }}%</td></tr>
+  <tr style="background:{{ $recoverRow }};"><td style="font-weight:bold; color:#1e3558;">Payback &amp; Recovery Period</td><td class="v">—</td><td class="v" style="color:#1e3558;">{{ $recovered ? number_format($paybackMonths, 1).' months' : 'No recovery at this bid' }}</td></tr>
 </table>
+@endif
 
 @if($bid->staffing_plan)
 <table width="100%" cellpadding="0" cellspacing="0" class="gasq-mt">

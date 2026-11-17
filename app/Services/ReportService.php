@@ -43,7 +43,7 @@ class ReportService
      */
     public function calculatorPdf(string $type, array $payload, ?string $openPassword = null): PDF
     {
-        if (in_array($type, ['buyer-appraisal', 'vendor-lead-estimate'], true)) {
+        if (in_array($type, ['buyer-appraisal', 'vendor-lead-estimate', 'vendor-lead-estimate-buyer'], true)) {
             validator(['pdf_password' => $openPassword], ['pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/']])->validate();
         }
         if ($type === 'vendor-weighted-rates') {
@@ -63,7 +63,9 @@ class ReportService
             $payload['result'] = app(MainMenuComputeService::class)->compute($payload['scenario']);
         }
         $view = match ($type) {
-            'vendor-lead-estimate' => 'pdf.vendor-lead-estimate',
+            // Vendor edition and buyer edition are the same document; the buyer
+            // edition withholds the vendor-side figures inside it (see $masked).
+            'vendor-lead-estimate', 'vendor-lead-estimate-buyer' => 'pdf.vendor-lead-estimate',
             'instant-estimator' => 'pdf.instant-estimator',
             'main-menu' => 'pdf.main-menu',
             'vendor-weighted-rates' => 'pdf.vendor-weighted-rates',
@@ -103,13 +105,13 @@ class ReportService
             'reportType' => $type,
             'isBuyer' => $type === 'mobile-patrol-buyer',
             'reportScope' => $type === 'budget-calculator-allocation' ? 'allocation' : 'main',
-            'masked' => $type === 'budget-calculator-preview',
+            'masked' => in_array($type, ['budget-calculator-preview', 'vendor-lead-estimate-buyer'], true),
         ]);
 
         $pdf = $this->pdf()->loadView($view, $data)
             ->setPaper($type === 'vendor-weighted-rates' ? 'legal' : 'a4', $type === 'vendor-weighted-rates' ? 'landscape' : 'portrait')
             ->setWarnings(false);
-        if (in_array($type, ['main-menu', 'vendor-lead-estimate'], true)) {
+        if (in_array($type, ['main-menu', 'vendor-lead-estimate', 'vendor-lead-estimate-buyer'], true)) {
             $pdf->render();
             $dompdf = $pdf->getDomPDF();
             $label = $type === 'main-menu' ? 'GASQ Main Menu' : 'GASQ Vendor Estimate';
@@ -139,7 +141,7 @@ class ReportService
         return $this->restrictCopyAndPrint(
             $pdf,
             $type === 'budget-calculator-preview' ? null : $openPassword,
-            in_array($type, ['vendor-weighted-rates', 'buyer-appraisal', 'vendor-lead-estimate'], true),
+            in_array($type, ['vendor-weighted-rates', 'buyer-appraisal', 'vendor-lead-estimate', 'vendor-lead-estimate-buyer'], true),
         );
     }
 
@@ -163,10 +165,13 @@ class ReportService
      * Callers that need the bytes AND a response must output once and reuse those
      * bytes (see VendorLeadEstimateController::download()).
      *
+     * Public because the Private Estimate comparison report is encrypted the
+     * same way and must not carry its own copy of these subtleties.
+     *
      * @param  string|null  $openPassword  Non-empty ⇒ the reader must enter it to
      *                                     open the document. Null/empty ⇒ opens freely, as before.
      */
-    private function restrictCopyAndPrint(PDF $pdf, ?string $openPassword = null, bool $requireEncryption = false): PDF
+    public function restrictCopyAndPrint(PDF $pdf, ?string $openPassword = null, bool $requireEncryption = false): PDF
     {
         // The canvas only exists after rendering, so render up front; the
         // wrapper sets its "rendered" flag, so download()/output() won't

@@ -1,8 +1,14 @@
+@php
+    // Buyer edition: the attached dashboard withholds the vendor's cost, the
+    // capital recovered and the payback period. ReportService sets this from the
+    // report type ('vendor-lead-estimate-buyer').
+    $masked = (bool) ($masked ?? false);
+@endphp
 @extends('pdf.layouts.gasq-report', [
     'title' => $estimate->title,
     'subtitle' => 'Proposed scope and service pricing',
     'reportNumber' => $estimate->number,
-    'reportType' => 'Vendor — Service Estimate',
+    'reportType' => $masked ? 'Buyer Edition — Vendor Figures Withheld' : 'Vendor — Service Estimate',
     'contactName' => $estimate->vendor->name,
     'contactCompany' => $estimate->vendor->company,
     'contactEmail' => $estimate->vendor->email,
@@ -38,6 +44,9 @@
 <h2 style="font-size:14px;margin-top:18px;">Terms and assumptions</h2><div style="font-size:10.5px;line-height:1.6;overflow-wrap:break-word;">{!! nl2br(e($estimate->terms)) !!}</div>
 @endif
 <p class="gasq-note">This estimate is based on the proposed scope and vendor-entered pricing. Final pricing remains subject to confirmed scope, coverage requirements, site conditions, and agreement between the parties.</p>
+@if($estimate->hasBudgetDashboard())
+    @include('pdf.estimate._estimate-dashboard', ['estimate' => $estimate, 'masked' => $masked])
+@endif
 @endsection
 @section('report_styles')
 <style>

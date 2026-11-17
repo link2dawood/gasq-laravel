@@ -10,6 +10,8 @@
     <style>
         body { margin:0; background:#f6f8fb; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; color:#1f2937; line-height:1.55; }
         .pe-wrap { max-width:640px; margin:0 auto; padding:32px 16px 64px; }
+        /* The estimate step carries a three-column comparison and needs the room. */
+        .pe-wrap.wide { max-width:960px; }
         .pe-brand { display:flex; align-items:center; gap:10px; margin-bottom:24px; }
         .pe-brand strong { color:#0b2447; letter-spacing:.3px; }
         .pe-card { background:#fff; border:1px solid rgba(15,23,42,.08); border-radius:14px; padding:28px; box-shadow:0 1px 3px rgba(15,23,42,.06); }
@@ -30,7 +32,7 @@
     </style>
 </head>
 <body>
-<div class="pe-wrap">
+<div class="pe-wrap {{ !empty($wide) ? 'wide' : '' }}">
     <div class="pe-brand">
         <strong>GASQ</strong><span class="pe-meta">Get A Security Quote</span>
     </div>

@@ -15,7 +15,7 @@ class VendorBuyerLead extends Model
         'vendor_id', 'contact_name', 'contact_title', 'company', 'email', 'phone', 'site_address',
         'decision_maker_name', 'decision_maker_phone', 'decision_maker_email',
         'approved_budget', 'approved_budget_basis', 'service_type', 'service_type_other',
-        'industry', 'preferred_contact_method', 'scope', 'start_date', 'service_end_date',
+        'industry', 'industry_other', 'preferred_contact_method', 'scope', 'start_date', 'service_end_date',
         'hours_per_day', 'days_per_week', 'officers_per_shift', 'number_of_weeks', 'weekly_hours',
         'qualification_answers', 'qualification_status', 'qualification_submitted_at', 'status', 'notes',
     ];
@@ -68,6 +68,17 @@ class VendorBuyerLead extends Model
         $label = (string) $this->service_type;
         if ($this->service_type_other) {
             $label = trim($label.' ('.$this->service_type_other.')');
+        }
+
+        return $label !== '' ? $label : 'Not supplied';
+    }
+
+    /** "Other (Marina)": the buyer's own wording, where they had to supply it. */
+    public function industryLabel(): string
+    {
+        $label = (string) $this->industry;
+        if ($this->industry_other) {
+            $label = trim($label.' ('.$this->industry_other.')');
         }
 
         return $label !== '' ? $label : 'Not supplied';

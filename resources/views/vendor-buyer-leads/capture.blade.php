@@ -40,6 +40,11 @@
                         @endforeach
                     </select>
                     @error('industry')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="mt-2">
+                        <label class="form-label small" for="industry_other">If other, please specify</label>
+                        <input class="form-control @error('industry_other') is-invalid @enderror" id="industry_other" name="industry_other" maxlength="100" value="{{ old('industry_other') }}">
+                        @error('industry_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="contact_name">Contact name *</label>

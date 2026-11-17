@@ -20,6 +20,9 @@
 <tr style="background:#f1f5f9;"><th align="left">Valid through</th><td>{{ \Illuminate\Support\Carbon::parse($snapshot['valid_until'])->format('F j, Y') }}</td></tr>
 </table>
 <p>These financial figures are partially concealed for confidentiality. Full pricing and assumptions are available in the protected PDF and will be explained during your review.</p>
+@if($snapshot['has_dashboard'] ?? false)
+<p>Your attachment also carries a GASQ Cost to Protect™ dashboard: your own cost to protect this scope with your own workforce, the budget summary and the budget line items behind it. This is the Buyer Edition. The vendor outsourcing cost, the operational capital recovered and the payback period are withheld, and your vendor can release the complete estimate with those figures.</p>
+@endif
 <p>Please schedule an Estimate &amp; Scope Review with the decision-maker authorized to approve the security budget. During the appointment, we will confirm your requirements, explain the calculations, answer questions, and, after the appointment, manually release access to the PDF password.</p>
 @include('emails.partials.schedule-review', ['bookingUrl' => $delivery->schedulingUrl()])
 <p>If someone else authorizes the budget, please forward this email and the protected attachment to that person and include them in the appointment.</p>

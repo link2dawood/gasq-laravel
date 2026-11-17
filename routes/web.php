@@ -36,6 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/vendor/buyer-leads/{lead}/estimates', [\App\Http\Controllers\VendorLeadEstimateController::class, 'store'])->name('vendor-estimates.store');
     Route::get('/vendor/estimates/{estimate}/edit', [\App\Http\Controllers\VendorLeadEstimateController::class, 'edit'])->name('vendor-estimates.edit');
     Route::patch('/vendor/estimates/{estimate}', [\App\Http\Controllers\VendorLeadEstimateController::class, 'update'])->name('vendor-estimates.update');
+    Route::post('/vendor/estimates/{estimate}/budget', [\App\Http\Controllers\VendorLeadEstimateController::class, 'attachBudget'])->name('vendor-estimates.budget.attach');
+    Route::delete('/vendor/estimates/{estimate}/budget', [\App\Http\Controllers\VendorLeadEstimateController::class, 'detachBudget'])->name('vendor-estimates.budget.detach');
     Route::post('/vendor/estimates/{estimate}/pdf', [\App\Http\Controllers\VendorLeadEstimateController::class, 'download'])->middleware('throttle:10,1')->name('vendor-estimates.download');
     Route::post('/vendor/estimates/{estimate}/email', [\App\Http\Controllers\VendorLeadEstimateController::class, 'send'])->middleware('throttle:5,1')->name('vendor-estimates.send');
     Route::post('/vendor/pdf-deliveries/{delivery}/release', [\App\Http\Controllers\VendorPdfPasswordController::class, 'release'])->middleware('throttle:5,1')->name('vendor-pdf.release');
@@ -161,6 +163,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/vendor/leads', [VendorLeadsController::class, 'index'])->name('vendor-leads.index');
     Route::get('/vendor-opportunities/manage/{invitation}', [VendorOpportunityController::class, 'manage'])
         ->name('vendor-opportunities.manage');
+
+    // Private estimate → the buyer-facing side-by-side comparison report. The
+    // vendor previews exactly what the buyer sees, then sends the PDF.
+    Route::get('/vendor/private-estimates/{estimate}/comparison', [\App\Http\Controllers\PrivateEstimateReportController::class, 'show'])
+        ->name('private-estimates.report.show');
+    Route::post('/vendor/private-estimates/{estimate}/comparison.pdf', [\App\Http\Controllers\PrivateEstimateReportController::class, 'download'])
+        ->middleware('throttle:20,1')->name('private-estimates.report.download');
 
     // Phone verification (signup OTP)
     Route::get('/phone/verify', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'show'])->name('phone.verify.show');

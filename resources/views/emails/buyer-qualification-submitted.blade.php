@@ -32,7 +32,7 @@
     <tr><td style="padding:5px 0;color:#666;">Coverage</td><td>{{ $lead->coverageLabel() }}</td></tr>
     <tr><td style="padding:5px 0;color:#666;">Total weekly service hours</td><td>{{ $lead->weekly_hours ?: 'Not supplied' }}</td></tr>
     <tr><td style="padding:5px 0;color:#666;">Service type</td><td>{{ $lead->serviceTypeLabel() }}</td></tr>
-    <tr><td style="padding:5px 0;color:#666;">Business industry</td><td>{{ $lead->industry ?: 'Not supplied' }}</td></tr>
+    <tr><td style="padding:5px 0;color:#666;">Business industry</td><td>{{ $lead->industryLabel() }}</td></tr>
     <tr><td style="padding:5px 0;color:#666;">Preferred contact method</td><td>{{ \App\Support\BuyerQualificationQuestionnaire::CONTACT_METHODS[$lead->preferred_contact_method] ?? 'Not supplied' }}</td></tr>
 </table>
 

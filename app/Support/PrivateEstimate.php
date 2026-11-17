@@ -209,6 +209,22 @@ class PrivateEstimate
         ];
     }
 
+    /**
+     * What the approved budget amount was quoted on. Stored next to the amount
+     * because "$12,000 approved" reconciles very differently monthly and annually.
+     *
+     * @return array<string, string>
+     */
+    public static function budgetBases(): array
+    {
+        return [
+            'hourly' => 'Per hour',
+            'weekly' => 'Per week',
+            'monthly' => 'Per month',
+            'annual' => 'Per year',
+        ];
+    }
+
     /** @return array<string, string> */
     public static function intentOptions(): array
     {

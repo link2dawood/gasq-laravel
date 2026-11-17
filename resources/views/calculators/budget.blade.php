@@ -84,6 +84,18 @@
           <i class="fa fa-check me-1"></i> Save &amp; return to questionnaire
         </button>
       @endif
+      @php
+          // Came from a vendor estimate. No browser handoff is needed: every
+          // compute on this page saves the scenario to the vendor's account, so
+          // the estimate reads it back server-side. The id is cast to an integer
+          // so the link can only ever point at an estimate route.
+          $fromEstimateId = request('from') === 'estimate' ? (int) request('estimate') : 0;
+      @endphp
+      @if($fromEstimateId > 0)
+        <a href="{{ route('vendor-estimates.edit', $fromEstimateId) }}" class="btn btn-success btn-sm fw-semibold">
+          <i class="fa fa-arrow-left me-1"></i> Back to the estimate
+        </a>
+      @endif
       <button class="btn btn-outline-secondary btn-sm" onclick="resetBudget()"><i class="fa fa-rotate me-1"></i> Reset</button>
       <button class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa fa-print me-1"></i> Print</button>
     </div>
@@ -91,6 +103,12 @@
       <div class="alert alert-info py-2 mb-0 small w-100 mt-2 d-print-none">
         <i class="fa fa-circle-info me-1"></i>
         You came from the job questionnaire. Adjust the baseline wage and scope below, then click <strong>Save &amp; return to questionnaire</strong> to send the contract value back.
+      </div>
+    @endif
+    @if($fromEstimateId > 0)
+      <div class="alert alert-info py-2 mb-0 small w-100 mt-2 d-print-none">
+        <i class="fa fa-circle-info me-1"></i>
+        You came from an estimate. Set the baseline wage and coverage below, and your figures save as you go. Then click <strong>Back to the estimate</strong> and choose <strong>Fill from my Know Before You Bid figures</strong>.
       </div>
     @endif
   </div>

@@ -7,8 +7,10 @@ use App\Models\VendorEstimateDelivery;
 use App\Models\VendorLeadEstimate;
 use App\Models\VendorPdfAccessEvent;
 use App\Models\VendorReviewAppointment;
+use App\Services\BudgetSummaryService;
 use App\Services\ReportService;
 use App\Services\VendorEstimateDeliveryService;
+use App\Support\Currency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -33,24 +35,39 @@ class VendorLeadEstimateController extends Controller
     {
         $vendor = $this->vendor($request);
         abort_unless($lead->vendor_id === $vendor->id, 404);
+        $currency = $this->currency($vendor);
         $estimate = new VendorLeadEstimate([
             'title' => 'Security services estimate', 'scope' => $lead->scope, 'weekly_hours' => $lead->weekly_hours,
             'weeks_per_year' => 52, 'one_time_cost' => 0, 'valid_until' => now()->addDays(30), 'status' => 'draft',
-            'currency' => $this->currency($vendor),
+            'currency' => $currency,
         ]);
+        // Arriving from the Know Before You Bid Calculator: fill the pricing from
+        // the scenario the vendor just saved there, so the figures are not
+        // retyped by hand. Nothing is stored until the vendor saves the estimate.
+        $budget = $request->boolean('from_budget') ? $this->budgetFill($vendor, $currency) : null;
+        if ($budget) {
+            $estimate->fill($budget['fields']);
+        }
 
-        return view('vendor-estimates.form', compact('lead', 'estimate'));
+        return view('vendor-estimates.form', compact('lead', 'estimate', 'budget'));
     }
 
     public function store(Request $request, VendorBuyerLead $lead)
     {
         $vendor = $this->vendor($request);
         abort_unless($lead->vendor_id === $vendor->id, 404);
+        $currency = $this->currency($vendor);
+        // The scenario is snapshotted at save time, not read live when the PDF
+        // renders: an estimate must keep printing the figures it was sent with
+        // after the vendor edits the calculator again.
+        $budget = $request->boolean('attach_budget') ? $this->budgetFill($vendor, $currency) : null;
         $estimate = VendorLeadEstimate::create(array_merge($this->validated($request), [
             'vendor_id' => $vendor->id, 'vendor_buyer_lead_id' => $lead->id,
             'number' => 'GASQ-EST-'.now()->format('Ymd').'-'.strtoupper(Str::random(10)),
-            'currency' => $this->currency($vendor),
+            'currency' => $currency,
             'buyer' => $lead->only(['contact_name', 'company', 'email', 'phone', 'site_address', 'service_type', 'start_date']),
+            'budget_scenario' => $budget['scenario'] ?? null,
+            'budget_scenario_at' => $budget ? now() : null,
         ]));
 
         return redirect()->route('vendor-estimates.edit', $estimate)->with('status', 'Estimate saved.');
@@ -64,8 +81,66 @@ class VendorLeadEstimateController extends Controller
         $canEmailEstimate = app(VendorEstimateDeliveryService::class)->schedulingBaseUrl($request->user()) !== null;
         $reviews = VendorReviewAppointment::where('vendor_id', $request->user()->id)->where('vendor_lead_estimate_id', $estimate->id)->where('status', 'scheduled')->where('ends_at', '<=', now())->latest('ends_at')->get();
         $accessHistory = VendorPdfAccessEvent::where('vendor_lead_estimate_id', $estimate->id)->latest('id')->paginate(30, ['*'], 'access_page');
+        // Offered, not applied: on an existing estimate the vendor asks for the
+        // fill explicitly, so saved pricing is never overwritten by a page load.
+        $budgetAvailable = app(BudgetSummaryService::class)->forUser($request->user()) !== null;
 
-        return view('vendor-estimates.form', compact('lead', 'estimate', 'deliveries', 'canEmailEstimate', 'reviews', 'accessHistory'));
+        return view('vendor-estimates.form', compact('lead', 'estimate', 'deliveries', 'canEmailEstimate', 'reviews', 'accessHistory', 'budgetAvailable'));
+    }
+
+    /**
+     * Fill this estimate's pricing from the vendor's saved Know Before You Bid
+     * scenario, and attach that scenario as the estimate's dashboard.
+     */
+    public function attachBudget(Request $request, VendorLeadEstimate $estimate)
+    {
+        $this->authorizeEstimate($request, $estimate);
+        $budget = $this->budgetFill($request->user(), $estimate->currency);
+        if (! $budget) {
+            return back()->withErrors(['budget' => 'Save a scenario in the Know Before You Bid Calculator first. Nothing has been saved to your account yet.']);
+        }
+        $estimate->update(array_merge($budget['fields'], [
+            'budget_scenario' => $budget['scenario'],
+            'budget_scenario_at' => now(),
+        ]));
+
+        return back()->with('status', 'Pricing filled from your Know Before You Bid figures, and the dashboard attached. Review the figures, then save.');
+    }
+
+    /** Detach the dashboard. The estimate keeps the pricing already filled in. */
+    public function detachBudget(Request $request, VendorLeadEstimate $estimate)
+    {
+        $this->authorizeEstimate($request, $estimate);
+        $estimate->update(['budget_scenario' => null, 'budget_scenario_at' => null]);
+
+        return back()->with('status', 'Dashboard removed from this estimate. The pricing is unchanged.');
+    }
+
+    /**
+     * The vendor's saved Know Before You Bid scenario, as estimate fields plus
+     * the scenario to snapshot. Null when they have not saved one yet.
+     *
+     * Calculator figures are stored in USD, so the hourly rate is converted into
+     * the estimate's own currency before it reaches a currency-labelled field.
+     *
+     * @return array{fields: array<string, mixed>, scenario: array<string, mixed>, summary: array<string, mixed>}|null
+     */
+    private function budgetFill($vendor, string $currency): ?array
+    {
+        $summary = app(BudgetSummaryService::class)->forUser($vendor);
+        if (! $summary) {
+            return null;
+        }
+
+        return [
+            'fields' => [
+                'hourly_rate' => round($summary['vendorHourly'] * Currency::rate($currency), 2),
+                'weekly_hours' => round($summary['totalWeeklyHours'], 2),
+                'weeks_per_year' => max(1, min(52, (int) round($summary['weeksInYear']))),
+            ],
+            'scenario' => $summary['budgetScenario'],
+            'summary' => $summary,
+        ];
     }
 
     public function send(Request $request, VendorLeadEstimate $estimate, VendorEstimateDeliveryService $deliveryService)

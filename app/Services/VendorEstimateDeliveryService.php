@@ -55,7 +55,12 @@ class VendorEstimateDeliveryService
                     'email' => ['required', 'email', 'max:255'],
                     'pdf_password' => ['required', 'string', 'min:8', 'max:32', 'regex:/^[\x20-\x7E]+$/'],
                 ])->validate();
-                $bytes = app(ReportService::class)->calculatorPdf('vendor-lead-estimate', ['estimate' => $estimate, 'user' => $estimate->vendor], $password)->output();
+                // Buyer edition: masked inside AND password protected. The
+                // password gates when the buyer reads the file; the masking gates
+                // what is in it, because releasing the password is permanent and
+                // the covering email asks the buyer to forward the attachment to
+                // whoever approves the budget.
+                $bytes = app(ReportService::class)->calculatorPdf('vendor-lead-estimate-buyer', ['estimate' => $estimate, 'user' => $estimate->vendor], $password)->output();
                 if (! str_starts_with($bytes, '%PDF-') || ! str_contains($bytes, '/Encrypt')) {
                     throw new \RuntimeException('The estimate PDF must be password protected.');
                 }
@@ -70,7 +75,7 @@ class VendorEstimateDeliveryService
                 $delivery = VendorEstimateDelivery::create([
                     'vendor_lead_estimate_id' => $estimate->id, 'request_key' => $requestKey,
                     'recipient' => $estimate->buyer['email'],
-                    'snapshot' => ['number' => $estimate->number, 'title' => $estimate->title, 'buyer' => $estimate->buyer, 'currency' => $estimate->currency, 'totals' => $estimate->totals(), 'valid_until' => $estimate->valid_until->toDateString(), 'vendor_name' => $estimate->vendor->company ?: $estimate->vendor->name, 'reply_to' => $estimate->vendor->email],
+                    'snapshot' => ['number' => $estimate->number, 'title' => $estimate->title, 'buyer' => $estimate->buyer, 'currency' => $estimate->currency, 'totals' => $estimate->totals(), 'valid_until' => $estimate->valid_until->toDateString(), 'has_dashboard' => $estimate->hasBudgetDashboard(), 'vendor_name' => $estimate->vendor->company ?: $estimate->vendor->name, 'reply_to' => $estimate->vendor->email],
                     'scheduling_token' => $token, 'scheduling_token_hash' => hash('sha256', $token),
                     'scheduling_target' => $base === 'native' ? 'native' : $base.(str_contains($base, '?') ? '&' : '?').http_build_query($query),
                     'native_scheduling' => $base === 'native',
