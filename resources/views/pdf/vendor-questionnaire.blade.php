@@ -74,7 +74,7 @@
         return $val;
     };
 
-    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-VQ' . str_pad((string) $questionnaire->id, 4, '0', STR_PAD_LEFT);
+    $reportNumber = 'GASQ ' . \App\Support\ReportClock::now()->format('Y-m-d') . '-VQ' . str_pad((string) $questionnaire->id, 4, '0', STR_PAD_LEFT);
 @endphp
 
 @extends('pdf.layouts.gasq-report', [

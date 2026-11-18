@@ -12,11 +12,17 @@ class VendorLeadEstimate extends Model
 {
     public const STATUSES = ['draft' => 'Draft', 'ready' => 'Ready', 'archived' => 'Archived'];
 
+    /**
+     * What `one_time_cost` is called on screen and in the PDF. Named in one
+     * place so the form, the saved summary and the report cannot disagree.
+     */
+    public const ONE_TIME_COST_LABEL = 'One-time retainer fee';
+
     protected $guarded = ['id'];
 
     protected function casts(): array
     {
-        return ['buyer' => 'array', 'valid_until' => 'date', 'hourly_rate' => 'decimal:2', 'weekly_hours' => 'decimal:2', 'one_time_cost' => 'decimal:2', 'weeks_per_year' => 'integer', 'budget_scenario' => 'array', 'budget_scenario_at' => 'datetime'];
+        return ['buyer' => 'array', 'valid_until' => 'date', 'hourly_rate' => 'decimal:2', 'weekly_hours' => 'decimal:2', 'one_time_cost' => 'decimal:2', 'weeks_per_year' => 'integer', 'staff_required' => 'integer', 'budget_scenario' => 'array', 'budget_scenario_at' => 'datetime'];
     }
 
     /**
@@ -49,6 +55,12 @@ class VendorLeadEstimate extends Model
     public function latestDelivery(): HasOne
     {
         return $this->hasOne(VendorEstimateDelivery::class)->latestOfMany();
+    }
+
+    /** Supporting files and photos the vendor attached to this estimate. */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(VendorEstimateAttachment::class)->oldest('id');
     }
 
     public function totals(): array

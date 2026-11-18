@@ -24,7 +24,7 @@
     $rosRate  = $rosInput > 1 ? $rosInput / 100 : $rosInput;
     $rosPct   = (float)($kpis['returnOnSalesPercentDisplay'] ?? ($rosRate * 100));
 
-    $reportNum = 'GASQ ' . now()->format('Y-m-d') . '-' . str_pad(($reportId ?? rand(1,9999)), 4, '0', STR_PAD_LEFT);
+    $reportNum = 'GASQ ' . \App\Support\ReportClock::now()->format('Y-m-d') . '-' . str_pad(($reportId ?? rand(1,9999)), 4, '0', STR_PAD_LEFT);
     $logoPath  = 'file://' . public_path('images/site-logo.png');
 
     $cName    = trim($contact['contactName']    ?? '');
@@ -54,7 +54,7 @@
     </td>
     <td style="padding:14px 20px 14px 12px; vertical-align:middle; text-align:right;">
       <p style="font-size:11px; font-weight:bold; color:#1e3558; margin-bottom:4px;">{{ $reportNum }}</p>
-      <p style="font-size:9px; color:#6b7280;">{{ now()->format('F j, Y') }}</p>
+      <p style="font-size:9px; color:#6b7280;">{{ \App\Support\ReportClock::now()->format('F j, Y') }}</p>
     </td>
   </tr>
 </table>
@@ -77,7 +77,7 @@
     <td style="padding:11px 20px 11px 10px; vertical-align:top; text-align:right;">
       <p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-bottom:2px;">Report Type</p>
       <p style="font-size:10px; color:#1e3558; font-weight:bold;">Vendor — Full Report</p>
-      <p style="font-size:8px; color:#6b7280; margin-top:8px;">Generated {{ now()->format('M j, Y g:i A') }}</p>
+      <p style="font-size:8px; color:#6b7280; margin-top:8px;">Generated {{ \App\Support\ReportClock::stamp() }}</p>
     </td>
   </tr>
 </table>
@@ -248,7 +248,7 @@
       <p style="font-size:8px; color:#6b7280; margin-top:2px;">{{ $reportNum }} &nbsp;·&nbsp; Vendor Report &nbsp;·&nbsp; Confidential – for authorized recipients only</p>
     </td>
     <td style="padding:10px 20px; text-align:right;">
-      <p style="font-size:8px; color:#6b7280;">{{ now()->format('M j, Y') }}</p>
+      <p style="font-size:8px; color:#6b7280;">{{ \App\Support\ReportClock::now()->format('M j, Y') }}</p>
     </td>
   </tr>
 </table>

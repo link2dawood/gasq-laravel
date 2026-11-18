@@ -2,6 +2,34 @@
 
 Deploy all Phase 1–3 migrations with `php artisan migrate --force`. Configure a real mail transport and a queue worker (`php artisan queue:work --tries=1`). The deployment workflow restarts existing workers but does not provision one. With a synchronous queue the send runs immediately; with a background queue the vendor sees Queued until a worker handles it.
 
+## Supporting files and photos
+
+An estimate holds up to 20 supporting files of 15 MB each: site photographs,
+post orders, certificates of insurance, a signed scope. Upload them from the
+estimate screen once it has been saved.
+
+They are written to the private local disk under
+`vendor-estimate-attachments/{estimate}`, never under `public/`, and are served
+only through a vendor-scoped download route, so a leaked path cannot expose a
+buyer's site photographs. Accepted types are images, PDF, Word, Excel and plain
+text; anything else is refused at upload.
+
+These files are vendor-side only. They are not attached to the buyer's estimate
+email and do not appear on the buyer access page. Removing one deletes the
+stored file as well as the record.
+
+## When nothing is draining the queue
+
+A delivery is created as **Queued** and its send job dispatched immediately, so a delivery still Queued minutes later means no worker claimed it. The buyer never receives the estimate, and the buyer PDF access page answers 404 for that delivery, because the page only opens for a delivery the mail transport has accepted. The vendor's delivery history shows this state and offers **Send this email now**, which runs the same job in the request.
+
+Three ways to keep this from happening, in order of preference:
+
+1. Run a supervised worker: `php artisan queue:work --tries=1`. This is the intended setup.
+2. Run Laravel's scheduler every minute (`* * * * * cd /path/to/app && php artisan schedule:run`). `vendor-estimates:flush-deliveries` runs minutely and sends anything queued for more than two minutes, so a host with cron but no long-running worker still delivers.
+3. Clear a backlog by hand: `php artisan vendor-estimates:flush-deliveries --minutes=0`, or drain the whole queue once with `php artisan queue:work --stop-when-empty --tries=1`.
+
+Each path claims the delivery row with a conditional update, so a worker that starts later cannot send a second copy of an estimate already sent.
+
 Set the existing `APPRAISAL_SCHEDULING_PROVIDER` to `bookafy` or `calendly`, with its HTTPS `BOOKAFY_APPRAISAL_BOOKING_URL` or `CALENDLY_APPRAISAL_BOOKING_URL`. Only the selected provider's own domain/subdomains are accepted. Phase 4 also lets each vendor enable a native GASQ calendar, which uses the same private delivery link without external provider configuration; see VENDOR_APPOINTMENT_SCHEDULING.md. No Bookafy API calls or subscription registration are required to link to its booking page.
 
 ## Sending an estimate

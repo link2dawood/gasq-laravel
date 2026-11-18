@@ -22,7 +22,7 @@
         $headlineValue = $last['value'] ?? null;
     }
 
-    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-VE' . str_pad((string) $submission->id, 4, '0', STR_PAD_LEFT);
+    $reportNumber = 'GASQ ' . \App\Support\ReportClock::now()->format('Y-m-d') . '-VE' . str_pad((string) $submission->id, 4, '0', STR_PAD_LEFT);
 @endphp
 
 @extends('pdf.layouts.gasq-report', [

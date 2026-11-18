@@ -170,9 +170,9 @@
     // ReportService passes the calculator slug as $reportType; the document shows
     // the human label instead.
     $reportType = 'Vendor — Full Report';
-    $reportNumber = $reportNumber ?? ('GASQ-' . now()->format('Ymd-His') . '-V' . (int) ($vendorId ?? 0));
-    $reportDate = now()->format('F j, Y');
-    $generatedTime = now()->format('g:i A');
+    $reportNumber = $reportNumber ?? ('GASQ-' . \App\Support\ReportClock::now()->format('Ymd-His') . '-V' . (int) ($vendorId ?? 0));
+    $reportDate = \App\Support\ReportClock::now()->format('F j, Y');
+    $generatedTime = \App\Support\ReportClock::stamp(null, 'g:i A');
     $orgName = $contactCompany ?: 'GASQ Security';
     $docTitle = 'GASQ Workforce-to-Post Report';
     $pages = 2 + count($rowChunks);

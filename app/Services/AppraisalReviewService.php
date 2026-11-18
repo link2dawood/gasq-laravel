@@ -7,6 +7,7 @@ use App\Models\AppraisalAppointment;
 use App\Models\AppraisalDelivery;
 use App\Models\AppraisalReview;
 use App\Support\Currency;
+use App\Support\ReportClock;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -30,7 +31,7 @@ class AppraisalReviewService
             $data = app(CostToProtectEstimate::class)->build($scenario, $state->user);
             $bytes = app(ReportService::class)->calculatorPdf('buyer-appraisal', [
                 'scenario' => $scenario, 'user' => $state->user,
-                'reportNumber' => $review->report_number, 'datePrepared' => $prepared->format('F j, Y'),
+                'reportNumber' => $review->report_number, 'datePrepared' => ReportClock::at($prepared)->format('F j, Y'),
                 'preparedForEmail' => $review->buyer_email,
             ], $password)->output();
             if (! str_starts_with($bytes, '%PDF-') || ! str_contains($bytes, '/Encrypt')) {

@@ -56,3 +56,7 @@ Schedule::command('appraisals:process')->everyMinute()->withoutOverlapping();
 Schedule::command('appraisals:process --sync')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('currency:refresh')->hourly()->withoutOverlapping();
 Schedule::command('vendor-appointments:process')->everyMinute()->withoutOverlapping();
+// Estimate emails are queued on creation. Where no long-running queue worker
+// runs, this sends them from the scheduler so the buyer still receives the
+// estimate and the buyer access page stops 404ing.
+Schedule::command('vendor-estimates:flush-deliveries')->everyMinute()->withoutOverlapping();

@@ -127,12 +127,26 @@ docker compose logs -f app
 | `DB_CONNECTION` | `sqlite`, `mysql`, or `pgsql` |
 | `DB_HOST` | For Docker: `db` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | For Google OAuth (optional) |
+| `REPORT_TIMEZONE` | Timezone every date and time printed on a report is rendered in. Defaults to `America/New_York` (Eastern). The app itself stays on UTC. |
 
 See `.env.example` and `.env.docker.example` for full lists.
 
 ## Queue note
 
 The app defaults to Laravel's `database` queue connection. A queue worker is required for queued bid notifications and credits-added emails to be delivered.
+
+## Report timezone
+
+The application stores and reasons in UTC, which is right for an audit trail and
+wrong on a document a buyer reads: a report generated at 3:04 PM in New York
+printed "8:04 PM". Every date and time on a report now goes through
+`App\Support\ReportClock`, which renders in `config('reports.timezone')` and
+names the zone alongside the time.
+
+`America/New_York` is the Eastern zone, not a fixed offset, so it prints EST in
+winter and EDT over daylight saving. A literal `EST` would be an hour wrong all
+summer. Audit records on the protected-PDF history pages stay in UTC on purpose;
+they are evidence, not reading material.
 
 ## Scheduler note
 

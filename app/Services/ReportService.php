@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\V24\MainMenu\MainMenuComputeService;
+use App\Support\ReportClock;
 use Barryvdh\DomPDF\PDF;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -29,7 +30,7 @@ class ReportService
         return $this->pdf()->loadView('pdf.receipt', [
             'transaction' => $transaction,
             'user' => $transaction->user,
-            'generatedAt' => now()->format('M j, Y g:i A'),
+            'generatedAt' => ReportClock::stamp(),
         ])->setPaper('a4')->setWarnings(false);
     }
 
@@ -101,7 +102,7 @@ class ReportService
         };
 
         $data = array_merge($payload, [
-            'generatedAt' => now()->format('M j, Y g:i A'),
+            'generatedAt' => ReportClock::stamp(),
             'reportType' => $type,
             'isBuyer' => $type === 'mobile-patrol-buyer',
             'reportScope' => $type === 'budget-calculator-allocation' ? 'allocation' : 'main',
@@ -229,7 +230,7 @@ class ReportService
             'vendor-weighted-rates' => 'Vendor-Weighted-Rate-Dashboard',
             default => str_replace(' ', '-', $type),
         };
-        $stamp = now()->format('Y-m-d-His');
+        $stamp = ReportClock::now()->format('Y-m-d-His');
         $vendorTag = $user ? '-V'.(int) $user->id : '';
 
         return "GASQ-{$slug}-{$stamp}{$vendorTag}.pdf";

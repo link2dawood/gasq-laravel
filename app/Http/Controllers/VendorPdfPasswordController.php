@@ -119,7 +119,7 @@ class VendorPdfPasswordController extends Controller
     {
         abort_unless(preg_match('/^[a-zA-Z0-9]{64}$/D', $token), 404);
 
-        return VendorEstimateDelivery::where('scheduling_token_hash', hash('sha256', $token))->whereIn('status', ['sent', 'uncertain'])->firstOrFail();
+        return VendorEstimateDelivery::where('scheduling_token_hash', hash('sha256', $token))->whereIn('status', VendorEstimateDelivery::ACCESSIBLE_STATUSES)->firstOrFail();
     }
 
     private function page(Request $request, VendorEstimateDelivery $delivery, ?string $revealedPassword = null)

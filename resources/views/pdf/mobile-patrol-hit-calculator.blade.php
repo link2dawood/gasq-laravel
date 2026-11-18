@@ -22,7 +22,7 @@
     $profitMarginPct= (float)($kpis['profitMarginPct']    ?? 0);
     $profitPct      = (float)($meta['profitPct']           ?? 0);
 
-    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-MPH' . str_pad((string) ($reportId ?? rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
+    $reportNumber = 'GASQ ' . \App\Support\ReportClock::now()->format('Y-m-d') . '-MPH' . str_pad((string) ($reportId ?? rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
 @endphp
 
 @extends('pdf.layouts.gasq-report', [

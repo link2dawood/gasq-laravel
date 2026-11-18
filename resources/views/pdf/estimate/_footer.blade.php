@@ -57,7 +57,7 @@
   <table class="certstrip" cellpadding="0" cellspacing="0">
     <tr><td>
       @if(! empty($lastPage))
-        © {{ now()->format('Y') }} GASQ &nbsp;•&nbsp; ALL RIGHTS RESERVED &nbsp;•&nbsp; CFO TESTED. CFO APPROVED. &nbsp;•&nbsp; THE INDUSTRY PRICING REFEREE™
+        © {{ \App\Support\ReportClock::now()->format('Y') }} GASQ &nbsp;•&nbsp; ALL RIGHTS RESERVED &nbsp;•&nbsp; CFO TESTED. CFO APPROVED. &nbsp;•&nbsp; THE INDUSTRY PRICING REFEREE™
       @else
         GASQ CERTIFIED™ &nbsp;•&nbsp; CONFIDENTIAL &nbsp;•&nbsp; PROPRIETARY &nbsp;•&nbsp; THE INDUSTRY PRICING REFEREE™
       @endif

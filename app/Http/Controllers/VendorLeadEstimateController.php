@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendVendorEstimateDelivery;
 use App\Models\VendorBuyerLead;
 use App\Models\VendorEstimateDelivery;
 use App\Models\VendorLeadEstimate;
@@ -38,7 +39,7 @@ class VendorLeadEstimateController extends Controller
         $currency = $this->currency($vendor);
         $estimate = new VendorLeadEstimate([
             'title' => 'Security services estimate', 'scope' => $lead->scope, 'weekly_hours' => $lead->weekly_hours,
-            'weeks_per_year' => 52, 'one_time_cost' => 0, 'valid_until' => now()->addDays(30), 'status' => 'draft',
+            'weeks_per_year' => 52, 'one_time_cost' => 0, 'staff_required' => null, 'valid_until' => now()->addDays(30), 'status' => 'draft',
             'currency' => $currency,
         ]);
         // Arriving from the Know Before You Bid Calculator: fill the pricing from
@@ -77,6 +78,7 @@ class VendorLeadEstimateController extends Controller
     {
         $this->authorizeEstimate($request, $estimate);
         $lead = $estimate->lead;
+        $estimate->load('attachments');
         $deliveries = $estimate->deliveries()->paginate(10);
         $canEmailEstimate = app(VendorEstimateDeliveryService::class)->schedulingBaseUrl($request->user()) !== null;
         $reviews = VendorReviewAppointment::where('vendor_id', $request->user()->id)->where('vendor_lead_estimate_id', $estimate->id)->where('status', 'scheduled')->where('ends_at', '<=', now())->latest('ends_at')->get();
@@ -155,6 +157,27 @@ class VendorLeadEstimateController extends Controller
         return redirect()->route('vendor-estimates.edit', $estimate)->with('status', 'Email delivery: '.VendorEstimateDelivery::STATUSES[$delivery->fresh()->status].'. Review delivery history below.');
     }
 
+    /**
+     * Run a stuck delivery's send job in this request instead of on the queue.
+     *
+     * A delivery is created as `queued` and its job dispatched immediately, so
+     * one still queued minutes later means no queue worker claimed it. Rather
+     * than leave the buyer without the estimate, let the vendor push it through.
+     * The job claims the row with a conditional update, so a worker that wakes
+     * up mid-flight cannot send a second copy.
+     */
+    public function flush(Request $request, VendorLeadEstimate $estimate, VendorEstimateDelivery $delivery)
+    {
+        $this->authorizeEstimate($request, $estimate);
+        abort_unless($delivery->vendor_lead_estimate_id === $estimate->id, 404);
+        abort_unless($delivery->status === 'queued', 422, 'Only a delivery still waiting on the queue can be sent from here.');
+
+        SendVendorEstimateDelivery::dispatchSync($delivery->id);
+
+        return redirect()->route('vendor-estimates.edit', $estimate)
+            ->with('status', 'Email delivery: '.VendorEstimateDelivery::STATUSES[$delivery->fresh()->status].'. Review delivery history below.');
+    }
+
     public function update(Request $request, VendorLeadEstimate $estimate)
     {
         $this->authorizeEstimate($request, $estimate);
@@ -211,6 +234,9 @@ class VendorLeadEstimateController extends Controller
             'weekly_hours' => ['required', 'numeric', 'gt:0', 'max:100000', 'decimal:0,2'],
             'weeks_per_year' => ['required', 'integer', 'min:1', 'max:52'],
             'one_time_cost' => ['required', 'numeric', 'min:0', 'max:100000000', 'decimal:0,2'],
+            // Headcount, not money: whole officers only, and optional so an
+            // estimate written before the field existed still validates.
+            'staff_required' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'valid_until' => array_filter(['required', 'date_format:Y-m-d', $request->input('status') === 'ready' ? 'after_or_equal:today' : null]),
             'terms' => ['nullable', 'string', 'max:10000'], 'status' => ['required', Rule::in(array_keys(VendorLeadEstimate::STATUSES))],
         ]);

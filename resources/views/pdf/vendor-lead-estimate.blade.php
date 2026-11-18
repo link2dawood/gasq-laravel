@@ -35,11 +35,12 @@
 @foreach(['weekly' => 'Weekly recurring cost', 'monthly' => 'Average monthly recurring cost', 'annual' => 'Annual recurring cost'] as $key => $label)
 <tr><td>{{ $label }}</td><td class="v">{{ $estimate->money($estimate->totals()[$key]) }}</td></tr>
 @endforeach
-<tr><td>One-time cost</td><td class="v">{{ $estimate->money($estimate->one_time_cost) }}</td></tr>
+@if($estimate->staff_required !== null)<tr><td>Staff required</td><td class="v">{{ number_format((int) $estimate->staff_required) }}</td></tr>@endif
+<tr><td>{{ \App\Models\VendorLeadEstimate::ONE_TIME_COST_LABEL }}</td><td class="v">{{ $estimate->money($estimate->one_time_cost) }}</td></tr>
 <tr class="total"><td>First-year estimated total</td><td class="v">{{ $estimate->money($estimate->totals()['first_year']) }}</td></tr>
 </tbody>
 </table>
-<p class="gasq-note">Weekly cost = hourly bill rate × weekly service hours, rounded to two decimals. Annual cost = weekly cost × service weeks. Average monthly cost = annual cost ÷ 12. One-time costs are included once in the first-year total.</p>
+<p class="gasq-note">Weekly cost = hourly bill rate × weekly service hours, rounded to two decimals. Annual cost = weekly cost × service weeks. Average monthly cost = annual cost ÷ 12. The one-time retainer fee is included once in the first-year total.</p>
 @if($estimate->terms)
 <h2 style="font-size:14px;margin-top:18px;">Terms and assumptions</h2><div style="font-size:10.5px;line-height:1.6;overflow-wrap:break-word;">{!! nl2br(e($estimate->terms)) !!}</div>
 @endif

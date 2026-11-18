@@ -23,7 +23,7 @@
     $sealPath  = 'file://' . public_path('images/gasq-certified-seal.png');
     $title         = $title ?? 'GASQ Report';
     $subtitle      = $subtitle ?? '';
-    $reportNumber  = $reportNumber ?? ('GASQ ' . now()->format('Y-m-d'));
+    $reportNumber  = $reportNumber ?? ('GASQ ' . \App\Support\ReportClock::now()->format('Y-m-d'));
     $reportType    = $reportType ?? 'Vendor — Full Report';
     $contactName    = $contactName ?? '';
     $contactCompany = $contactCompany ?? '';
@@ -109,7 +109,7 @@
     <td style="padding:14px 20px 14px 12px; vertical-align:middle; text-align:right;">
       <img src="{{ $sealPath }}" alt="GASQ Certified" style="width:64px; height:auto; display:inline-block; margin-bottom:5px;">
       <p style="font-size:11px; font-weight:bold; color:#1e3558; margin-bottom:4px;">{{ $reportNumber }}</p>
-      <p style="font-size:9px; color:#6b7280;">{{ now()->format('F j, Y') }}</p>
+      <p style="font-size:9px; color:#6b7280;">{{ \App\Support\ReportClock::now()->format('F j, Y') }}</p>
     </td>
   </tr>
 </table>
@@ -139,7 +139,7 @@
     <td style="padding:11px 20px 11px 10px; vertical-align:top; text-align:right;">
       <p style="font-size:7.5px; text-transform:uppercase; letter-spacing:0.1em; color:#6b7280; font-weight:bold; margin-bottom:2px;">Report Type</p>
       <p style="font-size:10px; color:#1e3558; font-weight:bold;">{{ $reportType }}</p>
-      <p style="font-size:8px; color:#6b7280; margin-top:8px;">Generated {{ now()->format('M j, Y g:i A') }}</p>
+      <p style="font-size:8px; color:#6b7280; margin-top:8px;">Generated {{ \App\Support\ReportClock::stamp() }}</p>
     </td>
   </tr>
 </table>
@@ -166,7 +166,7 @@
       @if($preparedForEmail)<p style="font-size:8px; color:#1e3558; margin-top:2px; font-weight:bold;">Prepared exclusively for {{ $preparedForEmail }}</p>@endif
     </td>
     <td style="padding:10px 20px; text-align:right;">
-      <p style="font-size:8px; color:#6b7280;">{{ now()->format('M j, Y') }}</p>
+      <p style="font-size:8px; color:#6b7280;">{{ \App\Support\ReportClock::now()->format('M j, Y') }}</p>
     </td>
   </tr>
 </table>

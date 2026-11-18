@@ -40,6 +40,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/vendor/estimates/{estimate}/budget', [\App\Http\Controllers\VendorLeadEstimateController::class, 'detachBudget'])->name('vendor-estimates.budget.detach');
     Route::post('/vendor/estimates/{estimate}/pdf', [\App\Http\Controllers\VendorLeadEstimateController::class, 'download'])->middleware('throttle:10,1')->name('vendor-estimates.download');
     Route::post('/vendor/estimates/{estimate}/email', [\App\Http\Controllers\VendorLeadEstimateController::class, 'send'])->middleware('throttle:5,1')->name('vendor-estimates.send');
+    // Supporting files and photos on an estimate. Private disk, vendor-scoped.
+    Route::post('/vendor/estimates/{estimate}/attachments', [\App\Http\Controllers\VendorEstimateAttachmentController::class, 'store'])->middleware('throttle:30,1')->name('vendor-estimates.attachments.store');
+    Route::get('/vendor/estimates/{estimate}/attachments/{attachment}', [\App\Http\Controllers\VendorEstimateAttachmentController::class, 'download'])->name('vendor-estimates.attachments.download');
+    Route::delete('/vendor/estimates/{estimate}/attachments/{attachment}', [\App\Http\Controllers\VendorEstimateAttachmentController::class, 'destroy'])->name('vendor-estimates.attachments.destroy');
+    // Push a delivery the queue never picked up. Same job, run in-request.
+    Route::post('/vendor/estimates/{estimate}/deliveries/{delivery}/send-now', [\App\Http\Controllers\VendorLeadEstimateController::class, 'flush'])->middleware('throttle:5,1')->name('vendor-estimates.deliveries.flush');
     Route::post('/vendor/pdf-deliveries/{delivery}/release', [\App\Http\Controllers\VendorPdfPasswordController::class, 'release'])->middleware('throttle:5,1')->name('vendor-pdf.release');
     Route::post('/vendor/pdf-deliveries/{delivery}/revoke', [\App\Http\Controllers\VendorPdfPasswordController::class, 'revoke'])->name('vendor-pdf.revoke');
     Route::get('/vendor/calendar', [\App\Http\Controllers\VendorCalendarController::class, 'index'])->name('vendor-calendar.index');

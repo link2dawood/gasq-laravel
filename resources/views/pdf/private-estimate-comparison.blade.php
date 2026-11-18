@@ -22,7 +22,7 @@
 
     $pages = 2;
     $reportNumber = $reportNumber ?? $estimate->public_id;
-    $reportDate = $datePrepared ?? now()->format('F j, Y');
+    $reportDate = $datePrepared ?? \App\Support\ReportClock::now()->format('F j, Y');
     $reportType = $r['agreement']['agreed'] ? 'Agreed Rate — Buyer Comparison' : 'Provisional Rate — Buyer Comparison';
     $orgName = $parties['vendorName'];
     $docTitle = 'GASQ Private Estimate '.$estimate->public_id.' — Cost Comparison';

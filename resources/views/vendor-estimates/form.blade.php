@@ -58,21 +58,87 @@
         <div class="mb-3"><label class="form-label" for="title">Estimate title *</label><input class="form-control" id="title" name="title" maxlength="255" value="{{ old('title', $estimate->title) }}" required></div>
         <div class="mb-3"><label class="form-label" for="scope">Proposed scope of services *</label><textarea class="form-control" id="scope" name="scope" rows="5" maxlength="10000" required>{{ old('scope', $estimate->scope) }}</textarea></div>
         <p class="text-muted">Enter pricing in {{ $estimate->currency }}. Weekly hours are the total billable service hours across all personnel. Monthly costs are annual recurring costs divided by 12.</p>
+        @php($currencySymbol = \App\Support\Currency::profile($estimate->currency)['symbol'])
         <div class="row g-3 mb-3">
-            @foreach(['hourly_rate' => ['Hourly bill rate', '0.01', '100000', '0.01'], 'weekly_hours' => ['Weekly service hours', '0.01', '100000', '0.01'], 'weeks_per_year' => ['Service weeks per year', '1', '52', '1'], 'one_time_cost' => ['One-time cost', '0', '100000000', '0.01']] as $field => [$label, $min, $max, $step])
-            <div class="col-md-6"><label class="form-label" for="{{ $field }}">{{ $label }} *</label><input class="form-control" id="{{ $field }}" name="{{ $field }}" type="number" min="{{ $min }}" max="{{ $max }}" step="{{ $step }}" value="{{ old($field, $estimate->$field) }}" required></div>
+            {{-- The fifth element marks a money field, so the input carries the
+                 currency symbol and nobody has to guess whether a figure is
+                 dollars or hours. --}}
+            @foreach(['hourly_rate' => ['Hourly bill rate', '0.01', '100000', '0.01', true], 'weekly_hours' => ['Weekly service hours', '0.01', '100000', '0.01', false], 'weeks_per_year' => ['Service weeks per year', '1', '52', '1', false], 'one_time_cost' => [\App\Models\VendorLeadEstimate::ONE_TIME_COST_LABEL, '0', '100000000', '0.01', true]] as $field => [$label, $min, $max, $step, $money])
+            <div class="col-md-6">
+                <label class="form-label" for="{{ $field }}">{{ $label }} *</label>
+                @if($money)
+                <div class="input-group">
+                    <span class="input-group-text" aria-hidden="true">{{ $currencySymbol }}</span>
+                    <input class="form-control" id="{{ $field }}" name="{{ $field }}" type="number" min="{{ $min }}" max="{{ $max }}" step="{{ $step }}" value="{{ old($field, $estimate->$field) }}" required>
+                </div>
+                @else
+                <input class="form-control" id="{{ $field }}" name="{{ $field }}" type="number" min="{{ $min }}" max="{{ $max }}" step="{{ $step }}" value="{{ old($field, $estimate->$field) }}" required>
+                @endif
+            </div>
             @endforeach
+            <div class="col-md-6">
+                <label class="form-label" for="staff_required">Staff required</label>
+                <input class="form-control" id="staff_required" name="staff_required" type="number" min="0" max="9999" step="1" inputmode="numeric" value="{{ old('staff_required', $estimate->staff_required) }}">
+                <div class="form-text">Number of security personnel assigned to this scope. Leave blank if it is not fixed yet.</div>
+            </div>
             <div class="col-md-6"><label class="form-label" for="valid_until">Valid through *</label><input class="form-control" id="valid_until" name="valid_until" type="date" value="{{ old('valid_until', $estimate->valid_until?->toDateString()) }}" required></div>
             <div class="col-md-6"><label class="form-label" for="status">Estimate status *</label><select class="form-select" id="status" name="status">@foreach(\App\Models\VendorLeadEstimate::STATUSES as $value => $label)<option value="{{ $value }}" @selected(old('status', $estimate->status) === $value)>{{ $label }}</option>@endforeach</select></div>
         </div>
         <div class="mb-3"><label class="form-label" for="terms">Terms and assumptions</label><textarea class="form-control" id="terms" name="terms" rows="4" maxlength="10000">{{ old('terms', $estimate->terms) }}</textarea></div>
         <button type="submit" class="btn btn-primary">Save estimate</button>
     </form>
+
+    {{-- Supporting files live outside the estimate form: uploading one must not
+         depend on the pricing fields validating, and saving the estimate must
+         not re-post files the vendor already attached. --}}
+    <section class="border rounded p-3 mt-4">
+        <h2 class="h5">Supporting files and photos</h2>
+        @if($estimate->exists)
+        <p class="small text-muted">Site photographs, post orders, certificates of insurance, a signed scope. Up to {{ \App\Models\VendorEstimateAttachment::MAX_PER_ESTIMATE }} files, {{ (int) (\App\Models\VendorEstimateAttachment::MAX_KILOBYTES / 1024) }} MB each. These are held privately against this estimate and are not sent to the buyer.</p>
+
+        @if($estimate->attachments->isEmpty())
+        <p class="text-muted">No files attached yet.</p>
+        @else
+        <div class="table-responsive"><table class="table align-middle">
+            <thead><tr><th>File</th><th>Size</th><th>Added</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+            @foreach($estimate->attachments as $attachment)
+            <tr>
+                <td>
+                    <a href="{{ route('vendor-estimates.attachments.download', [$estimate, $attachment]) }}">{{ $attachment->original_name }}</a>
+                    @if($attachment->isImage())<span class="badge text-bg-light ms-1">Photo</span>@endif
+                </td>
+                <td>{{ $attachment->readableSize() }}</td>
+                <td>{{ \App\Support\ReportClock::stamp($attachment->created_at) }}</td>
+                <td class="text-end">
+                    <form method="POST" action="{{ route('vendor-estimates.attachments.destroy', [$estimate, $attachment]) }}" onsubmit="return confirm('Remove {{ addslashes($attachment->original_name) }} from this estimate?');">@csrf @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            @endforeach
+            </tbody>
+        </table></div>
+        @endif
+
+        @if($estimate->attachments->count() < \App\Models\VendorEstimateAttachment::MAX_PER_ESTIMATE)
+        <form method="POST" action="{{ route('vendor-estimates.attachments.store', $estimate) }}" enctype="multipart/form-data" class="mt-2">@csrf
+            <label class="form-label" for="attachments">Add files or photos</label>
+            <input class="form-control mb-2" type="file" id="attachments" name="attachments[]" multiple accept="{{ collect(\App\Models\VendorEstimateAttachment::ALLOWED_EXTENSIONS)->map(fn ($extension) => '.'.$extension)->implode(',') }}" required>
+            <button class="btn btn-outline-primary btn-sm" type="submit">Upload</button>
+        </form>
+        @else
+        <p class="small text-muted mb-0">This estimate is holding the maximum number of files. Remove one before adding another.</p>
+        @endif
+        @else
+        <p class="text-muted mb-0">Save the estimate first, then attach site photographs and supporting documents to it.</p>
+        @endif
+    </section>
     @if($estimate->exists)
     <section class="border rounded p-3 mt-4">
         <h2 class="h5">Saved estimate summary · {{ $estimate->currency }}</h2>
         <table class="table"><tbody>
-            @foreach(['weekly' => 'Weekly recurring cost', 'monthly' => 'Average monthly recurring cost', 'annual' => 'Annual recurring cost', 'first_year' => 'First-year total including one-time cost'] as $key => $label)<tr><th>{{ $label }}</th><td class="text-end">{{ $estimate->money($estimate->totals()[$key]) }}</td></tr>@endforeach
+            @foreach(['weekly' => 'Weekly recurring cost', 'monthly' => 'Average monthly recurring cost', 'annual' => 'Annual recurring cost', 'first_year' => 'First-year total including the one-time retainer fee'] as $key => $label)<tr><th>{{ $label }}</th><td class="text-end">{{ $estimate->money($estimate->totals()[$key]) }}</td></tr>@endforeach
         </tbody></table>
         <p class="small text-muted">Save changes to refresh these totals. The PDF uses the saved scope and pricing.</p>
         @if($estimate->status === 'ready' && !$estimate->valid_until->isBefore(today()))
@@ -111,7 +177,19 @@
             @if($delivery->sent_at)<p class="mb-1">Transport accepted {{ $delivery->sent_at->format('M j, Y g:i A') }}</p>@endif
             @if($delivery->failure_code)<p class="mb-1">Delivery detail: {{ $delivery->failure_code }}</p>@endif
             @if($delivery->scheduling_opened_at)<p class="mb-1">Scheduling link opened {{ $delivery->scheduling_opened_at->format('M j, Y g:i A') }}</p>@endif
+            @if($delivery->accessPageLive())
             <p class="mt-2"><a href="{{ $delivery->accessUrl() }}" target="_blank" rel="noopener noreferrer">Buyer PDF access page</a></p>
+            @else
+            {{-- The access page only answers for a delivery the mail transport
+                 has accepted. Linking to it earlier just hands the vendor a 404. --}}
+            <p class="mt-2 small text-muted">The buyer PDF access page opens once this email has been sent. Nothing has reached the buyer yet.</p>
+            @endif
+            @if($delivery->sendStalled())
+            <div class="alert alert-warning mt-2 mb-0">
+                <p class="mb-1"><strong>This email is still waiting on the background queue.</strong> No queue worker has picked it up, so the buyer has not received the estimate.</p>
+                <form method="POST" action="{{ route('vendor-estimates.deliveries.flush', [$estimate, $delivery]) }}">@csrf<button class="btn btn-sm btn-primary" type="submit">Send this email now</button></form>
+            </div>
+            @endif
             @if($delivery->access_revoked_at)
                 <p>Online access revoked {{ $delivery->access_revoked_at->utc()->format('M j, Y g:i A') }} UTC.</p>
             @elseif($delivery->password_released_at)

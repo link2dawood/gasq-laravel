@@ -30,8 +30,8 @@
     $isBuyerAppraisal = ($reportType ?? null) === 'buyer-appraisal';
     $reportType = $isBuyerAppraisal ? 'Buyer — Final Appraisal Report' : ($masked ? 'Buyer Edition — In-House Figures Only' : 'Vendor — Full Report');
     $pages = 4;
-    $reportNumber = $reportNumber ?? ('GASQ-' . now()->format('Ymd-His') . '-V' . (int) ($vendorId ?? 0));
-    $reportDate = $datePrepared ?? now()->format('F j, Y');
+    $reportNumber = $reportNumber ?? ('GASQ-' . \App\Support\ReportClock::now()->format('Ymd-His') . '-V' . (int) ($vendorId ?? 0));
+    $reportDate = $datePrepared ?? \App\Support\ReportClock::now()->format('F j, Y');
     $orgName = $d['contact']['company'] ?: 'GASQ Security';
     $docTitle = $isBuyerAppraisal ? 'GASQ Certified™ Cost to Protect™ Appraisal Report' : 'GASQ Cost to Protect Estimate Dashboard' . ($masked ? ' (Buyer Edition)' : '');
 

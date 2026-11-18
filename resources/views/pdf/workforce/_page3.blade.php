@@ -62,7 +62,7 @@
     </table>
 
     <p class="closing" style="margin-top:26px;">
-      &copy; {{ now()->format('Y') }} GASQ &nbsp;·&nbsp; ALL RIGHTS RESERVED<br>
+      &copy; {{ \App\Support\ReportClock::now()->format('Y') }} GASQ &nbsp;·&nbsp; ALL RIGHTS RESERVED<br>
       BUILT FOR CFO-LEVEL COST ANALYSIS.<br>
       THE INDUSTRY PRICING REFEREE&trade;
     </p>

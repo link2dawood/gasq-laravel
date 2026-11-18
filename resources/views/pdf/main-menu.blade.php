@@ -40,7 +40,7 @@
             'weeklyAt40' => ['Weekly Billings (40 Hours)', 'money'],
         ]],
     ];
-    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-MM' . str_pad((string) (rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
+    $reportNumber = 'GASQ ' . \App\Support\ReportClock::now()->format('Y-m-d') . '-MM' . str_pad((string) (rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
 @endphp
 
 @extends('pdf.layouts.gasq-report', [

@@ -186,7 +186,7 @@ class ReportController extends Controller
 
         if ($privateWeightedReport) {
             $payload = $this->withCurrentSignature($request, $payload);
-            $payload['datePrepared'] = ($payload['electronicSignature']?->signed_at ?? now())->format('F j, Y');
+            $payload['datePrepared'] = \App\Support\ReportClock::at($payload['electronicSignature']?->signed_at ?? now())->format('F j, Y');
         }
 
         if ($charge = $this->chargeForReport($request, $type, $payload)) {
@@ -242,7 +242,7 @@ class ReportController extends Controller
                 'clientName' => data_get($payload, 'scenario.meta.contact.contactName') ?: 'Valued Client',
                 'reportTitle' => 'GASQ '.\Illuminate\Support\Str::headline($type).' Report',
                 'reportNumber' => $payload['reportNumber'] ?? null,
-                'datePrepared' => now()->format('F j, Y'),
+                'datePrepared' => \App\Support\ReportClock::now()->format('F j, Y'),
                 'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),
             ];
         }
@@ -384,7 +384,7 @@ class ReportController extends Controller
             // Cost to Protect cover email quotes them, so it must not be used.
             return ['emails.cost-to-protect-locked', [
                 'reportNumber' => $payload['reportNumber'] ?? null,
-                'datePrepared' => now()->format('F j, Y'),
+                'datePrepared' => \App\Support\ReportClock::now()->format('F j, Y'),
                 'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),
             ]];
         }
@@ -405,7 +405,7 @@ class ReportController extends Controller
             'clientName' => $estimate['contact']['name'] ?: ($estimate['contact']['company'] ?: null),
             'propertyName' => $estimate['contact']['site'],
             'reportNumber' => $payload['reportNumber'] ?? null,
-            'datePrepared' => now()->format('F j, Y'),
+            'datePrepared' => \App\Support\ReportClock::now()->format('F j, Y'),
             'inHouseCost' => $inHouse > 0 ? $inHouse : null,
             'outsourcingCost' => $estimate['totalAnnualVendor'] ?? ($inHouse - $estimate['annualCapitalRecovery']),
             'bookingUrl' => app(\App\Services\CustomerBookingLink::class)->url(),

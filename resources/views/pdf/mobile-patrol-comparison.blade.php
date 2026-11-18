@@ -5,7 +5,7 @@
     $savings = (float) ($r['savings'] ?? 0);
     $savingsPct = (float) ($r['savings_percent'] ?? 0);
 
-    $reportNumber = 'GASQ ' . now()->format('Y-m-d') . '-MPC' . str_pad((string) (rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
+    $reportNumber = 'GASQ ' . \App\Support\ReportClock::now()->format('Y-m-d') . '-MPC' . str_pad((string) (rand(1000, 9999)), 4, '0', STR_PAD_LEFT);
     $money = fn ($v) => \App\Support\Currency::format($v, 2);
     $moneyK = fn ($v) => \App\Support\Currency::format($v, 0);
 @endphp
