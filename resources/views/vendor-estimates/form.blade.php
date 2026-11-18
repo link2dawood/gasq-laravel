@@ -94,13 +94,14 @@
     <section class="border rounded p-3 mt-4">
         <h2 class="h5">Supporting files and photos</h2>
         @if($estimate->exists)
-        <p class="small text-muted">Site photographs, post orders, certificates of insurance, a signed scope. Up to {{ \App\Models\VendorEstimateAttachment::MAX_PER_ESTIMATE }} files, {{ (int) (\App\Models\VendorEstimateAttachment::MAX_KILOBYTES / 1024) }} MB each. These are held privately against this estimate and are not sent to the buyer.</p>
+        <p class="small text-muted">Site photographs, post orders, certificates of insurance, a contract, a scope of work, a risk assessment. Up to {{ \App\Models\VendorEstimateAttachment::MAX_PER_ESTIMATE }} files, {{ (int) (\App\Models\VendorEstimateAttachment::MAX_KILOBYTES / 1024) }} MB each.</p>
+        <p class="small text-muted">Files are private by default. Mark one <strong>Included</strong> and the next estimate email puts it on the buyer's verified access page, behind the same email check as the estimate PDF. Nothing is attached to the email itself, so access stays revocable and every download is logged. Deliveries already sent keep their own copies and are not changed by what you mark here.</p>
 
         @if($estimate->attachments->isEmpty())
         <p class="text-muted">No files attached yet.</p>
         @else
         <div class="table-responsive"><table class="table align-middle">
-            <thead><tr><th>File</th><th>Size</th><th>Added</th><th class="text-end">Actions</th></tr></thead>
+            <thead><tr><th>File</th><th>Size</th><th>Added</th><th>Send to buyer</th><th class="text-end">Actions</th></tr></thead>
             <tbody>
             @foreach($estimate->attachments as $attachment)
             <tr>
@@ -110,6 +111,12 @@
                 </td>
                 <td>{{ $attachment->readableSize() }}</td>
                 <td>{{ \App\Support\ReportClock::stamp($attachment->created_at) }}</td>
+                <td>
+                    <form method="POST" action="{{ route('vendor-estimates.attachments.share', [$estimate, $attachment]) }}">@csrf @method('PATCH')
+                        <input type="hidden" name="share_with_buyer" value="{{ $attachment->share_with_buyer ? 0 : 1 }}">
+                        <button class="btn btn-sm {{ $attachment->share_with_buyer ? 'btn-success' : 'btn-outline-secondary' }}" type="submit">{{ $attachment->share_with_buyer ? 'Included' : 'Not included' }}</button>
+                    </form>
+                </td>
                 <td class="text-end">
                     <form method="POST" action="{{ route('vendor-estimates.attachments.destroy', [$estimate, $attachment]) }}" onsubmit="return confirm('Remove {{ addslashes($attachment->original_name) }} from this estimate?');">@csrf @method('DELETE')
                         <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>

@@ -17,6 +17,13 @@
 @if($revealedPassword !== null)<p class="notice">PDF password: <code>{{ $revealedPassword }}</code></p>@endif
 <form method="POST" action="{{ route('vendor-pdf.reveal', $delivery->scheduling_token) }}">@csrf<button type="submit">Reveal PDF password</button></form>
 <form method="POST" action="{{ route('vendor-pdf.download', $delivery->scheduling_token) }}">@csrf<button type="submit">Download protected PDF</button></form>
+@if($documents->isNotEmpty())
+<h2 style="font-size:18px;">Supporting documents</h2>
+<p>Sent with this estimate by your vendor.</p>
+@foreach($documents as $document)
+<form method="POST" action="{{ route('vendor-pdf.document', [$delivery->scheduling_token, $document]) }}">@csrf<button type="submit">Download {{ $document->original_name }}</button> <span>{{ $document->readableSize() }}</span></form>
+@endforeach
+@endif
 <p class="notice">Online password reveals and PDF downloads are recorded. Opening a saved PDF outside this website cannot be tracked.</p>
 @endif
 <p>For help, reply to your estimate email.</p>

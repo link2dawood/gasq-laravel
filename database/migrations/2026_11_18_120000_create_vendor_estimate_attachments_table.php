@@ -26,7 +26,9 @@ return new class extends Migration
             $table->unsignedBigInteger('size_bytes');
             $table->string('sha256', 64);
             $table->timestamps();
-            $table->index(['vendor_lead_estimate_id', 'created_at']);
+            // Named explicitly: the generated name would be 68 characters and
+            // MySQL refuses any identifier over 64.
+            $table->index(['vendor_lead_estimate_id', 'created_at'], 'vendor_est_attach_estimate_time');
         });
     }
 

@@ -69,6 +69,26 @@ class VendorEstimateAttachmentController extends Controller
         ]);
     }
 
+    /**
+     * Mark a file for the buyer, or take it back off the list.
+     *
+     * This only governs the NEXT send. Deliveries already out carry their own
+     * copies, so unsharing here cannot retract a document a buyer already has;
+     * revoking that delivery's access is what does that.
+     */
+    public function share(Request $request, VendorLeadEstimate $estimate, VendorEstimateAttachment $attachment)
+    {
+        $this->owner($request, $estimate);
+        abort_unless($attachment->vendor_lead_estimate_id === $estimate->id, 404);
+        $data = $request->validate(['share_with_buyer' => ['required', 'boolean']]);
+
+        $attachment->update(['share_with_buyer' => (bool) $data['share_with_buyer']]);
+
+        return back()->with('status', $attachment->share_with_buyer
+            ? $attachment->original_name.' will be sent to the buyer with the next estimate email, on the verified access page.'
+            : $attachment->original_name.' will not be included in the next estimate email. Deliveries already sent are unaffected.');
+    }
+
     public function destroy(Request $request, VendorLeadEstimate $estimate, VendorEstimateAttachment $attachment)
     {
         $this->owner($request, $estimate);

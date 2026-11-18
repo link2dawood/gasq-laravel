@@ -24,7 +24,7 @@ class VendorEstimateAttachment extends Model
 
     protected function casts(): array
     {
-        return ['size_bytes' => 'integer'];
+        return ['size_bytes' => 'integer', 'share_with_buyer' => 'boolean'];
     }
 
     public function estimate(): BelongsTo

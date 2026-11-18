@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VendorEstimateDelivery extends Model
 {
@@ -28,6 +29,12 @@ class VendorEstimateDelivery extends Model
     public function estimate(): BelongsTo
     {
         return $this->belongsTo(VendorLeadEstimate::class, 'vendor_lead_estimate_id');
+    }
+
+    /** Supporting documents as they were sent with this delivery. */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(VendorEstimateDeliveryDocument::class)->oldest('id');
     }
 
     public function schedulingUrl(): string

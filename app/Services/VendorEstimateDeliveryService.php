@@ -39,8 +39,11 @@ class VendorEstimateDeliveryService
             throw ValidationException::withMessages(['delivery' => 'Email delivery is not configured.']);
         }
         $path = null;
+        // Every file this attempt writes, so a failure half way through leaves
+        // nothing orphaned on disk.
+        $paths = [];
         try {
-            $delivery = DB::transaction(function () use ($estimate, $password, $requestKey, $base, $provider, &$path) {
+            $delivery = DB::transaction(function () use ($estimate, $password, $requestKey, $base, $provider, &$path, &$paths) {
                 $estimate = VendorLeadEstimate::whereKey($estimate->id)->lockForUpdate()->firstOrFail()->load('vendor');
                 $existing = VendorEstimateDelivery::where('request_key', $requestKey)->first();
                 if ($existing) {
@@ -68,6 +71,7 @@ class VendorEstimateDeliveryService
                 if (! Storage::disk('local')->put($path, $bytes)) {
                     throw new \RuntimeException('The protected estimate could not be saved.');
                 }
+                $paths[] = $path;
                 $token = Str::random(64);
                 $reference = 'gasq_estimate_'.$requestKey;
                 $query = [$provider === 'bookafy' ? config('appraisal_reviews.bookafy.reference_field', 'Reference') : 'utm_content' => $reference];
@@ -83,12 +87,13 @@ class VendorEstimateDeliveryService
                     'pdf_path' => $path, 'pdf_sha256' => hash('sha256', $bytes), 'status' => 'queued', 'password_hash' => Hash::make($password),
                 ]);
                 VendorPdfAccessEvent::record($delivery, 'protected_pdf_prepared', $estimate->vendor_id);
+                $this->copySharedDocuments($estimate, $delivery, $paths);
 
                 return $delivery;
             });
         } catch (\Throwable $exception) {
-            if ($path) {
-                Storage::disk('local')->delete($path);
+            foreach (array_filter(array_merge($paths, [$path])) as $written) {
+                Storage::disk('local')->delete($written);
             }
             throw $exception;
         }
@@ -98,5 +103,47 @@ class VendorEstimateDeliveryService
         }
 
         return $delivery;
+    }
+
+    /**
+     * Take this delivery's own copy of every attachment the vendor marked for
+     * the buyer.
+     *
+     * Copied, not referenced: a delivery is a snapshot, so a file the vendor
+     * later edits, unshares or deletes must not change what a buyer has
+     * already been given. The buyer never receives these by email, where a
+     * file cannot be withheld, tracked or withdrawn. They are served from the
+     * access page instead, behind the same email verification as the estimate,
+     * and they go away with the rest when access is revoked.
+     *
+     * @param  array<int, string>  $paths  Collects written paths for cleanup.
+     */
+    private function copySharedDocuments(VendorLeadEstimate $estimate, VendorEstimateDelivery $delivery, array &$paths): void
+    {
+        $shared = $estimate->attachments()->where('share_with_buyer', true)->get();
+        foreach ($shared as $attachment) {
+            if (! Storage::disk('local')->exists($attachment->path)) {
+                continue;
+            }
+            $bytes = Storage::disk('local')->get($attachment->path);
+            if (! is_string($bytes) || ! hash_equals($attachment->sha256, hash('sha256', $bytes))) {
+                throw new \RuntimeException('A supporting document failed its checksum and was not sent.');
+            }
+            $copy = 'vendor-estimate-delivery-documents/'.$delivery->id.'/'.Str::uuid().'.'.pathinfo($attachment->original_name, PATHINFO_EXTENSION);
+            if (! Storage::disk('local')->put($copy, $bytes)) {
+                throw new \RuntimeException('A supporting document could not be saved.');
+            }
+            $paths[] = $copy;
+            $delivery->documents()->create([
+                'original_name' => $attachment->original_name,
+                'path' => $copy,
+                'mime_type' => $attachment->mime_type,
+                'size_bytes' => $attachment->size_bytes,
+                'sha256' => $attachment->sha256,
+            ]);
+        }
+        if ($shared->isNotEmpty()) {
+            VendorPdfAccessEvent::record($delivery, 'supporting_documents_attached', $estimate->vendor_id);
+        }
     }
 }

@@ -14,9 +14,31 @@ only through a vendor-scoped download route, so a leaked path cannot expose a
 buyer's site photographs. Accepted types are images, PDF, Word, Excel and plain
 text; anything else is refused at upload.
 
-These files are vendor-side only. They are not attached to the buyer's estimate
-email and do not appear on the buyer access page. Removing one deletes the
-stored file as well as the record.
+Files are private by default. Mark one **Included** and the next estimate email
+puts it in front of the buyer: a contract, a scope of work, a risk assessment.
+
+### How a document reaches the buyer
+
+Supporting documents are never attached to the email. An emailed file cannot be
+withheld until the review, cannot be tracked, and cannot be taken back, which
+is the whole point of the password gate on the estimate PDF. They are served
+from the buyer access page instead, under exactly the same conditions:
+
+1. The vendor marks an attachment **Included**.
+2. At send time the delivery takes its **own copy** of each marked file. A
+   delivery is a snapshot, so unsharing, editing or deleting the vendor's
+   attachment afterwards cannot change what a buyer was already given.
+3. The email names the documents and says they are not attached.
+4. The buyer verifies the original buyer email by one-time code on the access
+   page, then downloads them beside the estimate PDF.
+5. Every download is recorded against the delivery. Revoking or expiring that
+   delivery's access withdraws the documents with the PDF.
+
+Marking a file changes only the next send. Deliveries already out are unaffected,
+because retracting a document a buyer already has is what revocation is for.
+
+Removing a file from the estimate deletes the vendor's stored copy. Copies held
+by deliveries already sent are left alone.
 
 ## When nothing is draining the queue
 

@@ -28,6 +28,9 @@
 <p>If someone else authorizes the budget, please forward this email and the protected attachment to that person and include them in the appointment.</p>
 <p>Please have your current security budget, coverage schedule, and anticipated start date available. For scheduling assistance or questions about your estimate, reply to this email.</p>
 <p>This estimate remains subject to confirmed scope, coverage requirements, site conditions, and agreement between the parties. Please limit distribution to authorized decision-makers and reference your estimate number in correspondence.</p>
+@if($delivery->documents->isNotEmpty())
+<p>Your vendor has also prepared {{ $delivery->documents->count() === 1 ? 'a supporting document' : $delivery->documents->count().' supporting documents' }} for you: {{ $delivery->documents->pluck('original_name')->implode(', ') }}. These are not attached to this email. You can download them from the protected access page below once your email is verified.</p>
+@endif
 <p><a href="{{ $delivery->accessUrl() }}">Protected PDF access and password release</a> — verify the original buyer email after your vendor releases access.</p>
 <p>Respectfully,<br>{{ $snapshot['vendor_name'] }}<br>Get A Security Quote (GASQ)</p>
 <p><strong>Know Before You Buy. Qualifications First. Price Last.</strong></p>

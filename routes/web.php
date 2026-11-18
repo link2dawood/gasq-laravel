@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
     // Supporting files and photos on an estimate. Private disk, vendor-scoped.
     Route::post('/vendor/estimates/{estimate}/attachments', [\App\Http\Controllers\VendorEstimateAttachmentController::class, 'store'])->middleware('throttle:30,1')->name('vendor-estimates.attachments.store');
     Route::get('/vendor/estimates/{estimate}/attachments/{attachment}', [\App\Http\Controllers\VendorEstimateAttachmentController::class, 'download'])->name('vendor-estimates.attachments.download');
+    Route::patch('/vendor/estimates/{estimate}/attachments/{attachment}/share', [\App\Http\Controllers\VendorEstimateAttachmentController::class, 'share'])->name('vendor-estimates.attachments.share');
     Route::delete('/vendor/estimates/{estimate}/attachments/{attachment}', [\App\Http\Controllers\VendorEstimateAttachmentController::class, 'destroy'])->name('vendor-estimates.attachments.destroy');
     // Push a delivery the queue never picked up. Same job, run in-request.
     Route::post('/vendor/estimates/{estimate}/deliveries/{delivery}/send-now', [\App\Http\Controllers\VendorLeadEstimateController::class, 'flush'])->middleware('throttle:5,1')->name('vendor-estimates.deliveries.flush');
@@ -156,6 +157,9 @@ Route::post('/estimate-access/{token}/code', [\App\Http\Controllers\VendorPdfPas
 Route::post('/estimate-access/{token}/verify', [\App\Http\Controllers\VendorPdfPasswordController::class, 'verify'])->middleware('throttle:10,1')->name('vendor-pdf.verify');
 Route::post('/estimate-access/{token}/reveal', [\App\Http\Controllers\VendorPdfPasswordController::class, 'reveal'])->middleware('throttle:20,1')->name('vendor-pdf.reveal');
 Route::post('/estimate-access/{token}/download', [\App\Http\Controllers\VendorPdfPasswordController::class, 'download'])->middleware('throttle:20,1')->name('vendor-pdf.download');
+// Supporting documents sent with that delivery. Same verification gate as the
+// estimate PDF, and withdrawn with it when access is revoked.
+Route::post('/estimate-access/{token}/documents/{document}', [\App\Http\Controllers\VendorPdfPasswordController::class, 'document'])->middleware('throttle:20,1')->name('vendor-pdf.document');
 Route::post('/buyer-enquiries/{token}', [\App\Http\Controllers\VendorBuyerLeadController::class, 'store'])
     ->middleware('throttle:10,1')->name('buyer-enquiries.store');
 

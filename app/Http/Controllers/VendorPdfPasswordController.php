@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 
 class VendorPdfPasswordController extends Controller
 {
@@ -115,6 +116,40 @@ class VendorPdfPasswordController extends Controller
         return response($bytes)->header('Content-Type', 'application/pdf')->header('Content-Disposition', 'attachment; filename="'.$delivery->snapshot['number'].'.pdf"')->header('Cache-Control', 'private, no-store');
     }
 
+    /**
+     * A supporting document sent with this delivery: a contract, a scope of
+     * work, a risk assessment.
+     *
+     * Deliberately behind the same gate as the estimate PDF. These are never
+     * emailed as attachments, because an emailed file cannot be withheld until
+     * the review, cannot be tracked, and cannot be taken back.
+     */
+    public function document(Request $request, string $token, int $document, VendorPdfPasswordService $passwords)
+    {
+        $delivery = $this->resolve($token);
+        $passwords->ensureAvailable($delivery);
+        $this->verified($request, $delivery);
+        $record = $delivery->documents()->whereKey($document)->firstOrFail();
+
+        try {
+            $bytes = Storage::disk('local')->get($record->path);
+        } catch (\Throwable) {
+            VendorPdfAccessEvent::record($delivery, 'supporting_document_unavailable');
+            abort(409, 'The document is unavailable. Contact your vendor.');
+        }
+        if (! is_string($bytes) || ! hash_equals($record->sha256, hash('sha256', $bytes))) {
+            VendorPdfAccessEvent::record($delivery, 'supporting_document_integrity_failed');
+            abort(409, 'The document failed verification. Contact your vendor.');
+        }
+        VendorPdfAccessEvent::record($delivery, 'supporting_document_downloaded');
+
+        return response($bytes)
+            ->header('Content-Type', $record->mime_type)
+            ->header('Content-Disposition', HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $record->original_name))
+            ->header('Cache-Control', 'private, no-store')
+            ->header('X-Content-Type-Options', 'nosniff');
+    }
+
     private function resolve(string $token): VendorEstimateDelivery
     {
         abort_unless(preg_match('/^[a-zA-Z0-9]{64}$/D', $token), 404);
@@ -126,7 +161,9 @@ class VendorPdfPasswordController extends Controller
     {
         $verified = $request->session()->get('vendor_pdf_verified.'.$delivery->id, 0) > now()->timestamp;
 
-        return response()->view('vendor-estimates.access', compact('delivery', 'verified', 'revealedPassword'))->header('Cache-Control', 'private, no-store')->header('Pragma', 'no-cache')->header('X-Robots-Tag', 'noindex, nofollow');
+        $documents = $verified ? $delivery->documents()->get() : collect();
+
+        return response()->view('vendor-estimates.access', compact('delivery', 'verified', 'revealedPassword', 'documents'))->header('Cache-Control', 'private, no-store')->header('Pragma', 'no-cache')->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     private function verified(Request $request, VendorEstimateDelivery $delivery): void
