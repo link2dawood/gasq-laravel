@@ -14,6 +14,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Idempotent: a deploy that aborted after this ran must be able to rerun.
+        if (Schema::hasColumn('vendor_lead_estimates', 'staff_required')) {
+            return;
+        }
         Schema::table('vendor_lead_estimates', function (Blueprint $table) {
             $table->unsignedSmallInteger('staff_required')->nullable()->after('weeks_per_year');
         });

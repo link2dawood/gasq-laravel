@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -16,6 +17,17 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // MySQL DDL is not transactional, and Laravel issues the table and its
+        // index as separate statements. A first attempt whose index was
+        // rejected leaves the table behind with the migration unrecorded, so
+        // the retry would die on "table already exists". Recover only that
+        // known, empty shell; never discard a table holding files.
+        if (Schema::hasTable('vendor_estimate_attachments')) {
+            if (! Schema::hasColumns('vendor_estimate_attachments', ['vendor_lead_estimate_id', 'path', 'sha256', 'original_name']) || DB::table('vendor_estimate_attachments')->exists()) {
+                throw new RuntimeException('An existing estimate attachment table requires manual migration review; no records were changed.');
+            }
+            Schema::drop('vendor_estimate_attachments');
+        }
         Schema::create('vendor_estimate_attachments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vendor_lead_estimate_id')->constrained()->cascadeOnDelete();

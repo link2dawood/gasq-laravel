@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -17,9 +18,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('vendor_estimate_attachments', function (Blueprint $table) {
-            $table->boolean('share_with_buyer')->default(false)->after('sha256');
-        });
+        // Both halves are idempotent, so a deploy interrupted part way through
+        // can be rerun without manual repair.
+        if (! Schema::hasColumn('vendor_estimate_attachments', 'share_with_buyer')) {
+            Schema::table('vendor_estimate_attachments', function (Blueprint $table) {
+                $table->boolean('share_with_buyer')->default(false)->after('sha256');
+            });
+        }
+
+        if (Schema::hasTable('vendor_estimate_delivery_documents')) {
+            if (! Schema::hasColumns('vendor_estimate_delivery_documents', ['vendor_estimate_delivery_id', 'path', 'sha256']) || DB::table('vendor_estimate_delivery_documents')->exists()) {
+                throw new RuntimeException('An existing delivery document table requires manual migration review; no records were changed.');
+            }
+            Schema::drop('vendor_estimate_delivery_documents');
+        }
 
         Schema::create('vendor_estimate_delivery_documents', function (Blueprint $table) {
             $table->id();
