@@ -97,6 +97,9 @@ class EstimateBudgetDashboardTest extends TestCase
         $this->assertEquals(75.55, (float) $estimate->hourly_rate);
         $this->assertEquals(96, (float) $estimate->weekly_hours);
         $this->assertSame(52, $estimate->weeks_per_year);
+        // Staffing comes from the calculator rather than being typed in: 96
+        // hours of coverage a week against its billable hours per person.
+        $this->assertSame(4, $estimate->staff_required);
         $this->assertTrue($estimate->hasBudgetDashboard());
         $this->assertEquals(29.38, $estimate->budget_scenario['meta']['baselineWage']);
         $this->assertNotNull($estimate->budget_scenario_at);
@@ -250,6 +253,7 @@ class EstimateBudgetDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('value="75.55"', false)
             ->assertSee('value="96.00"', false)
+            ->assertSee('value="4"', false)
             ->assertSee('Pricing filled from your Know Before You Bid figures');
 
         $this->post(route('vendor-estimates.store', $lead), [

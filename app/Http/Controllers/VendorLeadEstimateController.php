@@ -139,6 +139,9 @@ class VendorLeadEstimateController extends Controller
                 'hourly_rate' => round($summary['vendorHourly'] * Currency::rate($currency), 2),
                 'weekly_hours' => round($summary['totalWeeklyHours'], 2),
                 'weeks_per_year' => max(1, min(52, (int) round($summary['weeksInYear']))),
+                // The calculator already rounds staffing up to whole people, so
+                // this carries its figure rather than deriving a second one.
+                'staff_required' => max(0, min(9999, (int) $summary['totalStaffRequired'])),
             ],
             'scenario' => $summary['budgetScenario'],
             'summary' => $summary,

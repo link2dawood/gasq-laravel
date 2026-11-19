@@ -35,7 +35,7 @@
             @elseif($budgetAvailable ?? false)
                 <form method="POST" action="{{ route('vendor-estimates.budget.attach', $estimate) }}">@csrf
                     <button type="submit" class="btn btn-primary btn-sm">Fill from my Know Before You Bid figures</button>
-                    <p class="small text-muted mt-2 mb-0">This fills the hourly bill rate, the weekly service hours and the service weeks from your saved scenario, and attaches the dashboard to the estimate PDF. Your current pricing is replaced, so review it before sending.</p>
+                    <p class="small text-muted mt-2 mb-0">This fills the hourly bill rate, the weekly service hours, the service weeks and the staff required from your saved scenario, and attaches the dashboard to the estimate PDF. Your current pricing is replaced, so review it before sending.</p>
                 </form>
             @else
                 <p class="small text-muted mb-0">No saved scenario yet. Open the calculator, set the baseline wage and coverage, then come back and fill the pricing from it.</p>
@@ -79,7 +79,7 @@
             <div class="col-md-6">
                 <label class="form-label" for="staff_required">Staff required</label>
                 <input class="form-control" id="staff_required" name="staff_required" type="number" min="0" max="9999" step="1" inputmode="numeric" value="{{ old('staff_required', $estimate->staff_required) }}">
-                <div class="form-text">Number of security personnel assigned to this scope. Leave blank if it is not fixed yet.</div>
+                <div class="form-text">Number of security personnel assigned to this scope. Filled from your Know Before You Bid figures, which round up to whole people. Leave blank if it is not fixed yet.</div>
             </div>
             <div class="col-md-6"><label class="form-label" for="valid_until">Valid through *</label><input class="form-control" id="valid_until" name="valid_until" type="date" value="{{ old('valid_until', $estimate->valid_until?->toDateString()) }}" required></div>
             <div class="col-md-6"><label class="form-label" for="status">Estimate status *</label><select class="form-select" id="status" name="status">@foreach(\App\Models\VendorLeadEstimate::STATUSES as $value => $label)<option value="{{ $value }}" @selected(old('status', $estimate->status) === $value)>{{ $label }}</option>@endforeach</select></div>
