@@ -278,8 +278,10 @@ class BuyerQualificationQuestionnaire
             $answer('q1'), $answer('q2'), $answer('q3'), $answer('q4'), $answer('q20'),
         ], true);
         $approvalsOutstanding = $answer('q18') === 'yes' && $answer('q19') === 'no';
+        // Payment terms that make the vendor float payroll for 30-45 days are a funding hold too.
+        $vendorMustFloatPayroll = $answer('q23') === 'yes';
 
-        if ($fundingUnresolved || $approvalsOutstanding) {
+        if ($fundingUnresolved || $approvalsOutstanding || $vendorMustFloatPayroll) {
             return 'hold_funding_or_approval_pending';
         }
 

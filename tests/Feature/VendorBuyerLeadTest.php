@@ -39,10 +39,11 @@ class VendorBuyerLeadTest extends TestCase
         return VendorLeadLink::where('vendor_id', $vendor->id)->firstOrFail();
     }
 
-    /** Every question answered "Yes" unless a test overrides one. */
+    /** Every question answered "Yes" (q23 "No": a "Yes" there means the vendor floats payroll) unless a test overrides one. */
     private function answers(array $overrides = []): array
     {
         $answers = array_fill_keys(array_keys(BuyerQualificationQuestionnaire::questions()), 'yes');
+        $answers['q23'] = 'no';
 
         return array_merge($answers, $overrides);
     }
@@ -106,7 +107,7 @@ class VendorBuyerLeadTest extends TestCase
         $lead = VendorBuyerLead::firstOrFail();
         $this->assertSame('Unarmed', $lead->service_type);
         $this->assertSame('80.00', (string) $lead->weekly_hours);
-        $this->assertSame('yes', $lead->qualification_answers['q23']);
+        $this->assertSame('no', $lead->qualification_answers['q23']);
         $this->actingAs($vendor)->get(route('vendor-buyer-leads.index'))->assertOk()->assertSee('Avery Buyer')->assertSee('Two officers covering the lobby');
         $this->actingAs($other)->get(route('vendor-buyer-leads.index'))->assertOk()->assertDontSee('Avery Buyer');
     }
@@ -258,6 +259,7 @@ class VendorBuyerLeadTest extends TestCase
         $this->assertSame('future_opportunity', BuyerQualificationQuestionnaire::deriveStatus($this->answers(['q11' => 'no']), $inWindow));
         $this->assertSame('hold_funding_or_approval_pending', BuyerQualificationQuestionnaire::deriveStatus($this->answers(['q3' => 'no']), $inWindow));
         $this->assertSame('hold_funding_or_approval_pending', BuyerQualificationQuestionnaire::deriveStatus($this->answers(['q18' => 'yes', 'q19' => 'no']), $inWindow));
+        $this->assertSame('hold_funding_or_approval_pending', BuyerQualificationQuestionnaire::deriveStatus($this->answers(['q23' => 'yes']), $inWindow));
         $this->assertSame('scope_development_needed', BuyerQualificationQuestionnaire::deriveStatus($this->answers(['q7' => 'no']), $inWindow));
         $this->assertSame('ready_for_qualification_meeting', BuyerQualificationQuestionnaire::deriveStatus($this->answers(['q19' => 'na', 'q22' => 'na']), $inWindow));
     }
