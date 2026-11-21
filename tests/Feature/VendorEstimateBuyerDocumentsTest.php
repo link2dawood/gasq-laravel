@@ -56,7 +56,7 @@ class VendorEstimateBuyerDocumentsTest extends TestCase
             'scope' => 'Lobby security.',
             'start_date' => now()->addDays(30)->toDateString(), 'service_end_date' => now()->addDays(395)->toDateString(),
             'hours_per_day' => 8, 'days_per_week' => 5, 'officers_per_shift' => 2, 'number_of_weeks' => 52,
-            'answers' => array_fill_keys(array_keys(BuyerQualificationQuestionnaire::questions()), 'yes'),
+            'answers' => array_merge(array_fill_keys(array_keys(BuyerQualificationQuestionnaire::questions()), 'yes'), ['q3a' => 'operating_budget', 'q9a' => 'standard']),
         ])->assertRedirect()->assertSessionHasNoErrors();
         $lead = VendorBuyerLead::firstOrFail();
         $this->actingAs($vendor);
