@@ -189,10 +189,11 @@ class BuyerQualificationQuestionnaire
             [
                 'title' => 'Payment and transition readiness',
                 'questions' => [
-                    self::question('q20', '20', 'Can your organization pay the required initial invoice before services begin?'),
+                    self::question('q20', '20', 'Can your organization pay the first 30-day invoice upfront, including direct labor and employer costs?'),
                     self::question('q21', '21', 'Is a security company currently providing services at this location?'),
                     self::question('q22', '22', "If replacing a provider, have you confirmed the existing contract's cancellation and notice requirements?", self::YES_NO_NA),
-                    self::question('q23', '23', 'Do you require the service provider have 30-45 days of working capital?'),
+                    // "Yes" is the concerning answer here (the vendor must float payroll), so it is the one flagged.
+                    self::question('q23', '23', 'Will your payment terms require the vendor to cover payroll for 30-45 days before receiving payment?', null, 'yes'),
                 ],
             ],
         ];
@@ -329,7 +330,7 @@ class BuyerQualificationQuestionnaire
                     'number' => $question['number'],
                     'text' => $question['text'],
                     'answer' => $question['options'][$value] ?? 'Not answered',
-                    'is_no' => $value === 'no',
+                    'is_no' => $value !== null && $value === ($question['flag_on'] ?? 'no'),
                 ];
             }
             $summary[] = ['title' => $section['title'], 'rows' => $rows];
@@ -353,13 +354,14 @@ class BuyerQualificationQuestionnaire
         return $items;
     }
 
-    private static function question(string $key, string $number, string $text, ?array $options = null): array
+    private static function question(string $key, string $number, string $text, ?array $options = null, string $flagOn = 'no'): array
     {
         return [
             'key' => $key,
             'number' => $number,
             'text' => $text,
             'options' => $options ?? self::YES_NO,
+            'flag_on' => $flagOn,
         ];
     }
 }
