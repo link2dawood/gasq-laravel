@@ -120,6 +120,14 @@ class VendorBuyerLeadController extends Controller
     public function store(Request $request, string $token)
     {
         $link = $this->resolveLink($token);
+
+        // The budget field is displayed as 2,500,000.00; strip formatting before validating.
+        if (is_string($request->input('approved_budget'))) {
+            $request->merge([
+                'approved_budget' => str_replace([',', '$', ' '], '', $request->input('approved_budget')),
+            ]);
+        }
+
         $data = $request->validate($this->rules($request), [], BuyerQualificationQuestionnaire::answerAttributes());
 
         $startDate = Carbon::parse($data['start_date']);

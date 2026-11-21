@@ -600,9 +600,12 @@
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Approved Budget Amount ($) <span class="text-danger">*</span></label>
-                    <input type="number" step="0.01" min="0" name="approved_budget_amount" class="form-control @error('approved_budget_amount') is-invalid @enderror" value="{{ old('approved_budget_amount', $prefill['approved_budget_amount'] ?? '') }}" placeholder="e.g. 120000" required>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text">$</span>
+                        <input type="text" inputmode="decimal" autocomplete="off" data-money maxlength="15" name="approved_budget_amount" class="form-control @error('approved_budget_amount') is-invalid @enderror" value="{{ old('approved_budget_amount', $prefill['approved_budget_amount'] ?? '') }}" placeholder="e.g. 2,500,000.00" required>
+                        @error('approved_budget_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                     <div class="form-text">Disclose your approved procurement budget. GASQ does not permit "hidden budget" solicitations.</div>
-                    @error('approved_budget_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Buyer Selection Method <span class="text-danger">*</span></label>
@@ -1187,3 +1190,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+
+@push('scripts')
+    @include('partials.money-input-script')
+@endpush

@@ -94,8 +94,11 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="approved_budget">Approved budget ($) *</label>
-                    <input class="form-control @error('approved_budget') is-invalid @enderror" id="approved_budget" name="approved_budget" type="number" min="0.01" step="0.01" max="99999999" value="{{ old('approved_budget') }}" required>
-                    @error('approved_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="input-group has-validation">
+                        <span class="input-group-text">$</span>
+                        <input class="form-control @error('approved_budget') is-invalid @enderror" id="approved_budget" name="approved_budget" type="text" inputmode="decimal" autocomplete="off" data-money maxlength="15" placeholder="2,500,000.00" value="{{ old('approved_budget') }}" required>
+                        @error('approved_budget')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label" for="approved_budget_basis">The approved budget is *</label>
@@ -208,3 +211,7 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+    @include('partials.money-input-script')
+@endpush
