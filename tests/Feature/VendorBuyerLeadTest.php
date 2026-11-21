@@ -44,6 +44,8 @@ class VendorBuyerLeadTest extends TestCase
     {
         $answers = array_fill_keys(array_keys(BuyerQualificationQuestionnaire::questions()), 'yes');
         $answers['q23'] = 'no';
+        $answers['q3a'] = 'operating_budget';
+        $answers['q9a'] = 'standard';
 
         return array_merge($answers, $overrides);
     }

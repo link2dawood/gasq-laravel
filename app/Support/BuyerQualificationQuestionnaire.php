@@ -24,6 +24,22 @@ class BuyerQualificationQuestionnaire
 
     public const YES_NO_NA = ['yes' => 'Yes', 'no' => 'No', 'na' => 'N/A'];
 
+    /** Where the security budget comes from (question 3a). Informational, never flagged. */
+    public const FUNDING_SOURCES = [
+        'operating_budget' => 'Operating budget',
+        'grant' => 'Grant',
+        'appropriation' => 'Appropriation',
+        'other_unsure' => 'Other / not sure yet',
+    ];
+
+    /** Wage basis the contract must follow (question 9a). Informational, never flagged. */
+    public const WAGE_REQUIREMENTS = [
+        'standard' => 'Standard market wages',
+        'prevailing' => 'Prevailing wage',
+        'union' => 'Union / collective agreement',
+        'not_sure' => 'Not sure yet',
+    ];
+
     /** Service types offered on the form, plus a free-text "Other". */
     public const SERVICE_TYPES = [
         'armed' => 'Armed',
@@ -157,6 +173,7 @@ class BuyerQualificationQuestionnaire
                     self::question('q1', '1', 'Are you authorized to select the security company and sign the service agreement?'),
                     self::question('q2', '2', 'Do you have authority to approve the security budget?'),
                     self::question('q3', '3', 'Has funding for the security services been approved?'),
+                    self::question('q3a', '3a', 'What is the source of the security funding?', self::FUNDING_SOURCES, null),
                     self::question('q4', '4', 'Can you provide the approved budget amount for the requested coverage?'),
                     self::question('q5', '5', 'Can all required decision-makers attend a brief scope review discovery/Zoom call before an estimate is prepared?'),
                     self::question('q5a', '5a', 'Do you require 3 bids or more?'),
@@ -169,6 +186,7 @@ class BuyerQualificationQuestionnaire
                     self::question('q7', '7', 'Have you identified the duties the security personnel will perform?'),
                     self::question('q8', '8', 'Have you determined whether armed or unarmed officers are required?'),
                     self::question('q9', '9', 'Have you established the coverage hours, days, and number of officers required per shift?'),
+                    self::question('q9a', '9a', 'Does the contract require prevailing wage, union, or other mandated wage rates?', self::WAGE_REQUIREMENTS, null),
                     self::question('q10', '10', 'Is there a confirmed target start date?'),
                     self::question('q11', '11', 'Is the project scheduled to begin within the next 45 days?'),
                     self::question('q12', '12', 'Have you established the anticipated service duration or end date?'),
@@ -332,7 +350,7 @@ class BuyerQualificationQuestionnaire
                     'number' => $question['number'],
                     'text' => $question['text'],
                     'answer' => $question['options'][$value] ?? 'Not answered',
-                    'is_no' => $value !== null && $value === ($question['flag_on'] ?? 'no'),
+                    'is_no' => $value !== null && $value === $question['flag_on'],
                 ];
             }
             $summary[] = ['title' => $section['title'], 'rows' => $rows];
@@ -356,7 +374,7 @@ class BuyerQualificationQuestionnaire
         return $items;
     }
 
-    private static function question(string $key, string $number, string $text, ?array $options = null, string $flagOn = 'no'): array
+    private static function question(string $key, string $number, string $text, ?array $options = null, ?string $flagOn = 'no'): array
     {
         return [
             'key' => $key,
