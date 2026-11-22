@@ -43,17 +43,17 @@
                 @foreach($invitations as $invitation)
                 <tr>
                     <td>{{ $invitation->buyer_name }}<br><span class="small text-muted">{{ $invitation->buyer_email }}</span></td>
-                    <td class="small">{{ $invitation->sent_at?->format('M j, Y g:i A') }}</td>
+                    <td class="small">{{ $invitation->sent_at ? \App\Support\ReportClock::stamp($invitation->sent_at) : '' }}</td>
                     <td><span class="badge bg-{{ $invitation->statusBadge() }}">{{ $invitation->statusLabel() }}</span></td>
                     <td class="small">
                         @if($invitation->opened_at)
-                            {{ $invitation->opened_at->format('M j, Y g:i A') }}
+                            {{ \App\Support\ReportClock::stamp($invitation->opened_at) }}
                             @if($invitation->open_count > 1)<br><span class="text-muted">{{ $invitation->open_count }} visits</span>@endif
                         @else
                             <span class="text-muted">Not yet</span>
                         @endif
                         @if($invitation->completed_at)
-                            <br><span class="text-success">Completed {{ $invitation->completed_at->format('M j, Y g:i A') }}</span>
+                            <br><span class="text-success">Completed {{ \App\Support\ReportClock::stamp($invitation->completed_at) }}</span>
                         @endif
                     </td>
                 </tr>
@@ -86,7 +86,7 @@
                 <span class="badge bg-secondary">{{ \App\Models\VendorBuyerLead::STATUSES[$lead->status] }}</span>
             </div>
         </div>
-        <p class="small text-muted">Received {{ $lead->created_at->format('M j, Y g:i A') }}</p>
+        <p class="small text-muted">Received {{ \App\Support\ReportClock::stamp($lead->created_at) }}</p>
         @if($lead->qualification_status)<p class="small text-muted mb-3">{{ $lead->qualificationStatusGuidance() }}</p>@endif
         <p><strong>Email:</strong> <a href="mailto:{{ $lead->email }}">{{ $lead->email }}</a><br><strong>Phone:</strong> {{ $lead->phone }}@if($lead->preferred_contact_method)<br><strong>Prefers:</strong> {{ \App\Support\BuyerQualificationQuestionnaire::CONTACT_METHODS[$lead->preferred_contact_method] ?? 'Not supplied' }}@endif</p>
         @if($lead->decision_maker_name)<p><strong>Authorized decision-maker:</strong> {{ $lead->decision_maker_name }}<br><strong>Decision-maker phone:</strong> {{ $lead->decision_maker_phone ?: 'Not supplied' }}<br><strong>Decision-maker email:</strong> {{ $lead->decision_maker_email ?: 'Not supplied' }}</p>@endif

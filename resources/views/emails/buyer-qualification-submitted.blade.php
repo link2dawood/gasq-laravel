@@ -3,7 +3,7 @@
 <body style="font-family: Arial, Helvetica, sans-serif; color:#222; line-height:1.6; max-width:680px; margin:0 auto; padding:24px;">
 
 <h2 style="margin:0 0 4px;">GASQ Buyer Intake Form</h2>
-<p style="color:#666;margin:0 0 20px;">Know Before You Buy. Submitted {{ $lead->created_at->format('M j, Y g:i A') }} through {{ $vendorCompanyName }}'s private invitation link.</p>
+<p style="color:#666;margin:0 0 20px;">Know Before You Buy. Submitted {{ \App\Support\ReportClock::stamp($lead->created_at) }} through {{ $vendorCompanyName }}'s private invitation link.</p>
 
 @if($forBuyer)
 <p style="margin:0 0 24px;padding:12px 16px;border-left:4px solid #198754;background:#f2faf5;">
