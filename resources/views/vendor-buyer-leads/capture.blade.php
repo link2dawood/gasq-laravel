@@ -3,21 +3,8 @@
 @push('styles')
 <style>
     @media print {
-        @page { margin: 0.6in; }
-        body { background: #fff !important; font-size: 11pt; }
-        header, nav, footer, .navbar, .d-print-none { display: none !important; }
-        .container { max-width: 100% !important; padding: 0 !important; }
-        a[href]:after { content: none !important; }
-        h1 { font-size: 18pt; }
-        h2, .h4 { font-size: 13pt; margin-top: 14pt !important; break-after: avoid; }
-        fieldset { break-inside: auto; border: 1px solid #999 !important; }
-        legend { break-after: avoid; }
-        .row.align-items-start { break-inside: avoid; }
-        .form-control, .form-select { border: 0 !important; border-bottom: 1px solid #555 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; padding-left: 0; min-height: 1.6em; -webkit-appearance: none; appearance: none; }
-        textarea.form-control { min-height: 4.5em; border: 1px solid #555 !important; padding: 4pt; }
-        .form-check-input { -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #000 !important; }
-        .form-check-input:checked { background-color: #000 !important; border-color: #000 !important; }
-        .input-group-text { background: transparent !important; border: 0 !important; padding-right: 2pt; }
+        body * { display: none !important; }
+        body::before { content: "This form cannot be printed. Please complete and submit it online."; display: block; font: 14pt sans-serif; padding: 1in; }
     }
 </style>
 @endpush
@@ -36,13 +23,12 @@
         <a href="{{ route('buyer-enquiries.show', $link->token) }}" class="btn btn-outline-primary">Submit another form</a>
     @else
         <p>Complete this form for {{ $returnToCompany }}. No account is required.</p>
-        <div class="alert alert-info d-print-none" role="note">
+        <div class="alert alert-info" role="note">
             <strong class="d-block">Where this form is returned</strong>
-            When you submit, your completed form is returned directly to <strong>{{ $returnToName }}</strong> at <a href="mailto:{{ $returnToEmail }}">{{ $returnToEmail }}</a>, and a copy is emailed to you for your records. You do not need to attach or send anything yourself. You can also print a blank or filled-in copy with the button below.
+            When you submit, your completed form is returned directly to <strong>{{ $returnToName }}</strong> at <a href="mailto:{{ $returnToEmail }}">{{ $returnToEmail }}</a>, and a copy is emailed to you for your records. There is nothing to print, attach or send yourself.
         </div>
         <p class="text-muted">All information below is required. A "No" answer does not disqualify your project: it tells us what to clarify with you before an estimate is prepared. If your budget or service requirements are still being developed, say so in the scope of services box below.</p>
         @if($errors->any())<div class="alert alert-danger" role="alert">Please complete the highlighted fields. Every question must be answered.</div>@endif
-        <div class="d-print-none mb-3"><button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">Print this form</button></div>
         <form method="POST" action="{{ route('buyer-enquiries.store', $link->token) }}">
             @csrf
             @if($inviteKey)<input type="hidden" name="invite_key" value="{{ $inviteKey }}">@endif
@@ -228,11 +214,8 @@
             </fieldset>
             @endforeach
 
-            <p class="small text-muted mt-4 d-print-none">Submitting returns your completed form to {{ $returnToName }} at {{ $returnToEmail }}, sends a copy to your own email address, and files a copy with GASQ. It is used to qualify your project and prepare an estimate.</p>
-            <div class="d-print-none d-flex flex-wrap gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">Submit and return this form</button>
-                <button type="button" class="btn btn-outline-secondary btn-lg" onclick="window.print()">Print this form</button>
-            </div>
+            <p class="small text-muted mt-4">Submitting returns your completed form to {{ $returnToName }} at {{ $returnToEmail }}, sends a copy to your own email address, and files a copy with GASQ. It is used to qualify your project and prepare an estimate.</p>
+            <button type="submit" class="btn btn-primary btn-lg">Submit and return this form</button>
         </form>
     @endif
 </div>
@@ -240,4 +223,22 @@
 
 @push('scripts')
     @include('partials.money-input-script')
+    <script>
+    (function () {
+        // Deterrent only: discourages printing and casual inspection of the form page.
+        var editable = function (el) { return el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName); };
+        document.addEventListener('contextmenu', function (e) { if (!editable(e.target)) { e.preventDefault(); } });
+        document.addEventListener('keydown', function (e) {
+            var k = (e.key || '').toLowerCase(), mod = e.ctrlKey || e.metaKey;
+            if (k === 'f12'
+                || (mod && k === 'p')
+                || (mod && k === 'u')
+                || (mod && e.shiftKey && ['i', 'j', 'c'].indexOf(k) !== -1)
+                || (e.metaKey && e.altKey && ['i', 'j', 'c', 'u'].indexOf(k) !== -1)) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+    })();
+    </script>
 @endpush
